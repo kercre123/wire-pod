@@ -6,9 +6,9 @@ if [[ ! -d ./chipper ]]; then
 fi
 
 git pull
-cd chipper
-./build.sh
-cd ..
+#cd chipper
+#./build.sh
+#cd ..
 echo
 echo "Updated!"
 echo

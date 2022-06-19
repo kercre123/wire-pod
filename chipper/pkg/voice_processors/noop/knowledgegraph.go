@@ -267,6 +267,21 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 				}
 			}
 		}
+		if transcription2 == "" && transcription3 != "" {
+			if transcription4 != "" {
+				if transcription3 == transcription4 {
+					log.Println("Speech stopped, 4: " + transcription4)
+					transcribedText = transcription4
+					die = true
+					break
+				} else {
+					log.Println("Speech stopped, 4 (nm): " + transcription4)
+					transcribedText = transcription4
+					die = true
+					break
+				}
+			}
+		}
 		if transcription4 == "" && successMatch == true {
 			transcribedText = ""
 			break
