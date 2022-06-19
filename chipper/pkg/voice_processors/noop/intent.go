@@ -63,9 +63,10 @@ func check(e error) {
 	TODO:
 	1. Implement jdocs. These are files which are stored on the bot which contain the bot's
 	default location, unit settings, etc. Helpful for weather.
-	2. Convert from ogg to wav in golang rather than in the shell (https://github.com/digital-dream-labs/opus-go)
+		- workaround, ask the user for settings during setup.sh
 	3. Overall take shell out of the picture (https://github.com/asticode/go-asticoqui)
 	4. Maybe find a way to detect silence in the audio for better end handling.
+		- probably unnecessary
 */
 
 func getWeather(location string) (string, string, string, string, string, string) {
@@ -443,38 +444,34 @@ func bytesToInt(stream opus.OggStream, data []byte, numBot int, voiceTimer int, 
 	f.Write(n)
 	if voiceTimer == 1 {
 		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice1.wav"); err == nil {
-			//log.Println("/tmp/" + strconv.Itoa(numBot) + "voice1.wav exists")
+			//
 		} else {
 			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice1.wav")
 			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped1")
-			//log.Println("Dumped Voice 1")
 		}
 	}
 	if voiceTimer == 2 {
 		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice2.wav"); err == nil {
-			//log.Println("/tmp/" + strconv.Itoa(numBot) + "voice2.wav exists")
+			//
 		} else {
 			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice2.wav")
 			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped2")
-			//log.Println("Dumped Voice 2")
 		}
 	}
 	if voiceTimer == 3 {
 		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice3.wav"); err == nil {
-			//log.Println("/tmp/" + strconv.Itoa(numBot) + "voice3.wav exists")
+			//
 		} else {
 			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice3.wav")
 			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped3")
-			//log.Println("Dumped Voice 3")
 		}
 	}
 	if voiceTimer == 4 {
 		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice4.wav"); err == nil {
-			//log.Println("/tmp/" + strconv.Itoa(numBot) + "voice4.wav exists")
+			//
 		} else {
 			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice4.wav")
 			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped4")
-			//log.Println("Dumped Voice 4")
 		}
 	}
 	if err != nil {

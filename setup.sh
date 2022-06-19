@@ -47,7 +47,7 @@ function getPackages() {
       echo "Installing required packages (ffmpeg, golang, wget, openssl, net-tools, iproute2, sox, opus)"
       if [[ ${TARGET} == "debian" ]]; then
          apt update -y
-         apt install -y ffmpeg wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils
+         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev
       elif [[ ${TARGET} == "arch" ]]; then
          pacman -Sy --noconfirm
          sudo pacman -S --noconfirm ffmpeg wget openssl net-tools sox opus make iproute2
@@ -109,8 +109,7 @@ function buildChipper() {
       echo
       touch slowsys
    fi
-   ./build.sh
-   echo "./chipper/chipper built!"
+   echo "This is a no-op until the build issues are figured out. It uses `go run` for now."
    echo
    cd ..
 }

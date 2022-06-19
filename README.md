@@ -1,6 +1,8 @@
-# jank-escape-pod
+# wire-pod
 
 This repo contains a custom Vector escape pod made from [chipper](https://github.com/digital-dream-labs/chipper) and [vector-cloud](https://github.com/digital-dream-labs/vector-cloud).
+
+This used to be called jank-escape-pod, but at this point I don't qualify it as fully jank, so I gave it a new name.
 
 ## Program Descriptions
 
@@ -70,7 +72,6 @@ Architecture Support:
 Things It Has Worked On:
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
-	- Very fast, recommended platform
 	- Doesn't matter if it is 32-bit or 64-bit
 - Raspberry Pi 4B+ 4GB RAM with Manjaro 22.04
 - Nintendo Switch with L4T Ubuntu
@@ -94,8 +95,6 @@ General Notes:
 Known Issues:
 
 - ARM processing is slow until I find a good way to deal with the end of speech on (comparatively) slow hardware.
-- The audio stream is a little cut off at the beginning.
-	- This may be an issue with vector-cloud/chipper itself, it seems to happen in normal operation with the prod servers too.
 
 Current Implemented Actions:
 
