@@ -109,7 +109,7 @@ function buildChipper() {
       echo
       touch slowsys
    fi
-   echo "This is a no-op until the build issues are figured out. It uses `go run` for now."
+   echo "This is a no-op until the build issues are figured out. It uses 'go run' for now."
    echo
    cd ..
 }
