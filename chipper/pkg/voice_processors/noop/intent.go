@@ -500,6 +500,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	}
 	matched = 0
 	botNum = botNum + 1
+	var justThisBotNum int = botNum
 	if debugLogging == true {
 		log.Println("Stream " + strconv.Itoa(botNum) + " opened.")
 	}
@@ -521,51 +522,51 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		time.Sleep(time.Millisecond * 500)
 		for voiceTimer < 7 {
 			if processOne == false {
-				if _, err := os.Stat("/tmp/" + strconv.Itoa(botNum) + "dumped1"); err == nil {
+				if _, err := os.Stat("/tmp/" + strconv.Itoa(justThisBotNum) + "dumped1"); err == nil {
 					processOne = true
-					process1 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(botNum)+"voice1.wav")
+					process1 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(justThisBotNum)+"voice1.wav")
 					process1out, err := process1.Output()
 					if err != nil {
 						//
 					}
 					transcription1 = strings.TrimSpace(string(process1out))
-					log.Println("1: " + transcription1)
+					log.Println(strconv.Itoa(justThisBotNum) + ", 1: " + transcription1)
 				}
 			}
 			if processTwo == false {
-				if _, err := os.Stat("/tmp/" + strconv.Itoa(botNum) + "dumped2"); err == nil {
+				if _, err := os.Stat("/tmp/" + strconv.Itoa(justThisBotNum) + "dumped2"); err == nil {
 					processTwo = true
-					process2 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(botNum)+"voice2.wav")
+					process2 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(justThisBotNum)+"voice2.wav")
 					process2out, err := process2.Output()
 					if err != nil {
 						//
 					}
 					transcription2 = strings.TrimSpace(string(process2out))
-					log.Println("2: " + transcription2)
+					log.Println(strconv.Itoa(justThisBotNum) + ", 2: " + transcription2)
 				}
 			}
 			if processThree == false {
-				if _, err := os.Stat("/tmp/" + strconv.Itoa(botNum) + "dumped3"); err == nil {
+				if _, err := os.Stat("/tmp/" + strconv.Itoa(justThisBotNum) + "dumped3"); err == nil {
 					processThree = true
-					process3 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(botNum)+"voice3.wav")
+					process3 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(justThisBotNum)+"voice3.wav")
 					process3out, err := process3.Output()
 					if err != nil {
 						//
 					}
 					transcription3 = strings.TrimSpace(string(process3out))
-					log.Println("3: " + transcription3)
+					log.Println(strconv.Itoa(justThisBotNum) + ", 3: " + transcription3)
 				}
 			}
 			if processFour == false {
-				if _, err := os.Stat("/tmp/" + strconv.Itoa(botNum) + "dumped4"); err == nil {
+				if _, err := os.Stat("/tmp/" + strconv.Itoa(justThisBotNum) + "dumped4"); err == nil {
 					processFour = true
-					process4 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(botNum)+"voice4.wav")
+					process4 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(justThisBotNum)+"voice4.wav")
 					process4out, err := process4.Output()
 					if err != nil {
 						//
 					}
 					transcription4 = strings.TrimSpace(string(process4out))
-					log.Println("4: " + transcription4)
+					log.Println(strconv.Itoa(justThisBotNum) + ", 4: " + transcription4)
 					successMatch = true
 				}
 			}
@@ -633,7 +634,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 			break
 		}
 		data = append(data, chunk.InputAudio...)
-		go bytesToInt(stream, data, botNum, voiceTimer, die)
+		go bytesToInt(stream, data, justThisBotNum, voiceTimer, die)
 	}
 	processTextAll(req, transcribedText, matchListList, intentsList)
 	exec.Command("/bin/rm", "/tmp/"+strconv.Itoa(botNum)+"voice.pcm").Run()
