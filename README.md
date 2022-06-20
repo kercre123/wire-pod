@@ -2,8 +2,6 @@
 
 This repo contains a custom Vector escape pod made from [chipper](https://github.com/digital-dream-labs/chipper) and [vector-cloud](https://github.com/digital-dream-labs/vector-cloud).
 
-This used to be called jank-escape-pod, but at this point I don't qualify it as fully jank, so I gave it a new name.
-
 ## Program Descriptions
 
 `chipper` - Chipper is a program used on Digital Dream Lab's servers which takes in a Vector's voice stream, puts it into a speech-to-text processor, and spits out an intent. This is also likely used on the official escape pod. This repo contains an older tree of chipper which does not have the "intent graph" feature (it caused an error upon every new stream), and it now has a working voice processor.
@@ -19,8 +17,8 @@ NOTE: This only works with OSKR-unlocked, Dev-unlocked, or Whiskey robots.
 (This currently only works on Arch or Debian-based Linux)
 
 ```
-git clone https://github.com/kercre123/jank-escape-pod.git
-cd jank-escape-pod
+git clone https://github.com/kercre123/wire-pod.git
+cd wire-pod
 sudo ./setup.sh
 
 # You should be able to just press enter for all of the settings
@@ -61,15 +59,20 @@ After all of that, try a voice command.
 OS Support:
 
 - Arch
+	- Untested at the moment, not sure what package provides libopusfile-dev
 - Debian/Ubuntu/other APT distros
 
 Architecture Support:
 
 - amd64/x86_64
 - arm64/aarch64
+	- Not recommended at the moment!
 - arm32/armv7l
+	- Not recommended at the moment!
 
-Things It Has Worked On:
+Things jank-escape-pod Has Worked On:
+
+- NOTE: Re-adding arm support is still being worked on.
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
 	- Doesn't matter if it is 32-bit or 64-bit
@@ -155,6 +158,10 @@ Current Implemented Actions:
 - Fetch the cube
 - Find the cube
 - Do a trick
+- Record a message for <name>
+	- Enable `Messaging` feature in webViz Features tab
+- Play a message for <name>
+	- Enable `Messaging` feature in webViz Features tab
 
 ## Credits
 
