@@ -59,9 +59,9 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		}
 	}
 	botNum = botNum + 1
-	log.Println("Bot " + strconv.Itoa(botNum) + " " + req.Device)
-	log.Println("Bot " + strconv.Itoa(botNum) + " " + req.Session)
-	log.Println("Bot " + strconv.Itoa(botNum) + " " + req.LangString)
+	log.Println("Bot " + strconv.Itoa(botNum) + " ESN: " + req.Device)
+	log.Println("Bot " + strconv.Itoa(botNum) + " Session: " + req.Session)
+	log.Println("Bot " + strconv.Itoa(botNum) + " Language: " + req.LangString)
 	var justThisBotNum int = botNum
 	if debugLogging == true {
 		log.Println("Stream " + strconv.Itoa(botNum) + " opened.")

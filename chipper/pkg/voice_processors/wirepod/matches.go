@@ -49,8 +49,8 @@ var questionList = []string{"question", "weston"}
 var checkTimerList = []string{"check timer", "check the timer", "check the time her", "check time her",
 	"check time her", "check time of her", "checked the timer", "checked the time her", "checked the time of her"}
 var stopTimerList = []string{"stop timer", "stop clock", "stop be", "stopped t", "stopped be", "stopped at", "stop the"}
-var timerList = []string{"timer", "time for", "time of for", "time or"}
-var timeList = []string{"time is it", "the time", "what time", "time of", "clock"}
+var timerList = []string{"timer", "time for", "time of for", "time or", "time of"}
+var timeList = []string{"time is it", "the time", "what time", "clock"}
 var quietList = []string{"quiet", "stop"}
 var danceList = []string{"dance", "dancing", "thence"}
 var pickUpList = []string{"pickup", "pick up", "bring to me", "bring me", "the beat", "boogie"}
