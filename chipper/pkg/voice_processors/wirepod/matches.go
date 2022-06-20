@@ -1,4 +1,4 @@
-package noop
+package wirepod
 
 // This is where you can add intents and more possible utterances for intents
 
@@ -45,7 +45,7 @@ var shutUpList = []string{"shut up"}
 var helloList = []string{"hello", "are you", "high", "below", "little", "follow"}
 var comeList = []string{"come", "to me"}
 var loveList = []string{"love", "dove"}
-var questionList = []string{"question"}
+var questionList = []string{"question", "weston"}
 var checkTimerList = []string{"check timer", "check the timer", "check the time her", "check time her",
 	"check time her", "check time of her", "checked the timer", "checked the time her", "checked the time of her"}
 var stopTimerList = []string{"stop timer", "stop clock", "stop be", "stopped t", "stopped be", "stopped at", "stop the"}
@@ -57,6 +57,8 @@ var pickUpList = []string{"pickup", "pick up", "bring to me", "bring me", "the b
 var fetchCubeList = []string{"fetch your cu", "fetch cu", "fetch the cu"}
 var findCubeList = []string{"your cu", "the cu"}
 var trickList = []string{"trick", "something cool", "some thing cool"}
+var recordMessageList = []string{"record"}
+var playMessageList = []string{"play message", "play method", "play a message", "play a method"}
 
 // make sure intentsList perfectly matches up with matchListList
 
@@ -72,7 +74,8 @@ var intentsList = []string{"intent_names_username_extend", "intent_names_ask", "
 	"intent_imperative_shutup", "intent_greeting_hello", "intent_imperative_come", "intent_imperative_love",
 	"intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend",
 	"intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube",
-	"intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick"}
+	"intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend",
+	"intent_message_playmessage_extend"}
 
 var matchListList = [][]string{meetVictorList, nameAskList, eyeColorList, howOldList, exploreStartList,
 	chargerList, sleepList, morningList, nightList, byeList,
@@ -81,4 +84,5 @@ var matchListList = [][]string{meetVictorList, nameAskList, eyeColorList, howOld
 	negativeList, photoList, praiseList, abuseList, weatherList, apologizeList,
 	backupList, volumeDownList, volumeUpList, lookAtMeList, volumeSpecificList,
 	shutUpList, helloList, comeList, loveList, questionList, checkTimerList, stopTimerList,
-	timerList, timeList, quietList, danceList, pickUpList, fetchCubeList, findCubeList, trickList}
+	timerList, timeList, quietList, danceList, pickUpList, fetchCubeList, findCubeList, trickList,
+	recordMessageList, playMessageList}

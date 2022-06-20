@@ -3,7 +3,7 @@ package main
 import (
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/noop"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
 	warnlog "log"
@@ -56,7 +56,7 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	p, err := noop.New()
+	p, err := wirepod.New()
 	if err != nil {
 		log.Fatal(err)
 	}

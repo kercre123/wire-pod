@@ -1,4 +1,4 @@
-package noop
+package wirepod
 
 const (
 	// FallbackIntent is the failure-mode intent response

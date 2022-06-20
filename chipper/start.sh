@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root. sudo ./start.sh"
-   exit 1
+  echo "This script must be run as root. sudo ./start.sh"
+  exit 1
 fi
 
 if [[ -d ./chipper ]]; then
@@ -26,4 +26,4 @@ fi
 source source.sh
 
 #./chipper
-go run cmd/main.go
+/usr/local/go/bin/go run cmd/main.go
