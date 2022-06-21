@@ -36,10 +36,6 @@ func check(e error) {
 */
 
 func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
-	if _, err := os.Stat("./slowsys"); err == nil {
-		log.Println("slowsys file found")
-		slowSys = true
-	}
 	var voiceTimer int = 0
 	var transcription1 string = ""
 	var transcription2 string = ""
@@ -65,6 +61,10 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	var justThisBotNum int = botNum
 	if debugLogging == true {
 		log.Println("Stream " + strconv.Itoa(botNum) + " opened.")
+	}
+	if _, err := os.Stat("./slowsys"); err == nil {
+		log.Println("slowsys file found. This will cause processing to be slower but more reliable.")
+		slowSys = true
 	}
 	data := []byte{}
 	data = append(data, req.FirstReq.InputAudio...)
@@ -135,7 +135,23 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 				}
 			}
 		} else {
-			//idk
+			for voiceTimer < 7 {
+				if voiceTimer > 3 {
+					if processFour == false {
+						if _, err := os.Stat("/tmp/" + strconv.Itoa(justThisBotNum) + "dumped4"); err == nil {
+							processFour = true
+							process4 := exec.Command("../stt/stt", "--model", "../stt/model.tflite", "--scorer", "../stt/large_vocabulary.scorer", "--audio", "/tmp/"+strconv.Itoa(justThisBotNum)+"voice4.wav")
+							process4out, err := process4.Output()
+							if err != nil {
+								//
+							}
+							transcription4 = strings.TrimSpace(string(process4out))
+							log.Println("(slowsys): Bot " + strconv.Itoa(justThisBotNum) + ", Transcription 1: " + transcription4)
+							successMatch = true
+						}
+					}
+				}
+			}
 		}
 	}()
 	for {
@@ -146,58 +162,73 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 				break
 			}
 		}
-		if transcription2 != "" {
-			if transcription1 == transcription2 {
-				log.Println("Speech stopped, 2: " + transcription1)
-				transcribedText = transcription1
-				die = true
-				break
-			} else if transcription2 != "" {
-				if transcription2 == transcription3 {
-					log.Println("Speech stopped, 3: " + transcription2)
-					transcribedText = transcription2
+		if slowSys == false {
+			if transcription2 != "" {
+				if transcription1 == transcription2 {
+					log.Println("Speech stopped, 2: " + transcription1)
+					transcribedText = transcription1
 					die = true
 					break
-				} else if transcription3 != "" {
-					if transcription3 == transcription4 {
-						log.Println("Speech stopped, 4: " + transcription3)
-						transcribedText = transcription3
+				} else if transcription2 != "" {
+					if transcription2 == transcription3 {
+						log.Println("Speech stopped, 3: " + transcription2)
+						transcribedText = transcription2
 						die = true
 						break
-					} else if transcription4 != "" {
+					} else if transcription3 != "" {
 						if transcription3 == transcription4 {
-							log.Println("Speech stopped, 4: " + transcription4)
-							transcribedText = transcription4
+							log.Println("Speech stopped, 4: " + transcription3)
+							transcribedText = transcription3
 							die = true
 							break
-						} else {
-							log.Println("Speech stopped, 4 (nm): " + transcription4)
-							transcribedText = transcription4
-							die = true
-							break
+						} else if transcription4 != "" {
+							if transcription3 == transcription4 {
+								log.Println("Speech stopped, 4: " + transcription4)
+								transcribedText = transcription4
+								die = true
+								break
+							} else {
+								log.Println("Speech stopped, 4 (nm): " + transcription4)
+								transcribedText = transcription4
+								die = true
+								break
+							}
 						}
 					}
 				}
 			}
-		}
-		if transcription2 == "" && transcription3 != "" {
-			if transcription4 != "" {
-				if transcription3 == transcription4 {
-					log.Println("Speech stopped, 4: " + transcription4)
-					transcribedText = transcription4
-					die = true
-					break
-				} else {
-					log.Println("Speech stopped, 4 (nm): " + transcription4)
-					transcribedText = transcription4
-					die = true
-					break
+			if transcription2 == "" && transcription3 != "" {
+				if transcription4 != "" {
+					if transcription3 == transcription4 {
+						log.Println("Speech stopped, 4: " + transcription4)
+						transcribedText = transcription4
+						die = true
+						break
+					} else {
+						log.Println("Speech stopped, 4 (nm): " + transcription4)
+						transcribedText = transcription4
+						die = true
+						break
+					}
 				}
 			}
-		}
-		if transcription4 == "" && successMatch == true {
-			transcribedText = ""
-			break
+			if transcription3 == "" && transcription4 != "" {
+				log.Println("Speech stopped, 4 (nm): " + transcription4)
+				transcribedText = transcription4
+				die = true
+				break
+			}
+			if transcription4 == "" && successMatch == true {
+				transcribedText = ""
+				die = true
+				break
+			}
+		} else {
+			if transcription4 != "" {
+				transcribedText = transcription4
+				die = true
+				break
+			}
 		}
 		data = append(data, chunk.InputAudio...)
 		go bytesToInt(stream, data, justThisBotNum, voiceTimer, die)

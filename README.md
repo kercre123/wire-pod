@@ -8,11 +8,15 @@ This repo contains a custom Vector escape pod made from [chipper](https://github
 
 `vector-cloud` - Vector-cloud is the program which runs on Vector himself which uploads the mic stream to a chipper instance. This repo has an older tree of vector-cloud which also does not have the "intent graph" feature and has been modified to allow for a custom CA cert.
 
+## System Requirements
+
+A CPU with AVX support is required. Check [https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX)
+
 ## Configuring, Building, Installing
 
 NOTE: This only works with OSKR-unlocked, Dev-unlocked, or Whiskey robots.
 
-`setup.sh` is a prompt-script which guides you through the installation. It can install all necessary packages, get the speech-to-text software, create SSL certificates (with the address/port given), build vector-cloud, build chipper, create a new server config file for Vector, and allow you to copy the new vic-cloud and server config into him.
+### Linux
 
 (This currently only works on Arch or Debian-based Linux)
 
@@ -47,32 +51,46 @@ cd chipper
 sudo ./start.sh
 ```
 
+### Windows
+
+1. Install WSL (Windows Subsystem for Linux)
+	- Open Powershell
+	- Run `wsl --install`
+	- Reboot the system
+	- Run `wsl --install -d Ubuntu-20.04`
+	- Open up Ubuntu 20.04 in start menu and configure it like it says.
+2. Find IP address
+	- Open Powershell
+	- Run `ipconfig`
+	- Find your computer's IPv4 address and note it somewhere. It usually starts with 10.0. or 192.168.
+3. Install wire-pod
+	- Follow the Linux instructions from above
+	- Enter the IP you got from `ipconfig` earlier instead of the one provided by setup.sh
+	- Use the default port and do not enter a different one
+4. Setup firewall rules
+	- Open Powershell
+	- Run `Set-ExecutionPolicy`
+	- When it asks, enter `Bypass`
+	- Download [this file](https://wire.my.to/wsl-firewall.ps1)
+	- Go to your Downloads folder in File Explorer and Right Click -> Run as administrator
+
+
 After all of that, try a voice command.
-
-## Speech Tips
-
-- You have to speak loud and clear for chipper to understand.
-- You also need to wait a little longer after Vector's ding (after "hey vector" is said) before saying the rest of the command than you would expect. Maybe a half a second longer. This is an issue and is being worked on.
 
 ## Status
 
 OS Support:
 
 - Arch
-	- Untested at the moment, not sure what package provides libopusfile-dev
 - Debian/Ubuntu/other APT distros
 
 Architecture Support:
 
 - amd64/x86_64
 - arm64/aarch64
-	- Not recommended at the moment!
 - arm32/armv7l
-	- Not recommended at the moment!
 
 Things jank-escape-pod Has Worked On:
-
-- NOTE: Re-adding arm support is still being worked on.
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
 	- Doesn't matter if it is 32-bit or 64-bit
@@ -94,6 +112,7 @@ General Notes:
 	- Run `./setup.sh` with the 5th and 6th option to change the port, you will need to push files to the bot again.
 - If you want to disable logging from the voice processor, recompile chipper with `debugLogging` in ./chipper/pkg/voice_processors/noop/intent.go set to `false`.
 - Some weather conditions don't match the bot's internal response map, so sometimes Vector won't be able to give you the weather until I make my own response map.
+- You have to speak a little slower than normal for Coqui STT to understand you.
 
 Known Issues:
 

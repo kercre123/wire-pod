@@ -3,6 +3,7 @@
 echo
 
 UNAME=$(uname -a)
+CPUINFO=$(cat /proc/cpuinfo)
 
 if [[ -f /usr/bin/apt ]]; then
    TARGET="debian"
@@ -39,6 +40,16 @@ if [[ ! -d ./chipper ]]; then
    exit 1
 fi
 
+if [[ $1 != "-f" ]]; then
+   if [[ "${CPUINFO}" == *"avx"* ]]; then
+      echo "AVX support confirmed."
+   else
+      echo "This CPU does not support AVX. This is required for text to speech. Exiting."
+      echo "If you would like to bypass this, run the script like this: './setup.sh -f'"
+      exit 1
+   fi
+fi
+
 echo "Checks have passed!"
 echo
 
@@ -47,10 +58,10 @@ function getPackages() {
       echo "Installing required packages (ffmpeg, golang, wget, openssl, net-tools, iproute2, sox, opus)"
       if [[ ${TARGET} == "debian" ]]; then
          apt update -y
-         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev
+         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc
       elif [[ ${TARGET} == "arch" ]]; then
          pacman -Sy --noconfirm
-         sudo pacman -S --noconfirm ffmpeg wget openssl net-tools sox opus make iproute2
+         sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile
       fi
       touch ./vector-cloud/packagesGotten
       echo
@@ -90,7 +101,6 @@ function buildCloud() {
    fi
    systemctl start docker
    echo
-   #build script echos "building vic-cloud"
    cd vector-cloud
    ./build.sh
    cd ..
@@ -104,7 +114,7 @@ function buildChipper() {
    cd chipper
    if [[ ${ARCH} != "x86_64" ]]; then
       echo
-      echo "This system is not x86_64. This system will be considered slow and STT will be done slightly differently."
+      echo "This system is not x86_64. This program will still work, but this system will be considered slow and STT will be done to account for slower hardware."
       echo "If you feel like this system is fast enough for regular STT processing, run: sudo rm -f ./chipper/slowsys"
       echo
       touch slowsys
@@ -324,6 +334,10 @@ function scpToBot() {
       echo
       exit 0
    fi
+   if [[ ! -f ./certs/server_config.json ]]; then
+      echo "server_config.json file missing. You need to generate this file with ./setup.sh's 6th option."
+      exit 0
+   fi
    if [[ ! -n ${keyPath} ]]; then
       echo
       if [[ ! -f ./ssh_root_key ]]; then
@@ -366,10 +380,13 @@ function scpToBot() {
    fi
    ssh -i ${keyPath} root@${botAddress} "mount -o rw,remount / && systemctl stop vic-cloud && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak"
    scp -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
+   scp -i ${keyPath} ./vector-cloud/weather_weathercompany.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/behaviorComponent/weather/weatherResponseMaps/
    scp -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
    scp -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
    ssh -i ${keyPath} root@${botAddress} "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/customCaCert.crt && systemctl start vic-cloud"
    rm -f /tmp/sshTest
+   echo
+   echo "Everything has been copied to the bot! While you don't need to reboot Vector for voice commands to work with your custom server, you will need to reboot Vector for the weather command to work correctly."
    echo
    echo "Everything is now setup! You should be ready to run chipper. sudo ./chipper/start.sh"
    echo
@@ -392,6 +409,13 @@ function firstPrompt() {
 if [[ $1 == "scp" ]]; then
    botAddress=$2
    keyPath=$3
+   scpToBot
+   exit 0
+fi
+
+if [[ $1 == "-f" ]] && [[ $2 == "scp" ]]; then
+   botAddress=$3
+   keyPath=$4
    scpToBot
    exit 0
 fi
