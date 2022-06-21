@@ -84,13 +84,13 @@ OS Support:
 - Arch
 - Debian/Ubuntu/other APT distros
 
-Architecture Support:
+Architecture support:
 
 - amd64/x86_64
 - arm64/aarch64
 - arm32/armv7l
 
-Things jank-escape-pod Has Worked On:
+Things wire-pod has worked on:
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
 	- Doesn't matter if it is 32-bit or 64-bit
@@ -103,7 +103,7 @@ Things jank-escape-pod Has Worked On:
 	- [Termux](https://github.com/termux/termux-app) proot-distro: Use Ubuntu, make sure to use a port above 1024 and not the default 443.
 	- Linux Deploy: Works stock, just make sure to choose the arch that matches your device in settings. Also use a bigger image size, at least 3 GB.
 
-General Notes:
+General notes:
 
 - If the architecture is AMD64, the text is processed 4 times so longer phrases get processed fully. Text is only processed once on arm32/arm64 for speed and reliability.
 	- If you are running ARM and you feel like your system is fast enough for regular STT processing, 'sudo rm -f ./chipper/slowsys'
@@ -114,11 +114,11 @@ General Notes:
 - Some weather conditions don't match the bot's internal response map, so sometimes Vector won't be able to give you the weather until I make my own response map.
 - You have to speak a little slower than normal for Coqui STT to understand you.
 
-Known Issues:
+Known issues:
 
 - ARM processing is slow until I find a good way to deal with the end of speech on (comparatively) slow hardware.
 
-Current Implemented Actions:
+Current implemented actions:
 
 - Good robot
 - Bad robot
