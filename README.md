@@ -2,6 +2,10 @@
 
 This repo contains a custom Vector escape pod made from [chipper](https://github.com/digital-dream-labs/chipper) and [vector-cloud](https://github.com/digital-dream-labs/vector-cloud).
 
+## wire-picovoice-pod
+
+I recommend you use [wire-picovoice-pod](https://github.com/kercre123/wire-picovoice-pod) rather than this. That repo uses Picovoice Leopard rather than Coqui like this one does. Leopard is a lot faster and more accurate, which lets me add more features. I will still leave this wire-pod repo up though since using Leopard requires you make an account at [their website](https://console.picovoice.ai), meaning it is not a totally local solution. This will stay up because this is a truly local solution. Just note that you may be missing out on some things and this will not be updated as frequently.
+
 ## Program Descriptions
 
 `chipper` - Chipper is a program used on Digital Dream Lab's servers which takes in a Vector's voice stream, puts it into a speech-to-text processor, and spits out an intent. This is also likely used on the official escape pod. This repo contains an older tree of chipper which does not have the "intent graph" feature (it caused an error upon every new stream), and it now has a working voice processor.
@@ -10,7 +14,9 @@ This repo contains a custom Vector escape pod made from [chipper](https://github
 
 ## System Requirements
 
-A CPU with AVX support is required. Check [https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX)
+For wire-pod, a CPU with AVX support is required. Check [https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX)
+
+If your CPU does not support AVX, use [wire-picovoice-pod](https://github.com/kercre123/wire-picovoice-pod) instead.
 
 ## Configuring, Building, Installing
 
