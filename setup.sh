@@ -60,16 +60,17 @@ function getPackages() {
       echo "Installing required packages (ffmpeg, golang, wget, openssl, net-tools, iproute2, sox, opus)"
       if [[ ${TARGET} == "debian" ]]; then
          apt update -y
-         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc
+         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl
       elif [[ ${TARGET} == "arch" ]]; then
          pacman -Sy --noconfirm
-         sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile
+         sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl
       fi
       touch ./vector-cloud/packagesGotten
       echo
       echo "Installing golang binary package"
       mkdir golang
       cd golang
+      if [[ ! -f /usr/local/go/bin/go ]]; then
       if [[ ${ARCH} == "x86_64" ]]; then
          wget -q --show-progress https://go.dev/dl/go1.18.2.linux-amd64.tar.gz
          rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
@@ -82,6 +83,7 @@ function getPackages() {
          wget -q --show-progress https://go.dev/dl/go1.18.2.linux-armv6l.tar.gz
          rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-armv6l.tar.gz
          export PATH=$PATH:/usr/local/go/bin
+      fi
       fi
       cd ..
       rm -rf golang
@@ -121,7 +123,6 @@ function buildChipper() {
       echo
       touch slowsys
    fi
-   echo "This is a no-op until the build issues are figured out. It uses 'go run' for now."
    echo
    cd ..
 }
@@ -129,11 +130,12 @@ function buildChipper() {
 function getSTT() {
    if [[ ! -f ./stt/completed ]]; then
       echo "Getting STT assets"
-      if [[ -d ./stt ]]; then
-         rm -rf ./stt
+      if [[ -d /root/.coqui ]]; then
+         rm -rf /root/.coqui
       fi
-      mkdir stt
-      cd stt
+      origDir=$(pwd)
+      mkdir /root/.coqui
+      cd /root/.coqui
       if [[ ${ARCH} == "x86_64" ]]; then
          wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.Linux.tar.xz
          tar -xf native_client.tflite.Linux.tar.xz
@@ -147,6 +149,12 @@ function getSTT() {
          tar -xf native_client.tflite.linux.armv7.tar.xz
          rm -f ./native_client.tflite.linux.armv7.tar.xz
       fi
+      /usr/local/go/bin/go get -u github.com/asticode/go-asticoqui/...
+      /usr/local/go/bin/go get github.com/asticode/go-asticoqui
+      /usr/local/go/bin/go install github.com/asticode/go-asticoqui
+      cd ${origDir}
+      mkdir -p stt
+      cd stt
       echo "Getting STT model..."
       wget -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
       echo "Getting STT scorer..."
@@ -252,6 +260,12 @@ function makeSource() {
       echo
       echo "Something may be using port ${port}. Make sure that port is free before you start chipper."
    fi
+   read -p "What port would you like to use for the HTTP webserver used for custom intents, bot configuration, etc? (8080): " webportPrompt
+   if [[ -n ${webportPrompt} ]]; then
+      webport=${webportPrompt}
+   else
+      webport="8080"
+   fi
    echo
    function weatherPrompt() {
    echo "Would you like to setup weather commands? This involves creating a free account at https://www.weatherapi.com/ and putting in your API key."
@@ -299,6 +313,56 @@ function makeSource() {
    }
    weatherUnitPrompt
    fi
+   function houndifyPrompt() {
+   echo
+   echo "Would you like to setup knowledge graph (I have a question) commands? This involves creating a free account at https://www.houndify.com/signup and putting in your Client Key and Client ID."
+   echo "Note: It may seem like you only get a trial, but there is an actual free tier with 100 free requests per day."
+   echo "This is not required, and if you choose 2 then placeholder values will be used. And if you change your mind later, just run ./setup.sh with the 5th option."
+   echo
+   echo "1: Yes"
+   echo "2: No"
+   read -p "Enter a number (1): " yn
+   case $yn in
+      "1" ) knowledgeSetup="true";;
+      "2" ) knowledgeSetup="false";;
+      "" ) knowledgeSetup="true";;
+      * ) echo "Please answer with 1 or 2."; houndifyPrompt;;
+   esac
+   }
+   houndifyPrompt
+   if [[ ${knowledgeSetup} == "true" ]]; then
+      function houndifyIDPrompt() {
+      echo
+      echo "Create an account at https://www.houndify.com/signup and enter the Client ID (not Key) it gives you."
+      echo "If you have changed your mind, enter Q to continue without knowledge graph commands."
+      echo
+      read -p "Enter your Client ID: " knowledgeID
+      if [[ ! -n ${knowledgeID} ]]; then
+         echo "You must enter a Houndify Client ID. If you have changed your mind, you may also enter Q to continue without weather commands."
+         houndifyIDPrompt
+      fi
+      if [[ ${knowledgeID} == "Q" ]]; then
+         knowledgeSetup="false";
+      fi
+      }
+      function houndifyKeyPrompt() {
+      echo
+      echo "Now enter the Houndify Client Key (not ID)."
+      echo
+      read -p "Enter your Client Key: " knowledgeKey
+      if [[ ! -n ${knowledgeKey} ]]; then
+         echo "You must enter a Houndify Client Key."
+         houndifyKeyPrompt
+      fi
+      if [[ ${knowledgeKey} == "Q" ]]; then
+         knowledgeSetup="false";
+      fi
+      }
+      houndifyIDPrompt
+      if [[ ${knowledgeSetup} == "true" ]]; then
+         houndifyKeyPrompt
+      fi
+   fi
    echo "export DDL_RPC_PORT=${port}" > source.sh
    echo 'export DDL_RPC_TLS_CERTIFICATE=$(cat ../certs/cert.crt)' >> source.sh
    echo 'export DDL_RPC_TLS_KEY=$(cat ../certs/cert.key)' >> source.sh
@@ -310,6 +374,14 @@ function makeSource() {
    else 
       echo "export WEATHERAPI_ENABLED=false" >> source.sh
    fi
+   if [[ ${knowledgeSetup} == "true" ]]; then
+      echo "export HOUNDIFY_ENABLED=true" >> source.sh
+      echo "export HOUNDIFY_CLIENT_KEY=${knowledgeKey}" >> source.sh
+      echo "export HOUNDIFY_CLIENT_ID=${knowledgeID}" >> source.sh
+   else 
+      echo "export HOUNDIFY_ENABLED=false" >> source.sh
+   fi
+   echo "export WEBSERVER_PORT=${webport}" >> source.sh
    echo "export DEBUG_LOGGING=true" >> source.sh
    cd ..
    echo
@@ -381,10 +453,10 @@ function scpToBot() {
       exit 0
    fi
    ssh -i ${keyPath} root@${botAddress} "mount -o rw,remount / && systemctl stop vic-cloud && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak"
-   scp -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
-   scp -i ${keyPath} ./vector-cloud/weather_weathercompany.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/behaviorComponent/weather/weatherResponseMaps/
-   scp -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
-   scp -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
+   scp -O -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
+   scp -O -i ${keyPath} ./vector-cloud/weather_weathercompany.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/behaviorComponent/weather/weatherResponseMaps/
+   scp -O -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
+   scp -O -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
    ssh -i ${keyPath} root@${botAddress} "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/customCaCert.crt && systemctl start vic-cloud"
    rm -f /tmp/sshTest
    echo
