@@ -149,6 +149,10 @@ function getSTT() {
          tar -xf native_client.tflite.linux.armv7.tar.xz
          rm -f ./native_client.tflite.linux.armv7.tar.xz
       fi
+      cd ${origDir}/chipper
+      export CGO_LDFLAGS="-L$HOME/.coqui/"
+      export CGO_CXXFLAGS="-I$HOME/.coqui/"
+      export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
       /usr/local/go/bin/go get -u github.com/asticode/go-asticoqui/...
       /usr/local/go/bin/go get github.com/asticode/go-asticoqui
       /usr/local/go/bin/go install github.com/asticode/go-asticoqui
@@ -466,6 +470,58 @@ function scpToBot() {
    echo
 }
 
+function setupSystemd() {
+   if [[ ${TARGET} == "macos" ]]; then
+      echo "This cannot be done on macOS."
+      exit 1
+   fi
+   echo "[Unit]" > wire-pod.service
+   echo "Description=Wire Escape Pod (coqui)" >> wire-pod.service
+   echo >> wire-pod.service
+   echo "[Service]" >> wire-pod.service
+   echo "Type=simple" >> wire-pod.service
+   echo "WorkingDirectory=$(readlink -f ./chipper)" >> wire-pod.service
+   echo "ExecStart=$(readlink -f ./chipper/start.sh)" >> wire-pod.service
+   echo >> wire-pod.service
+   echo "[Install]" >> wire-pod.service
+   echo "WantedBy=multi-user.target" >> wire-pod.service
+   cat wire-pod.service
+   echo
+   echo "wire-pod.service created, building chipper..."
+   cd chipper
+         export CGO_LDFLAGS="-L$HOME/.coqui/"
+      export CGO_CXXFLAGS="-I$HOME/.coqui/"
+      export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
+   /usr/local/go/bin/go build cmd/main.go
+   mv main chipper
+   echo
+   echo "./chipper/chipper has been built!"
+   cd ..
+   mv wire-pod.service /lib/systemd/system/
+   systemctl daemon-reload
+   systemctl enable wire-pod
+   echo
+   echo "systemd service has been installed and enabled! The service is called wire-pod.service"
+   echo
+   echo "To start the service, run: 'systemctl start wire-pod'"
+   echo "Then, to see logs, run 'journalctl -fe | grep start.sh'"
+}
+
+function disableSystemd() {
+   if [[ ${TARGET} == "macos" ]]; then
+      echo "This cannot be done on macOS."
+      exit 1
+   fi
+   echo
+   echo "Disabling wire-pod.service"
+   systemctl stop wire-pod.service
+   systemctl disable wire-pod.service
+   rm -f /lib/systemd/system/wire-pod.service
+   systemctl daemon-reload
+   echo
+   echo "wire-pod.service has been removed and disabled."
+}
+
 function firstPrompt() {
    read -p "Enter a number (1): " yn
    case $yn in
@@ -484,6 +540,16 @@ if [[ $1 == "scp" ]]; then
    botAddress=$2
    keyPath=$3
    scpToBot
+   exit 0
+fi
+
+if [[ $1 == "daemon-enable" ]]; then
+   setupSystemd
+   exit 0
+fi
+
+if [[ $1 == "daemon-disable" ]]; then
+   disableSystemd
    exit 0
 fi
 

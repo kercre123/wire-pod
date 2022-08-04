@@ -26,4 +26,14 @@ fi
 source source.sh
 
 #./chipper
-/usr/local/go/bin/go run cmd/main.go
+if [[ -f ./chipper ]]; then
+      export CGO_LDFLAGS="-L/root/.coqui/"
+      export CGO_CXXFLAGS="-I/root/.coqui/"
+      export LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH"
+  ./chipper
+else
+      export CGO_LDFLAGS="-L$HOME/.coqui/"
+      export CGO_CXXFLAGS="-I$HOME/.coqui/"
+      export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
+  /usr/local/go/bin/go run cmd/main.go
+fi
