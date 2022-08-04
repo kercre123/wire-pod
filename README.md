@@ -2,10 +2,6 @@
 
 This repo contains a custom Vector escape pod made from [chipper](https://github.com/digital-dream-labs/chipper) and [vector-cloud](https://github.com/digital-dream-labs/vector-cloud).
 
-## wire-picovoice-pod
-
-I recommend you use [wire-picovoice-pod](https://github.com/kercre123/wire-picovoice-pod) rather than this. That repo uses Picovoice Leopard rather than Coqui like this one does. Leopard is a lot faster and more accurate, which lets me add more features. I will still leave this wire-pod repo up though since using Leopard requires you make an account at [their website](https://console.picovoice.ai), meaning it is not a totally local solution. This will stay up because this is a truly local solution. Just note that you may be missing out on some things and this will not be updated as frequently.
-
 ## Program Descriptions
 
 `chipper` - Chipper is a program used on Digital Dream Lab's servers which takes in a Vector's voice stream, puts it into a speech-to-text processor, and spits out an intent. This is also likely used on the official escape pod. This repo contains an older tree of chipper which does not have the "intent graph" feature (it caused an error upon every new stream), and it now has a working voice processor.
@@ -89,12 +85,14 @@ OS Support:
 
 - Arch
 - Debian/Ubuntu/other APT distros
+- Windows under WSL
 
 Architecture support:
 
 - amd64/x86_64
 - arm64/aarch64
 - arm32/armv7l
+- (all require AVX support)
 
 Things wire-pod has worked on:
 
@@ -111,18 +109,10 @@ Things wire-pod has worked on:
 
 General notes:
 
-- If the architecture is AMD64, the text is processed 4 times so longer phrases get processed fully. Text is only processed once on arm32/arm64 for speed and reliability.
-	- If you are running ARM and you feel like your system is fast enough for regular STT processing, 'sudo rm -f ./chipper/slowsys'
-	- If you are running AMD64 and you feel like your system is too slow for regular STT processing, `touch ./chipper/slowsys'
 - If you get this error when running chipper, you are using a port that is being taken up by a program already: `panic: runtime error: invalid memory address or nil pointer dereference`
 	- Run `./setup.sh` with the 5th and 6th option to change the port, you will need to push files to the bot again.
 - If you want to disable logging from the voice processor, recompile chipper with `debugLogging` in ./chipper/pkg/voice_processors/noop/intent.go set to `false`.
-- Some weather conditions don't match the bot's internal response map, so sometimes Vector won't be able to give you the weather until I make my own response map.
 - You have to speak a little slower than normal for Coqui STT to understand you.
-
-Known issues:
-
-- ARM processing is slow until I find a good way to deal with the end of speech on (comparatively) slow hardware.
 
 Current implemented actions:
 

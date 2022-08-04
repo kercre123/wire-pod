@@ -33,10 +33,12 @@ func basicspeechText2num(speechText string) int {
 }
 
 func words2num(speechText string) string {
-	number = 0
+	number = 1
 	if strings.Contains(speechText, "teen") {
 		number = 10
-		if strings.Contains(speechText, "four") {
+		if strings.Contains(speechText, "thir") {
+			number = 14
+		} else if strings.Contains(speechText, "four") {
 			number = 14
 		} else if strings.Contains(speechText, "fif") {
 			number = 15

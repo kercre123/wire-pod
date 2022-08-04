@@ -2,56 +2,37 @@ package wirepod
 
 import (
 	"encoding/binary"
-	"io"
-	"log"
-	"os"
-	"strconv"
+	"fmt"
 
 	opus "github.com/digital-dream-labs/opus-go/opus"
-	"github.com/go-audio/audio"
-	"github.com/go-audio/wav"
 )
 
-func pcmToWav(pcmFile string, wavFile string) {
-	in, err := os.Open(pcmFile)
-	if err != nil {
-		log.Fatal(err)
+func split(buf []byte) [][]byte {
+	var chunk [][]byte
+	for len(buf) >= 320 {
+		chunk = append(chunk, buf[:320])
+		buf = buf[320:]
 	}
-	out, err := os.Create(wavFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer out.Close()
-	e := wav.NewEncoder(out, 16000, 16, 1, 1)
-	audioBuf, err := newAudioIntBuffer(in)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := e.Write(audioBuf); err != nil {
-		log.Fatal(err)
-	}
-	if err := e.Close(); err != nil {
-		log.Fatal(err)
-	}
+	return chunk
 }
 
-func newAudioIntBuffer(r io.Reader) (*audio.IntBuffer, error) {
-	buf := audio.IntBuffer{
-		Format: &audio.Format{
-			NumChannels: 1,
-			SampleRate:  16000,
-		},
+func bytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) [][]byte {
+	// detect if data is pcm or opus
+	if die {
+		return nil
 	}
-	for {
-		var sample int16
-		err := binary.Read(r, binary.LittleEndian, &sample)
-		switch {
-		case err == io.EOF:
-			return &buf, nil
-		case err != nil:
-			return nil, err
+	if isOpus {
+		// opus
+		n, err := stream.Decode(data)
+		if err != nil {
+			fmt.Println(err)
 		}
-		buf.Data = append(buf.Data, int(sample))
+		byteArray := split(n)
+		return byteArray
+	} else {
+		// pcm
+		byteArray := split(data)
+		return byteArray
 	}
 }
 
@@ -63,49 +44,10 @@ func bytesToSamples(buf []byte) []int16 {
 	return samples
 }
 
-func bytesToInt(stream opus.OggStream, data []byte, numBot int, voiceTimer int, die bool) {
-	if die == true {
-		return
+func bytesToIntHound(stream opus.OggStream, data []byte, die bool, isOpus bool) []byte {
+	// detect if data is pcm or opus
+	if die {
+		return nil
 	}
-	f, err := os.Create("/tmp/" + strconv.Itoa(numBot) + "voice.pcm")
-	if err != nil {
-		log.Println(err)
-	}
-	n, err := stream.Decode(data)
-	f.Write(n)
-	if voiceTimer == 1 {
-		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice1.wav"); err == nil {
-			//
-		} else {
-			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice1.wav")
-			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped1")
-		}
-	}
-	if voiceTimer == 2 {
-		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice2.wav"); err == nil {
-			//
-		} else {
-			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice2.wav")
-			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped2")
-		}
-	}
-	if voiceTimer == 3 {
-		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice3.wav"); err == nil {
-			//
-		} else {
-			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice3.wav")
-			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped3")
-		}
-	}
-	if voiceTimer == 4 {
-		if _, err := os.Stat("/tmp/" + strconv.Itoa(numBot) + "voice4.wav"); err == nil {
-			//
-		} else {
-			pcmToWav("/tmp/"+strconv.Itoa(numBot)+"voice.pcm", "/tmp/"+strconv.Itoa(numBot)+"voice4.wav")
-			os.Create("/tmp/" + strconv.Itoa(numBot) + "dumped4")
-		}
-	}
-	if err != nil {
-		log.Println(err)
-	}
+	return data
 }
