@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
 	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod"
@@ -14,12 +16,12 @@ import (
 )
 
 // set false for no warning
-const warnIfNoSTT string = "true"
+const warnIfNoSTT string = "false"
 
 func main() {
 	log.SetJSONFormat("2006-01-02 15:04:05")
 	if warnIfNoSTT == "true" {
-		if _, err := os.Stat("../stt/stt"); err == nil {
+		if _, err := os.Stat("/root/.coqui/stt"); err == nil {
 			warnlog.Println("STT binary found!")
 			if _, err := os.Stat("../stt/large_vocabulary.scorer"); err == nil {
 				warnlog.Println("STT scorer found!")
@@ -56,6 +58,7 @@ func startServer() {
 		log.Fatal(err)
 	}
 
+	go wirepod.StartWebServer()
 	p, err := wirepod.New()
 	wirepod.InitHoundify()
 	if err != nil {
@@ -71,6 +74,7 @@ func startServer() {
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
 
 	srv.Start()
+	fmt.Println("Server started successfully!")
 
 	<-srv.Notify(grpcserver.Stopped)
 }

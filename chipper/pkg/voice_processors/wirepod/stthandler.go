@@ -119,10 +119,13 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	}()
 	fmt.Printf("Processing...")
 	inactiveNumMax := 35
-	coquiInstance, _ := asticoqui.New("../stt/model.tflite")
-	coquiInstance.EnableExternalScorer("../stt/large_vocabulary.scorer")
-	coquiStream, _ := coquiInstance.NewStream()
-	coquiStream.FeedAudioContent(bytesToSamples(data))
+	var coquiStream *asticoqui.Stream
+	if !isKnowledgeGraph {
+		coquiInstance, _ := asticoqui.New("../stt/model.tflite")
+		coquiInstance.EnableExternalScorer("../stt/large_vocabulary.scorer")
+		coquiStream, _ = coquiInstance.NewStream()
+		coquiStream.FeedAudioContent(bytesToSamples(data))
+	}
 	for {
 		if isKnowledgeGraph {
 			chunk, chunkErr := req1.Stream.Recv()
@@ -160,7 +163,9 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		for _, sample := range micData {
 			if !speechDone {
 				if numInRange >= oldDataLength {
-					coquiStream.FeedAudioContent(bytesToSamples(sample))
+					if !isKnowledgeGraph {
+						coquiStream.FeedAudioContent(bytesToSamples(sample))
+					}
 					vad, err := webrtcvad.New()
 					if err != nil {
 						log.Fatal(err)
@@ -196,6 +201,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		oldDataLength = len(micData)
 		if speechDone {
 			if isKnowledgeGraph {
+				fmt.Println("Sending requst to Houndify...")
 				if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 					req := houndify.VoiceRequest{
 						AudioStream:       bytes.NewReader(micDataHound),

@@ -7,7 +7,7 @@ var weatherList = []string{"weather", "whether", "the other", "the water", "no o
 var nameAskList = []string{"my name"}
 var eyeColorList = []string{"eye color", "colo", "i call her", "i foller", "icolor", "ecce", "erior", "ichor", "agricola",
 	"change", "oracular", "oracle"}
-var howOldList = []string{"older", "how old", "old are you", "old or yo"}
+var howOldList = []string{"older", "how old", "old are you", "old or yo", "how there you"}
 var exploreStartList = []string{"start", "plor", "owing", "tailoring", "oding", "oring", "pling"}
 var chargerList = []string{"charge", "home", "go to your", "church", "find your ch"}
 var sleepList = []string{"flee", "sleep", "sheep"}
@@ -42,7 +42,7 @@ var volumeUpList = []string{"all you up", "volume up", "up volume", "up the volu
 var lookAtMeList = []string{"stare", "at me"}
 var volumeSpecificList = []string{"all you", "volume", "loudness"}
 var shutUpList = []string{"shut up"}
-var helloList = []string{"hello", "are you", "high", "below", "little", "follow", "for you"}
+var helloList = []string{"hello", "are you", "high", "below", "little", "follow", "for you", "far you"}
 var comeList = []string{"come", "to me"}
 var loveList = []string{"love", "dove"}
 var questionList = []string{"question", "weston"}
