@@ -3,9 +3,10 @@ package server
 import "github.com/digital-dream-labs/hugh/log"
 
 type options struct {
-	log    log.Logger
-	intent intentProcessor
-	kg     intentProcessor
+	log         log.Logger
+	intent      intentProcessor
+	kg          kgProcessor
+	intentGraph intentGraphProcessor
 }
 
 // Option is the list of options
@@ -26,8 +27,15 @@ func WithIntentProcessor(s intentProcessor) Option {
 }
 
 // WithKnowledgeGraphProcessor sets the knowledge graph processor
-func WithKnowledgeGraphProcessor(s intentProcessor) Option {
+func WithKnowledgeGraphProcessor(s kgProcessor) Option {
 	return func(o *options) {
 		o.kg = s
+	}
+}
+
+// WithKnowledgeGraphProcessor sets the knowledge graph processor
+func WithIntentGraphProcessor(s intentGraphProcessor) Option {
+	return func(o *options) {
+		o.intentGraph = s
 	}
 }

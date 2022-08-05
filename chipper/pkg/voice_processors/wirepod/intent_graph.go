@@ -7,7 +7,7 @@ import (
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 )
 
-func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
+func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGraphResponse, error) {
 	var successMatched bool
 	transcribedText, transcribedSlots, isRhino, justThisBotNum, isOpus, err := sttHandler(req, false)
 	if err != nil {

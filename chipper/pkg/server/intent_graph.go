@@ -8,9 +8,10 @@ import (
 	"github.com/digital-dream-labs/hugh/log"
 )
 
-// StreamingKnowledgeGraph is used for knowledge graph request/responses
-func (s *Server) StreamingKnowledgeGraph(stream pb.ChipperGrpc_StreamingKnowledgeGraphServer) error {
+// StreamingIntent handles voice streams
+func (s *Server) StreamingIntentGraph(stream pb.ChipperGrpc_StreamingIntentGraphServer) error {
 	recvTime := time.Now()
+
 	req, err := stream.Recv()
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -21,8 +22,8 @@ func (s *Server) StreamingKnowledgeGraph(stream pb.ChipperGrpc_StreamingKnowledg
 		return err
 	}
 
-	if _, err = s.kg.ProcessKnowledgeGraph(
-		&vtt.KnowledgeGraphRequest{
+	if _, err = s.intentGraph.ProcessIntentGraph(
+		&vtt.IntentGraphRequest{
 			Time:       recvTime,
 			Stream:     stream,
 			Device:     req.DeviceId,
@@ -30,7 +31,6 @@ func (s *Server) StreamingKnowledgeGraph(stream pb.ChipperGrpc_StreamingKnowledg
 			LangString: req.LanguageCode.String(),
 			FirstReq:   req,
 			AudioCodec: req.AudioEncoding,
-			// Why is this not passed
 			// Mode:
 		},
 	); err != nil {
