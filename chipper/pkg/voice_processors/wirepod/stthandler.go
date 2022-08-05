@@ -118,11 +118,17 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 	}()
 	fmt.Printf("Processing...")
-	inactiveNumMax := 35
+	inactiveNumMax := 20
 	var coquiStream *asticoqui.Stream
 	if !isKnowledgeGraph {
 		coquiInstance, _ := asticoqui.New("../stt/model.tflite")
-		coquiInstance.EnableExternalScorer("../stt/large_vocabulary.scorer")
+		if _, err := os.Stat("../stt/large_vocabulary.scorer"); err == nil {
+			coquiInstance.EnableExternalScorer("../stt/large_vocabulary.scorer")
+		} else if _, err := os.Stat("../stt/model.scorer"); err == nil {
+			coquiInstance.EnableExternalScorer("../stt/model.scorer")
+		} else {
+			fmt.Println("No .scorer file found.")
+		}
 		coquiStream, _ = coquiInstance.NewStream()
 		coquiStream.FeedAudioContent(bytesToSamples(data))
 	}
