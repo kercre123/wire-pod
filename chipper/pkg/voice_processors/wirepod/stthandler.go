@@ -97,6 +97,8 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	data := []byte{}
 	if isKnowledgeGraph {
 		data = append(data, req1.FirstReq.InputAudio...)
+	} else if isIntentGraph {
+		data = append(data, req3.FirstReq.InputAudio...)
 	} else {
 		data = append(data, req2.FirstReq.InputAudio...)
 	}
