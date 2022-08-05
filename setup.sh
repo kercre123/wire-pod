@@ -116,13 +116,6 @@ function buildCloud() {
 function buildChipper() {
    echo
    cd chipper
-   if [[ ${ARCH} != "x86_64" ]]; then
-      echo
-      echo "This system is not x86_64. This program will still work, but this system will be considered slow and STT will be done to account for slower hardware."
-      echo "If you feel like this system is fast enough for regular STT processing, run: sudo rm -f ./chipper/slowsys"
-      echo
-      touch slowsys
-   fi
    echo
    cd ..
 }
@@ -159,16 +152,49 @@ function getSTT() {
       cd ${origDir}
       mkdir -p stt
       cd stt
+      function sttModelPrompt() {
+      echo
+      echo "Which voice model would you like to use?"
+      echo "1: large_vocabulary (faster, less accurate, ~100MB)"
+      echo "2: huge_vocabulary (slower, more accurate, handles faster speech better, ~900MB)"
+      echo
+      read -p "Enter a number (1): " sttModelNum
+      if [[ ! -n ${sttModelNum} ]]; then
+         sttModel="large_vocabulary"
+      elif [[ ${sttModelNum} == "1" ]]; then
+         sttModel="large_vocabulary";
+      elif [[ ${sttModelNum} == "2" ]]; then
+         sttModel="huge_vocabulary"
+      else
+         echo
+         echo "Choose a valid number, or just press enter to use the default number."
+         sttModelPrompt
+      fi
+   }
+   sttModelPrompt
+   if [[ -f model.scorer ]]; then
+      rm -rf ./*
+   fi
+   if [[ ${sttModel} == "large_vocabulary" ]]; then
       echo "Getting STT model..."
-      wget -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
+      wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
       echo "Getting STT scorer..."
-      wget -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
+      wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
+   elif [[ ${sttModel} == "huge_vocabulary" ]]; then
+         echo "Getting STT model..."
+      wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/model.tflite
+      echo "Getting STT scorer..."
+      wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/huge-vocabulary.scorer
+   else
+      echo "Invalid model specified"
+      exit 0
+   fi
       echo
       touch completed
       echo "STT assets successfully downloaded!"
       cd ..
    else
-      echo "STT assets already there!"
+      echo "STT assets already there! If you want to redownload, use the 4th option in setup.sh."
    fi
 }
 
@@ -456,13 +482,25 @@ function scpToBot() {
       echo "Unable to communicate with robot. The key may be invalid, the bot may not be unlocked, or this device and the robot are not on the same network."
       exit 0
    fi
+   scp -v -i ${keyPath} root@${botAddress}:/build.prop /tmp/scpTest > /tmp/scpTest 2>> /tmp/scpTest
+   scpTest=$(cat /tmp/scpTest)
+   if [[ "${scpTest}" == *"sftp"* ]]; then
+      oldVar="-O"
+   else
+      oldVar=""
+   fi
+   if [[ ! "${botBuildProp}" == *"ro.build"* ]]; then
+      echo "Unable to communicate with robot. The key may be invalid, the bot may not be unlocked, or this device and the robot are not on the same network."
+      exit 0
+   fi
    ssh -i ${keyPath} root@${botAddress} "mount -o rw,remount / && systemctl stop vic-cloud && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak"
-   scp -O -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
-   scp -O -i ${keyPath} ./vector-cloud/weather_weathercompany.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/behaviorComponent/weather/weatherResponseMaps/
-   scp -O -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
-   scp -O -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
+   scp ${oldVar} -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
+   scp ${oldVar} -i ${keyPath} ./vector-cloud/weather_weathercompany.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/behaviorComponent/weather/weatherResponseMaps/
+   scp ${oldVar} -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
+   scp ${oldVar} -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
    ssh -i ${keyPath} root@${botAddress} "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/customCaCert.crt && systemctl start vic-cloud"
    rm -f /tmp/sshTest
+   rm -f /tmp/scpTest
    echo
    echo "Everything has been copied to the bot! While you don't need to reboot Vector for voice commands to work with your custom server, you will need to reboot Vector for the weather command to work correctly."
    echo
