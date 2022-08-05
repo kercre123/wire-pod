@@ -203,6 +203,7 @@ function IPDNSPrompt() {
    case $yn in
       "1" ) SANPrefix="IP";;
       "2" ) SANPrefix="DNS";;
+      "3" ) isEscapePod="epod";;
       "" ) SANPrefix="IP";;
       * ) echo "Please answer with 1 or 2."; IPDNSPrompt;;
    esac
@@ -232,9 +233,13 @@ function generateCerts() {
    echo "Creating certificates"
    echo
    echo "Would you like to use your IP address or a domain for the Subject Alt Name?"
+   echo "Or would you like to use the escapepod.local certs?"
+   echo
    echo "1: IP address (recommended)"
    echo "2: Domain"
+   echo "3: escapepod.local"
    IPDNSPrompt
+   if [[ ${isEscapePod} != "epod" ]]; then
    if [[ ${SANPrefix} == "IP" ]]; then
       IPPrompt
    else
@@ -268,16 +273,23 @@ function generateCerts() {
    openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout cert.key -out cert.crt -config san.conf
    echo
    echo "Certificates generated!"
+   echo
    cd ..
+   else
+     echo
+     echo "escapepod.local chosen."
+     touch chipper/useepod
+   fi
 }
 
 function makeSource() {
-   if [[ ! -f ./certs/address ]]; then
+   if [[ ! -f ./certs/address ]] && [[ ! -f ./chipper/useepod ]]; then
       echo "You need to generate certs first!"
       exit 0
    fi
    cd chipper
    rm -f ./source.sh
+   if [[ ! -f ./useepod ]]; then
    read -p "What port would you like to use? (443): " portPrompt
    if [[ -n ${portPrompt} ]]; then
       port=${portPrompt}
@@ -289,6 +301,12 @@ function makeSource() {
       netstat -pln | grep :${port}
       echo
       echo "Something may be using port ${port}. Make sure that port is free before you start chipper."
+   fi
+   else
+   echo
+   echo "Using port 443 for chipper because escapepod.local is being used."
+   port="443"
+   echo
    fi
    read -p "What port would you like to use for the HTTP webserver used for custom intents, bot configuration, etc? (8080): " webportPrompt
    if [[ -n ${webportPrompt} ]]; then
@@ -394,8 +412,13 @@ function makeSource() {
       fi
    fi
    echo "export DDL_RPC_PORT=${port}" > source.sh
+   if [[ ! -f ./useepod ]]; then
    echo 'export DDL_RPC_TLS_CERTIFICATE=$(cat ../certs/cert.crt)' >> source.sh
    echo 'export DDL_RPC_TLS_KEY=$(cat ../certs/cert.key)' >> source.sh
+   else
+   echo 'export DDL_RPC_TLS_CERTIFICATE=$(cat ./epod/ep.crt)' >> source.sh
+   echo 'export DDL_RPC_TLS_KEY=$(cat ./epod/ep.key)' >> source.sh
+   fi
    echo "export DDL_RPC_CLIENT_AUTHENTICATION=NoClientCert" >> source.sh
    if [[ ${weatherSetup} == "true" ]]; then
       echo "export WEATHERAPI_ENABLED=true" >> source.sh
