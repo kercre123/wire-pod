@@ -32,8 +32,17 @@ sudo ./chipper/start.sh
 
 2. He should be at a screen that shows `anki.com/v`. On a computer with Bluetooth support (preferably Windows or macOS), go to [https://www.project-victor.org/noflow-devsetup](https://www.project-victor.org/noflow-devsetup) in a Chrome browser and connect to Vector like it tells you to. Do not check `Enable auto-setup flow`.
 
-3. You should now be at a terminal-like interface. In that interface, connect Vector to Wi-Fi with a command like `wifi-connect "ssid" "password"` (replace ssid with your network name, password with the network password). Example: `wifi-connect "AnkiRobits" "KlaatuBaradaNikto!"`
+3. You should now be at a terminal-like interface. In that interface, connect Vector to Wi-Fi with this command: 
+```
+wifi-connect "ssid" "password"` 
 
-4. Copy-paste (you have to use the keyboard shortcuts) the following command: `ota-start http://wire.my.to:81/escapepod-prod-1.8.ota`
+# Replace ssid with your network name, password with the network password
+# Example: wifi-connect "AnkiRobits" "KlaatuBaradaNikto!"
+```
+
+4. Enter the following command into the site: 
+```
+ota-start http://wire.my.to:81/escapepod-prod-1.8.ota
+```
 
 5. Wait for that to finish. Once he has rebooted, voice commands should work!
