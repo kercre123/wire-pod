@@ -7,11 +7,19 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/digital-dream-labs/chipper/pkg/vtt"
 )
 
-func paramCheckerSlots(req *vtt.IntentRequest, intent string, slots map[string]string, isOpus bool, justThisBotNum int) {
+func paramCheckerSlots(req interface{}, intent string, slots map[string]string, isOpus bool, justThisBotNum int, botSerial string) {
+	// var req2 *vtt.IntentRequest
+	// var req1 *vtt.KnowledgeGraphRequest
+	// var req3 *vtt.IntentGraphRequest
+	// if str, ok := req.(*vtt.IntentRequest); ok {
+	// 	req2 = str
+	// } else if str, ok := req.(*vtt.KnowledgeGraphRequest); ok {
+	// 	req1 = str
+	// } else if str, ok := req.(*vtt.IntentGraphRequest); ok {
+	// 	req3 = str
+	// }
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
@@ -38,7 +46,7 @@ func paramCheckerSlots(req *vtt.IntentRequest, intent string, slots map[string]s
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
-			if strings.ToLower(bot.ESN) == req.Device {
+			if strings.ToLower(bot.ESN) == botSerial {
 				if debugLogging {
 					fmt.Println("Found bot config for " + bot.ESN)
 				}
@@ -197,7 +205,7 @@ func paramCheckerSlots(req *vtt.IntentRequest, intent string, slots map[string]s
 	IntentPass(req, newIntent, intent, intentParams, isParam, justThisBotNum)
 }
 
-func paramChecker(req *vtt.IntentRequest, intent string, speechText string, justThisBotNum int) {
+func paramChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
@@ -224,7 +232,7 @@ func paramChecker(req *vtt.IntentRequest, intent string, speechText string, just
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
-			if strings.ToLower(bot.ESN) == req.Device {
+			if strings.ToLower(bot.ESN) == botSerial {
 				if debugLogging {
 					fmt.Println("Found bot config for " + bot.ESN)
 				}
@@ -470,7 +478,7 @@ func paramChecker(req *vtt.IntentRequest, intent string, speechText string, just
 	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
 }
 
-func prehistoricParamChecker(req *vtt.IntentRequest, intent string, speechText string, justThisBotNum int) {
+func prehistoricParamChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
 	// intent.go detects if the stream uses opus or PCM.
 	// If the stream is PCM, it is likely a bot with 0.10.
 	// This accounts for the newer 0.10.1### builds.
@@ -498,7 +506,7 @@ func prehistoricParamChecker(req *vtt.IntentRequest, intent string, speechText s
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
-			if strings.ToLower(bot.ESN) == req.Device {
+			if strings.ToLower(bot.ESN) == botSerial {
 				if debugLogging {
 					fmt.Println("Found bot config for " + bot.ESN)
 				}

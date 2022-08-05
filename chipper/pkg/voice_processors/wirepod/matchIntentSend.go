@@ -25,7 +25,17 @@ type intentsStruct []struct {
 	ExecArgs []string `json:"execargs"`
 }
 
-func IntentPass(req *vtt.IntentRequest, intentThing string, speechText string, intentParams map[string]string, isParam bool, justThisBotNum int) (*vtt.IntentResponse, error) {
+func IntentPass(req interface{}, intentThing string, speechText string, intentParams map[string]string, isParam bool, justThisBotNum int) (interface{}, error) {
+	var req1 *vtt.IntentRequest
+	var req2 *vtt.IntentGraphRequest
+	var isIntentGraph bool
+	if str, ok := req.(*vtt.IntentRequest); ok {
+		req1 = str
+		isIntentGraph = false
+	} else if str, ok := req.(*vtt.IntentGraphRequest); ok {
+		req2 = str
+		isIntentGraph = true
+	}
 	intent := pb.IntentResponse{
 		IsFinal: true,
 		IntentResult: &pb.IntentResult{
@@ -34,24 +44,52 @@ func IntentPass(req *vtt.IntentRequest, intentThing string, speechText string, i
 			Parameters: intentParams,
 		},
 	}
-	if err := req.Stream.Send(&intent); err != nil {
-		return nil, err
+	intentGraphSend := pb.IntentGraphResponse{
+		ResponseType: pb.IntentGraphMode_INTENT,
+		IsFinal:      true,
+		IntentResult: &pb.IntentResult{
+			QueryText:  speechText,
+			Action:     intentThing,
+			Parameters: intentParams,
+		},
+		CommandType: pb.RobotMode_VOICE_COMMAND.String(),
 	}
-	r := &vtt.IntentResponse{
-		Intent: &intent,
-	}
-	if debugLogging {
-		fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
-		if isParam {
-			fmt.Println("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
-		} else {
-			fmt.Println("No Parameters Sent")
+	if !isIntentGraph {
+		if err := req1.Stream.Send(&intent); err != nil {
+			return nil, err
 		}
+		r := &vtt.IntentResponse{
+			Intent: &intent,
+		}
+		if debugLogging {
+			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
+			if isParam {
+				fmt.Println("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
+			} else {
+				fmt.Println("No Parameters Sent")
+			}
+		}
+		return r, nil
+	} else {
+		if err := req2.Stream.Send(&intentGraphSend); err != nil {
+			return nil, err
+		}
+		r := &vtt.IntentGraphResponse{
+			Intent: &intentGraphSend,
+		}
+		if debugLogging {
+			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
+			if isParam {
+				fmt.Println("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
+			} else {
+				fmt.Println("No Parameters Sent")
+			}
+		}
+		return r, nil
 	}
-	return r, nil
 }
 
-func customIntentHandler(req *vtt.IntentRequest, voiceText string, intentList []string, isOpus bool, justThisBotNum int) bool {
+func customIntentHandler(req interface{}, voiceText string, intentList []string, isOpus bool, justThisBotNum int, botSerial string) bool {
 	var successMatched bool = false
 	if _, err := os.Stat("./customIntents.json"); err == nil {
 		var customIntentJSON intentsStruct
@@ -75,7 +113,7 @@ func customIntentHandler(req *vtt.IntentRequest, voiceText string, intentList []
 					var args []string
 					for _, arg := range c.ExecArgs {
 						if arg == "!botSerial" {
-							arg = req.Device
+							arg = botSerial
 						}
 						args = append(args, arg)
 					}
@@ -115,19 +153,33 @@ func customIntentHandler(req *vtt.IntentRequest, voiceText string, intentList []
 	return successMatched
 }
 
-func processTextAll(req *vtt.IntentRequest, voiceText string, listOfLists [][]string, intentList []string, isOpus bool, justThisBotNum int) bool {
+func processTextAll(req interface{}, voiceText string, listOfLists [][]string, intentList []string, isOpus bool, justThisBotNum int) bool {
+	var botSerial string
+	var req2 *vtt.IntentRequest
+	var req1 *vtt.KnowledgeGraphRequest
+	var req3 *vtt.IntentGraphRequest
+	if str, ok := req.(*vtt.IntentRequest); ok {
+		req2 = str
+		botSerial = req2.Device
+	} else if str, ok := req.(*vtt.KnowledgeGraphRequest); ok {
+		req1 = str
+		botSerial = req1.Device
+	} else if str, ok := req.(*vtt.IntentGraphRequest); ok {
+		req3 = str
+		botSerial = req3.Device
+	}
 	var matched int = 0
 	var intentNum int = 0
 	var successMatched bool = false
-	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, justThisBotNum)
+	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, justThisBotNum, botSerial)
 	if !customIntentMatched {
 		for _, b := range listOfLists {
 			for _, c := range b {
 				if strings.Contains(voiceText, c) {
 					if isOpus {
-						paramChecker(req, intentList[intentNum], voiceText, justThisBotNum)
+						paramChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
 					} else {
-						prehistoricParamChecker(req, intentList[intentNum], voiceText, justThisBotNum)
+						prehistoricParamChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
 					}
 					successMatched = true
 					matched = 1

@@ -23,10 +23,15 @@ var botNum int = 0
 func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
 	var req2 *vtt.IntentRequest
 	var req1 *vtt.KnowledgeGraphRequest
+	var req3 *vtt.IntentGraphRequest
+	var isIntentGraph bool
 	if str, ok := reqThing.(*vtt.IntentRequest); ok {
 		req2 = str
 	} else if str, ok := reqThing.(*vtt.KnowledgeGraphRequest); ok {
 		req1 = str
+	} else if str, ok := reqThing.(*vtt.IntentGraphRequest); ok {
+		req3 = str
+		isIntentGraph = true
 	}
 	var voiceTimer int = 0
 	var transcribedText string = ""
@@ -73,6 +78,13 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 			fmt.Println("KG Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 			deviceESN = req1.Device
 			deviceSession = req1.Session
+		} else if isIntentGraph {
+			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req3.Device)
+			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req3.Session)
+			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req3.LangString)
+			deviceESN = req3.Device
+			deviceSession = req3.Session
+			fmt.Println("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 		} else {
 			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req2.Device)
 			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req2.Session)
@@ -139,6 +151,27 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 				if chunkErr == io.EOF {
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
+				} else {
+					if debugLogging {
+						fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					}
+					botNum = botNum - 1
+					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
+				}
+			}
+			data = append(data, chunk.InputAudio...)
+		} else if isIntentGraph {
+			chunk, chunkErr := req3.Stream.Recv()
+			if chunkErr != nil {
+				if chunkErr == io.EOF {
+					botNum = botNum - 1
+					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
+				} else {
+					if debugLogging {
+						fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					}
+					botNum = botNum - 1
+					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
 				}
 			}
 			data = append(data, chunk.InputAudio...)
