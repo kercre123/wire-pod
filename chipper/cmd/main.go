@@ -69,6 +69,7 @@ func startServer() {
 		//server.WithLogger(log.Base()),
 		server.WithIntentProcessor(p),
 		server.WithKnowledgeGraphProcessor(p),
+		server.WithIntentGraphProcessor(p),
 	)
 
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
