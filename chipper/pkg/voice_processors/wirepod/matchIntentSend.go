@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -61,13 +60,11 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 		r := &vtt.IntentResponse{
 			Intent: &intent,
 		}
-		if debugLogging {
-			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
-			if isParam {
-				fmt.Println("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
-			} else {
-				fmt.Println("No Parameters Sent")
-			}
+		logger("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
+		if isParam {
+			logger("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
+		} else {
+			logger("No Parameters Sent")
 		}
 		return r, nil
 	} else {
@@ -77,13 +74,11 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 		r := &vtt.IntentGraphResponse{
 			Intent: &intentGraphSend,
 		}
-		if debugLogging {
-			fmt.Println("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
-			if isParam {
-				fmt.Println("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
-			} else {
-				fmt.Println("No Parameters Sent")
-			}
+		logger("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
+		if isParam {
+			logger("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
+		} else {
+			logger("No Parameters Sent")
 		}
 		return r, nil
 	}
@@ -98,15 +93,11 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 		for _, c := range customIntentJSON {
 			for _, v := range c.Utterances {
 				if strings.Contains(voiceText, v) {
-					if debugLogging {
-						fmt.Println("Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
-					}
+					logger("Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
 					var intentParams map[string]string
 					var isParam bool = false
 					if c.Params.ParamValue != "" {
-						if debugLogging {
-							fmt.Println("Custom Intent Parameter: " + c.Params.ParamName + " - " + c.Params.ParamValue)
-						}
+						logger("Custom Intent Parameter: " + c.Params.ParamName + " - " + c.Params.ParamValue)
 						intentParams = map[string]string{c.Params.ParamName: c.Params.ParamValue}
 						isParam = true
 					}
@@ -119,23 +110,17 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 					}
 					var customIntentExec *exec.Cmd
 					if len(args) == 0 {
-						if debugLogging {
-							fmt.Println("Executing: " + c.Exec)
-						}
+						logger("Executing: " + c.Exec)
 						customIntentExec = exec.Command(c.Exec)
 					} else {
-						if debugLogging {
-							fmt.Println("Executing: " + c.Exec + " " + strings.Join(args, " "))
-						}
+						logger("Executing: " + c.Exec + " " + strings.Join(args, " "))
 						customIntentExec = exec.Command(c.Exec, args...)
 					}
 					customOut, err := customIntentExec.Output()
 					if err != nil {
-						fmt.Println(err)
+						logger(err)
 					}
-					if debugLogging {
-						fmt.Println("Custom Intent Exec Output: " + strings.TrimSpace(string(customOut)))
-					}
+					logger("Custom Intent Exec Output: " + strings.TrimSpace(string(customOut)))
 					IntentPass(req, c.Intent, voiceText, intentParams, isParam, justThisBotNum)
 					successMatched = true
 					break
@@ -146,7 +131,7 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 			}
 		}
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 
 	}

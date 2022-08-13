@@ -30,11 +30,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if _, err := os.Stat("./customIntents.json"); err == nil {
-			fmt.Println("Found customIntents.json")
+			logger("Found customIntents.json")
 			var customIntentJSON intentsStruct
 			customIntentJSONFile, _ := os.ReadFile("./customIntents.json")
 			json.Unmarshal(customIntentJSONFile, &customIntentJSON)
-			fmt.Println("Number of custom intents (current): " + strconv.Itoa(len(customIntentJSON)))
+			logger("Number of custom intents (current): " + strconv.Itoa(len(customIntentJSON)))
 			customIntentJSON = append(customIntentJSON, struct {
 				Name        string   `json:"name"`
 				Description string   `json:"description"`
@@ -53,7 +53,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			customIntentJSONFile, _ = json.Marshal(customIntentJSON)
 			ioutil.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
 		} else {
-			fmt.Println("Creating customIntents.json")
+			logger("Creating customIntents.json")
 			customIntentJSONFile, _ := json.Marshal([]struct {
 				Name        string   `json:"name"`
 				Description string   `json:"description"`
@@ -100,7 +100,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var customIntentJSON intentsStruct
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -146,7 +146,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		customIntentJSONFile, err := ioutil.ReadFile("./customIntents.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		fmt.Fprint(w, string(customIntentJSONFile))
 		return
@@ -165,7 +165,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var customIntentJSON intentsStruct
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -230,7 +230,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			// read botConfig.json and append to it with the form information
 			botConfigFile, err := ioutil.ReadFile("./botConfig.json")
 			if err != nil {
-				fmt.Println(err)
+				logger(err)
 			}
 			json.Unmarshal(botConfigFile, &botConfig)
 			botConfig = append(botConfig, struct {
@@ -273,7 +273,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var botConfigJSON botConfigStruct
 		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		json.Unmarshal(botConfigJSONFile, &botConfigJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -282,7 +282,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(botConfigJSON))+" bots")
 			return
 		}
-		fmt.Println(botConfigJSON[newNumber].Esn + " bot is being removed")
+		logger(botConfigJSON[newNumber].Esn + " bot is being removed")
 		botConfigJSON = append(botConfigJSON[:newNumber], botConfigJSON[newNumber+1:]...)
 		newBotConfigJSONFile, _ := json.Marshal(botConfigJSON)
 		ioutil.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
@@ -340,7 +340,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			// read botConfig.json and append to it with the form information
 			botConfigFile, err := ioutil.ReadFile("./botConfig.json")
 			if err != nil {
-				fmt.Println(err)
+				logger(err)
 			}
 			json.Unmarshal(botConfigFile, &botConfig)
 			newNumbera, _ := strconv.Atoi(number)
@@ -367,7 +367,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		botConfigJSONFile, err := ioutil.ReadFile("./botConfig.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		fmt.Fprint(w, string(botConfigJSONFile))
 		return
@@ -383,7 +383,7 @@ func StartWebServer() {
 		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
 			webPort = os.Getenv("WEBSERVER_PORT")
 		} else {
-			fmt.Println("WEBSERVER_PORT contains letters, using default of 8080")
+			logger("WEBSERVER_PORT contains letters, using default of 8080")
 			webPort = "8080"
 		}
 	} else {

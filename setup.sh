@@ -452,12 +452,20 @@ function makeSource() {
 	echo
 	echo "Created source.sh file!"
 	echo
-	cd certs
-	echo "Creating server_config.json for robot"
-	echo '{"jdocs": "jdocs.api.anki.com:443", "tms": "token.api.anki.com:443", "chipper": "REPLACEME", "check": "conncheck.global.anki-services.com/ok", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
-	address=$(cat address)
-	sed -i "s/REPLACEME/${address}:${port}/g" server_config.json
-	cd ..
+	if [[ ! -f ./chipper/useepod ]]; then
+		cd certs
+		echo "Creating server_config.json for robot"
+		echo '{"jdocs": "jdocs.api.anki.com:443", "tms": "token.api.anki.com:443", "chipper": "REPLACEME", "check": "conncheck.global.anki-services.com/ok", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
+		address=$(cat address)
+		sed -i "s/REPLACEME/${address}:${port}/g" server_config.json
+		cd ..
+	else
+		mkdir -p certs
+		cd certs
+		echo "Creating server_config.json for robot"
+		echo '{"jdocs": "jdocs.api.anki.com:443", "tms": "token.api.anki.com:443", "chipper": "escapepod.local:443", "check": "conncheck.global.anki-services.com/ok", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
+		cd ..
+	fi
 	echo "Created!"
 	echo
 }
@@ -535,7 +543,11 @@ function scpToBot() {
 	scp ${oldVar} -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
 	scp ${oldVar} -i ${keyPath} ./vector-cloud/weather_weathercompany.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/behaviorComponent/weather/weatherResponseMaps/
 	scp ${oldVar} -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
-	scp ${oldVar} -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
+	if [[ -f ./chipper/useepod ]]; then
+		scp ${oldVar} -i ${keyPath} ./chipper/epod/ep.crt root@${botAddress}:/data/data/customCaCert.crt
+	else
+		scp ${oldVar} -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
+	fi
 	ssh -i ${keyPath} root@${botAddress} "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/customCaCert.crt && systemctl start vic-cloud"
 	rm -f /tmp/sshTest
 	rm -f /tmp/scpTest
@@ -615,6 +627,10 @@ function firstPrompt() {
 		echo "If your Vector is on Wire's custom software or you have an old dev build, you can run this command without an SSH key:"
 		echo "Example: sudo ./setup.sh scp 192.168.1.150"
 		echo
+		if [[ -f ./chipper/useepod ]]; then
+			echo "You chose to use escapepod.local, so you do not need to run any SCP commands for a prod bot to use this. You just need to put on an official escape pod OTA. The instructions can be found in the root of this repo."
+			echo
+		fi
 		;;
 	"2")
 		echo
@@ -654,6 +670,10 @@ function firstPrompt() {
 		echo "If your Vector is on Wire's custom software or you have an old dev build, you can run this command without an SSH key:"
 		echo "Example: sudo ./setup.sh scp 192.168.1.150"
 		echo
+		if [[ -f ./chipper/useepod ]]; then
+			echo "You chose to use escapepod.local, so you do not need to run any SCP commands for a prod bot to use this. You just need to put on an official escape pod OTA. The instructions can be found in the root of this repo."
+			echo
+		fi
 		;;
 	*)
 		echo "Please answer with 1, 2, 3, 4, 5, 6, or just press enter with no input for 1."
