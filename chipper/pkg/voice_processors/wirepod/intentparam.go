@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -39,7 +38,7 @@ func paramCheckerSlots(req interface{}, intent string, slots map[string]string, 
 		}
 		jsonFile, err := os.Open("./botConfig.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		defer jsonFile.Close()
 		byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -47,9 +46,7 @@ func paramCheckerSlots(req interface{}, intent string, slots map[string]string, 
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				if debugLogging {
-					fmt.Println("Found bot config for " + bot.ESN)
-				}
+				logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -122,7 +119,7 @@ func paramCheckerSlots(req interface{}, intent string, slots map[string]string, 
 		slotUnit := slots["unit"]
 		timerSecs, err := strconv.Atoi(slotNum)
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		if slotNum != "" && slotUnit != "" {
 			if strings.Contains(slotUnit, "minute") {
@@ -131,9 +128,7 @@ func paramCheckerSlots(req interface{}, intent string, slots map[string]string, 
 				timerSecs = timerSecs * 60 * 60
 			}
 		}
-		if debugLogging {
-			fmt.Println("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
-		}
+		logger("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
 		intentParam = "timer_duration"
 		intentParamValue = strconv.Itoa(timerSecs)
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -225,7 +220,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 		}
 		jsonFile, err := os.Open("./botConfig.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		defer jsonFile.Close()
 		byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -233,9 +228,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				if debugLogging {
-					fmt.Println("Found bot config for " + bot.ESN)
-				}
+				logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -375,16 +368,12 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			if debugLogging {
-				fmt.Println("Name parsed from speech: " + "`" + username + "`")
-			}
+			logger("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			if debugLogging {
-				fmt.Println("No name parsed from speech")
-			}
+			logger("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -393,9 +382,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 		isParam = true
 		newIntent = intent
 		timerSecs := words2num(speechText)
-		if debugLogging {
-			fmt.Println("Seconds parsed from speech: " + timerSecs)
-		}
+		logger("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -499,7 +486,7 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		}
 		jsonFile, err := os.Open("./botConfig.json")
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		defer jsonFile.Close()
 		byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -507,9 +494,7 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				if debugLogging {
-					fmt.Println("Found bot config for " + bot.ESN)
-				}
+				logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 			}
@@ -603,16 +588,12 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			if debugLogging {
-				fmt.Println("Name parsed from speech: " + "`" + username + "`")
-			}
+			logger("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			if debugLogging {
-				fmt.Println("No name parsed from speech")
-			}
+			logger("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -621,9 +602,7 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		isParam = true
 		newIntent = "intent_clock_settimer"
 		timerSecs := words2num(speechText)
-		if debugLogging {
-			fmt.Println("Seconds parsed from speech: " + timerSecs)
-		}
+		logger("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}

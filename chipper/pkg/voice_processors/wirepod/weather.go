@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -24,35 +23,25 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 	weatherAPIUnit := os.Getenv("WEATHERAPI_UNIT")
 	if weatherAPIEnabled == "true" && weatherAPIKey != "" {
 		weatherEnabled = true
-		if debugLogging {
-			fmt.Println("Weather API Enabled")
-		}
+		logger("Weather API Enabled")
 	} else {
 		weatherEnabled = false
-		if debugLogging {
-			fmt.Println("Weather API not enabled, using placeholder")
-			if weatherAPIEnabled == "true" && weatherAPIKey == "" {
-				fmt.Println("Weather API enabled, but Weather API key not set")
-			}
+		logger("Weather API not enabled, using placeholder")
+		if weatherAPIEnabled == "true" && weatherAPIKey == "" {
+			logger("Weather API enabled, but Weather API key not set")
 		}
 	}
 	if weatherEnabled {
 		if botUnits != "" {
 			if botUnits == "F" {
-				if debugLogging {
-					fmt.Println("Weather units set to F")
-				}
+				logger("Weather units set to F")
 				weatherAPIUnit = "F"
 			} else if botUnits == "C" {
-				if debugLogging {
-					fmt.Println("Weather units set to C")
-				}
+				logger("Weather units set to C")
 				weatherAPIUnit = "C"
 			}
 		} else if weatherAPIUnit != "F" && weatherAPIUnit != "C" {
-			if debugLogging {
-				fmt.Println("Weather API unit not set, using F")
-			}
+			logger("Weather API unit not set, using F")
 			weatherAPIUnit = "F"
 		}
 	}
@@ -70,9 +59,6 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		weatherResponse := string(body)
-		//if debugLogging {
-		//	fmt.Println(weatherResponse)
-		//}
 		type weatherAPIResponseStruct struct {
 			Location struct {
 				Name      string `json:"name"`
@@ -128,14 +114,10 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 		} else if len(splitPhrase) > 4 {
 			speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 		}
-		if debugLogging {
-			fmt.Println("Location parsed from speech: " + "`" + speechLocation + "`")
-		}
+		logger("Location parsed from speech: " + "`" + speechLocation + "`")
 		specificLocation = true
 	} else {
-		if debugLogging {
-			fmt.Println("No location parsed from speech")
-		}
+		logger("No location parsed from speech")
 		specificLocation = false
 	}
 	if specificLocation {

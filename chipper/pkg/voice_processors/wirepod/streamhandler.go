@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	opus "github.com/digital-dream-labs/opus-go/opus"
 )
@@ -25,7 +24,7 @@ func bytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) []
 		// opus
 		n, err := stream.Decode(data)
 		if err != nil {
-			fmt.Println(err)
+			logger(err)
 		}
 		byteArray := split(n)
 		return byteArray

@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -20,7 +19,7 @@ func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 	result := make(map[string]interface{})
 	err := json.Unmarshal([]byte(serverResponseJSON), &result)
 	if err != nil {
-		fmt.Println(err.Error())
+		logger(err.Error())
 		return "", errors.New("failed to decode json")
 	}
 	if !strings.EqualFold(result["Status"].(string), "OK") {
@@ -34,11 +33,11 @@ func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 
 func InitHoundify() {
 	if os.Getenv("HOUNDIFY_CLIENT_ID") == "" {
-		fmt.Println("Houndify Client ID not provided.")
+		logger("Houndify Client ID not provided.")
 		houndEnable = false
 	}
 	if os.Getenv("HOUNDIFY_CLIENT_KEY") == "" {
-		fmt.Println("Houndify Client Key not provided.")
+		logger("Houndify Client Key not provided.")
 		houndEnable = false
 	}
 	if houndEnable {
@@ -47,7 +46,7 @@ func InitHoundify() {
 			ClientKey: os.Getenv("HOUNDIFY_CLIENT_KEY"),
 		}
 		hKGclient.EnableConversationState()
-		fmt.Println("Houndify for knowledge graph initialized!")
+		logger("Houndify for knowledge graph initialized!")
 	}
 }
 
@@ -57,7 +56,7 @@ var NoResultSpoken string
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
 	transcribedText, _, _, justThisBotNum, _, err := sttHandler(req, true)
 	if err != nil {
-		fmt.Println(err)
+		logger(err)
 		NoResultSpoken = err.Error()
 		kg := pb.KnowledgeGraphResponse{
 			Session:     req.Session,
@@ -79,9 +78,7 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 		CommandType: NoResult,
 		SpokenText:  NoResultSpoken,
 	}
-	if debugLogging {
-		fmt.Println("(KG) Bot " + strconv.Itoa(justThisBotNum) + " request served.")
-	}
+	logger("(KG) Bot " + strconv.Itoa(justThisBotNum) + " request served.")
 	if err := req.Stream.Send(&kg); err != nil {
 		return nil, err
 	}

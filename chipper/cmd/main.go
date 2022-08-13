@@ -58,8 +58,8 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	go wirepod.StartWebServer()
 	p, err := wirepod.New()
+	go wirepod.StartWebServer()
 	wirepod.InitHoundify()
 	if err != nil {
 		log.Fatal(err)
@@ -75,7 +75,6 @@ func startServer() {
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
 
 	srv.Start()
-	fmt.Println("Server started successfully!")
-
+	fmt.Println("\033[33m\033[1mServer started successfully!\033[0m")
 	<-srv.Notify(grpcserver.Stopped)
 }
