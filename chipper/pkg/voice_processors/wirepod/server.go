@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/asticode/go-asticoqui"
-	"github.com/maxhawkins/go-webrtcvad"
 )
 
 var debugLogging bool
@@ -75,33 +74,9 @@ func New() (*Server, error) {
 	}
 	pcmBytes, _ := os.ReadFile("./stttest.pcm")
 	var micData [][]byte
-	var activeNum int = 0
-	var inactiveNum int = 0
-	var inactiveNumMax int = 20
 	micData = split(pcmBytes)
 	for _, sample := range micData {
 		coquiStream.FeedAudioContent(bytesToSamples(sample))
-		vad, err := webrtcvad.New()
-		if err != nil {
-			logger(err)
-		}
-		if err := vad.SetMode(2); err != nil {
-			logger(err)
-		}
-		active, err := vad.Process(16000, sample)
-		if err != nil {
-			logger(err)
-		}
-		if active {
-			activeNum = activeNum + 1
-			inactiveNum = 0
-		} else {
-			inactiveNum = inactiveNum + 1
-		}
-		if inactiveNum >= inactiveNumMax && activeNum > 20 {
-			logger("Test speech completed.")
-			break
-		}
 	}
 	go func() {
 		for testTimer <= 7.00 {
