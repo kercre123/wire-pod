@@ -120,6 +120,11 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 			coquiStream.FeedAudioContent(bytesToSamples(sample))
 		}
 	}
+	vad, err := webrtcvad.New()
+	if err != nil {
+		logger(err)
+	}
+	vad.SetMode(3)
 	for {
 		if isKnowledgeGraph {
 			chunk, chunkErr := req1.Stream.Recv()
@@ -164,8 +169,6 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		if die {
 			break
 		}
-		// returns []int16, framesize unknown
-		// returns [][]int16, 512 framesize
 		micData = bytesToIntVAD(stream, data, die, isOpus)
 		micDataHound = bytesToIntHound(stream, data, die, isOpus)
 		numInRange = 0
@@ -174,13 +177,6 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 				if numInRange >= oldDataLength {
 					if !isKnowledgeGraph {
 						coquiStream.FeedAudioContent(bytesToSamples(sample))
-					}
-					vad, err := webrtcvad.New()
-					if err != nil {
-						logger(err)
-					}
-					if err := vad.SetMode(2); err != nil {
-						logger(err)
 					}
 					active, err := vad.Process(16000, sample)
 					if err != nil {
@@ -204,6 +200,10 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 			}
 		}
 		oldDataLength = len(micData)
+		if voiceTimer >= 5 {
+			logger("Voice timeout threshold reached.")
+			speechDone = true
+		}
 		if speechDone {
 			if isKnowledgeGraph {
 				logger("Sending requst to Houndify...")

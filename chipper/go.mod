@@ -24,6 +24,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/josharian/fvad v0.0.0-20201126043145-6cba2db1e3b8
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
