@@ -11,6 +11,9 @@ if [[ -f /usr/bin/apt ]]; then
 elif [[ -f /usr/bin/pacman ]]; then
 	TARGET="arch"
 	echo "Arch Linux confirmed."
+elif [[ -f /usr/bin/dnf ]]; then
+	TARGET="fedora"
+	echo "Fedora/openSUSE detected."
 else
 	echo "This OS is not supported. This script currently supports Arch and Debian-based Linux."
 	exit 1
@@ -45,9 +48,10 @@ if [[ $1 != "-f" ]]; then
 		if [[ "${CPUINFO}" == *"avx"* ]]; then
 			echo "AVX support confirmed."
 		else
-			echo "This CPU does not support AVX. This is required for text to speech. Exiting."
-			echo "If you would like to bypass this, run the script like this: './setup.sh -f'"
-			exit 1
+			echo "This CPU does not support AVX. Text to speech performance will not be optimal."
+			AVXSUPPORT="noavx"
+			#echo "If you would like to bypass this, run the script like this: './setup.sh -f'"
+			#exit 1
 		fi
 	fi
 fi
@@ -64,6 +68,9 @@ function getPackages() {
 		elif [[ ${TARGET} == "arch" ]]; then
 			pacman -Sy --noconfirm
 			sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl
+		elif [[ ${TARGET} == "fedora" ]]; then
+			dnf update
+			dnf install -y wget openssl net-tools sox opus make opusfile curl
 		fi
 		touch ./vector-cloud/packagesGotten
 		echo
@@ -130,7 +137,11 @@ function getSTT() {
 		mkdir /root/.coqui
 		cd /root/.coqui
 		if [[ ${ARCH} == "x86_64" ]]; then
-			wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.Linux.tar.xz
+			if [[ ${AVXSUPPORT} == "noavx" ]]; then
+				wget -q --show-progress https://wire.my.to/noavx-coqui/native_client.tflite.Linux.tar.xz
+			else
+				wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.Linux.tar.xz
+			fi
 			tar -xf native_client.tflite.Linux.tar.xz
 			rm -f ./native_client.tflite.Linux.tar.xz
 		elif [[ ${ARCH} == "aarch64" ]]; then

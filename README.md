@@ -20,7 +20,7 @@ NOTE: This only works with OSKR-unlocked, Dev-unlocked, or Whiskey robots.
 
 ### Linux
 
-(This currently only works on Arch or Debian-based Linux)
+(Your distribution must have either pacman, dnf, or apt)
 
 ```
 git clone https://github.com/kercre123/wire-pod.git
@@ -131,14 +131,14 @@ OS Support:
 
 - Arch
 - Debian/Ubuntu/other APT distros
+- Fedora/openSUSE
 - Windows under WSL
 
 Architecture support:
 
 - amd64/x86_64
-- arm64/aarch64
-- arm32/armv7l
-- (all require AVX support)
+- arm64/aarch64 (AVX required)
+- arm32/armv7l (AVX required)
 
 Things wire-pod has worked on:
 
@@ -148,6 +148,7 @@ Things wire-pod has worked on:
 - Nintendo Switch with L4T Ubuntu
 - Desktop with Ryzen 5 3600, 16 GB RAM with Ubuntu 22.04
 - Laptop with mobile i7
+- Desktop with Xeon X5650
 - Android Devices
 	- Pixel 4, Note 4, Razer Phone, Oculus Quest 2, OnePlus 7 Pro, Moto G6, Pixel 2
 	- [Termux](https://github.com/termux/termux-app) proot-distro: Use Ubuntu, make sure to use a port above 1024 and not the default 443.
@@ -157,7 +158,7 @@ General notes:
 
 - If you get this error when running chipper, you are using a port that is being taken up by a program already: `panic: runtime error: invalid memory address or nil pointer dereference`
 	- Run `./setup.sh` with the 5th and 6th option to change the port, you will need to push files to the bot again.
-- If you want to disable logging from the voice processor, recompile chipper with `debugLogging` in ./chipper/pkg/voice_processors/noop/intent.go set to `false`.
+- If you want to disable logging from the voice processor, set DEGUG_LOGGING in ./chipper/source.sh to `false`.
 - You have to speak a little slower than normal for Coqui STT to understand you.
 
 Current implemented actions:
