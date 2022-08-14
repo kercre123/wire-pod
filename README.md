@@ -10,9 +10,9 @@ This repo contains a custom Vector escape pod made from [chipper](https://github
 
 ## System Requirements
 
-For wire-pod, a CPU with AVX support is required. Check [https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX)
+For wire-pod, a CPU with AVX support is recommended, but not required if you are using x86. Check [https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX)
 
-If your CPU does not support AVX, use [wire-picovoice-pod](https://github.com/kercre123/wire-picovoice-pod) instead.
+If your CPU does not support AVX and you are not getting good performance, use [wire-picovoice-pod](https://github.com/kercre123/wire-picovoice-pod) instead.
 
 ## Configuring, Building, Installing
 
