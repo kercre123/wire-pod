@@ -4,9 +4,9 @@ This repo contains a custom Vector escape pod made from [chipper](https://github
 
 ## Program Descriptions
 
-`chipper` - Chipper is a program used on Digital Dream Lab's servers which takes in a Vector's voice stream, puts it into a speech-to-text processor, and spits out an intent. This is also likely used on the official escape pod. This repo contains an older tree of chipper which does not have the "intent graph" feature (it caused an error upon every new stream), and it now has a working voice processor.
+`chipper` - Chipper is a program used on Digital Dream Lab's servers which takes in a Vector's voice stream, puts it into a speech-to-text processor, and spits out an intent.
 
-`vector-cloud` - Vector-cloud is the program which runs on Vector himself which uploads the mic stream to a chipper instance. This repo has an older tree of vector-cloud which also does not have the "intent graph" feature and has been modified to allow for a custom CA cert.
+`vector-cloud` - Vector-cloud is the program which runs on Vector himself which uploads the mic stream to a chipper instance. This repo contains a fork of vector-cloud which has been modified to allow for a custom CA cert.
 
 ## System Requirements
 
@@ -81,9 +81,9 @@ After all of that, try a voice command.
 
 #### Update
 
-To update to a newer version of wire-picovoice-pod, make sure chipper is not running then run:
+To update to a newer version of wire-pod, make sure chipper is not running then run:
 ```
-cd ~/wire-picovoice-pod
+cd ~/wire-pod
 sudo git pull
 cd chipper
 sudo ./start.sh
@@ -92,14 +92,14 @@ If you see an error, run the command it tells you to run but with `sudo` at the 
 
 #### Systemd daemon
 
-You can setup a systemd daemon for wire-picovoice-pod. This allows it to run in the background and it to run automatically at startup.
+You can setup a systemd daemon for wire-pod. This allows it to run in the background and it to run automatically at startup.
 ```
-cd ~/wire-picovoice-pod
+cd ~/wire-pod
 sudo ./setup.sh daemon-enable
 ```
 To start the service, either restart your computer or run:
 
-`sudo systemctl start wire-picovoice-pod`
+`sudo systemctl start wire-pod`
 
 To see logs, run:
 
@@ -107,7 +107,7 @@ To see logs, run:
 
 If you would like to disable the daemon, run:
 ```
-cd ~/wire-picovoice-pod
+cd ~/wire-pod
 sudo ./setup.sh daemon-disable
 ```
 
@@ -210,7 +210,7 @@ Current implemented actions:
 - Shut up
 - My name is <name>
 - I have a question
-	- Placeholder text
+	- Requires API setup
 - Set a timer for <time> seconds
 - Set a timer for <time> minutes
 - Check the timer
