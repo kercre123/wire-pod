@@ -259,6 +259,7 @@ function generateCerts() {
 		else
 			DNSPrompt
 		fi
+		rm ./chipper/useepod
 		rm -rf ./certs
 		mkdir certs
 		cd certs
