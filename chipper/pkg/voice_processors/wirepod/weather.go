@@ -10,6 +10,28 @@ import (
 	"strings"
 )
 
+type weatherAPIResponseStruct struct {
+	Location struct {
+		Name      string `json:"name"`
+		Localtime string `json:"localtime"`
+	} `json:"location"`
+	Current struct {
+		LastUpdatedEpoch int     `json:"last_updated_epoch"`
+		LastUpdated      string  `json:"last_updated"`
+		TempC            float64 `json:"temp_c"`
+		TempF            float64 `json:"temp_f"`
+		Condition        struct {
+			Text string `json:"text"`
+			Icon string `json:"icon"`
+			Code int    `json:"code"`
+		} `json:"condition"`
+	} `json:"current"`
+}
+type weatherAPICladStruct []struct {
+	APIValue string `json:"APIValue"`
+	CladType string `json:"CladType"`
+}
+
 func getWeather(location string, botUnits string) (string, string, string, string, string, string) {
 	var weatherEnabled bool
 	var condition string
@@ -59,26 +81,23 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		weatherResponse := string(body)
-		type weatherAPIResponseStruct struct {
-			Location struct {
-				Name      string `json:"name"`
-				Localtime string `json:"localtime"`
-			} `json:"location"`
-			Current struct {
-				LastUpdatedEpoch int     `json:"last_updated_epoch"`
-				LastUpdated      string  `json:"last_updated"`
-				TempC            float64 `json:"temp_c"`
-				TempF            float64 `json:"temp_f"`
-				Condition        struct {
-					Text string `json:"text"`
-					Icon string `json:"icon"`
-					Code int    `json:"code"`
-				} `json:"condition"`
-			} `json:"current"`
-		}
+		var weatherAPICladMap weatherAPICladStruct
+		jsonFile, _ := os.ReadFile("./weather-map.json")
+		json.Unmarshal(jsonFile, &weatherAPICladMap)
 		var weatherStruct weatherAPIResponseStruct
 		json.Unmarshal([]byte(weatherResponse), &weatherStruct)
-		condition = weatherStruct.Current.Condition.Text
+		var matchedValue bool
+		for _, b := range weatherAPICladMap {
+			if b.APIValue == weatherStruct.Current.Condition.Text {
+				condition = b.CladType
+				logger("API Value: " + b.APIValue + ", Clad Type: " + b.CladType)
+				matchedValue = true
+				break
+			}
+		}
+		if !matchedValue {
+			condition = weatherStruct.Current.Condition.Text
+		}
 		is_forecast = "false"
 		local_datetime = weatherStruct.Current.LastUpdated
 		speakable_location_string = weatherStruct.Location.Name
