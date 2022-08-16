@@ -250,9 +250,9 @@ function generateCerts() {
 	echo "Would you like to use your IP address or a domain for the Subject Alt Name?"
 	echo "Or would you like to use the escapepod.local certs?"
 	echo
-	echo "1: IP address (recommended)"
+	echo "1: IP address (recommended for OSKR Vectors)"
 	echo "2: Domain"
-	echo "3: escapepod.local"
+	echo "3: escapepod.local (recommended for prod Vectors)"
 	IPDNSPrompt
 	if [[ ${isEscapePod} != "epod" ]]; then
 		if [[ ${SANPrefix} == "IP" ]]; then
