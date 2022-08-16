@@ -27,7 +27,8 @@ elif [[ "${UNAME}" == *"aarch64"* ]]; then
 	echo "aarch64 architecture confirmed."
 elif [[ "${UNAME}" == *"armv7l"* ]]; then
 	ARCH="armv7l"
-	echo "armv7l architecture confirmed."
+	echo "armv7l support is broken at the moment. Exiting."
+	exit 1
 else
 	echo "Your CPU architecture not supported. This script currently supports x86_64, aarch64, and armv7l."
 	exit 1
@@ -553,7 +554,6 @@ function scpToBot() {
 	fi
 	ssh -i ${keyPath} root@${botAddress} "mount -o rw,remount / && systemctl stop vic-cloud && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak"
 	scp ${oldVar} -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
-	scp ${oldVar} -i ${keyPath} ./vector-cloud/weather_weathercompany.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/behaviorComponent/weather/weatherResponseMaps/
 	scp ${oldVar} -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
 	if [[ -f ./chipper/useepod ]]; then
 		scp ${oldVar} -i ${keyPath} ./chipper/epod/ep.crt root@${botAddress}:/data/data/customCaCert.crt
@@ -564,7 +564,7 @@ function scpToBot() {
 	rm -f /tmp/sshTest
 	rm -f /tmp/scpTest
 	echo
-	echo "Everything has been copied to the bot! While you don't need to reboot Vector for voice commands to work with your custom server, you will need to reboot Vector for the weather command to work correctly."
+	echo "Everything has been copied to the bot! Voice commands should work now without needing to reboot Vector."
 	echo
 	echo "Everything is now setup! You should be ready to run chipper. sudo ./chipper/start.sh"
 	echo

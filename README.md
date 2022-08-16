@@ -23,6 +23,7 @@ NOTE: This only works with OSKR-unlocked, Dev-unlocked, or Whiskey robots.
 (Your distribution must have either pacman, dnf, or apt)
 
 ```
+cd ~
 git clone https://github.com/kercre123/wire-pod.git
 cd wire-pod
 sudo ./setup.sh
@@ -137,13 +138,12 @@ OS Support:
 Architecture support:
 
 - amd64/x86_64
-- arm64/aarch64 (AVX required)
-- arm32/armv7l (AVX required)
+- arm64/aarch64
 
 Things wire-pod has worked on:
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
-	- Doesn't matter if it is 32-bit or 64-bit
+	- Must be 64-bit OS
 - Raspberry Pi 4B+ 4GB RAM with Manjaro 22.04
 - Nintendo Switch with L4T Ubuntu
 - Desktop with Ryzen 5 3600, 16 GB RAM with Ubuntu 22.04

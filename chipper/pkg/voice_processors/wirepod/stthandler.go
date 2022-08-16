@@ -206,21 +206,27 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 		if speechDone {
 			if isKnowledgeGraph {
-				logger("Sending requst to Houndify...")
-				if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
-					req := houndify.VoiceRequest{
-						AudioStream:       bytes.NewReader(micDataHound),
-						UserID:            deviceESN,
-						RequestID:         deviceSession,
-						RequestInfoFields: make(map[string]interface{}),
+				if houndEnable {
+					logger("Sending requst to Houndify...")
+					if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
+						req := houndify.VoiceRequest{
+							AudioStream:       bytes.NewReader(micDataHound),
+							UserID:            deviceESN,
+							RequestID:         deviceSession,
+							RequestInfoFields: make(map[string]interface{}),
+						}
+						partialTranscripts := make(chan houndify.PartialTranscript)
+						serverResponse, err := hKGclient.VoiceSearch(req, partialTranscripts)
+						if err != nil {
+							logger(err)
+						}
+						transcribedText, _ = ParseSpokenResponse(serverResponse)
+						logger("Transcribed text: " + transcribedText)
+						die = true
 					}
-					partialTranscripts := make(chan houndify.PartialTranscript)
-					serverResponse, err := hKGclient.VoiceSearch(req, partialTranscripts)
-					if err != nil {
-						logger(err)
-					}
-					transcribedText, _ = ParseSpokenResponse(serverResponse)
-					logger("Transcribed text: " + transcribedText)
+				} else {
+					transcribedText = "Houndify is not enabled."
+					logger("Houndify is not enabled.")
 					die = true
 				}
 			} else {
