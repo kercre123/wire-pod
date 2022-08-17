@@ -26,6 +26,13 @@ fi
 source source.sh
 
 #./chipper
+if [[ ${STT_SERVICE} == "leopard" ]]; then
+if [[ -f ./chipper ]]; then
+  ./chipper
+else
+  /usr/local/go/bin/go run cmd-leopard/main.go
+fi
+else
 if [[ -f ./chipper ]]; then
       export CGO_LDFLAGS="-L/root/.coqui/"
       export CGO_CXXFLAGS="-I/root/.coqui/"
@@ -36,4 +43,5 @@ else
       export CGO_CXXFLAGS="-I$HOME/.coqui/"
       export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
   /usr/local/go/bin/go run cmd/main.go
+fi
 fi

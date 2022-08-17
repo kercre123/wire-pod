@@ -8,15 +8,9 @@ This repo contains a custom Vector escape pod made from [chipper](https://github
 
 `vector-cloud` - Vector-cloud is the program which runs on Vector himself which uploads the mic stream to a chipper instance. This repo contains a fork of vector-cloud which has been modified to allow for a custom CA cert.
 
-## System Requirements
-
-For wire-pod, a CPU with AVX support is recommended, but not required if you are using x86. Check [https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX)
-
-If your CPU does not support AVX and you are not getting good performance, use [wire-picovoice-pod](https://github.com/kercre123/wire-picovoice-pod) instead.
-
 ## Configuring, Building, Installing
 
-NOTE: This only works with OSKR-unlocked, Dev-unlocked, or Whiskey robots.
+(NOTE: If you want to setup a production Vector, use [these instructions](/ProductionVectorInstructions.md))
 
 ### Linux
 
@@ -139,11 +133,19 @@ Architecture support:
 
 - amd64/x86_64
 - arm64/aarch64
+- armv7l/arm32 (picovoice only)
+
+STT services you can choose from:
+
+- Coqui
+	- Coqui is a completely local service which is reasonably accurate and fast.
+- Picovoice Leopard
+	- Leopard does processing locally but you must sign up for an account at [https://console.picovoice.ai](https://console.picovoice.ai) and put in an API key during setup.sh, so some data is sent to a cloud. It is more accurate and fast though, and supports more hardware.
 
 Things wire-pod has worked on:
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
-	- Must be 64-bit OS
+	- Must be 64-bit OS if using Coqui
 - Raspberry Pi 4B+ 4GB RAM with Manjaro 22.04
 - Nintendo Switch with L4T Ubuntu
 - Desktop with Ryzen 5 3600, 16 GB RAM with Ubuntu 22.04
