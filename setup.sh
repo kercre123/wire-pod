@@ -15,7 +15,7 @@ elif [[ -f /usr/bin/dnf ]]; then
 	TARGET="fedora"
 	echo "Fedora/openSUSE detected."
 else
-	echo "This OS is not supported. This script currently supports Arch and Debian-based Linux."
+	echo "This OS is not supported. This script currently supports Linux with either apt, pacman, or dnf."
 	exit 1
 fi
 
@@ -27,7 +27,7 @@ elif [[ "${UNAME}" == *"aarch64"* ]]; then
 	echo "aarch64 architecture confirmed."
 elif [[ "${UNAME}" == *"armv7l"* ]]; then
 	ARCH="armv7l"
-	echo "armv7l support is broken at the moment. Exiting."
+	echo "armv7l WARN: The Coqui bindings are broken for this platform at the moment, so please choose Picovoice when the script asks."
 	exit 1
 else
 	echo "Your CPU architecture not supported. This script currently supports x86_64, aarch64, and armv7l."
@@ -129,6 +129,42 @@ function buildChipper() {
 }
 
 function getSTT() {
+	rm -f ./chipper/pico.key
+		function sttServicePrompt() {
+			echo
+			echo "Which speech-to-text service would you like to use?"
+			echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
+			echo "2: Picovoice Leopard (local, usage collected, accurate, account signup required)"
+			echo
+			read -p "Enter a number (1): " sttServiceNum
+			if [[ ! -n ${sttServiceNum} ]]; then
+				sttService="coqui"
+			elif [[ ${sttServiceNum} == "1" ]]; then
+				sttService="coqui"
+			elif [[ ${sttServiceNum} == "2" ]]; then
+				sttService="leopard"
+			else
+				echo
+				echo "Choose a valid number, or just press enter to use the default number."
+				sttServicePrompt
+			fi
+		}
+		sttServicePrompt
+		if [[ ${sttService} == "leopard" ]]; then
+		function picoApiPrompt() {
+			echo
+			echo "Create an account at https://console.picovoice.ai/ and enter the Access Key it gives you."
+			echo
+			read -p "Enter your Access Key: " picoKey
+			if [[ ! -n ${picoKey} ]]; then
+				echo
+				echo "You must enter a key."
+				picoApiPrompt
+			fi
+		}
+		picoApiPrompt
+		echo ${picoKey} > ./chipper/pico.key
+		else
 	if [[ ! -f ./stt/completed ]]; then
 		echo "Getting STT assets"
 		if [[ -d /root/.coqui ]]; then
@@ -208,6 +244,7 @@ function getSTT() {
 	else
 		echo "STT assets already there! If you want to redownload, use the 4th option in setup.sh."
 	fi
+	fi
 }
 
 function IPDNSPrompt() {
@@ -260,7 +297,7 @@ function generateCerts() {
 		else
 			DNSPrompt
 		fi
-		rm ./chipper/useepod
+		rm -f ./chipper/useepod
 		rm -rf ./certs
 		mkdir certs
 		cd certs
@@ -460,6 +497,13 @@ function makeSource() {
 		echo "export HOUNDIFY_ENABLED=false" >>source.sh
 	fi
 	echo "export WEBSERVER_PORT=${webport}" >>source.sh
+	if [[ -f ./pico.key ]]; then
+	picoKey=$(cat ./pico.key)
+		echo "export STT_SERVICE=leopard" >>source.sh
+		echo "export PICOVOICE_APIKEY=${picoKey}" >> source.sh
+	else
+		echo "export STT_SERVICE=coqui" >>source.sh
+	fi
 	echo "export DEBUG_LOGGING=true" >>source.sh
 	cd ..
 	echo

@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -36,12 +35,10 @@ func paramCheckerSlots(req interface{}, intent string, slots map[string]string, 
 			UsePlaySpecific bool   `json:"use_play_specific"`
 			IsEarlyOpus     bool   `json:"is_early_opus"`
 		}
-		jsonFile, err := os.Open("./botConfig.json")
+		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
 			logger(err)
 		}
-		defer jsonFile.Close()
-		byteValue, _ := ioutil.ReadAll(jsonFile)
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
@@ -218,12 +215,10 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 			UsePlaySpecific bool   `json:"use_play_specific"`
 			IsEarlyOpus     bool   `json:"is_early_opus"`
 		}
-		jsonFile, err := os.Open("./botConfig.json")
+		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
 			logger(err)
 		}
-		defer jsonFile.Close()
-		byteValue, _ := ioutil.ReadAll(jsonFile)
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
@@ -484,12 +479,10 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 			UsePlaySpecific bool   `json:"use_play_specific"`
 			IsEarlyOpus     bool   `json:"is_early_opus"`
 		}
-		jsonFile, err := os.Open("./botConfig.json")
+		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
 			logger(err)
 		}
-		defer jsonFile.Close()
-		byteValue, _ := ioutil.ReadAll(jsonFile)
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {

@@ -92,7 +92,7 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		for _, c := range customIntentJSON {
 			for _, v := range c.Utterances {
-				if strings.Contains(voiceText, v) {
+				if strings.Contains(voiceText, strings.ToLower(strings.TrimSpace(v))) {
 					logger("Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
 					var intentParams map[string]string
 					var isParam bool = false
@@ -128,6 +128,9 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 				if successMatched {
 					break
 				}
+			}
+			if successMatched {
+				break
 			}
 		}
 		if err != nil {
