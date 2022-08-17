@@ -3,7 +3,6 @@ package wirepod
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -51,7 +50,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				ParamValue string `json:"paramvalue"`
 			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ",")})
 			customIntentJSONFile, _ = json.Marshal(customIntentJSON)
-			ioutil.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
+			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
 		} else {
 			logger("Creating customIntents.json")
 			customIntentJSONFile, _ := json.Marshal([]struct {
@@ -69,7 +68,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				ParamName  string `json:"paramname"`
 				ParamValue string `json:"paramvalue"`
 			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ",")}})
-			ioutil.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
+			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
 		}
 		fmt.Fprintf(w, "intent added successfully")
 		return
@@ -134,7 +133,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			customIntentJSON[newNumber].ExecArgs = strings.Split(execArgs, ",")
 		}
 		newCustomIntentJSONFile, _ := json.Marshal(customIntentJSON)
-		ioutil.WriteFile("./customIntents.json", newCustomIntentJSONFile, 0644)
+		os.WriteFile("./customIntents.json", newCustomIntentJSONFile, 0644)
 		fmt.Fprintf(w, "intent edited successfully")
 		return
 	case r.URL.Path == "/api/get_custom_intents_json":
@@ -144,7 +143,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "err: you must create an intent first")
 			return
 		}
-		customIntentJSONFile, err := ioutil.ReadFile("./customIntents.json")
+		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
 			logger(err)
 		}
@@ -176,7 +175,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		customIntentJSON = append(customIntentJSON[:newNumber], customIntentJSON[newNumber+1:]...)
 		newCustomIntentJSONFile, _ := json.Marshal(customIntentJSON)
-		ioutil.WriteFile("./customIntents.json", newCustomIntentJSONFile, 0644)
+		os.WriteFile("./customIntents.json", newCustomIntentJSONFile, 0644)
 		fmt.Fprintf(w, "intent removed successfully")
 		return
 	case r.URL.Path == "/api/add_bot":
@@ -228,7 +227,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var botConfig botConfigStruct
 		if _, err := os.Stat("./botConfig.json"); err == nil {
 			// read botConfig.json and append to it with the form information
-			botConfigFile, err := ioutil.ReadFile("./botConfig.json")
+			botConfigFile, err := os.ReadFile("./botConfig.json")
 			if err != nil {
 				logger(err)
 			}
@@ -241,7 +240,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				IsEarlyOpus     bool   `json:"is_early_opus"`
 			}{Esn: botESN, Location: botLocation, Units: botUnits, UsePlaySpecific: use_play_specific, IsEarlyOpus: is_early_opus})
 			newBotConfigJSONFile, _ := json.Marshal(botConfig)
-			ioutil.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
+			os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
 		} else {
 			botConfig = append(botConfig, struct {
 				Esn             string `json:"esn"`
@@ -251,7 +250,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				IsEarlyOpus     bool   `json:"is_early_opus"`
 			}{Esn: botESN, Location: botLocation, Units: botUnits, UsePlaySpecific: use_play_specific, IsEarlyOpus: is_early_opus})
 			newBotConfigJSONFile, _ := json.Marshal(botConfig)
-			ioutil.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
+			os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
 		}
 		fmt.Fprintf(w, "bot added successfully")
 		return
@@ -285,7 +284,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		logger(botConfigJSON[newNumber].Esn + " bot is being removed")
 		botConfigJSON = append(botConfigJSON[:newNumber], botConfigJSON[newNumber+1:]...)
 		newBotConfigJSONFile, _ := json.Marshal(botConfigJSON)
-		ioutil.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
+		os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
 		fmt.Fprintf(w, "bot removed successfully")
 		return
 	case r.URL.Path == "/api/edit_bot":
@@ -338,7 +337,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var botConfig botConfigStruct
 		if _, err := os.Stat("./botConfig.json"); err == nil {
 			// read botConfig.json and append to it with the form information
-			botConfigFile, err := ioutil.ReadFile("./botConfig.json")
+			botConfigFile, err := os.ReadFile("./botConfig.json")
 			if err != nil {
 				logger(err)
 			}
@@ -351,7 +350,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			botConfig[newNumber].UsePlaySpecific = use_play_specific
 			botConfig[newNumber].IsEarlyOpus = is_early_opus
 			newBotConfigJSONFile, _ := json.Marshal(botConfig)
-			ioutil.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
+			os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
 		} else {
 			fmt.Fprintln(w, "err: you must create a bot first")
 			return
@@ -365,7 +364,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "err: you must add a bot first")
 			return
 		}
-		botConfigJSONFile, err := ioutil.ReadFile("./botConfig.json")
+		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
 		if err != nil {
 			logger(err)
 		}
