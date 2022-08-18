@@ -44,7 +44,11 @@ h1, h2, h3, h4, small, p, li, label {
   color: white;
 }
 
-
+img {
+    max-width: 100%;
+    height: auto;
+	object-fit: contain;
+}
 
 p, small {
 }
