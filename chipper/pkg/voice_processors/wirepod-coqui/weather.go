@@ -2,7 +2,7 @@ package wirepod
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -79,7 +79,7 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			panic(err)
 		}
 		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		weatherResponse := string(body)
 		var weatherAPICladMap weatherAPICladStruct
 		jsonFile, _ := os.ReadFile("./weather-map.json")
