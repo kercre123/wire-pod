@@ -633,10 +633,14 @@ function setupSystemd() {
 	echo
 	echo "wire-pod.service created, building chipper..."
 	cd chipper
-	export CGO_LDFLAGS="-L$HOME/.coqui/"
-	export CGO_CXXFLAGS="-I$HOME/.coqui/"
-	export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
-	/usr/local/go/bin/go build cmd/main.go
+	if [[ ${STT_SERVICE} == "leopard" ]]; then
+		/usr/local/go/bin/go build cmd-leopard/main.go
+	else
+		export CGO_LDFLAGS="-L$HOME/.coqui/"
+		export CGO_CXXFLAGS="-I$HOME/.coqui/"
+		export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
+		/usr/local/go/bin/go build cmd/main.go
+	fi
 	mv main chipper
 	echo
 	echo "./chipper/chipper has been built!"
