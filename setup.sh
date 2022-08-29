@@ -619,6 +619,11 @@ function setupSystemd() {
 		echo "This cannot be done on macOS."
 		exit 1
 	fi
+	if [[ ! -f ./source.sh ]]; then
+  		echo "You need to make a source.sh file. This can be done with the setup.sh script, option 6."
+  		exit 1
+	fi
+	source source.sh
 	echo "[Unit]" >wire-pod.service
 	echo "Description=Wire Escape Pod (coqui)" >>wire-pod.service
 	echo >>wire-pod.service
