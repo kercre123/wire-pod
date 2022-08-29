@@ -636,11 +636,12 @@ function setupSystemd() {
 	echo "WantedBy=multi-user.target" >>wire-pod.service
 	cat wire-pod.service
 	echo
-	echo "wire-pod.service created, building chipper..."
 	cd chipper
 	if [[ ${STT_SERVICE} == "leopard" ]]; then
+		echo "wire-pod.service created, building chipper with Picovoice STT service..."
 		/usr/local/go/bin/go build cmd-leopard/main.go
 	else
+		echo "wire-pod.service created, building chipper with Coqui STT service..."
 		export CGO_LDFLAGS="-L$HOME/.coqui/"
 		export CGO_CXXFLAGS="-I$HOME/.coqui/"
 		export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
