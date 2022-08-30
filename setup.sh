@@ -619,6 +619,11 @@ function setupSystemd() {
 		echo "This cannot be done on macOS."
 		exit 1
 	fi
+	if [[ ! -f ./chipper/source.sh ]]; then
+  		echo "You need to make a source.sh file. This can be done with the setup.sh script, option 6."
+  		exit 1
+	fi
+	source ./chipper/source.sh
 	echo "[Unit]" >wire-pod.service
 	echo "Description=Wire Escape Pod (coqui)" >>wire-pod.service
 	echo >>wire-pod.service
@@ -631,12 +636,17 @@ function setupSystemd() {
 	echo "WantedBy=multi-user.target" >>wire-pod.service
 	cat wire-pod.service
 	echo
-	echo "wire-pod.service created, building chipper..."
 	cd chipper
-	export CGO_LDFLAGS="-L$HOME/.coqui/"
-	export CGO_CXXFLAGS="-I$HOME/.coqui/"
-	export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
-	/usr/local/go/bin/go build cmd/main.go
+	if [[ ${STT_SERVICE} == "leopard" ]]; then
+		echo "wire-pod.service created, building chipper with Picovoice STT service..."
+		/usr/local/go/bin/go build cmd-leopard/main.go
+	else
+		echo "wire-pod.service created, building chipper with Coqui STT service..."
+		export CGO_LDFLAGS="-L$HOME/.coqui/"
+		export CGO_CXXFLAGS="-I$HOME/.coqui/"
+		export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
+		/usr/local/go/bin/go build cmd/main.go
+	fi
 	mv main chipper
 	echo
 	echo "./chipper/chipper has been built!"
