@@ -2,6 +2,8 @@
 
 This repo contains a custom Vector escape pod made from [chipper](https://github.com/digital-dream-labs/chipper) and [vector-cloud](https://github.com/digital-dream-labs/vector-cloud).
 
+This is the original wire-pod, which was made to be dev-friendly. For one that is easier to setup and use, use [wire-prod-pod](https://www.github.com/kercre123/wire-prod-pod).
+
 ## Program Descriptions
 
 `chipper` - Chipper is a program used on Digital Dream Lab's servers which takes in a Vector's voice stream, puts it into a speech-to-text processor, and spits out an intent.
