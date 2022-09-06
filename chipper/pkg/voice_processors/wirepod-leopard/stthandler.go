@@ -104,7 +104,6 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	var leopardSTT leopard.Leopard
 	botNum = botNum + 1
 	justThisBotNum := botNum
-	
 	if !isKnowledgeGraph {
 		if botNum > picovoiceInstances {
 			fmt.Println("Too many bots are connected, sending error to bot " + strconv.Itoa(justThisBotNum))
