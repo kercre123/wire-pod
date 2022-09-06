@@ -102,7 +102,6 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	var deviceESN string
 	var deviceSession string
 	var leopardSTT leopard.Leopard
-	var picoCrash bool = false
 	botNum = botNum + 1
 	justThisBotNum := botNum
 	if !isKnowledgeGraph {
@@ -224,9 +223,6 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 				}
 			}
 			data = append(data, chunk.InputAudio...)
-		}
-		if picoCrash {
-			return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("picovoice did not detect any voice")
 		}
 		if die {
 			break
