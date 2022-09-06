@@ -176,6 +176,12 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		logger(err)
 	}
 	vad.SetMode(3)
+	// sometimes leopard panic!
+	defer func() {
+		if err := recover(); err != nil {
+		    logger(err)
+		}
+	}()
 	for {
 		if isKnowledgeGraph {
 			chunk, chunkErr := req1.Stream.Recv()
