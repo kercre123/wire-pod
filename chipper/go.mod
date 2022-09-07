@@ -13,7 +13,7 @@ require (
 	google.golang.org/grpc v1.49.0
 )
 
-require github.com/Picovoice/leopard/binding/go v1.1.1
+require github.com/Picovoice/leopard/binding/go v1.1.2
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
