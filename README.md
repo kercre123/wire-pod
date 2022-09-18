@@ -1,6 +1,6 @@
 # wire-pod
 
-This repo contains a custom Vector escape pod made from [chipper](https://github.com/digital-dream-labs/chipper) and [vector-cloud](https://github.com/digital-dream-labs/vector-cloud).
+This repo contains a custom Vector voice server using [chipper](https://github.com/digital-dream-labs/chipper) and [vector-cloud](https://github.com/digital-dream-labs/vector-cloud).
 
 This is the original wire-pod, which was made to be dev-friendly. For one that is easier to setup and use, use [wire-prod-pod](https://www.github.com/kercre123/wire-prod-pod).
 
@@ -12,7 +12,7 @@ This is the original wire-pod, which was made to be dev-friendly. For one that i
 
 ## Configuring, Building, Installing
 
-(NOTE: If you want to setup a production Vector, use [these instructions](/ProductionVectorInstructions.md))
+(This is the original wire-pod, which is designed for OSKR/dev bots and to be dev-friendly. If you want to set up a regular production bot, it is recommended you use [wire-prod-pod](https://www.github.com/kercre123/wire-prod-pod))
 
 ### Linux
 
@@ -52,29 +52,54 @@ sudo ./start.sh
 
 ### Windows
 
-1. Install WSL (Windows Subsystem for Linux)
-	- Open Powershell
-	- Run `wsl --install`
-	- Reboot the system
-	- Run `wsl --install -d Ubuntu-20.04`
-	- Open up Ubuntu 20.04 in start menu and configure it like it says.
-2. Find IP address
-	- Open Powershell
-	- Run `ipconfig`
-	- Find your computer's IPv4 address and note it somewhere. It usually starts with 10.0. or 192.168.
-3. Install wire-pod
-	- Follow the Linux instructions from above
-	- Enter the IP you got from `ipconfig` earlier instead of the one provided by setup.sh
-	- Use the default port and do not enter a different one
-4. Setup firewall rules
-	- Open Powershell
-	- Run `Set-ExecutionPolicy`
-	- When it asks, enter `Bypass`
-	- Download [this file](https://wire.my.to/wsl-firewall.ps1)
-	- Go to your Downloads folder in File Explorer and Right Click -> Run as administrator
+1. Open up Powershell as administrator
+	-	Open the start menu, type in Powershell, right click, click "Run as administrator"
 
+2. Enter the following command:
 
-After all of that, try a voice command.
+```
+wsl --install
+```
+
+3. Reboot your computer.
+
+4. After the reboot, Ubuntu should install. Wait for it to finish.
+
+5. The Ubuntu installer should ask for a UNIX username. Enter one. example: `wire`
+
+6. It should then ask for a UNIX password. Make sure you remember this! It will not show any indication that you are typing anything, that is normal.
+
+7. You should now be at an Ubuntu terminal. Leave that open in the background.
+
+8. Open up Powershell as administrator
+	-	Open the start menu, type in Powershell, right click, click "Run as administrator"
+
+9. In Powershell, run the following command. When it asks for a confirmation, enter `Y`.
+
+```Set-ExecutionPolicy Bypass```
+
+10. In Powershell, run the following commands:
+
+```
+cd ~
+curl -o wsl-firewall.ps1 https://keriganc.com/wsl-firewall.ps1
+.\wsl-firewall.ps1
+```
+
+11. Return to the Ubuntu terminal and follow the Linux instructions for installation.
+
+(if it asks for a password, enter what you entered for the UNIX password earlier)
+
+12. Once that is finished, run the following commands to start the server:
+
+```
+cd ~/wire-pod
+sudo ./chipper/start.sh
+```
+
+(NOTE: WSL does not have systemd, so you will need to run these commands every time you want to start the server. It will not start automatically.
+
+It should now be setup!
 
 #### Update
 
