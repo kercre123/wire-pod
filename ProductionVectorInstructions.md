@@ -2,6 +2,8 @@
 
 These instructions are for getting a fully regular production Vector working with wire-pod.
 
+It is recommended you use [wire-prod-pod](https://www.github.com/kercre123/wire-prod-pod) instead of wire-pod for this purpose.
+
 ## Some disclaimers and notices:
 
 -   This will require you to put your Vector on 1.8. You cannot keep him on 1.6 if you want to use these instructions.
@@ -37,19 +39,6 @@ sudo ./chipper/start.sh
 
 1. Put your Vector on the charger and hold the button for 15 seconds. The light will turn off after ~5 seconds, that is normal. Just keep holding until he turns back on (do NOT clear user data!).
 
-2. He should be at a screen that shows `anki.com/v`. On a computer with Bluetooth support (preferably Windows or macOS), go to [https://www.project-victor.org/noflow-devsetup](https://www.project-victor.org/noflow-devsetup) in a Chrome browser and connect to Vector like it tells you to. Do not check `Enable auto-setup flow`.
+2. He should be at a screen that shows `anki.com/v`. On a computer with Bluetooth support (preferably Windows or macOS), go to [https://keriganc.com/vector-epod-setup](https://keriganc.com/vector-epod-setup) and follow the instructions. This will put on the escape pod OTA.
 
-3. You should now be at a terminal-like interface. In that interface, connect Vector to Wi-Fi with this command: 
-```
-wifi-connect "ssid" "password"` 
-
-# Replace ssid with your network name, password with the network password
-# Example: wifi-connect "AnkiRobits" "KlaatuBaradaNikto!"
-```
-
-4. Enter the following command into the site: 
-```
-ota-start http://wire.my.to:81/escapepod-prod-1.8.ota
-```
-
-5. Wait for that to finish. Once he has rebooted, voice commands should work!
+3. Wait for that to finish. Once he has rebooted, voice commands should work!
