@@ -2,6 +2,8 @@
 /vector-cloud/build/vic-cloud
 /chipper/source.sh
 /vector-cloud/build
+/vector-cloud/boot-anim/*.raw
+/vector-cloud/boot-anim/config.sh
 /chipper/chipper
 /certs
 /vector-cloud/packagesGotten

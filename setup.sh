@@ -121,6 +121,37 @@ function buildCloud() {
 	echo
 }
 
+function buildAnim() {
+	echo
+	echo "Installing docker"
+	if [[ ${TARGET} == "debian" ]]; then
+		apt update -y
+		apt install -y docker.io
+	elif [[ ${TARGET} == "arch" ]]; then
+		pacman -Sy --noconfirm
+		sudo pacman -S --noconfirm docker
+	fi
+	systemctl start docker
+	echo
+	cd vector-cloud
+	./build-anim.sh
+	cd ..
+	echo
+	echo "./vector-cloud/build/boot-anim built!"
+	echo
+}
+
+function makeAnimRaw() {
+	if [[ ! -f ../vector-cloud/boot-anim/config.sh ]]; then
+  	echo "You need to make a config.sh file. This can be done with the setup.sh script, option 6."
+  	exit 1
+	fi
+	source ./vector-cloud/boot-anim/config.sh
+	ANIM_OUTPUT_FILE_PATH=./vector-cloud/boot-anim/ ./vector-cloud/build/boot-anim ${STARTUP_ANIMATION_IMAGES}
+	echo "Startup animation built completed!"
+	echo
+}
+
 function buildChipper() {
 	echo
 	cd chipper
@@ -473,6 +504,39 @@ function makeSource() {
 			houndifyKeyPrompt
 		fi
 	fi
+    function animationPrompt() {
+        function customeAnimPrompt() {
+          echo
+          read -p "Enter image path seperated by space: " animationImagesPathRaw
+          IFS=' '
+    	  read -a  animationImagesPath <<< "$animationImagesPathRaw"
+          for i in "${animationImagesPath[@]}"; do
+    	     if [[  ! -f "$i" || ! ( $i == *.jpg || $i == *.jpeg || $i == *.gif || $i == *.png ) ]]; then
+              echo
+              echo "$i is not a valid image file."
+              customeAnimPrompt
+              break
+            fi
+          done
+          customAnim=${animationImagesPathRaw}
+        }
+    	echo "Would you like to use the default custom boot anim? or provide your images, This involves making 184px by 96px image gif, png or jpg image, you can use as many images as you like."
+    	echo
+    	echo "1: Yes (Use default animation)"
+    	echo "2: No (I have my own images)"
+    	read -p "Enter a number (1): " yn
+    	case $yn in
+    	"1") customAnim="./vector-cloud/boot-anim/images/default_anim.gif" ;;
+    		"2") customeAnimPrompt ;;
+    	"") customAnim="./vector-cloud/boot-anim/images/default_anim.gif" ;;
+    	*)
+    		echo "Please answer with 1 or 2."
+    		animationPrompt
+    		;;
+    	esac
+    }
+	animationPrompt
+	
 	echo "export DDL_RPC_PORT=${port}" >source.sh
 	if [[ ! -f ./useepod ]]; then
 		echo 'export DDL_RPC_TLS_CERTIFICATE=$(cat ../certs/cert.crt)' >>source.sh
@@ -505,6 +569,7 @@ function makeSource() {
 		echo "export STT_SERVICE=coqui" >>source.sh
 	fi
 	echo "export DEBUG_LOGGING=true" >>source.sh
+	echo "export STARTUP_ANIMATION_IMAGES=${customAnim}" >> ./vector-cloud/boot-anim/config.sh
 	cd ..
 	echo
 	echo "Created source.sh file!"
@@ -596,9 +661,10 @@ function scpToBot() {
 		echo "Unable to communicate with robot. The key may be invalid, the bot may not be unlocked, or this device and the robot are not on the same network."
 		exit 0
 	fi
-	ssh -i ${keyPath} root@${botAddress} "mount -o rw,remount / && systemctl stop vic-cloud && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak"
+	ssh -i ${keyPath} root@${botAddress} "mount -o rw,remount / && systemctl stop vic-cloud && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak && mv /anki/data/assets/cozmo_resources/config/engine/animations/boot_anim.raw /anki/data/assets/cozmo_resources/config/engine/animations/boot_anim.raw.bak"
 	scp ${oldVar} -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
 	scp ${oldVar} -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
+	scp ${oldVar} -i ${keyPath} ./vector-cloud/boot-anim/boot_anim.raw root@${botAddress}:/anki/data/assets/cozmo_resources/config/engine/animations/
 	if [[ -f ./chipper/useepod ]]; then
 		scp ${oldVar} -i ${keyPath} ./chipper/epod/ep.crt root@${botAddress}:/data/data/customCaCert.crt
 	else
@@ -685,7 +751,9 @@ function firstPrompt() {
 		getSTT
 		generateCerts
 		buildChipper
+		buildAnim
 		makeSource
+		makeAnimRaw
 		echo "Everything is done! To copy everything needed to your bot, run this script like this:"
 		echo "Usage: sudo ./setup.sh scp <vector's ip> <path/to/ssh-key>"
 		echo "Example: sudo ./setup.sh scp 192.168.1.150 /home/wire/id_rsa_Vector-R2D2"
@@ -710,15 +778,21 @@ function firstPrompt() {
 		;;
 	"4")
 		echo
+		getPackages
+		buildAnim
+		makeAnimRaw
+		;;
+	"5")
+		echo
 		rm -f ./stt/completed
 		getSTT
 		;;
-	"5")
+	"6")
 		echo
 		getPackages
 		generateCerts
 		;;
-	"6")
+	"7")
 		echo
 		makeSource
 		;;
@@ -742,7 +816,7 @@ function firstPrompt() {
 		fi
 		;;
 	*)
-		echo "Please answer with 1, 2, 3, 4, 5, 6, or just press enter with no input for 1."
+		echo "Please answer with 1, 2, 3, 4, 5, 6, 7 or just press enter with no input for 1."
 		firstPrompt
 		;;
 	esac
@@ -776,9 +850,10 @@ echo "What would you like to do?"
 echo "1: Full Setup (recommended) (builds chipper, gets STT stuff, generates certs, creates source.sh file, and creates server_config.json for your bot"
 echo "2: Just build vic-cloud"
 echo "3: Just build chipper"
-echo "4: Just get STT stuff"
-echo "5: Just generate certs"
-echo "6: Just create source.sh file and config for bot (also for setting up weather API)"
+echo "4: Just startup animation"
+echo "5: Just get STT stuff"
+echo "6: Just generate certs"
+echo "7: Just create source.sh file and config for bot (also for setting up weather API)"
 echo "If you have done everything you have needed, run './setup.sh scp vectorip path/to/key' to copy the new vic-cloud and server config to Vector."
 echo
 firstPrompt

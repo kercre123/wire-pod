@@ -3,7 +3,7 @@
 docker-builder:
 	docker build -t armbuilder docker-builder/.
 
-all: vic-cloud vic-gateway
+all: vic-cloud vic-gateway boot-anim
 
 go_deps:
 	echo `/usr/local/go/bin/go version` && cd $(PWD) && /usr/local/go/bin/go mod download
@@ -53,3 +53,14 @@ vic-gateway: go_deps
 	--user $(UID):$(GID) \
 	armbuilder \
 	upx build/vic-gateway
+
+boot-anim: go_deps
+	docker container run \
+	-v "$(PWD)":/go/src/digital-dream-labs/vector-cloud \
+	-v $(GOPATH)/pkg/mod:/go/pkg/mod \
+	-w /go/src/digital-dream-labs/vector-cloud \
+	--user $(UID):$(GID) \
+	armbuilder \
+	go build  \
+	-o build/boot-anim \
+	boot-anim/*.go
