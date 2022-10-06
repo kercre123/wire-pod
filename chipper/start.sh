@@ -27,11 +27,25 @@ source source.sh
 
 #./chipper
 if [[ ${STT_SERVICE} == "leopard" ]]; then
-if [[ -f ./chipper ]]; then
-  ./chipper
-else
-  /usr/local/go/bin/go run cmd-leopard/main.go
-fi
+	if [[ -f ./chipper ]]; then
+	  ./chipper
+	else
+	  /usr/local/go/bin/go run cmd-leopard/main.go
+	fi
+elif [[ ${STT_SERVICE} == "vosk" ]]; then
+	if [[ -f ./chipper ]]; then
+		export CGO_ENABLED=1 
+		export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
+		export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
+		export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
+		./chipper
+	else
+		export CGO_ENABLED=1 
+		export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
+		export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
+		export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
+		/usr/local/go/bin/go run cmd-vosk/main.go
+	fi
 else
 if [[ -f ./chipper ]]; then
       export CGO_LDFLAGS="-L/root/.coqui/"

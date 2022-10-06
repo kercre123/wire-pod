@@ -14,3 +14,5 @@
 /chipper/.vscode
 /chipper/useepod
 /chipper/pico.key
+/chipper/libvosk.so
+/vosk
