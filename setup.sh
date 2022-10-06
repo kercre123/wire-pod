@@ -130,120 +130,158 @@ function buildChipper() {
 
 function getSTT() {
 	rm -f ./chipper/pico.key
-		function sttServicePrompt() {
-			echo
-			echo "Which speech-to-text service would you like to use?"
-			echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
-			echo "2: Picovoice Leopard (local, usage collected, accurate, account signup required)"
-			echo
-			read -p "Enter a number (1): " sttServiceNum
-			if [[ ! -n ${sttServiceNum} ]]; then
-				sttService="coqui"
-			elif [[ ${sttServiceNum} == "1" ]]; then
-				sttService="coqui"
-			elif [[ ${sttServiceNum} == "2" ]]; then
-				sttService="leopard"
-			else
-				echo
-				echo "Choose a valid number, or just press enter to use the default number."
-				sttServicePrompt
-			fi
-		}
-		sttServicePrompt
-		if [[ ${sttService} == "leopard" ]]; then
-		function picoApiPrompt() {
-			echo
-			echo "Create an account at https://console.picovoice.ai/ and enter the Access Key it gives you."
-			echo
-			read -p "Enter your Access Key: " picoKey
-			if [[ ! -n ${picoKey} ]]; then
-				echo
-				echo "You must enter a key."
-				picoApiPrompt
-			fi
-		}
-		picoApiPrompt
-		echo ${picoKey} > ./chipper/pico.key
-		else
-	if [[ ! -f ./stt/completed ]]; then
-		echo "Getting STT assets"
-		if [[ -d /root/.coqui ]]; then
-			rm -rf /root/.coqui
-		fi
-		origDir=$(pwd)
-		mkdir /root/.coqui
-		cd /root/.coqui
-		if [[ ${ARCH} == "x86_64" ]]; then
-			if [[ ${AVXSUPPORT} == "noavx" ]]; then
-				wget -q --show-progress https://wire.my.to/noavx-coqui/native_client.tflite.Linux.tar.xz
-			else
-				wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.Linux.tar.xz
-			fi
-			tar -xf native_client.tflite.Linux.tar.xz
-			rm -f ./native_client.tflite.Linux.tar.xz
-		elif [[ ${ARCH} == "aarch64" ]]; then
-			wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.aarch64.tar.xz
-			tar -xf native_client.tflite.linux.aarch64.tar.xz
-			rm -f ./native_client.tflite.linux.aarch64.tar.xz
-		elif [[ ${ARCH} == "armv7l" ]]; then
-			wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.armv7.tar.xz
-			tar -xf native_client.tflite.linux.armv7.tar.xz
-			rm -f ./native_client.tflite.linux.armv7.tar.xz
-		fi
-		cd ${origDir}/chipper
-		export CGO_LDFLAGS="-L$HOME/.coqui/"
-		export CGO_CXXFLAGS="-I$HOME/.coqui/"
-		export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
-		/usr/local/go/bin/go get -u github.com/asticode/go-asticoqui/...
-		/usr/local/go/bin/go get github.com/asticode/go-asticoqui
-		/usr/local/go/bin/go install github.com/asticode/go-asticoqui
-		cd ${origDir}
-		mkdir -p stt
-		cd stt
-		function sttModelPrompt() {
-			echo
-			echo "Which voice model would you like to use?"
-			echo "1: large_vocabulary (faster, less accurate, ~100MB)"
-			echo "2: huge_vocabulary (slower, more accurate, handles faster speech better, ~900MB)"
-			echo
-			read -p "Enter a number (1): " sttModelNum
-			if [[ ! -n ${sttModelNum} ]]; then
-				sttModel="large_vocabulary"
-			elif [[ ${sttModelNum} == "1" ]]; then
-				sttModel="large_vocabulary"
-			elif [[ ${sttModelNum} == "2" ]]; then
-				sttModel="huge_vocabulary"
-			else
-				echo
-				echo "Choose a valid number, or just press enter to use the default number."
-				sttModelPrompt
-			fi
-		}
-		sttModelPrompt
-		if [[ -f model.scorer ]]; then
-			rm -rf ./*
-		fi
-		if [[ ${sttModel} == "large_vocabulary" ]]; then
-			echo "Getting STT model..."
-			wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
-			echo "Getting STT scorer..."
-			wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
-		elif [[ ${sttModel} == "huge_vocabulary" ]]; then
-			echo "Getting STT model..."
-			wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/model.tflite
-			echo "Getting STT scorer..."
-			wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/huge-vocabulary.scorer
-		else
-			echo "Invalid model specified"
-			exit 0
-		fi
+	function sttServicePrompt() {
 		echo
-		touch completed
-		echo "STT assets successfully downloaded!"
-		cd ..
+		echo "Which speech-to-text service would you like to use?"
+		echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
+		echo "2: Picovoice Leopard (local, usage collected, accurate, account signup required)"
+		echo "3: VOSK (local, accurate, multilanguage)"
+		echo
+		read -p "Enter a number (1): " sttServiceNum
+		if [[ ! -n ${sttServiceNum} ]]; then
+			sttService="coqui"
+		elif [[ ${sttServiceNum} == "1" ]]; then
+			sttService="coqui"
+		elif [[ ${sttServiceNum} == "2" ]]; then
+			sttService="leopard"
+		elif [[ ${sttServiceNum} == "3" ]]; then
+			sttService="vosk"
+		else
+			echo
+			echo "Choose a valid number, or just press enter to use the default number."
+			sttServicePrompt
+		fi
+	}
+	sttServicePrompt
+	if [[ ${sttService} == "leopard" ]]; then
+	function picoApiPrompt() {
+		echo
+		echo "Create an account at https://console.picovoice.ai/ and enter the Access Key it gives you."
+		echo
+		read -p "Enter your Access Key: " picoKey
+		if [[ ! -n ${picoKey} ]]; then
+			echo
+			echo "You must enter a key."
+			picoApiPrompt
+		fi
+	}
+	picoApiPrompt
+	echo ${picoKey} > ./chipper/pico.key
+	elif [[ ${sttService} == "vosk" ]]; then
+		origDir=$(pwd)
+		if [[ ! -f ./vosk/completed ]]; then
+			echo "Getting VOSK assets"
+			rm -fr /root/.vosk
+			mkdir /root/.vosk
+			cd /root/.vosk
+			if [[ ${ARCH} == "aarch64" ]]; then
+				wget -q --show-progress https://github.com/alphacep/vosk-api/releases/download/v0.3.43/vosk-linux-aarch64-0.3.43.zip
+				unzip vosk-linux-aarch64-0.3.43.zip
+				mv vosk-linux-aarch64-0.3.43 libvosk
+			fi
+			cd ${origDir}/chipper
+			export CGO_ENABLED=1 
+			export CGO_CFLAGS="-I/root/.vosk/libvosk"
+			export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
+			export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
+			/usr/local/go/bin/go get -u github.com/alphacep/vosk-api/go/...
+			/usr/local/go/bin/go get github.com/alphacep/vosk-api
+			/usr/local/go/bin/go install github.com/alphacep/vosk-api/go
+			cd ${origDir}
+			rm -fr vosk
+			mkdir -p vosk
+			mkdir -p vosk/models
+			mkdir -p vosk/models/en-us
+			cd vosk/models/en-us
+			wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+			unzip vosk-model-small-en-us-0.15.zip
+			mv vosk-model-small-en-us-0.15 model
+			echo
+			cd ${origDir}/vosk
+			touch completed
+			echo "VOSK assets successfully downloaded!"
+			cd ..
+		fi
 	else
-		echo "STT assets already there! If you want to redownload, use the 4th option in setup.sh."
-	fi
+		if [[ ! -f ./stt/completed ]]; then
+			echo "Getting STT assets"
+			if [[ -d /root/.coqui ]]; then
+				rm -rf /root/.coqui
+			fi
+			origDir=$(pwd)
+			mkdir /root/.coqui
+			cd /root/.coqui
+			if [[ ${ARCH} == "x86_64" ]]; then
+				if [[ ${AVXSUPPORT} == "noavx" ]]; then
+					wget -q --show-progress https://wire.my.to/noavx-coqui/native_client.tflite.Linux.tar.xz
+				else
+					wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.Linux.tar.xz
+				fi
+				tar -xf native_client.tflite.Linux.tar.xz
+				rm -f ./native_client.tflite.Linux.tar.xz
+			elif [[ ${ARCH} == "aarch64" ]]; then
+				wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.aarch64.tar.xz
+				tar -xf native_client.tflite.linux.aarch64.tar.xz
+				rm -f ./native_client.tflite.linux.aarch64.tar.xz
+			elif [[ ${ARCH} == "armv7l" ]]; then
+				wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.armv7.tar.xz
+				tar -xf native_client.tflite.linux.armv7.tar.xz
+				rm -f ./native_client.tflite.linux.armv7.tar.xz
+			fi
+			cd ${origDir}/chipper
+			export CGO_LDFLAGS="-L$HOME/.coqui/"
+			export CGO_CXXFLAGS="-I$HOME/.coqui/"
+			export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
+			/usr/local/go/bin/go get -u github.com/asticode/go-asticoqui/...
+			/usr/local/go/bin/go get github.com/asticode/go-asticoqui
+			/usr/local/go/bin/go install github.com/asticode/go-asticoqui
+			cd ${origDir}
+			mkdir -p stt
+			cd stt
+			function sttModelPrompt() {
+				echo
+				echo "Which voice model would you like to use?"
+				echo "1: large_vocabulary (faster, less accurate, ~100MB)"
+				echo "2: huge_vocabulary (slower, more accurate, handles faster speech better, ~900MB)"
+				echo
+				read -p "Enter a number (1): " sttModelNum
+				if [[ ! -n ${sttModelNum} ]]; then
+					sttModel="large_vocabulary"
+				elif [[ ${sttModelNum} == "1" ]]; then
+					sttModel="large_vocabulary"
+				elif [[ ${sttModelNum} == "2" ]]; then
+					sttModel="huge_vocabulary"
+				else
+					echo
+					echo "Choose a valid number, or just press enter to use the default number."
+					sttModelPrompt
+				fi
+			}
+			sttModelPrompt
+			if [[ -f model.scorer ]]; then
+				rm -rf ./*
+			fi
+			if [[ ${sttModel} == "large_vocabulary" ]]; then
+				echo "Getting STT model..."
+				wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
+				echo "Getting STT scorer..."
+				wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
+			elif [[ ${sttModel} == "huge_vocabulary" ]]; then
+				echo "Getting STT model..."
+				wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/model.tflite
+				echo "Getting STT scorer..."
+				wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/huge-vocabulary.scorer
+			else
+				echo "Invalid model specified"
+				exit 0
+			fi
+			echo
+			touch completed
+			echo "STT assets successfully downloaded!"
+			cd ..
+		else
+			echo "STT assets already there! If you want to redownload, use the 4th option in setup.sh."
+		fi
 	fi
 }
 
@@ -498,9 +536,11 @@ function makeSource() {
 	fi
 	echo "export WEBSERVER_PORT=${webport}" >>source.sh
 	if [[ -f ./pico.key ]]; then
-	picoKey=$(cat ./pico.key)
+		picoKey=$(cat ./pico.key)
 		echo "export STT_SERVICE=leopard" >>source.sh
 		echo "export PICOVOICE_APIKEY=${picoKey}" >> source.sh
+	elif [[ ${sttService} == "vosk" ]]; then
+		echo "export STT_SERVICE=vosk" >>source.sh
 	else
 		echo "export STT_SERVICE=coqui" >>source.sh
 	fi
@@ -640,6 +680,9 @@ function setupSystemd() {
 	if [[ ${STT_SERVICE} == "leopard" ]]; then
 		echo "wire-pod.service created, building chipper with Picovoice STT service..."
 		/usr/local/go/bin/go build cmd-leopard/main.go
+	elif [[ ${STT_SERVICE} == "vosk" ]]; then
+		echo "wire-pod.service created, building chipper with VOSK STT service..."
+		/usr/local/go/bin/go build cmd-vosk/main.go
 	else
 		echo "wire-pod.service created, building chipper with Coqui STT service..."
 		export CGO_LDFLAGS="-L$HOME/.coqui/"
