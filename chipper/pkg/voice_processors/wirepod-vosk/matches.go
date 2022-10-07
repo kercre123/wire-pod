@@ -1,7 +1,7 @@
 package wirepod
 
 // This is where you can add intents and more possible utterances for intents
-
+/*
 var meetVictorList = []string{"name is", "native is", "names", "name's"}
 var weatherList = []string{"weather", "whether", "the other", "the water", "no other"}
 var nameAskList = []string{"my name"}
@@ -62,6 +62,62 @@ var playMessageList = []string{"play message", "play method", "play a message", 
 var blackjackHitList = []string{"hit", "it", "hot"}
 var blackjackStandList = []string{"stand", "stan"}
 var keepawayList = []string{"keepaway", "keep away"}
+*/
+
+var meetVictorList = []string{"il mio nome è", "mi chiamo", "io sono", "qui c'è"}
+var weatherList = []string{"che tempo fa", "com'è il tempo", "com'è fuori"}
+var nameAskList = []string{"qual è il mio nome", "come mi chiamo", "chi sono"}
+var eyeColorList = []string{"colore degli occhi", "colore agli occhi", "cambia colore"}
+var howOldList = []string{"quanti anni hai", "qual è la tua età", "quanto sei vecchio"}
+var exploreStartList = []string{"vai ad esplorare", "esplora", "vai in esplorazione", "fatti un giro"}
+var chargerList = []string{"vai a casa", "a casa", "ricaricati", "mettiti in carica", "trova il caricabatterie", "vai in carica"}
+var sleepList = []string{"dormi", "vai a dormire", "a nanna", "vai a nanna", "fai la nanna"}
+var morningList = []string{"giorno", "mattina", "pomeriggio"}
+var nightList = []string{"notte", "sera"}
+var byeList = []string{"ciao", "arrivederci", "ci vediamo"}
+var newYearList = []string{"fuochi d'artificio", "buon anno", "buon anno nuovo"}
+var holidaysList = []string{"natale", "vacanza", "vacanze", "feste"}
+var signInAlexaList = []string{"entra in alexa", "registrati su alexa", "attiva alexa", "accendi alexa"}
+var signOutAlexaList = []string{"esci da alexa", "disattiva alexa", "spegni alexa"}
+var forwardList = []string{"avanti"}
+var turnAroundList = []string{"gira"}
+var turnLeftList = []string{"gira a sinistra", "vai a sinistra"}
+var turnRightList = []string{"gira a destra", "vai a destra"}
+var rollCubeList = []string{"gioca col cubo", "fai rotolare il cubo", "sposta il cubo"}
+var wheelieList = []string{"fischia", "fischio", "fischietta"}
+var fistbumpList = []string{"dammi cinque", "dammi il cinque"}
+var blackjackList = []string{"ventuno", "blackjack"}
+var affirmativeList = []string{"si", "giusto", "corretto", "sì", "vero"}
+var negativeList = []string{"no", "non", "sbagliato", "falso"}
+var photoList = []string{"foto", "selfie", "immagine"}
+var praiseList = []string{"bravo", "grande", "mitico", "forte", "impressionante"}
+var abuseList = []string{"cattivo", "stupido", "così non va"}
+var apologizeList = []string{"mi dispiace", "scusa", "scusami", "sono dispiaciuto"}
+var backupList = []string{"indietro", "annulla"}
+var volumeDownList = []string{"abbassa il volume"}
+var volumeUpList = []string{"alza il volume"}
+var lookAtMeList = []string{"guardami"}
+var volumeSpecificList = []string{"volume"}
+var shutUpList = []string{"zitto", "fai silenzio"}
+var helloList = []string{"ciao", "come stai", "buongiorno", "buonasera", "buon pomeriggio", "ehi", "salve"}
+var comeList = []string{"vieni", "da me", "qui"}
+var loveList = []string{"ti voglio bene", "sei il mio amore", "ti amo"}
+var questionList = []string{"domanda"}
+var checkTimerList = []string{"controlla il cronometro", "controlla il timer"}
+var stopTimerList = []string{"ferma il cronometro", "ferma il timer", "stoppa il timer"}
+var timerList = []string{"timer", "cronometro"}
+var timeList = []string{"che ora è", "che ore sono", "qual è l'ora", "che ora fai"}
+var quietList = []string{"basta", "fermo", "stai buono", "stai calmo"}
+var danceList = []string{"balla", "fai un balletto", "danza"}
+var pickUpList = []string{"raccogli"}
+var fetchCubeList = []string{"prendi il cubo", "prendi il tuo cubo", "raccogli il cubo"}
+var findCubeList = []string{"trova il cubo", "trova il tuo cubo"}
+var trickList = []string{"fai qualcosa di figo", "stupiscimi", "impressionami", "inventa qualcosa"}
+var recordMessageList = []string{"registra"}
+var playMessageList = []string{"riproduci il messaggio", "leggi il messaggio"}
+var blackjackHitList = []string{"hit"}
+var blackjackStandList = []string{"stand"}
+var keepawayList = []string{"stai lontano", "via", "allontanati", "indietro"}
 
 // make sure intentsList perfectly matches up with matchListList
 

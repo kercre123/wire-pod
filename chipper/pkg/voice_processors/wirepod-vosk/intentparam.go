@@ -276,6 +276,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
+	logger("Checking params for candidate intent "+intent)
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
