@@ -161,9 +161,11 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 	var successMatched bool = false
 	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, justThisBotNum, botSerial)
 	if !customIntentMatched {
+	    logger("Not a custom intent")
+		// Look for a perfect match first
 		for _, b := range listOfLists {
 			for _, c := range b {
-				if strings.Contains(voiceText, c) {
+				if voiceText==c {
 					if isOpus {
 						paramChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
 					} else {
@@ -180,7 +182,32 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 			}
 			intentNum = intentNum + 1
 		}
+		// Not found? Then let's be happy with a bare substring search
+		if (successMatched == false) {
+			intentNum = 0;
+			matched = 0;
+			for _, b := range listOfLists {
+				for _, c := range b {
+					if strings.Contains(voiceText, c) {
+						if isOpus {
+							paramChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
+						} else {
+							prehistoricParamChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
+						}
+						successMatched = true
+						matched = 1
+						break
+					}
+				}
+				if matched == 1 {
+					matched = 0
+					break
+				}
+				intentNum = intentNum + 1
+			}		
+		}
 	} else {
+	    logger("This is a custom intent!")
 		successMatched = true
 	}
 	return successMatched

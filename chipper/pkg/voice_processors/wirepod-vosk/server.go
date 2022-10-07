@@ -61,7 +61,7 @@ func New() (*Server, error) {
 
 	// Open model
 	logger("Opening model")
-	aModel, err := vosk.NewModel("../vosk/models/en-us/model")
+	aModel, err := vosk.NewModel("../vosk/models/it-it/model")
 	if err != nil {
 		log.Fatal(err)
 	}
