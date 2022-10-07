@@ -1,2 +1,5 @@
+VER_002
+- Add move custom intent
+
 VER_001
 - First version on git. Added VOSK as a stt engine 
