@@ -17,18 +17,23 @@ import (
 
 // set false for no warning
 const warnIfNoSTT string = "true"
+var sttLanguage string = "en-US"
 
 func main() {
+	if (len(os.Args)>1) {
+	     sttLanguage = os.Args[1]
+	}
+	
 	log.SetJSONFormat("2006-01-02 15:04:05")
 	if warnIfNoSTT == "true" {
 		if _, err := os.Stat("../vosk"); err == nil {
 			warnlog.Println("VOSK directory found!")
 			if _, err := os.Stat("../vosk/models"); err == nil {
 				warnlog.Println("Models directory found!")
-				if _, err := os.Stat("../vosk/models/en-us/model/am/final.mdl"); err == nil {
-					warnlog.Println("US-ENGLISH VOSK model found! Speech-to-text should work like normal.")
+				if _, err := os.Stat("../vosk/models/"+sttLanguage+"/model/am/final.mdl"); err == nil {
+					warnlog.Println(sttLanguage+" VOSK model found! Speech-to-text should work like normal.")
 				} else {
-					warnlog.Println("No VOSK US-ENGLISH model found. This must be placed at ../vosk/models/en-us/model. Please read the README. Speech-to-text may not work.")
+					warnlog.Println("No "+sttLanguage+" model found. This must be placed at ../vosk/models/"+sttLanguage+"/model. Please read the README. Speech-to-text may not work.")
 				}
 			} else {
 				warnlog.Println("No VOSK models directory found. This must be placed at ../vosk/models. Please read the README. Speech-to-text may not work.")
@@ -65,19 +70,15 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	warnlog.Println("OK HERE")
-
 	s, _ := server.New(
 		//server.WithLogger(log.Base()),
 		server.WithIntentProcessor(p),
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),
 	)
-	warnlog.Println("OK HERE 2")
 
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
 
-	warnlog.Println("OK HERE 3")
 	srv.Start()
 	fmt.Println("\033[33m\033[1mServer started successfully!\033[0m")
 	<-srv.Notify(grpcserver.Stopped)

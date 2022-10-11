@@ -128,6 +128,28 @@ function buildChipper() {
 	cd ..
 }
 
+function getLanguage() {
+	if [[ ${sttService} == "vosk" ]]; then
+		echo
+		echo "Which STT language would you like to use?"
+		echo "1: English (US)"
+		echo "2: Italian (IT)"
+		echo
+		read -p "Enter a number (1): " languageNum
+		if [[ ! -n ${languageNum} ]]; then
+			languageNum="en-US"
+		elif [[ ${languageNum} == "1" ]]; then
+			languageNum="en-US"
+		elif [[ ${languageNum} == "2" ]]; then
+			languageNum="it-IT"
+		else
+			echo
+			echo "Choose a valid number, or just press enter to use the default number."
+			getLanguage
+		fi
+	fi
+}
+
 function getSTT() {
 	rm -f ./chipper/pico.key
 	function sttServicePrompt() {
@@ -191,11 +213,19 @@ function getSTT() {
 			rm -fr vosk
 			mkdir -p vosk
 			mkdir -p vosk/models
-			mkdir -p vosk/models/en-us
-			cd vosk/models/en-us
-			wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
-			unzip vosk-model-small-en-us-0.15.zip
-			mv vosk-model-small-en-us-0.15 model
+			echo "Downloading English (US) model"
+			mkdir -p vosk/models/en-US
+			cd vosk/models/en-US
+			wget https://www.borgomasino.net/vector/en-US-model.zip
+			unzip en-US-model.zip
+			rm en-US-model.zip
+			cd ${origDir}
+			echo "Downloading Italian (IT) model"
+			mkdir -p vosk/models/it-IT
+			cd vosk/models/it-IT
+			wget https://www.borgomasino.net/vector/it-IT-model.zip
+			unzip it-IT-model.zip
+			rm it-IT-model.zip
 			echo
 			cd ${origDir}/vosk
 			touch completed
@@ -541,6 +571,7 @@ function makeSource() {
 		echo "export PICOVOICE_APIKEY=${picoKey}" >> source.sh
 	elif [[ ${sttService} == "vosk" ]]; then
 		echo "export STT_SERVICE=vosk" >>source.sh
+		echo "export STT_LANGUAGE=${languageNum}" >>source.sh
 	else
 		echo "export STT_SERVICE=coqui" >>source.sh
 	fi
@@ -726,6 +757,7 @@ function firstPrompt() {
 		echo
 		getPackages
 		getSTT
+		getLanguage
 		generateCerts
 		buildChipper
 		makeSource
@@ -755,6 +787,7 @@ function firstPrompt() {
 		echo
 		rm -f ./stt/completed
 		getSTT
+		getLanguage
 		;;
 	"5")
 		echo
@@ -769,6 +802,7 @@ function firstPrompt() {
 		echo
 		getPackages
 		getSTT
+		getLanguage
 		generateCerts
 		buildChipper
 		makeSource

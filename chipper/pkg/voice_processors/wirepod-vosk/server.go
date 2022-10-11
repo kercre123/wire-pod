@@ -11,6 +11,7 @@ import (
 
 var debugLogging bool
 var model* vosk.VoskModel 
+var sttLanguage string = "en-US"
 
 const (
 	// FallbackIntent is the failure-mode intent response
@@ -47,6 +48,10 @@ type Server struct{}
 
 // New returns a new server
 func New() (*Server, error) {
+	if (len(os.Args)>1) {
+	     sttLanguage = os.Args[1]
+	}
+	initMatches()
 	if os.Getenv("DEBUG_LOGGING") != "true" && os.Getenv("DEBUG_LOGGING") != "false" {
 		logger("No valid value for DEBUG_LOGGING, setting to true")
 		debugLogging = true
@@ -61,7 +66,7 @@ func New() (*Server, error) {
 
 	// Open model
 	logger("Opening model")
-	aModel, err := vosk.NewModel("../vosk/models/en-us/model")
+	aModel, err := vosk.NewModel("../vosk/models/"+sttLanguage+"/model")
 	if err != nil {
 		log.Fatal(err)
 	}
