@@ -1,2 +1,5 @@
+VER_002
+- Added multi language support to Chipper with Vosk: Italian and English
+
 VER_001
 - First version on git. Added VOSK as a stt engine 

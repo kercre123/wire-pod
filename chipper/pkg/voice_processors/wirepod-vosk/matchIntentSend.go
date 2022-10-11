@@ -92,7 +92,10 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		for _, c := range customIntentJSON {
 			for _, v := range c.Utterances {
-				if strings.Contains(voiceText, strings.ToLower(strings.TrimSpace(v))) {
+				//if strings.Contains(voiceText, strings.ToLower(strings.TrimSpace(v))) {				
+				// Check whether the custom sentence is either at the end of the spoken text or space-separated...
+				var seekText = strings.ToLower(strings.TrimSpace(v))
+				if strings.HasSuffix(voiceText, seekText) || strings.Contains(voiceText, seekText+" ") {
 					logger("Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
 					var intentParams map[string]string
 					var isParam bool = false
