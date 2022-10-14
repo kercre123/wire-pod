@@ -168,6 +168,8 @@ STT services you can choose from:
 	- Coqui is a completely local service which is reasonably accurate and fast.
 - Picovoice Leopard
 	- Leopard does processing locally but you must sign up for an account at [https://console.picovoice.ai](https://console.picovoice.ai) and put in an API key during setup.sh, so some data is sent to a cloud. It is more accurate and fast though, and supports more hardware.
+- VOSK
+	- VOSK is open source, resonably accurate, fast enough on a RPi. And it supports multi language! Dual English/Italian intents are supported in this release, but many more languages can be added easily.
 
 Things wire-pod has worked on:
 

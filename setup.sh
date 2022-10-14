@@ -216,16 +216,18 @@ function getSTT() {
 			echo "Downloading English (US) model"
 			mkdir -p vosk/models/en-US
 			cd vosk/models/en-US
-			wget https://www.borgomasino.net/vector/en-US-model.zip
-			unzip en-US-model.zip
-			rm en-US-model.zip
+			wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+			unzip vosk-model-small-en-us-0.15.zip
+			mv vosk-model-small-en-us-0.15 model
+			rm vosk-model-small-en-us-0.15.zip
 			cd ${origDir}
 			echo "Downloading Italian (IT) model"
 			mkdir -p vosk/models/it-IT
 			cd vosk/models/it-IT
-			wget https://www.borgomasino.net/vector/it-IT-model.zip
-			unzip it-IT-model.zip
-			rm it-IT-model.zip
+			wget https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip
+			unzip vosk-model-small-it-0.22.zip
+			mv vosk-model-small-it-0.22 model
+			rm vosk-model-small-it-0.22.zip
 			echo
 			cd ${origDir}/vosk
 			touch completed

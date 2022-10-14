@@ -1,3 +1,6 @@
+VER_003
+- Changed setup file to point to official VOSK language models
+
 VER_002
 - Added multi language support to Chipper with Vosk: Italian and English
 
