@@ -197,7 +197,7 @@ function getSTT() {
 			mkdir /root/.vosk
 			cd /root/.vosk
 			if [[ ${ARCH} == "x86_64" ]]; then
-			    VOSK_DIR="vosk-linux-x86-0.3.43"
+			    VOSK_DIR="vosk-linux-x86_64-0.3.43"
 			elif [[ ${ARCH} == "aarch64" ]]; then
 			    VOSK_DIR="vosk-linux-aarch64-0.3.43"
 			elif [[ ${ARCH} == "armv7l" ]]; then
