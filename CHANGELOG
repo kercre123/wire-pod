@@ -1,0 +1,11 @@
+VER_004
+- Added also support for x86 and armv7l in setup.sh
+
+VER_003
+- Changed setup file to point to official VOSK language models
+
+VER_002
+- Added multi language support to Chipper with Vosk: Italian and English
+
+VER_001
+- First version on git. Added VOSK as a stt engine 
