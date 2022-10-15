@@ -196,11 +196,19 @@ function getSTT() {
 			rm -fr /root/.vosk
 			mkdir /root/.vosk
 			cd /root/.vosk
-			if [[ ${ARCH} == "aarch64" ]]; then
-				wget -q --show-progress https://github.com/alphacep/vosk-api/releases/download/v0.3.43/vosk-linux-aarch64-0.3.43.zip
-				unzip vosk-linux-aarch64-0.3.43.zip
-				mv vosk-linux-aarch64-0.3.43 libvosk
+			if [[ ${ARCH} == "x86_64" ]]; then
+			    VOSK_DIR="vosk-linux-x86-0.3.43"
+			elif [[ ${ARCH} == "aarch64" ]]; then
+			    VOSK_DIR="vosk-linux-aarch64-0.3.43"
+			elif [[ ${ARCH} == "armv7l" ]]; then
+			    VOSK_DIR="vosk-linux-armv7l-0.3.43"
 			fi
+		    VOSK_ARCHIVE="$VOSK_DIR.zip"
+			wget -q --show-progress "https://github.com/alphacep/vosk-api/releases/download/v0.3.43/$VOSK_ARCHIVE"
+			unzip "$VOSK_ARCHIVE"
+			mv "$VOSK_DIR" libvosk
+			rm -fr "$VOSK_ARCHIVE"
+			
 			cd ${origDir}/chipper
 			export CGO_ENABLED=1 
 			export CGO_CFLAGS="-I/root/.vosk/libvosk"
