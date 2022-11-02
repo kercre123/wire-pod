@@ -78,7 +78,7 @@ var intentsList = []string{"intent_names_username_extend", "intent_weather_exten
 func initMatches() {
 	if sttLanguage=="en-US" {
 		meetVictorList = []string{"name is", "native is", "names", "name's"}
-		weatherList = []string{"weather", "whether", "the other", "the water", "no other"}
+		weatherList = []string{"what's the weather", "weather", "whether", "the other", "the water", "no other"}
 		nameAskList = []string{"my name"}
 		eyeColorList = []string{"eye color", "colo", "i call her", "i foller", "icolor", "ecce", "erior", "ichor", "agricola",
 			"change", "oracular", "oracle"}
