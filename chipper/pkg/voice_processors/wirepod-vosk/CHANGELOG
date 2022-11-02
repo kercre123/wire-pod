@@ -1,3 +1,6 @@
+VER_005
+- Added openweathermap.org weather provider support
+
 VER_004
 - Added also support for x86 and armv7l in setup.sh
 
