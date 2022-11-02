@@ -17,3 +17,5 @@
 /chipper/pico.key
 /chipper/libvosk.so
 /vosk
+/chipper/customIntents.json
+/chipper/botConfig.json
