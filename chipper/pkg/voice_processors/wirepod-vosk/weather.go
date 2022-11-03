@@ -256,9 +256,9 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			if err != nil {
 				panic(err)
 			}	
-					
+										
 			conditionCode := openWeatherMapAPIResponse.Weather[0].Id;
-
+			
 			logger(weatherResponse)
 			logger(conditionCode)			
 
@@ -284,7 +284,11 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 				}
 			} else if (conditionCode==800) {
 			    // Clear
-				condition = "Sunny"
+				if (openWeatherMapAPIResponse.DT<openWeatherMapAPIResponse.Sys.Sunset) {
+					condition = "Sunny"
+				} else {
+					condition = "Stars"
+				}				
 			} else if (conditionCode<900) {
 				// Cloud
 				condition = "Cloudy"
