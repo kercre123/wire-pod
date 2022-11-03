@@ -276,7 +276,7 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 				condition = "Snow"
 			} else if (conditionCode<800) {
 			    // Athmosphere
-				condition = openWeatherMapAPIResponse.Weather[0].Main
+				condition = "Windy"
 			} else if (conditionCode==800) {
 			    // Clear
 				condition = "Sunny"

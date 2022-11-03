@@ -1,3 +1,6 @@
+VER_006
+- Bugfix: windy weather conditions not handled
+
 VER_005
 - Added openweathermap.org weather provider support
 
