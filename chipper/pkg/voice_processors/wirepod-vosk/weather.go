@@ -276,7 +276,12 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 				condition = "Snow"
 			} else if (conditionCode<800) {
 			    // Athmosphere
-				condition = "Windy"
+				if (openWeatherMapAPIResponse.Weather[0].Main == "Mist" || 
+					openWeatherMapAPIResponse.Weather[0].Main == "Fog") {
+					condition = "Rain"
+				} else { 
+					condition = "Windy" 
+				}
 			} else if (conditionCode==800) {
 			    // Clear
 				condition = "Sunny"
@@ -286,7 +291,7 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			} else {
 				condition = openWeatherMapAPIResponse.Weather[0].Main
 			}
-
+			
 			is_forecast = "false"
 			t := time.Unix(int64(openWeatherMapAPIResponse.DT), 0)
 			local_datetime = t.Format(time.RFC850)
