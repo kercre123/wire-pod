@@ -726,6 +726,10 @@ function setupSystemd() {
 		/usr/local/go/bin/go build cmd-leopard/main.go
 	elif [[ ${STT_SERVICE} == "vosk" ]]; then
 		echo "wire-pod.service created, building chipper with VOSK STT service..."
+		export CGO_ENABLED=1
+		export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
+		export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
+		export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
 		/usr/local/go/bin/go build cmd-vosk/main.go
 	else
 		echo "wire-pod.service created, building chipper with Coqui STT service..."
