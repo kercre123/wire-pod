@@ -447,15 +447,17 @@ function makeSource() {
 	fi
 	echo
 	function weatherPrompt() {
-		echo "Would you like to setup weather commands? This involves creating a free account at https://www.weatherapi.com/ and putting in your API key."
+		echo "Would you like to setup weather commands? This involves creating a free account at one of the weather providers' websites and putting in your API key."
 		echo "Otherwise, placeholder values will be used."
 		echo
-		echo "1: Yes"
-		echo "2: No"
+		echo "1: Yes, and I want to use weatherapi.com"
+		echo "2: Yes, and I want to use openweathermap.org"
+		echo "3: No"
 		read -p "Enter a number (1): " yn
 		case $yn in
-		"1") weatherSetup="true" ;;
-		"2") weatherSetup="false" ;;
+		"1") weatherSetup="true" weatherProvider="weatherapi.com";;
+		"2") weatherSetup="true" weatherProvider="openweathermap.org";;
+		"3") weatherSetup="false" ;;
 		"") weatherSetup="true" ;;
 		*)
 			echo "Please answer with 1 or 2."
@@ -467,7 +469,7 @@ function makeSource() {
 	if [[ ${weatherSetup} == "true" ]]; then
 		function weatherKeyPrompt() {
 			echo
-			echo "Create an account at https://www.weatherapi.com/ and enter the API key it gives you."
+			echo "Create an account at https://$weatherProvider and enter the API key it gives you."
 			echo "If you have changed your mind, enter Q to continue without weather commands."
 			echo
 			read -p "Enter your API key: " weatherAPI
@@ -562,6 +564,7 @@ function makeSource() {
 	echo "export DDL_RPC_CLIENT_AUTHENTICATION=NoClientCert" >>source.sh
 	if [[ ${weatherSetup} == "true" ]]; then
 		echo "export WEATHERAPI_ENABLED=true" >>source.sh
+		echo "export WEATHERAPI_PROVIDER=$weatherProvider" >>source.sh
 		echo "export WEATHERAPI_KEY=${weatherAPI}" >>source.sh
 		echo "export WEATHERAPI_UNIT=${weatherUnit}" >>source.sh
 	else
@@ -865,7 +868,7 @@ echo "2: Just build vic-cloud"
 echo "3: Just build chipper"
 echo "4: Just get STT stuff"
 echo "5: Just generate certs"
-echo "6: Just create source.sh file and config for bot (also for setting up weather API)"
+echo "6: Just create source.sh file and config for bot (also for setting up OpenWeatherMap API)"
 echo "If you have done everything you have needed, run './setup.sh scp vectorip path/to/key' to copy the new vic-cloud and server config to Vector."
 echo
 firstPrompt
