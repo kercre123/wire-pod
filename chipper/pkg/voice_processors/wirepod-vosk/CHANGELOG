@@ -1,3 +1,11 @@
+VER_006
+- Bugfix: windy weather conditions not handled
+  Bugfix: distinguish between sunny and stars (unsing daytime)
+  Bugfix: some "athmosphere" weather conditions mean rain
+
+VER_005
+- Added openweathermap.org weather provider support
+
 VER_004
 - Added also support for x86 and armv7l in setup.sh
 

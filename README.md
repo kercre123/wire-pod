@@ -174,7 +174,7 @@ STT services you can choose from:
 Things wire-pod has worked on:
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
-	- Must be 64-bit OS if using Coqui
+- Must be 64-bit OS if using Coqui
 - Raspberry Pi 4B+ 4GB RAM with Manjaro 22.04
 - Nintendo Switch with L4T Ubuntu
 - Desktop with Ryzen 5 3600, 16 GB RAM with Ubuntu 22.04
