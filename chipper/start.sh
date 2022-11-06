@@ -35,9 +35,9 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
 elif [[ ${STT_SERVICE} == "vosk" ]]; then
 	if [[ -f ./chipper ]]; then
 		export CGO_ENABLED=1 
-		export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
-		export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
-		export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
+		export CGO_CFLAGS="-I/root/.vosk/libvosk"
+		export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
+		export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
 		./chipper ${STT_LANGUAGE}
 	else
 		export CGO_ENABLED=1 
