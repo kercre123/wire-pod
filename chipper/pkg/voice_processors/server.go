@@ -1,24 +1,32 @@
 package wirepod
 
-import (
-	"github.com/digital-dream-labs/chipper/pkg/wirepod-vosk"
-)
+import "errors"
 
 // Server stores the config
 type Server struct{}
+
+const (
+	VoiceProcessorCoqui   = "coqui"
+	VoiceProcessorLeopard = "leopard"
+	VoiceProcessorVosk    = "vosk"
+)
 
 var matchListList [][]string
 
 var intentsList = []string{}
 
 func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
-	return wirepod_vosk.SttHandlerVosk(reqThing, isKnowledgeGraph)
+	return VOSKSttHandler(reqThing, isKnowledgeGraph)
 }
 
 // New returns a new server
-func New() (*Server, error) {
-	wirepod_vosk.VoskNew()
-	matchListList = wirepod_vosk.MatchListList
-	intentsList = wirepod_vosk.IntentsList
-	return &Server{}, nil
+func New(voiceProcessor string) (*Server, error) {
+	if VoiceProcessorVosk == voiceProcessor {
+		VOSKNew()
+		matchListList = VOSKMatchListList
+		intentsList = VOSKIntentsList
+		return &Server{}, nil
+	}
+
+	return nil, errors.New("Unknown voice processor")
 }

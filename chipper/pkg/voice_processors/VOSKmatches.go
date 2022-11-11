@@ -57,10 +57,10 @@ var blackjackHitList []string
 var blackjackStandList []string
 var keepawayList []string
 
-var MatchListList [][]string
+var VOSKMatchListList [][]string
 
 // make sure IntentsList perfectly matches up with MatchListList
-var IntentsList = []string{"intent_names_username_extend", "intent_weather_extend", "intent_names_ask", "intent_imperative_eyecolor",
+var VOSKIntentsList = []string{"intent_names_username_extend", "intent_weather_extend", "intent_names_ask", "intent_imperative_eyecolor",
 	"intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep",
 	"intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear",
 	"intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward",
@@ -194,7 +194,7 @@ func initMatches() {
 		keepawayList = []string{"stai lontano", "via", "allontanati", "indietro"}
 	}
 
-	MatchListList = [][]string{meetVictorList, weatherList, nameAskList, eyeColorList, howOldList, exploreStartList,
+	VOSKMatchListList = [][]string{meetVictorList, weatherList, nameAskList, eyeColorList, howOldList, exploreStartList,
 		chargerList, sleepList, morningList, nightList, byeList,
 		newYearList, holidaysList, signInAlexaList, signOutAlexaList, forwardList, turnAroundList, turnLeftList,
 		turnRightList, rollCubeList, wheelieList, fistbumpList, blackjackList, affirmativeList,
