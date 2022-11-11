@@ -1,3 +1,6 @@
+//go:build coqui
+// +build coqui
+
 package wirepod
 
 import (

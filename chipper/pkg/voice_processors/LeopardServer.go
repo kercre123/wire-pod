@@ -1,3 +1,6 @@
+//go:build leopard
+// +build leopard
+
 package wirepod
 
 import (
