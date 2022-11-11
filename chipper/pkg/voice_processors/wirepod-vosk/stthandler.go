@@ -3,19 +3,18 @@ package wirepod
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"time"
-	"log"
-	"encoding/json"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	opus "github.com/digital-dream-labs/opus-go/opus"
-	"github.com/maxhawkins/go-webrtcvad"
-	"github.com/soundhound/houndify-sdk-go"
 )
 
 var botNum int = 0
@@ -38,7 +37,7 @@ func bytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) []
 		// opus
 		n, err := stream.Decode(data)
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		byteArray := split(n)
 		return byteArray
@@ -88,26 +87,26 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	botNum = botNum + 1
 	justThisBotNum := botNum
 	if isKnowledgeGraph {
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req1.Device)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req1.Session)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req1.LangString)
-		logger("KG Stream " + strconv.Itoa(justThisBotNum) + " opened.")
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req1.Device)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req1.Session)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req1.LangString)
+		logger.Log("KG Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 		deviceESN = req1.Device
 		deviceSession = req1.Session
 	} else if isIntentGraph {
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req3.Device)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req3.Session)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req3.LangString)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req3.Device)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req3.Session)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req3.LangString)
 		deviceESN = req3.Device
 		deviceSession = req3.Session
-		logger("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
+		logger.Log("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 	} else {
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req2.Device)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req2.Session)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req2.LangString)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req2.Device)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req2.Session)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req2.LangString)
 		deviceESN = req2.Device
 		deviceSession = req2.Session
-		logger("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
+		logger.Log("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 	}
 	data := []byte{}
 	if isKnowledgeGraph {
@@ -120,10 +119,10 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	if len(data) > 0 {
 		if data[0] == 0x4f {
 			isOpus = true
-			logger("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: Opus")
+			logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: Opus")
 		} else {
 			isOpus = false
-			logger("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: PCM")
+			logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: PCM")
 		}
 	}
 	stream := opus.OggStream{}
@@ -142,28 +141,28 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 			time.Sleep(time.Millisecond * 10)
 		}
 	}()
-	logger("Processing...")
-	
+	logger.Log("Processing...")
+
 	sampleRate := 16000.0
 	rec, err := vosk.NewRecognizer(model, sampleRate)
 	if err != nil {
 		log.Fatal(err)
 	}
-	rec.SetWords(1)	
-	
+	rec.SetWords(1)
+
 	inactiveNumMax := 20
-    if !isKnowledgeGraph {
+	if !isKnowledgeGraph {
 		micData = bytesToIntVAD(stream, data, die, isOpus)
 		for _, sample := range micData {
 			//buf := bytesToSamples(sample)
 			if rec.AcceptWaveform(sample) != 0 {
 				fmt.Println(rec.Result())
 			}
-		}		
+		}
 	}
 	vad, err := webrtcvad.New()
 	if err != nil {
-		logger(err)
+		logger.Log(err)
 	}
 	vad.SetMode(3)
 	for {
@@ -187,7 +186,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
 				} else {
-					logger("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
 				}
@@ -200,7 +199,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
 				} else {
-					logger("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
 				}
@@ -219,11 +218,11 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 						//buf := bytesToSamples(sample)
 						if rec.AcceptWaveform(sample) != 0 {
 							fmt.Println(rec.Result())
-						}	
+						}
 					}
 					active, err := vad.Process(16000, sample)
 					if err != nil {
-						logger(err)
+						logger.Log(err)
 					}
 					if active {
 						activeNum = activeNum + 1
@@ -232,7 +231,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 						inactiveNum = inactiveNum + 1
 					}
 					if inactiveNum >= inactiveNumMax && activeNum > 20 {
-						logger("Speech completed in " + strconv.FormatFloat(requestTimer, 'f', 2, 64) + " seconds.")
+						logger.Log("Speech completed in " + strconv.FormatFloat(requestTimer, 'f', 2, 64) + " seconds.")
 						speechDone = true
 						break
 					}
@@ -244,13 +243,13 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 		oldDataLength = len(micData)
 		if voiceTimer >= 5 {
-			logger("Voice timeout threshold reached.")
+			logger.Log("Voice timeout threshold reached.")
 			speechDone = true
 		}
 		if speechDone {
 			if isKnowledgeGraph {
 				if houndEnable {
-					logger("Sending requst to Houndify...")
+					logger.Log("Sending requst to Houndify...")
 					if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 						req := houndify.VoiceRequest{
 							AudioStream:       bytes.NewReader(data),
@@ -261,23 +260,23 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 						partialTranscripts := make(chan houndify.PartialTranscript)
 						serverResponse, err := hKGclient.VoiceSearch(req, partialTranscripts)
 						if err != nil {
-							logger(err)
+							logger.Log.Log(err)
 						}
 						transcribedText, _ = ParseSpokenResponse(serverResponse)
-						logger("Transcribed text: " + transcribedText)
+						logger.Log("Transcribed text: " + transcribedText)
 						die = true
 					}
 				} else {
 					transcribedText = "Houndify is not enabled."
-					logger("Houndify is not enabled.")
+					logger.Log("Houndify is not enabled.")
 					die = true
 				}
 			} else {
 				var jres map[string]interface{}
 				json.Unmarshal([]byte(rec.FinalResult()), &jres)
 				transcribedText = jres["text"].(string)
-				logger("transcribed text: "+transcribedText)
-				logger("Bot " + strconv.Itoa(justThisBotNum) + " Transcribed text: " + transcribedText)
+				logger.Log("transcribed text: " + transcribedText)
+				logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Transcribed text: " + transcribedText)
 				die = true
 			}
 		}
@@ -286,7 +285,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 	}
 	botNum = botNum - 1
-	logger("Bot " + strconv.Itoa(justThisBotNum) + " request served.")
+	logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " request served.")
 	var rhinoUsed bool
 	if rhinoSucceeded {
 		rhinoUsed = true

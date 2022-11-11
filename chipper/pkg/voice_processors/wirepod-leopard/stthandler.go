@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"io"
 	"os"
 	"strconv"
@@ -13,8 +14,6 @@ import (
 	leopard "github.com/Picovoice/leopard/binding/go"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	opus "github.com/digital-dream-labs/opus-go/opus"
-	"github.com/maxhawkins/go-webrtcvad"
-	"github.com/soundhound/houndify-sdk-go"
 )
 
 var botNum int = 0
@@ -37,7 +36,7 @@ func bytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) []
 		// opus
 		n, err := stream.Decode(data)
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		byteArray := split(n)
 		return byteArray
@@ -64,7 +63,7 @@ func bytesToIntLeopard(stream opus.OggStream, data []byte, die bool, isOpus bool
 		// opus
 		n, err := stream.Decode(data)
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		return bytesToSamples(n)
 	} else {
@@ -115,26 +114,26 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 	}
 	if isKnowledgeGraph {
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req1.Device)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req1.Session)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req1.LangString)
-		logger("KG Stream " + strconv.Itoa(justThisBotNum) + " opened.")
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req1.Device)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req1.Session)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req1.LangString)
+		logger.Log("KG Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 		deviceESN = req1.Device
 		deviceSession = req1.Session
 	} else if isIntentGraph {
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req3.Device)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req3.Session)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req3.LangString)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req3.Device)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req3.Session)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req3.LangString)
 		deviceESN = req3.Device
 		deviceSession = req3.Session
-		logger("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
+		logger.Log("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 	} else {
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req2.Device)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req2.Session)
-		logger("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req2.LangString)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " ESN: " + req2.Device)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Session: " + req2.Session)
+		logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Language: " + req2.LangString)
 		deviceESN = req2.Device
 		deviceSession = req2.Session
-		logger("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
+		logger.Log("Stream " + strconv.Itoa(justThisBotNum) + " opened.")
 	}
 	data := []byte{}
 	if isKnowledgeGraph {
@@ -147,10 +146,10 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	if len(data) > 0 {
 		if data[0] == 0x4f {
 			isOpus = true
-			logger("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: Opus")
+			logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: Opus")
 		} else {
 			isOpus = false
-			logger("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: PCM")
+			logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Stream Type: PCM")
 		}
 	}
 	stream := opus.OggStream{}
@@ -169,7 +168,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 			time.Sleep(time.Millisecond * 10)
 		}
 	}()
-	logger("Processing...")
+	logger.Log("Processing...")
 	inactiveNumMax := 20
 	vad, err := webrtcvad.New()
 	if err != nil {
@@ -235,7 +234,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 				if numInRange >= oldDataLength {
 					active, err := vad.Process(16000, sample)
 					if err != nil {
-						logger(err)
+						logger.Log(err)
 					}
 					if active {
 						activeNum = activeNum + 1
@@ -256,7 +255,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 		oldDataLength = len(micData)
 		if voiceTimer >= 5 {
-			logger("Voice timeout threshold reached.")
+			logger.Log("Voice timeout threshold reached.")
 			speechDone = true
 		}
 		if speechDone {
@@ -276,21 +275,21 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 							logger(err)
 						}
 						transcribedText, _ = ParseSpokenResponse(serverResponse)
-						logger("Transcribed text: " + transcribedText)
+						logger.Log("Transcribed text: " + transcribedText)
 						die = true
 					}
 				} else {
 					transcribedText = "Houndify is not enabled."
-					logger("Houndify is not enabled.")
+					logger.Log("Houndify is not enabled.")
 					die = true
 				}
 			} else {
 				transcribedTextPre, _, err := leopardSTT.Process(micDataLeopard)
 				if err != nil {
-					logger(err)
+					logger.Log(err)
 				}
 				transcribedText = strings.ToLower(transcribedTextPre)
-				logger("Bot " + strconv.Itoa(justThisBotNum) + " Transcribed text: " + transcribedText)
+				logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Transcribed text: " + transcribedText)
 				die = true
 			}
 		}
@@ -299,7 +298,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 	}
 	botNum = botNum - 1
-	logger("Bot " + strconv.Itoa(justThisBotNum) + " request served.")
+	logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " request served.")
 	var rhinoUsed bool
 	if rhinoSucceeded {
 		rhinoUsed = true

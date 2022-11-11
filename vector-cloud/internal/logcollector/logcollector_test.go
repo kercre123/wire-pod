@@ -130,9 +130,9 @@ func (s *LogCollectorSuite) TestUploadNonExistingLogFile() {
 	collector, err := newTestLogCollector(s.Container.Addr(), testBucketName)
 	require.NoError(t, err)
 
-	s3Url, err := collector.Upload(context.Background(), "/non/existing/file.log")
+	s3Url, err := collector.Upload(context.Background(), "/non/existing/file.logger")
 	s.Error(err)
-	s.Equal("open /non/existing/file.log: no such file or directory", err.Error())
+	s.Equal("open /non/existing/file.logger: no such file or directory", err.Error())
 	s.Empty(s3Url)
 }
 

@@ -2,12 +2,15 @@ package wirepod
 
 import (
 	"encoding/json"
+	wirepod "github.com/digital-dream-labs/chipper/pkg/voice_processors"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-common"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-common/logger"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]string, isOpus bool, justThisBotNum int, botSerial string) {
+func paramCheckerSlotsEnUS(req interface{}, intent string, slots map[string]string, isOpus bool, justThisBotNum int, botSerial string) {
 	// var req2 *vtt.IntentRequest
 	// var req1 *vtt.KnowledgeGraphRequest
 	// var req3 *vtt.IntentGraphRequest
@@ -27,8 +30,6 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
-	logger("paramCheckerSlotsItIT")
-
 	if _, err := os.Stat("./botConfig.json"); err == nil {
 		type botConfigJSON []struct {
 			ESN             string `json:"ESN"`
@@ -39,13 +40,13 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Logger(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger("Found bot config for " + bot.ESN)
+				logger.Logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -58,15 +59,15 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 			newIntent = "intent_imperative_volumelevel_extend"
 			isParam = true
 			intentParam = "volume_level"
-			if strings.Contains(slots["volume"], "medio basso") {
+			if strings.Contains(slots["volume"], "medium low") {
 				intentParamValue = "VOLUME_2"
-			} else if strings.Contains(slots["volume"], "basso") {
+			} else if strings.Contains(slots["volume"], "low") {
 				intentParamValue = "VOLUME_1"
-			} else if strings.Contains(slots["volume"], "medio alto") {
+			} else if strings.Contains(slots["volume"], "medium high") {
 				intentParamValue = "VOLUME_4"
-			} else if strings.Contains(slots["volume"], "alto") {
+			} else if strings.Contains(slots["volume"], "high") {
 				intentParamValue = "VOLUME_5"
-			} else if strings.Contains(slots["volume"], "medio") {
+			} else if strings.Contains(slots["volume"], "medium") {
 				intentParamValue = "VOLUME_3"
 			} else {
 				intentParamValue = "VOLUME_1"
@@ -81,17 +82,17 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 		isParam = true
 		newIntent = "intent_imperative_eyecolor_specific_extend"
 		intentParam = "eye_color"
-		if strings.Contains(slots["eye_color"], "viola") || strings.Contains(slots["eye_color"], "lilla") {
+		if strings.Contains(slots["eye_color"], "purple") {
 			intentParamValue = "COLOR_PURPLE"
-		} else if strings.Contains(slots["eye_color"], "blu") {
+		} else if strings.Contains(slots["eye_color"], "blue") || strings.Contains(slots["eye_color"], "sapphire") {
 			intentParamValue = "COLOR_BLUE"
-		} else if strings.Contains(slots["eye_color"], "giallo") {
+		} else if strings.Contains(slots["eye_color"], "yellow") {
 			intentParamValue = "COLOR_YELLOW"
-		} else if strings.Contains(slots["eye_color"], "verde acqua") {
+		} else if strings.Contains(slots["eye_color"], "teal") || strings.Contains(slots["eye_color"], "tell") {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(slots["eye_color"], "verde") || strings.Contains(slots["eye_color"], "verdi") {
+		} else if strings.Contains(slots["eye_color"], "green") {
 			intentParamValue = "COLOR_GREEN"
-		} else if strings.Contains(slots["eye_color"], "arancione") || strings.Contains(slots["eye_color"], "arancio") {
+		} else if strings.Contains(slots["eye_color"], "orange") {
 			intentParamValue = "COLOR_ORANGE"
 		} else {
 			newIntent = intent
@@ -118,16 +119,16 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 		slotUnit := slots["unit"]
 		timerSecs, err := strconv.Atoi(slotNum)
 		if err != nil {
-			logger(err)
+			logger.Logger(err)
 		}
 		if slotNum != "" && slotUnit != "" {
-			if strings.Contains(slotUnit, "minuto") || strings.Contains(slotUnit, "minuti") {
+			if strings.Contains(slotUnit, "minute") {
 				timerSecs = timerSecs * 60
-			} else if strings.Contains(slotUnit, "ora") || strings.Contains(slotUnit, "ore") {
+			} else if strings.Contains(slotUnit, "hour") {
 				timerSecs = timerSecs * 60 * 60
 			}
 		}
-		logger("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
+		logger.Logger("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
 		intentParam = "timer_duration"
 		intentParamValue = strconv.Itoa(timerSecs)
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -199,7 +200,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 	IntentPass(req, newIntent, intent, intentParams, isParam, justThisBotNum)
 }
 
-func paramCheckerItIT(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
+func paramCheckerEnUS(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
@@ -209,7 +210,6 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
-	logger("paramCheckerItIT")
 	if _, err := os.Stat("./botConfig.json"); err == nil {
 		type botConfigJSON []struct {
 			ESN             string `json:"ESN"`
@@ -220,13 +220,13 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Logger(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger("Found bot config for " + bot.ESN)
+				logger.Logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -283,7 +283,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, "fammi una foto") || strings.Contains(speechText, "scattami una foto") || strings.Contains(speechText, "scatta una foto") || strings.Contains(speechText, "fa una foto") {
+		if strings.Contains(speechText, "me") || strings.Contains(speechText, "self") {
 			intentParam = "entity_photo_selfie"
 			intentParamValue = "photo_selfie"
 		} else {
@@ -295,17 +295,17 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		isParam = true
 		newIntent = "intent_imperative_eyecolor_specific_extend"
 		intentParam = "eye_color"
-		if strings.Contains(speechText, "viola") || strings.Contains(speechText, "lilla") {
+		if strings.Contains(speechText, "purple") {
 			intentParamValue = "COLOR_PURPLE"
-		} else if strings.Contains(speechText, "blu") {
+		} else if strings.Contains(speechText, "blue") || strings.Contains(speechText, "sapphire") {
 			intentParamValue = "COLOR_BLUE"
-		} else if strings.Contains(speechText, "giallo") || strings.Contains(speechText, "gialli") {
+		} else if strings.Contains(speechText, "yellow") {
 			intentParamValue = "COLOR_YELLOW"
-		} else if strings.Contains(speechText, "verde acqua") {
+		} else if strings.Contains(speechText, "teal") || strings.Contains(speechText, "tell") {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(speechText, "verde") || strings.Contains(speechText, "verdi") {
+		} else if strings.Contains(speechText, "green") {
 			intentParamValue = "COLOR_GREEN"
-		} else if strings.Contains(speechText, "arancione") || strings.Contains(speechText, "arancioni") || strings.Contains(speechText, "arancio") {
+		} else if strings.Contains(speechText, "orange") {
 			intentParamValue = "COLOR_ORANGE"
 		} else {
 			newIntent = intent
@@ -316,27 +316,27 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser(speechText, botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, "medio basso") {
+		if strings.Contains(speechText, "medium lo") || strings.Contains(speechText, "media lo") || strings.Contains(speechText, "medium bo") || strings.Contains(speechText, "media bo") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_2"
-		} else if strings.Contains(speechText, "basso") || strings.Contains(speechText, "silenzioso") || strings.Contains(speechText, "minimo") {
+		} else if strings.Contains(speechText, "low") || strings.Contains(speechText, "quiet") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
-		} else if strings.Contains(speechText, "medio alto") {
+		} else if strings.Contains(speechText, "medium high") || strings.Contains(speechText, "media high") || strings.Contains(speechText, "medium hide") || strings.Contains(speechText, "media hide") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_4"
-		} else if strings.Contains(speechText, "medio") || strings.Contains(speechText, "normale") || strings.Contains(speechText, "standard") || strings.Contains(speechText, "regolare") {
+		} else if strings.Contains(speechText, "medium") || strings.Contains(speechText, "normal") || strings.Contains(speechText, "regular") || strings.Contains(speechText, "media") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_3"
-		} else if strings.Contains(speechText, "alto") || strings.Contains(speechText, "rumoroso") || strings.Contains(speechText, "massimo") {
+		} else if strings.Contains(speechText, "high") || strings.Contains(speechText, "loud") || strings.Contains(speechText, "hide") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_5"
-		} else if strings.Contains(speechText, "muto") || strings.Contains(speechText, "zero") || strings.Contains(speechText, "silenzioso") || strings.Contains(speechText, "spento") {
+		} else if strings.Contains(speechText, "mute") || strings.Contains(speechText, "nothing") || strings.Contains(speechText, "silent") || strings.Contains(speechText, "off") || strings.Contains(speechText, "zero") || strings.Contains(speechText, "meet") {
 			// there is no VOLUME_0 :(
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
@@ -350,14 +350,14 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		var nameSplitter string
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, " è ") {
-			nameSplitter = " è "
-		} else if strings.Contains(speechText, "sono") {
-			nameSplitter = "sono"
-		} else if strings.Contains(speechText, "chiamo") {
-			nameSplitter = "chiamo"
+		if strings.Contains(speechText, " is ") {
+			nameSplitter = " is "
+		} else if strings.Contains(speechText, "'s") {
+			nameSplitter = "'s"
+		} else if strings.Contains(speechText, "names") {
+			nameSplitter = "names"
 		}
-		if strings.Contains(speechText, " è ") || strings.Contains(speechText, "sono") || strings.Contains(speechText, "chiamo") {
+		if strings.Contains(speechText, " is ") || strings.Contains(speechText, "'s") || strings.Contains(speechText, "names") {
 			splitPhrase := strings.SplitAfter(speechText, nameSplitter)
 			username = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
@@ -367,12 +367,12 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger("Name parsed from speech: " + "`" + username + "`")
+			logger.Logger("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger("No name parsed from speech")
+			logger.Logger("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -381,7 +381,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		isParam = true
 		newIntent = intent
 		timerSecs := words2num(speechText)
-		logger("Seconds parsed from speech: " + timerSecs)
+		logger.Logger("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -396,8 +396,8 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		isParam = true
 		newIntent = intent
 		intentParam = "given_name"
-		if strings.Contains(speechText, " per ") {
-			splitPhrase := strings.SplitAfter(speechText, " per ")
+		if strings.Contains(speechText, " for ") {
+			splitPhrase := strings.SplitAfter(speechText, " for ")
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])
@@ -416,8 +416,8 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		isParam = true
 		newIntent = intent
 		intentParam = "given_name"
-		if strings.Contains(speechText, " per ") {
-			splitPhrase := strings.SplitAfter(speechText, " per ")
+		if strings.Contains(speechText, " for ") {
+			splitPhrase := strings.SplitAfter(speechText, " for ")
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])
@@ -464,7 +464,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
 }
 
-func prehistoricParamCheckerItIT(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
+func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
 	// intent.go detects if the stream uses opus or PCM.
 	// If the stream is PCM, it is likely a bot with 0.10.
 	// This accounts for the newer 0.10.1### builds.
@@ -475,7 +475,6 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 	var intentParams map[string]string
 	var botLocation string = "San Francisco"
 	var botUnits string = "F"
-	logger("prehistoricParamCheckerItIT")
 	if _, err := os.Stat("./botConfig.json"); err == nil {
 		type botConfigJSON []struct {
 			ESN             string `json:"ESN"`
@@ -486,13 +485,13 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Logger(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger("Found bot config for " + bot.ESN)
+				logger.Logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 			}
@@ -501,7 +500,7 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, "fammi una foto") || strings.Contains(speechText, "scattami una foto") || strings.Contains(speechText, "scatta una foto") || strings.Contains(speechText, "fa una foto") {
+		if strings.Contains(speechText, "me") || strings.Contains(speechText, "self") {
 			intentParam = "entity_photo_selfie"
 			intentParamValue = "photo_selfie"
 		} else {
@@ -514,17 +513,17 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		isParam = true
 		newIntent = "intent_imperative_eyecolor_specific_extend"
 		intentParam = "eye_color"
-		if strings.Contains(speechText, "viola") || strings.Contains(speechText, "lilla") {
+		if strings.Contains(speechText, "purple") {
 			intentParamValue = "COLOR_PURPLE"
-		} else if strings.Contains(speechText, "blu") {
+		} else if strings.Contains(speechText, "blue") || strings.Contains(speechText, "sapphire") {
 			intentParamValue = "COLOR_BLUE"
-		} else if strings.Contains(speechText, "giallo") || strings.Contains(speechText, "gialli") {
+		} else if strings.Contains(speechText, "yellow") {
 			intentParamValue = "COLOR_YELLOW"
-		} else if strings.Contains(speechText, "verde acqua") {
+		} else if strings.Contains(speechText, "teal") || strings.Contains(speechText, "tell") {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(speechText, "verde") || strings.Contains(speechText, "verdi") {
+		} else if strings.Contains(speechText, "green") {
 			intentParamValue = "COLOR_GREEN"
-		} else if strings.Contains(speechText, "arancione") || strings.Contains(speechText, "arancioni") || strings.Contains(speechText, "arancio") {
+		} else if strings.Contains(speechText, "orange") {
 			intentParamValue = "COLOR_ORANGE"
 		} else {
 			newIntent = intent
@@ -535,27 +534,27 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser(speechText, botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod.weatherParser(speechText, botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, "medio basso") {
+		if strings.Contains(speechText, "medium lo") || strings.Contains(speechText, "media lo") || strings.Contains(speechText, "medium bo") || strings.Contains(speechText, "media bo") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_2"
-		} else if strings.Contains(speechText, "basso") || strings.Contains(speechText, "silenzioso") || strings.Contains(speechText, "minimo") {
+		} else if strings.Contains(speechText, "low") || strings.Contains(speechText, "quiet") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
-		} else if strings.Contains(speechText, "medio alto") {
+		} else if strings.Contains(speechText, "medium high") || strings.Contains(speechText, "media high") || strings.Contains(speechText, "medium hide") || strings.Contains(speechText, "media hide") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_4"
-		} else if strings.Contains(speechText, "medio") || strings.Contains(speechText, "normale") || strings.Contains(speechText, "standard") || strings.Contains(speechText, "regolare") {
+		} else if strings.Contains(speechText, "medium") || strings.Contains(speechText, "normal") || strings.Contains(speechText, "regular") || strings.Contains(speechText, "media") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_3"
-		} else if strings.Contains(speechText, "alto") || strings.Contains(speechText, "rumoroso") || strings.Contains(speechText, "massimo") {
+		} else if strings.Contains(speechText, "high") || strings.Contains(speechText, "loud") || strings.Contains(speechText, "hide") {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_5"
-		} else if strings.Contains(speechText, "muto") || strings.Contains(speechText, "zero") || strings.Contains(speechText, "silenzioso") || strings.Contains(speechText, "spento") {
+		} else if strings.Contains(speechText, "mute") || strings.Contains(speechText, "nothing") || strings.Contains(speechText, "silent") || strings.Contains(speechText, "off") || strings.Contains(speechText, "zero") || strings.Contains(speechText, "meet") {
 			// there is no VOLUME_0 :(
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
@@ -569,14 +568,14 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		var nameSplitter string
 		isParam = true
 		newIntent = "intent_names_username"
-		if strings.Contains(speechText, " è ") {
-			nameSplitter = " è "
-		} else if strings.Contains(speechText, "sono") {
-			nameSplitter = "sono"
-		} else if strings.Contains(speechText, "chiamo") {
-			nameSplitter = "chiamo"
+		if strings.Contains(speechText, "is") {
+			nameSplitter = "is"
+		} else if strings.Contains(speechText, "'s") {
+			nameSplitter = "'s"
+		} else if strings.Contains(speechText, "names") {
+			nameSplitter = "names"
 		}
-		if strings.Contains(speechText, " è ") || strings.Contains(speechText, "sono") || strings.Contains(speechText, "chiamo") {
+		if strings.Contains(speechText, "is") || strings.Contains(speechText, "'s") || strings.Contains(speechText, "names") {
 			splitPhrase := strings.SplitAfter(speechText, nameSplitter)
 			username = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
@@ -586,12 +585,12 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger("Name parsed from speech: " + "`" + username + "`")
+			logger.Logger("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger("No name parsed from speech")
+			logger.Logger("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -600,7 +599,7 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		isParam = true
 		newIntent = "intent_clock_settimer"
 		timerSecs := words2num(speechText)
-		logger("Seconds parsed from speech: " + timerSecs)
+		logger.Logger("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -615,8 +614,8 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		isParam = true
 		newIntent = "intent_message_playmessage"
 		intentParam = "given_name"
-		if strings.Contains(speechText, " per ") {
-			splitPhrase := strings.SplitAfter(speechText, " per ")
+		if strings.Contains(speechText, " for ") {
+			splitPhrase := strings.SplitAfter(speechText, " for ")
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])
@@ -635,8 +634,8 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		isParam = true
 		newIntent = "intent_message_recordmessage"
 		intentParam = "given_name"
-		if strings.Contains(speechText, " per ") {
-			splitPhrase := strings.SplitAfter(speechText, " per ")
+		if strings.Contains(speechText, " for ") {
+			splitPhrase := strings.SplitAfter(speechText, " for ")
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])

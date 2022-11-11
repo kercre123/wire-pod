@@ -7,7 +7,7 @@ import (
 	"github.com/digital-dream-labs/chipper/pkg/server"
 	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-coqui"
 
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
+	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
 	warnlog "log"
 	"os"
 
@@ -66,7 +66,7 @@ func startServer() {
 	}
 
 	s, _ := server.New(
-		//server.WithLogger(log.Base()),
+		//server.WithLogger(logger.Base()),
 		server.WithIntentProcessor(p),
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),

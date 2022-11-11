@@ -1,16 +1,16 @@
 package wirepod
 
 import (
-	"fmt"
-	"os"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"log"
+	"os"
 	//"bufio"
-	//"io"	
+	//"io"
 	//"encoding/json"
-	vosk "github.com/alphacep/vosk-api/go")
+	vosk "github.com/alphacep/vosk-api/go"
+)
 
-var debugLogging bool
-var model* vosk.VoskModel 
+var model *vosk.VoskModel
 var sttLanguage string = "en-US"
 
 const (
@@ -48,80 +48,74 @@ type Server struct{}
 
 // New returns a new server
 func New() (*Server, error) {
-	if (len(os.Args)>1) {
-	     sttLanguage = os.Args[1]
+	if len(os.Args) > 1 {
+		sttLanguage = os.Args[1]
 	}
 	initMatches()
 	if os.Getenv("DEBUG_LOGGING") != "true" && os.Getenv("DEBUG_LOGGING") != "false" {
-		logger("No valid value for DEBUG_LOGGING, setting to true")
-		debugLogging = true
+		logger.Log("No valid value for DEBUG_LOGGING, setting to true")
+		logger.DebugLogging = true
 	} else {
 		if os.Getenv("DEBUG_LOGGING") == "true" {
-			debugLogging = true
+			logger.DebugLogging = true
 		} else {
-			debugLogging = false
+			logger.DebugLogging = false
 		}
 	}
-	logger("Server START")
+	logger.Log("Server START")
 
 	// Open model
-	logger("Opening model")
-	aModel, err := vosk.NewModel("../vosk/models/"+sttLanguage+"/model")
+	logger.Log("Opening model")
+	aModel, err := vosk.NewModel("../vosk/models/" + sttLanguage + "/model")
 	if err != nil {
 		log.Fatal(err)
 	}
-	model = aModel;
-	logger("Model open!")
-    
+	model = aModel
+	logger.Log("Model open!")
+
 	/*
-	logger("Running a VOSK test...")
-	sampleRate := 16000.0
-	rec, err := vosk.NewRecognizer(model, sampleRate)
-	if err != nil {
-		log.Fatal(err)
-	}
-	rec.SetWords(1)
-	
-	// Feed a file
-	logger("Feeding test file")
-	file, err := os.Open("./stttest.pcm")
-	if err != nil {
-		log.Fatal("Failed to open test input file!")
-		panic(err)
-	}
-	defer file.Close()
-
-	reader := bufio.NewReader(file)
-	buf := make([]byte, 4096)
-
-	for {
-		_, err := reader.Read(buf)
+		logger.Log("Running a VOSK test...")
+		sampleRate := 16000.0
+		rec, err := vosk.NewRecognizer(model, sampleRate)
 		if err != nil {
-			if err != io.EOF {
-				log.Fatal(err)
+			logger.Fatal(err)
+		}
+		rec.SetWords(1)
+
+		// Feed a file
+		logger.Log("Feeding test file")
+		file, err := os.Open("./stttest.pcm")
+		if err != nil {
+			log.Fatal("Failed to open test input file!")
+			panic(err)
+		}
+		defer file.Close()
+
+		reader := bufio.NewReader(file)
+		buf := make([]byte, 4096)
+
+		for {
+			_, err := reader.Read(buf)
+			if err != nil {
+				if err != io.EOF {
+					log.Fatal(err)
+				}
+
+				break
 			}
 
-			break
+			if rec.AcceptWaveform(buf) != 0 {
+				fmt.Println(rec.Result())
+			}
 		}
 
-		if rec.AcceptWaveform(buf) != 0 {
-			fmt.Println(rec.Result())
-		}
-	}
+		// Unmarshal example for final result
+		var jres map[string]interface{}
+		json.Unmarshal([]byte(rec.FinalResult()), &jres)
+		fmt.Println(jres["text"])
 
-	// Unmarshal example for final result
-	var jres map[string]interface{}
-	json.Unmarshal([]byte(rec.FinalResult()), &jres)
-	fmt.Println(jres["text"])
-	
-	logger("VOSK test successful!")
-    */
-	logger("Server OK")
+		logger("VOSK test successful!")
+	*/
+	logger.Log("Server OK")
 	return &Server{}, nil
-}
-
-func logger(a ...any) {
-	if debugLogging {
-		fmt.Println(a...)
-	}
 }

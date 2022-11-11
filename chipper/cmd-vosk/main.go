@@ -6,7 +6,7 @@ import (
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
 	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-vosk"
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
+	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
 	warnlog "log"
 	"os"
 
@@ -20,7 +20,7 @@ const warnIfNoSTT string = "true"
 var sttLanguage string = "en-US"
 
 func main() {
-	if (len(os.Args) > 1) {
+	if len(os.Args) > 1 {
 		sttLanguage = os.Args[1]
 	}
 
@@ -48,15 +48,15 @@ func main() {
 func startServer() {
 	srv, err := grpcserver.New(
 		grpcserver.WithViper(),
-		//grpcserver.WithLogger(log.Base()),
+		//grpcserver.WithLogger(logger.Base()),
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
-			//			grpclog.UnaryServerInterceptor(),
+		//			grpclog.UnaryServerInterceptor(),
 		),
 
 		grpcserver.WithStreamServerInterceptors(
-			//			grpclog.StreamServerInterceptor(),
+		//			grpclog.StreamServerInterceptor(),
 		),
 	)
 	if err != nil {
@@ -71,7 +71,7 @@ func startServer() {
 	}
 
 	s, _ := server.New(
-		//server.WithLogger(log.Base()),
+		//server.WithLogger(logger.Base()),
 		server.WithIntentProcessor(p),
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),

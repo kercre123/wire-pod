@@ -18,7 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-// logCollector implements functionality for uploading log files to the cloud
+// logCollector implements functionality for uploading logger files to the cloud
 type logCollector struct {
 	tokener token.Accessor
 
