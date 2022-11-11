@@ -6,7 +6,6 @@ import (
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
 	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-vosk"
-
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
 	warnlog "log"
 	"os"
@@ -17,23 +16,24 @@ import (
 
 // set false for no warning
 const warnIfNoSTT string = "true"
+
 var sttLanguage string = "en-US"
 
 func main() {
-	if (len(os.Args)>1) {
-	     sttLanguage = os.Args[1]
+	if (len(os.Args) > 1) {
+		sttLanguage = os.Args[1]
 	}
-	
+
 	log.SetJSONFormat("2006-01-02 15:04:05")
 	if warnIfNoSTT == "true" {
 		if _, err := os.Stat("../vosk"); err == nil {
 			warnlog.Println("VOSK directory found!")
 			if _, err := os.Stat("../vosk/models"); err == nil {
 				warnlog.Println("Models directory found!")
-				if _, err := os.Stat("../vosk/models/"+sttLanguage+"/model/am/final.mdl"); err == nil {
-					warnlog.Println(sttLanguage+" VOSK model found! Speech-to-text should work like normal.")
+				if _, err := os.Stat("../vosk/models/" + sttLanguage + "/model/am/final.mdl"); err == nil {
+					warnlog.Println(sttLanguage + " VOSK model found! Speech-to-text should work like normal.")
 				} else {
-					warnlog.Println("No "+sttLanguage+" model found. This must be placed at ../vosk/models/"+sttLanguage+"/model. Please read the README. Speech-to-text may not work.")
+					warnlog.Println("No " + sttLanguage + " model found. This must be placed at ../vosk/models/" + sttLanguage + "/model. Please read the README. Speech-to-text may not work.")
 				}
 			} else {
 				warnlog.Println("No VOSK models directory found. This must be placed at ../vosk/models. Please read the README. Speech-to-text may not work.")
@@ -52,11 +52,11 @@ func startServer() {
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
-		//			grpclog.UnaryServerInterceptor(),
+			//			grpclog.UnaryServerInterceptor(),
 		),
 
 		grpcserver.WithStreamServerInterceptors(
-		//			grpclog.StreamServerInterceptor(),
+			//			grpclog.StreamServerInterceptor(),
 		),
 	)
 	if err != nil {

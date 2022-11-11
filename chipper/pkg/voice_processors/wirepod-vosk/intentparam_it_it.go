@@ -2,6 +2,7 @@ package wirepod
 
 import (
 	"encoding/json"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-common"
 	"os"
 	"strconv"
 	"strings"
@@ -28,7 +29,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
 	logger("paramCheckerSlotsItIT")
-	
+
 	if _, err := os.Stat("./botConfig.json"); err == nil {
 		type botConfigJSON []struct {
 			ESN             string `json:"ESN"`
@@ -89,7 +90,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 			intentParamValue = "COLOR_YELLOW"
 		} else if strings.Contains(slots["eye_color"], "verde acqua") {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(slots["eye_color"], "verde") || strings.Contains(slots["eye_color"], "verdi"){
+		} else if strings.Contains(slots["eye_color"], "verde") || strings.Contains(slots["eye_color"], "verdi") {
 			intentParamValue = "COLOR_GREEN"
 		} else if strings.Contains(slots["eye_color"], "arancione") || strings.Contains(slots["eye_color"], "arancio") {
 			intentParamValue = "COLOR_ORANGE"
@@ -121,7 +122,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 			logger(err)
 		}
 		if slotNum != "" && slotUnit != "" {
-			if strings.Contains(slotUnit, "minuto") || strings.Contains(slotUnit, "minuti"){
+			if strings.Contains(slotUnit, "minuto") || strings.Contains(slotUnit, "minuti") {
 				timerSecs = timerSecs * 60
 			} else if strings.Contains(slotUnit, "ora") || strings.Contains(slotUnit, "ore") {
 				timerSecs = timerSecs * 60 * 60
@@ -146,7 +147,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser("no", botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser("no", botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else {
 		if intentParam == "" {
@@ -279,11 +280,11 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-	logger("Checking params for candidate intent "+intent)
+	logger("Checking params for candidate intent " + intent)
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, "fammi una foto") || strings.Contains(speechText, "scattami una foto") || strings.Contains(speechText, "scatta una foto") || strings.Contains(speechText, "fa una foto"){
+		if strings.Contains(speechText, "fammi una foto") || strings.Contains(speechText, "scattami una foto") || strings.Contains(speechText, "scatta una foto") || strings.Contains(speechText, "fa una foto") {
 			intentParam = "entity_photo_selfie"
 			intentParamValue = "photo_selfie"
 		} else {
@@ -303,7 +304,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 			intentParamValue = "COLOR_YELLOW"
 		} else if strings.Contains(speechText, "verde acqua") {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(speechText, "verde") || strings.Contains(speechText, "verdi"){
+		} else if strings.Contains(speechText, "verde") || strings.Contains(speechText, "verdi") {
 			intentParamValue = "COLOR_GREEN"
 		} else if strings.Contains(speechText, "arancione") || strings.Contains(speechText, "arancioni") || strings.Contains(speechText, "arancio") {
 			intentParamValue = "COLOR_ORANGE"
@@ -501,7 +502,7 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, "fammi una foto") || strings.Contains(speechText, "scattami una foto") || strings.Contains(speechText, "scatta una foto") || strings.Contains(speechText, "fa una foto"){
+		if strings.Contains(speechText, "fammi una foto") || strings.Contains(speechText, "scattami una foto") || strings.Contains(speechText, "scatta una foto") || strings.Contains(speechText, "fa una foto") {
 			intentParam = "entity_photo_selfie"
 			intentParamValue = "photo_selfie"
 		} else {
@@ -522,7 +523,7 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 			intentParamValue = "COLOR_YELLOW"
 		} else if strings.Contains(speechText, "verde acqua") {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(speechText, "verde") || strings.Contains(speechText, "verdi"){
+		} else if strings.Contains(speechText, "verde") || strings.Contains(speechText, "verdi") {
 			intentParamValue = "COLOR_GREEN"
 		} else if strings.Contains(speechText, "arancione") || strings.Contains(speechText, "arancioni") || strings.Contains(speechText, "arancio") {
 			intentParamValue = "COLOR_ORANGE"
@@ -535,7 +536,7 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser(speechText, botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true

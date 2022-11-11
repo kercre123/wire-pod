@@ -2,6 +2,7 @@ package wirepod
 
 import (
 	"encoding/json"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-common"
 	"os"
 	"strconv"
 	"strings"
@@ -144,7 +145,7 @@ func paramCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser("no", botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser("no", botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else {
 		if intentParam == "" {
@@ -276,7 +277,7 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-	logger("Checking params for candidate intent "+intent)
+	logger("Checking params for candidate intent " + intent)
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
@@ -313,7 +314,7 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser(speechText, botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
@@ -531,7 +532,7 @@ func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText stri
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser(speechText, botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
