@@ -1,3 +1,6 @@
+//go:build vosk
+// +build vosk
+
 package wirepod
 
 import (
