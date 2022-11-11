@@ -14,16 +14,6 @@ var picovoiceInstances int
 
 // New returns a new server
 func LeopardNew() (*Server, error) {
-	if os.Getenv("DEBUG_LOGGING") != "true" && os.Getenv("DEBUG_LOGGING") != "false" {
-		logger("No valid value for DEBUG_LOGGING, setting to true")
-		debugLogging = true
-	} else {
-		if os.Getenv("DEBUG_LOGGING") == "true" {
-			debugLogging = true
-		} else {
-			debugLogging = false
-		}
-	}
 	var picovoiceKey string
 	picovoiceKeyOS := os.Getenv("PICOVOICE_APIKEY")
 	leopardKeyOS := os.Getenv("LEOPARD_APIKEY")

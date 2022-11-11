@@ -130,6 +130,18 @@ func loadIntents(voiceProcessor string, language string) ([][]string, []string, 
 
 // New returns a new server
 func New(voiceProcessor string) (*Server, error) {
+	// Setup logging
+	if os.Getenv("DEBUG_LOGGING") != "true" && os.Getenv("DEBUG_LOGGING") != "false" {
+		logger("No valid value for DEBUG_LOGGING, setting to true")
+		debugLogging = true
+	} else {
+		if os.Getenv("DEBUG_LOGGING") == "true" {
+			debugLogging = true
+		} else {
+			debugLogging = false
+		}
+	}
+
 	// Decide the TTS language
 	sttLanguage = os.Getenv("STT_LANGUAGE")
 	if len(sttLanguage) == 0 {
