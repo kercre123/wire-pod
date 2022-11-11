@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	wirepod "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
+	"github.com/maxhawkins/go-webrtcvad"
+	"github.com/soundhound/houndify-sdk-go"
 	"io"
 	"os"
 	"strconv"
@@ -172,14 +175,14 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 	inactiveNumMax := 20
 	vad, err := webrtcvad.New()
 	if err != nil {
-		logger(err)
+		logger.Log(err)
 	}
 	vad.SetMode(3)
 	// sometimes leopard panic!
 	defer func() {
 		if err := recover(); err != nil {
 			botNum = botNum - 1
-			logger(err)
+			logger.Log(err)
 		}
 	}()
 	for {
@@ -190,7 +193,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
 				} else {
-					logger("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
 				}
@@ -203,7 +206,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
 				} else {
-					logger("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
 				}
@@ -216,7 +219,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
 				} else {
-					logger("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
 				}
@@ -243,7 +246,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 						inactiveNum = inactiveNum + 1
 					}
 					if inactiveNum >= inactiveNumMax && activeNum > 20 {
-						logger("Speech completed in " + strconv.FormatFloat(requestTimer, 'f', 2, 64) + " seconds.")
+						logger.Log("Speech completed in " + strconv.FormatFloat(requestTimer, 'f', 2, 64) + " seconds.")
 						speechDone = true
 						break
 					}
@@ -260,8 +263,8 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 		if speechDone {
 			if isKnowledgeGraph {
-				if houndEnable {
-					logger("Sending requst to Houndify...")
+				if wirepod.HoundEnable {
+					logger.Log("Sending requst to Houndify...")
 					if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 						req := houndify.VoiceRequest{
 							AudioStream:       bytes.NewReader(data),
@@ -270,11 +273,11 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 							RequestInfoFields: make(map[string]interface{}),
 						}
 						partialTranscripts := make(chan houndify.PartialTranscript)
-						serverResponse, err := hKGclient.VoiceSearch(req, partialTranscripts)
+						serverResponse, err := wirepod.HKGclient.VoiceSearch(req, partialTranscripts)
 						if err != nil {
-							logger(err)
+							logger.Log(err)
 						}
-						transcribedText, _ = ParseSpokenResponse(serverResponse)
+						transcribedText, _ = wirepod.ParseSpokenResponse(serverResponse)
 						logger.Log("Transcribed text: " + transcribedText)
 						die = true
 					}

@@ -3,6 +3,7 @@ package wirepod
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"log"
 	"net/http"
 	"os"
@@ -29,11 +30,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if _, err := os.Stat("./customIntents.json"); err == nil {
-			logger("Found customIntents.json")
+			logger.Log("Found customIntents.json")
 			var customIntentJSON intentsStruct
 			customIntentJSONFile, _ := os.ReadFile("./customIntents.json")
 			json.Unmarshal(customIntentJSONFile, &customIntentJSON)
-			logger("Number of custom intents (current): " + strconv.Itoa(len(customIntentJSON)))
+			logger.Log("Number of custom intents (current): " + strconv.Itoa(len(customIntentJSON)))
 			customIntentJSON = append(customIntentJSON, struct {
 				Name        string   `json:"name"`
 				Description string   `json:"description"`
@@ -52,7 +53,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			customIntentJSONFile, _ = json.Marshal(customIntentJSON)
 			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
 		} else {
-			logger("Creating customIntents.json")
+			logger.Log("Creating customIntents.json")
 			customIntentJSONFile, _ := json.Marshal([]struct {
 				Name        string   `json:"name"`
 				Description string   `json:"description"`
@@ -99,7 +100,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var customIntentJSON intentsStruct
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -145,7 +146,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		fmt.Fprint(w, string(customIntentJSONFile))
 		return
@@ -164,7 +165,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var customIntentJSON intentsStruct
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -229,7 +230,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			// read botConfig.json and append to it with the form information
 			botConfigFile, err := os.ReadFile("./botConfig.json")
 			if err != nil {
-				logger(err)
+				logger.Log(err)
 			}
 			json.Unmarshal(botConfigFile, &botConfig)
 			botConfig = append(botConfig, struct {
@@ -272,7 +273,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var botConfigJSON botConfigStruct
 		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		json.Unmarshal(botConfigJSONFile, &botConfigJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -281,7 +282,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(botConfigJSON))+" bots")
 			return
 		}
-		logger(botConfigJSON[newNumber].Esn + " bot is being removed")
+		logger.Log(botConfigJSON[newNumber].Esn + " bot is being removed")
 		botConfigJSON = append(botConfigJSON[:newNumber], botConfigJSON[newNumber+1:]...)
 		newBotConfigJSONFile, _ := json.Marshal(botConfigJSON)
 		os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
@@ -339,7 +340,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			// read botConfig.json and append to it with the form information
 			botConfigFile, err := os.ReadFile("./botConfig.json")
 			if err != nil {
-				logger(err)
+				logger.Log(err)
 			}
 			json.Unmarshal(botConfigFile, &botConfig)
 			newNumbera, _ := strconv.Atoi(number)
@@ -366,7 +367,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Log(err)
 		}
 		fmt.Fprint(w, string(botConfigJSONFile))
 		return
@@ -382,7 +383,7 @@ func StartWebServer() {
 		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
 			webPort = os.Getenv("WEBSERVER_PORT")
 		} else {
-			logger("WEBSERVER_PORT contains letters, using default of 8080")
+			logger.Log("WEBSERVER_PORT contains letters, using default of 8080")
 			webPort = "8080"
 		}
 	} else {

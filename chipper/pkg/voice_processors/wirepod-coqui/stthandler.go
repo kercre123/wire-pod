@@ -4,14 +4,18 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	wirepod "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"io"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/asticode/go-asticoqui"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	opus "github.com/digital-dream-labs/opus-go/opus"
+	"github.com/maxhawkins/go-webrtcvad"
+	"github.com/soundhound/houndify-sdk-go"
 )
 
 var botNum int = 0
@@ -240,7 +244,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 		if speechDone {
 			if isKnowledgeGraph {
-				if houndEnable {
+				if wirepod.HoundEnable {
 					logger.Log("Sending requst to Houndify...")
 					if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 						req := houndify.VoiceRequest{
@@ -250,11 +254,11 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 							RequestInfoFields: make(map[string]interface{}),
 						}
 						partialTranscripts := make(chan houndify.PartialTranscript)
-						serverResponse, err := hKGclient.VoiceSearch(req, partialTranscripts)
+						serverResponse, err := wirepod.HKGclient.VoiceSearch(req, partialTranscripts)
 						if err != nil {
 							logger.Log(err)
 						}
-						transcribedText, _ = ParseSpokenResponse(serverResponse)
+						transcribedText, _ = wirepod.ParseSpokenResponse(serverResponse)
 						logger.Log("Transcribed text: " + transcribedText)
 						die = true
 					}

@@ -3,15 +3,16 @@ package wirepod
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	wirepod "github.com/digital-dream-labs/chipper/pkg/voice_processors"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"time"
-	"log"
-	"encoding/json"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
-	
+
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	opus "github.com/digital-dream-labs/opus-go/opus"
@@ -58,7 +59,7 @@ func bytesToSamples(buf []byte) []int16 {
 	return samples
 }
 
-func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
+func SttHandlerVosk(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
 	var req2 *vtt.IntentRequest
 	var req1 *vtt.KnowledgeGraphRequest
 	var req3 *vtt.IntentGraphRequest
@@ -250,7 +251,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 		if speechDone {
 			if isKnowledgeGraph {
-				if houndEnable {
+				if wirepod.HoundEnable {
 					logger.Log("Sending requst to Houndify...")
 					if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 						req := houndify.VoiceRequest{
@@ -260,11 +261,11 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 							RequestInfoFields: make(map[string]interface{}),
 						}
 						partialTranscripts := make(chan houndify.PartialTranscript)
-						serverResponse, err := hKGclient.VoiceSearch(req, partialTranscripts)
+						serverResponse, err := wirepod.HKGclient.VoiceSearch(req, partialTranscripts)
 						if err != nil {
-							logger.Log.Log(err)
+							logger.Log(err)
 						}
-						transcribedText, _ = ParseSpokenResponse(serverResponse)
+						transcribedText, _ = wirepod.ParseSpokenResponse(serverResponse)
 						logger.Log("Transcribed text: " + transcribedText)
 						die = true
 					}

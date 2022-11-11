@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-leopard"
-
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
 
 	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
@@ -25,20 +24,20 @@ func startServer() {
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
-		//			grpclog.UnaryServerInterceptor(),
+			//			grpclog.UnaryServerInterceptor(),
 		),
 
 		grpcserver.WithStreamServerInterceptors(
-		//			grpclog.StreamServerInterceptor(),
+			//			grpclog.StreamServerInterceptor(),
 		),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	p, err := wirepod.New()
-	go wirepod.StartWebServer()
-	wirepod.InitHoundify()
+	p, err := wp.New()
+	go wp.StartWebServer()
+	wp.InitHoundify()
 	if err != nil {
 		log.Fatal(err)
 	}

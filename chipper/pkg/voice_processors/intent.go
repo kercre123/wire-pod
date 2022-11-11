@@ -1,9 +1,9 @@
 package wirepod
 
 import (
-	"strconv"
-
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
+	"strconv"
 )
 
 func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
@@ -20,9 +20,9 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		successMatched = processTextAll(req, transcribedText, matchListList, intentsList, isOpus, justThisBotNum)
 	}
 	if !successMatched {
-		logger("No intent was matched.")
+		logger.Log("No intent was matched.")
 		IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false, justThisBotNum)
 	}
-	logger("Bot " + strconv.Itoa(justThisBotNum) + " request served.")
+	logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " request served.")
 	return nil, nil
 }

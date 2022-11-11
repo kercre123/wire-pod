@@ -1,6 +1,7 @@
 package wirepod
 
 import (
+	"github.com/asticode/go-asticoqui"
 	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"log"
 	"os"
