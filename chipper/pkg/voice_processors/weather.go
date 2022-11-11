@@ -3,7 +3,6 @@ package wirepod
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/digital-dream-labs/chipper/pkg/logger"
 	"io"
 	"math"
 	"net/http"
@@ -142,25 +141,25 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 	weatherAPIProvider := os.Getenv("WEATHERAPI_PROVIDER")
 	if weatherAPIEnabled == "true" && weatherAPIKey != "" {
 		weatherEnabled = true
-		logger.Log("Weather API Enabled")
+		logger("Weather API Enabled")
 	} else {
 		weatherEnabled = false
-		logger.Log("Weather API not enabled, using placeholder")
+		logger("Weather API not enabled, using placeholder")
 		if weatherAPIEnabled == "true" && weatherAPIKey == "" {
-			logger.Log("Weather API enabled, but Weather API key not set")
+			logger("Weather API enabled, but Weather API key not set")
 		}
 	}
 	if weatherEnabled {
 		if botUnits != "" {
 			if botUnits == "F" {
-				logger.Log("Weather units set to F")
+				logger("Weather units set to F")
 				weatherAPIUnit = "F"
 			} else if botUnits == "C" {
-				logger.Log("Weather units set to C")
+				logger("Weather units set to C")
 				weatherAPIUnit = "C"
 			}
 		} else if weatherAPIUnit != "F" && weatherAPIUnit != "C" {
-			logger.Log("Weather API unit not set, using F")
+			logger("Weather API unit not set, using F")
 			weatherAPIUnit = "F"
 		}
 	}
@@ -188,7 +187,7 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			for _, b := range weatherAPICladMap {
 				if b.APIValue == weatherStruct.Current.Condition.Text {
 					condition = b.CladType
-					logger.Log("API Value: " + b.APIValue + ", Clad Type: " + b.CladType)
+					logger("API Value: " + b.APIValue + ", Clad Type: " + b.CladType)
 					matchedValue = true
 					break
 				}
@@ -212,21 +211,21 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			url := "http://api.openweathermap.org/geo/1.0/direct?q=" + location + "&limit=1&appid=" + weatherAPIKey
 			resp, err := http.Get(url)
 			if err != nil {
-				logger.Log(err)
+				logger(err)
 			}
 			defer resp.Body.Close()
 			body, _ := io.ReadAll(resp.Body)
 			geoCodingResponse := string(body)
-			logger.Log(geoCodingResponse)
+			logger(geoCodingResponse)
 
 			var geoCodingInfoStruct []openWeatherMapAPIGeoCodingStruct
 
 			err = json.Unmarshal([]byte(geoCodingResponse), &geoCodingInfoStruct)
 			if err != nil {
-				logger.Log(err)
+				logger(err)
 			}
 			if len(geoCodingInfoStruct) < 0 || len(geoCodingInfoStruct) == 0 {
-				logger.Log("Geo provided no response.")
+				logger("Geo provided no response.")
 				condition = "undefined"
 				is_forecast = "false"
 				local_datetime = "test"              // preferably local time in UTC ISO 8601 format ("2022-06-15 12:21:22.123")
@@ -238,9 +237,9 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			Lat := fmt.Sprintf("%f", geoCodingInfoStruct[0].Lat)
 			Lon := fmt.Sprintf("%f", geoCodingInfoStruct[0].Lon)
 
-			logger.Log("Lat: " + Lat + ", Lon: " + Lon)
-			logger.Log("Name: " + geoCodingInfoStruct[0].Name)
-			logger.Log("Country: " + geoCodingInfoStruct[0].Country)
+			logger("Lat: " + Lat + ", Lon: " + Lon)
+			logger("Name: " + geoCodingInfoStruct[0].Name)
+			logger("Country: " + geoCodingInfoStruct[0].Country)
 
 			// Now that we have Lat and Lon, let's query the weather
 			units := "metric"
@@ -256,7 +255,7 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			body, _ = io.ReadAll(resp.Body)
 			weatherResponse := string(body)
 
-			logger.Log(weatherResponse)
+			logger(weatherResponse)
 
 			var openWeatherMapAPIResponse openWeatherMapAPIResponseStruct
 
@@ -267,8 +266,8 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 
 			conditionCode := openWeatherMapAPIResponse.Weather[0].Id
 
-			logger.Log(weatherResponse)
-			logger.Log(conditionCode)
+			logger(weatherResponse)
+			logger(conditionCode)
 
 			if conditionCode < 300 {
 				// Thunderstorm
@@ -307,7 +306,7 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			is_forecast = "false"
 			t := time.Unix(int64(openWeatherMapAPIResponse.DT), 0)
 			local_datetime = t.Format(time.RFC850)
-			logger.Log(local_datetime)
+			logger(local_datetime)
 			speakable_location_string = openWeatherMapAPIResponse.Name
 			temperature = fmt.Sprintf("%f", math.Round(openWeatherMapAPIResponse.Main.Temp))
 			if weatherAPIUnit == "C" {
@@ -347,10 +346,10 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 		} else if len(splitLocation) == 3 {
 			speechLocation = splitLocation[0] + " " + splitLocation[1] + ", " + splitLocation[2]
 		}
-		logger.Log("Location parsed from speech: " + "`" + speechLocation + "`")
+		logger("Location parsed from speech: " + "`" + speechLocation + "`")
 		specificLocation = true
 	} else {
-		logger.Log("No location parsed from speech")
+		logger("No location parsed from speech")
 		specificLocation = false
 	}
 	if specificLocation {

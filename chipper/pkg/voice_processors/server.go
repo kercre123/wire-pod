@@ -1,6 +1,9 @@
 package wirepod
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Server stores the config
 type Server struct{}
@@ -29,4 +32,12 @@ func New(voiceProcessor string) (*Server, error) {
 	}
 
 	return nil, errors.New("Unknown voice processor")
+}
+
+var debugLogging bool
+
+func logger(a ...any) {
+	if debugLogging {
+		fmt.Println(a...)
+	}
 }
