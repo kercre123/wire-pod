@@ -3,18 +3,20 @@ package wirepod
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"io"
-	"log"
 	"os"
 	"strconv"
 	"time"
-
+	"log"
+	"encoding/json"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
+	
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	opus "github.com/digital-dream-labs/opus-go/opus"
+	"github.com/maxhawkins/go-webrtcvad"
+	"github.com/soundhound/houndify-sdk-go"
 )
 
 var botNum int = 0
@@ -173,7 +175,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("EOF error")
 				} else {
-					logger("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
+					logger.Log("Bot " + strconv.Itoa(justThisBotNum) + " Error: " + chunkErr.Error())
 					botNum = botNum - 1
 					return "", transcribedSlots, false, justThisBotNum, isOpus, fmt.Errorf("unknown error")
 				}
