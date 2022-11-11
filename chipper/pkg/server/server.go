@@ -3,7 +3,7 @@ package server
 import (
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
-	log "github.com/digital-dream-labs/hugh/log"
+	log "github.com/digital-dream-labs/hugh/logger"
 )
 
 type intentProcessor interface {

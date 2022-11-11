@@ -2,13 +2,12 @@ package wirepod
 
 import (
 	"fmt"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"os"
 	"strconv"
 
 	leopard "github.com/Picovoice/leopard/binding/go"
 )
-
-var debugLogging bool
 
 var leopardSTTArray []leopard.Leopard
 var picovoiceInstancesOS string = os.Getenv("PICOVOICE_INSTANCES")
@@ -50,13 +49,13 @@ type Server struct{}
 // New returns a new server
 func New() (*Server, error) {
 	if os.Getenv("DEBUG_LOGGING") != "true" && os.Getenv("DEBUG_LOGGING") != "false" {
-		logger("No valid value for DEBUG_LOGGING, setting to true")
-		debugLogging = true
+		logger.Log("No valid value for DEBUG_LOGGING, setting to true")
+		logger.DebugLogging = true
 	} else {
 		if os.Getenv("DEBUG_LOGGING") == "true" {
-			debugLogging = true
+			logger.DebugLogging = true
 		} else {
-			debugLogging = false
+			logger.DebugLogging = false
 		}
 	}
 	var picovoiceKey string
@@ -90,10 +89,4 @@ func New() (*Server, error) {
 		leopardSTTArray[i].Init()
 	}
 	return &Server{}, nil
-}
-
-func logger(a ...any) {
-	if debugLogging {
-		fmt.Println(a...)
-	}
 }
