@@ -1,4 +1,4 @@
-package wirepod
+package wirepod_vosk
 
 import (
 	"github.com/digital-dream-labs/chipper/pkg/logger"

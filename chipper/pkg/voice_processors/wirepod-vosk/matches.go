@@ -1,4 +1,4 @@
-package wirepod
+package wirepod_vosk
 
 // This is where you can add intents and more possible utterances for intents
 
