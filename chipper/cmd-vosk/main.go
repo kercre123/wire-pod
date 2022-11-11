@@ -20,9 +20,7 @@ const warnIfNoSTT string = "true"
 var sttLanguage string = "en-US"
 
 func main() {
-	if len(os.Args) > 1 {
-		sttLanguage = os.Args[1]
-	}
+	sttLanguage = os.Getenv("STT_LANGUAGE")
 
 	log.SetJSONFormat("2006-01-02 15:04:05")
 	if warnIfNoSTT == "true" {

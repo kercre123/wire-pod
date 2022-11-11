@@ -24,18 +24,18 @@ func startServer() {
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
-			//			grpclog.UnaryServerInterceptor(),
+		//			grpclog.UnaryServerInterceptor(),
 		),
 
 		grpcserver.WithStreamServerInterceptors(
-			//			grpclog.StreamServerInterceptor(),
+		//			grpclog.StreamServerInterceptor(),
 		),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	p, err := wp.New()
+	p, err := wp.New(wp.VoiceProcessorLeopard)
 	go wp.StartWebServer()
 	wp.InitHoundify()
 	if err != nil {
