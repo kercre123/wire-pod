@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/json"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-common"
 	"os"
 	"strconv"
 	"strings"
