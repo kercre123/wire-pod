@@ -2,7 +2,7 @@ package wirepod
 
 import (
 	"encoding/json"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
+	"github.com/digital-dream-labs/chipper/pkg/logger"
 	"os"
 	"strconv"
 	"strings"
