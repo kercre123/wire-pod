@@ -1,4 +1,4 @@
-package wirepod_common
+package wirepod
 
 import (
 	"encoding/json"
