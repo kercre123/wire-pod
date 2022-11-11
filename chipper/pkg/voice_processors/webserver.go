@@ -3,7 +3,7 @@ package wirepod
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
+	"github.com/digital-dream-labs/chipper/pkg/logger"
 	"log"
 	"net/http"
 	"os"

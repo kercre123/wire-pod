@@ -1,7 +1,7 @@
 package wirepod
 
 import (
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
+	"github.com/digital-dream-labs/chipper/pkg/logger"
 	"strconv"
 
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
