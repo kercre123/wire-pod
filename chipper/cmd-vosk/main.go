@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-vosk"
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
+	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
+
+	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
 	warnlog "log"
 	"os"
 
@@ -48,7 +48,7 @@ func main() {
 func startServer() {
 	srv, err := grpcserver.New(
 		grpcserver.WithViper(),
-		//grpcserver.WithLogger(logger.Base()),
+		//grpcserver.WithLogger(log.Base()),
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
@@ -63,15 +63,15 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	p, err := wirepod.New()
-	go wirepod.StartWebServer()
-	wirepod.InitHoundify()
+	p, err := wp.New()
+	go wp.StartWebServer()
+	wp.InitHoundify()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s, _ := server.New(
-		//server.WithLogger(logger.Base()),
+		//server.WithLogger(log.Base()),
 		server.WithIntentProcessor(p),
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),

@@ -57,10 +57,10 @@ var blackjackHitList []string
 var blackjackStandList []string
 var keepawayList []string
 
-var matchListList [][]string
+var MatchListList [][]string
 
-// make sure intentsList perfectly matches up with matchListList
-var intentsList = []string{"intent_names_username_extend", "intent_weather_extend", "intent_names_ask", "intent_imperative_eyecolor",
+// make sure IntentsList perfectly matches up with MatchListList
+var IntentsList = []string{"intent_names_username_extend", "intent_weather_extend", "intent_names_ask", "intent_imperative_eyecolor",
 	"intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep",
 	"intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear",
 	"intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward",
@@ -76,7 +76,7 @@ var intentsList = []string{"intent_names_username_extend", "intent_weather_exten
 	"intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"}
 
 func initMatches() {
-	if sttLanguage=="en-US" {
+	if sttLanguage == "en-US" {
 		meetVictorList = []string{"name is", "native is", "names", "name's"}
 		weatherList = []string{"what's the weather", "weather", "whether", "the other", "the water", "no other"}
 		nameAskList = []string{"my name"}
@@ -137,7 +137,7 @@ func initMatches() {
 		blackjackHitList = []string{"hit", "it", "hot"}
 		blackjackStandList = []string{"stand", "stan"}
 		keepawayList = []string{"keepaway", "keep away"}
-	} else if sttLanguage=="it-IT" {
+	} else if sttLanguage == "it-IT" {
 		meetVictorList = []string{"il mio nome è", "mi chiamo", "io sono", "qui c'è"}
 		weatherList = []string{"che tempo fa", "com'è il tempo", "com'è fuori"}
 		nameAskList = []string{"qual è il mio nome", "come mi chiamo", "chi sono"}
@@ -194,7 +194,7 @@ func initMatches() {
 		keepawayList = []string{"stai lontano", "via", "allontanati", "indietro"}
 	}
 
-	matchListList = [][]string{meetVictorList, weatherList, nameAskList, eyeColorList, howOldList, exploreStartList,
+	MatchListList = [][]string{meetVictorList, weatherList, nameAskList, eyeColorList, howOldList, exploreStartList,
 		chargerList, sleepList, morningList, nightList, byeList,
 		newYearList, holidaysList, signInAlexaList, signOutAlexaList, forwardList, turnAroundList, turnLeftList,
 		turnRightList, rollCubeList, wheelieList, fistbumpList, blackjackList, affirmativeList,
@@ -203,4 +203,4 @@ func initMatches() {
 		shutUpList, helloList, comeList, loveList, questionList, checkTimerList, stopTimerList,
 		timerList, timeList, quietList, danceList, pickUpList, fetchCubeList, findCubeList, trickList,
 		recordMessageList, playMessageList, blackjackHitList, blackjackStandList, keepawayList}
-} 
+}

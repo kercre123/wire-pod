@@ -47,7 +47,7 @@ const (
 type Server struct{}
 
 // New returns a new server
-func New() (*Server, error) {
+func VoskNew() error {
 	if len(os.Args) > 1 {
 		sttLanguage = os.Args[1]
 	}
@@ -73,49 +73,6 @@ func New() (*Server, error) {
 	model = aModel
 	logger.Log("Model open!")
 
-	/*
-		logger.Log("Running a VOSK test...")
-		sampleRate := 16000.0
-		rec, err := vosk.NewRecognizer(model, sampleRate)
-		if err != nil {
-			logger.Fatal(err)
-		}
-		rec.SetWords(1)
-
-		// Feed a file
-		logger.Log("Feeding test file")
-		file, err := os.Open("./stttest.pcm")
-		if err != nil {
-			log.Fatal("Failed to open test input file!")
-			panic(err)
-		}
-		defer file.Close()
-
-		reader := bufio.NewReader(file)
-		buf := make([]byte, 4096)
-
-		for {
-			_, err := reader.Read(buf)
-			if err != nil {
-				if err != io.EOF {
-					log.Fatal(err)
-				}
-
-				break
-			}
-
-			if rec.AcceptWaveform(buf) != 0 {
-				fmt.Println(rec.Result())
-			}
-		}
-
-		// Unmarshal example for final result
-		var jres map[string]interface{}
-		json.Unmarshal([]byte(rec.FinalResult()), &jres)
-		fmt.Println(jres["text"])
-
-		logger("VOSK test successful!")
-	*/
 	logger.Log("Server OK")
-	return &Server{}, nil
+	return nil
 }
