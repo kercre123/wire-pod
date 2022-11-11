@@ -2,9 +2,7 @@ package wirepod
 
 import (
 	"encoding/json"
-	wirepod "github.com/digital-dream-labs/chipper/pkg/voice_processors"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-common"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-common/logger"
+	"github.com/digital-dream-labs/chipper/pkg/voice_processors/logger"
 	"os"
 	"strconv"
 	"strings"
@@ -40,13 +38,13 @@ func paramCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger.Logger(err)
+			logger.Log(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Logger("Found bot config for " + bot.ESN)
+				logger.Log("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -119,7 +117,7 @@ func paramCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 		slotUnit := slots["unit"]
 		timerSecs, err := strconv.Atoi(slotNum)
 		if err != nil {
-			logger.Logger(err)
+			logger.Log(err)
 		}
 		if slotNum != "" && slotUnit != "" {
 			if strings.Contains(slotUnit, "minute") {
@@ -128,7 +126,7 @@ func paramCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 				timerSecs = timerSecs * 60 * 60
 			}
 		}
-		logger.Logger("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
+		logger.Log("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
 		intentParam = "timer_duration"
 		intentParamValue = strconv.Itoa(timerSecs)
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -147,7 +145,7 @@ func paramCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser("no", botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser("no", botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else {
 		if intentParam == "" {
@@ -220,13 +218,13 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger.Logger(err)
+			logger.Log(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Logger("Found bot config for " + bot.ESN)
+				logger.Log("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -279,7 +277,7 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-	logger("Checking params for candidate intent " + intent)
+	logger.Log("Checking params for candidate intent " + intent)
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
@@ -316,7 +314,7 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod_common.weatherParser(speechText, botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
@@ -367,12 +365,12 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger.Logger("Name parsed from speech: " + "`" + username + "`")
+			logger.Log("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger.Logger("No name parsed from speech")
+			logger.Log("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -381,7 +379,7 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 		isParam = true
 		newIntent = intent
 		timerSecs := words2num(speechText)
-		logger.Logger("Seconds parsed from speech: " + timerSecs)
+		logger.Log("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -485,13 +483,13 @@ func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText stri
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger.Logger(err)
+			logger.Log(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Logger("Found bot config for " + bot.ESN)
+				logger.Log("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 			}
@@ -534,7 +532,7 @@ func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText stri
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := wirepod.weatherParser(speechText, botLocation, botUnits)
+		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
@@ -585,12 +583,12 @@ func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText stri
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger.Logger("Name parsed from speech: " + "`" + username + "`")
+			logger.Log("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger.Logger("No name parsed from speech")
+			logger.Log("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -599,7 +597,7 @@ func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText stri
 		isParam = true
 		newIntent = "intent_clock_settimer"
 		timerSecs := words2num(speechText)
-		logger.Logger("Seconds parsed from speech: " + timerSecs)
+		logger.Log("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}
