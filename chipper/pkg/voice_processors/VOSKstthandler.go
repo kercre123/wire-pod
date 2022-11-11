@@ -59,7 +59,7 @@ func bytesToSamples(buf []byte) []int16 {
 	return samples
 }
 
-func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
+func VOSKSttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
 	var req2 *vtt.IntentRequest
 	var req1 *vtt.KnowledgeGraphRequest
 	var req3 *vtt.IntentGraphRequest

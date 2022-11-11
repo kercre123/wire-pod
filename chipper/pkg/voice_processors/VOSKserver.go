@@ -43,11 +43,8 @@ const (
 	IntentImperativeEyeColorSpecificExtend = "intent_imperative_eyecolor_specific_extend"
 )
 
-// Server stores the config
-type Server struct{}
-
 // New returns a new server
-func New() (*Server, error) {
+func VOSKNew() (*Server, error) {
 	if len(os.Args) > 1 {
 		sttLanguage = os.Args[1]
 	}

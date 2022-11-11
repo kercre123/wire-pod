@@ -63,7 +63,7 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	p, err := wp.New()
+	p, err := wp.New(wp.VoiceProcessorVosk)
 	go wp.StartWebServer()
 	wp.InitHoundify()
 	if err != nil {
