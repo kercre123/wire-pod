@@ -2,7 +2,6 @@ package wirepod
 
 import (
 	"encoding/json"
-	"github.com/digital-dream-labs/chipper/pkg/logger"
 	"os"
 	"strconv"
 	"strings"
@@ -28,7 +27,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
-	logger.Log("paramCheckerSlotsItIT")
+	logger("paramCheckerSlotsItIT")
 
 	if _, err := os.Stat("./botConfig.json"); err == nil {
 		type botConfigJSON []struct {
@@ -40,13 +39,13 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger.Log(err)
+			logger(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Log("Found bot config for " + bot.ESN)
+				logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -119,7 +118,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 		slotUnit := slots["unit"]
 		timerSecs, err := strconv.Atoi(slotNum)
 		if err != nil {
-			logger.Log(err)
+			logger(err)
 		}
 		if slotNum != "" && slotUnit != "" {
 			if strings.Contains(slotUnit, "minuto") || strings.Contains(slotUnit, "minuti") {
@@ -128,7 +127,7 @@ func paramCheckerSlotsItIT(req interface{}, intent string, slots map[string]stri
 				timerSecs = timerSecs * 60 * 60
 			}
 		}
-		logger.Log("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
+		logger("Seconds parsed from speech: " + strconv.Itoa(timerSecs))
 		intentParam = "timer_duration"
 		intentParamValue = strconv.Itoa(timerSecs)
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -210,7 +209,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
-	logger.Log("paramCheckerItIT")
+	logger("paramCheckerItIT")
 	if _, err := os.Stat("./botConfig.json"); err == nil {
 		type botConfigJSON []struct {
 			ESN             string `json:"ESN"`
@@ -221,13 +220,13 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger.Log(err)
+			logger(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Log("Found bot config for " + bot.ESN)
+				logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -280,7 +279,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-	logger.Log("Checking params for candidate intent " + intent)
+	logger("Checking params for candidate intent " + intent)
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
@@ -368,12 +367,12 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger.Log("Name parsed from speech: " + "`" + username + "`")
+			logger("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger.Log("No name parsed from speech")
+			logger("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -382,7 +381,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		isParam = true
 		newIntent = intent
 		timerSecs := words2num(speechText)
-		logger.Log("Seconds parsed from speech: " + timerSecs)
+		logger("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -476,7 +475,7 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 	var intentParams map[string]string
 	var botLocation string = "San Francisco"
 	var botUnits string = "F"
-	logger.Log("prehistoricParamCheckerItIT")
+	logger("prehistoricParamCheckerItIT")
 	if _, err := os.Stat("./botConfig.json"); err == nil {
 		type botConfigJSON []struct {
 			ESN             string `json:"ESN"`
@@ -487,13 +486,13 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger.Log(err)
+			logger(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Log("Found bot config for " + bot.ESN)
+				logger("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 			}
@@ -587,12 +586,12 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger.Log("Name parsed from speech: " + "`" + username + "`")
+			logger("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger.Log("No name parsed from speech")
+			logger("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -601,7 +600,7 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		isParam = true
 		newIntent = "intent_clock_settimer"
 		timerSecs := words2num(speechText)
-		logger.Log("Seconds parsed from speech: " + timerSecs)
+		logger("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}

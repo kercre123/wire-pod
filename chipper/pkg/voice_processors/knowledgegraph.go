@@ -2,15 +2,13 @@ package wirepod
 
 import (
 	"encoding/json"
-	"github.com/digital-dream-labs/chipper/pkg/logger"
-	"os"
-	"strconv"
-	"strings"
-
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	"github.com/pkg/errors"
 	"github.com/soundhound/houndify-sdk-go"
+	"os"
+	"strconv"
+	"strings"
 )
 
 var HKGclient houndify.Client
@@ -20,7 +18,7 @@ func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 	result := make(map[string]interface{})
 	err := json.Unmarshal([]byte(serverResponseJSON), &result)
 	if err != nil {
-		logger.Log(err.Error())
+		logger(err.Error())
 		return "", errors.New("failed to decode json")
 	}
 	if !strings.EqualFold(result["Status"].(string), "OK") {
@@ -34,11 +32,11 @@ func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 
 func InitHoundify() {
 	if os.Getenv("HOUNDIFY_CLIENT_ID") == "" {
-		logger.Log("Houndify Client ID not provided.")
+		logger("Houndify Client ID not provided.")
 		HoundEnable = false
 	}
 	if os.Getenv("HOUNDIFY_CLIENT_KEY") == "" {
-		logger.Log("Houndify Client Key not provided.")
+		logger("Houndify Client Key not provided.")
 		HoundEnable = false
 	}
 	if HoundEnable {
@@ -47,7 +45,7 @@ func InitHoundify() {
 			ClientKey: os.Getenv("HOUNDIFY_CLIENT_KEY"),
 		}
 		HKGclient.EnableConversationState()
-		logger.Log("Houndify for knowledge graph initialized!")
+		logger("Houndify for knowledge graph initialized!")
 	}
 }
 
@@ -57,7 +55,7 @@ var NoResultSpoken string
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
 	transcribedText, _, _, justThisBotNum, _, err := sttHandler(req, true)
 	if err != nil {
-		logger.Log(err)
+		logger(err)
 		NoResultSpoken = err.Error()
 		kg := pb.KnowledgeGraphResponse{
 			Session:     req.Session,
@@ -79,7 +77,7 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 		CommandType: NoResult,
 		SpokenText:  NoResultSpoken,
 	}
-	logger.Log("(KG) Bot " + strconv.Itoa(justThisBotNum) + " request served.")
+	logger("(KG) Bot " + strconv.Itoa(justThisBotNum) + " request served.")
 	if err := req.Stream.Send(&kg); err != nil {
 		return nil, err
 	}
