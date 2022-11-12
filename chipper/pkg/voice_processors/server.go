@@ -101,7 +101,6 @@ func bytesToSamples(buf []byte) []int16 {
 }
 
 func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
-	logger("Voice processor is " + VoiceProcessor)
 	if VoiceProcessorCoqui == VoiceProcessor {
 		return CoquiSttHandler(reqThing, isKnowledgeGraph)
 	} else if VoiceProcessorLeopard == VoiceProcessor {
