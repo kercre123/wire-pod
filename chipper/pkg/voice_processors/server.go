@@ -120,7 +120,7 @@ func loadIntents(voiceProcessor string, language string) ([][]string, []string, 
 		json.Unmarshal(jsonFile, &jsonIntents)
 
 		for index, element := range jsonIntents {
-			logger("Loading intent " + strconv.Itoa(index) + " --> " + element.Name)
+			logger("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + "keyphrases )")
 			intents = append(intents, element.Name)
 			matches = append(matches, element.Keyphrases)
 		}
@@ -147,6 +147,7 @@ func New(voiceProcessor string) (*Server, error) {
 	if len(sttLanguage) == 0 {
 		sttLanguage = "en-US"
 	}
+	logger("Instantiating " + voiceProcessor + " voice processor with language " + sttLanguage)
 
 	// Instantiate the chosen voice processor and load intents from json
 	VoiceProcessor = voiceProcessor
