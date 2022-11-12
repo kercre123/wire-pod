@@ -120,7 +120,7 @@ func loadIntents(voiceProcessor string, language string) ([][]string, []string, 
 		json.Unmarshal(jsonFile, &jsonIntents)
 
 		for index, element := range jsonIntents {
-			logger("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + "keyphrases )")
+			logger("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
 			intents = append(intents, element.Name)
 			matches = append(matches, element.Keyphrases)
 		}
