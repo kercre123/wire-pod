@@ -17,7 +17,7 @@ fi
 source source.sh
 
 CGO_ENABLED=1 GOOS=linux GOARCH=${ARCH} /usr/local/go/bin/go build \
--tags ${STT_SERVICE}
+-tags ${STT_SERVICE} \
 -ldflags "-w -s -extldflags "-static"" \
 -trimpath \
 -o chipper cmd/main.go
