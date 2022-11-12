@@ -48,6 +48,7 @@ func VOSKSttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedStr
 	var deviceESN string
 	var deviceSession string
 
+	logger("VOSKSttHandler")
 	botNum = botNum + 1
 	justThisBotNum := botNum
 	if isKnowledgeGraph {
