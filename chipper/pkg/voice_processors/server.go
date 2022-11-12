@@ -153,17 +153,17 @@ func New(voiceProcessor string) (*Server, error) {
 	err := errors.New("Error parsing intents JSON!")
 
 	if VoiceProcessorCoqui == voiceProcessor {
-		matchListList, intentsList, err = loadIntents(VoiceProcessorCoqui, "en-US")
+		matchListList, intentsList, err = loadIntents(VoiceProcessorCoqui, sttLanguage)
 		if err == nil {
 			return CoquiNew()
 		}
 	} else if VoiceProcessorLeopard == voiceProcessor {
-		matchListList, intentsList, err = loadIntents(VoiceProcessorLeopard, "en-US")
+		matchListList, intentsList, err = loadIntents(VoiceProcessorLeopard, sttLanguage)
 		if err == nil {
 			return LeopardNew()
 		}
 	} else if VoiceProcessorVosk == voiceProcessor {
-		matchListList, intentsList, err = loadIntents(VoiceProcessorVosk, "en-US")
+		matchListList, intentsList, err = loadIntents(VoiceProcessorVosk, sttLanguage)
 		if err == nil {
 			return VOSKNew()
 		}
