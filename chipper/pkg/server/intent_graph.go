@@ -8,7 +8,7 @@ import (
 	"github.com/digital-dream-labs/hugh/log"
 )
 
-// StreamingIntent handles voice streams
+// StreamingIntentGraph handles intent graph request streams
 func (s *Server) StreamingIntentGraph(stream pb.ChipperGrpc_StreamingIntentGraphServer) error {
 	recvTime := time.Now()
 
