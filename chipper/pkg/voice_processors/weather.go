@@ -256,7 +256,7 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			if hoursFromNow == 0 {
 				url = "https://api.openweathermap.org/data/2.5/weather?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
 			} else {
-				url = "https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+				url = "https://pro.openweathermap.org/data/2.5/forecast?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
 			}
 			resp, err = http.Get(url)
 			if err != nil {
@@ -271,10 +271,10 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			var openWeatherMapAPIResponse openWeatherMapAPIResponseStruct
 
 			if hoursFromNow > 0 {
-				// Forecast request
+				// Forecast request: free API results are returned in 3 hours slots
 				var openWeatherMapForecastAPIResponse openWeatherMapForecastAPIResponseStruct
 				err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapForecastAPIResponse)
-				openWeatherMapAPIResponse = openWeatherMapForecastAPIResponse.List[hoursFromNow]
+				openWeatherMapAPIResponse = openWeatherMapForecastAPIResponse.List[hoursFromNow/3]
 			} else {
 				// Current weather request
 				err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapAPIResponse)
@@ -374,7 +374,8 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 		specificLocation = false
 	}
 	hoursFromNow = 0
-	if strings.Contains(speechText, getText(STR_WEATHER_FORECAST)) {
+	if strings.Contains(speechText, getText(STR_WEATHER_FORECAST)) ||
+		strings.Contains(speechText, getText(STR_WEATHER_TOMORROW)) {
 		hours, _, _ := time.Now().Clock()
 		hoursFromNow = 24 - hours + 9
 		logger("Looking for forecast " + strconv.Itoa(hoursFromNow) + " hours from now...")
