@@ -256,7 +256,7 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			if hoursFromNow == 0 {
 				url = "https://api.openweathermap.org/data/2.5/weather?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
 			} else {
-				url = "https://pro.openweathermap.org/data/2.5/forecast?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+				url = "https://api.openweathermap.org/data/2.5/forecast?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
 			}
 			resp, err = http.Get(url)
 			if err != nil {
