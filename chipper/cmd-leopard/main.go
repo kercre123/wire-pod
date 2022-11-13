@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
+	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
-	"github.com/digital-dream-labs/chipper/pkg/voice_processors/wirepod-leopard"
-
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
+	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
 
 	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
 	"github.com/digital-dream-labs/hugh/log"
@@ -36,15 +35,15 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	p, err := wirepod.New()
-	go wirepod.StartWebServer()
-	wirepod.InitHoundify()
+	p, err := wp.New(wp.VoiceProcessorLeopard)
+	go wp.StartWebServer()
+	wp.InitHoundify()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s, _ := server.New(
-		//server.WithLogger(log.Base()),
+		//server.WithLogger(logger.Base()),
 		server.WithIntentProcessor(p),
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),

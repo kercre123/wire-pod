@@ -1,15 +1,17 @@
+//go:build vosk
+// +build vosk
+
 package wirepod
 
 import (
 	"bytes"
-	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"time"
-	"log"
-	"encoding/json"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
@@ -18,46 +20,7 @@ import (
 	"github.com/soundhound/houndify-sdk-go"
 )
 
-var botNum int = 0
-
-func split(buf []byte) [][]byte {
-	var chunk [][]byte
-	for len(buf) >= 320 {
-		chunk = append(chunk, buf[:320])
-		buf = buf[320:]
-	}
-	return chunk
-}
-
-func bytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) [][]byte {
-	// detect if data is pcm or opus
-	if die {
-		return nil
-	}
-	if isOpus {
-		// opus
-		n, err := stream.Decode(data)
-		if err != nil {
-			logger(err)
-		}
-		byteArray := split(n)
-		return byteArray
-	} else {
-		// pcm
-		byteArray := split(data)
-		return byteArray
-	}
-}
-
-func bytesToSamples(buf []byte) []int16 {
-	samples := make([]int16, len(buf)/2)
-	for i := 0; i < len(buf)/2; i++ {
-		samples[i] = int16(binary.LittleEndian.Uint16(buf[i*2:]))
-	}
-	return samples
-}
-
-func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
+func VOSKSttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
 	var req2 *vtt.IntentRequest
 	var req1 *vtt.KnowledgeGraphRequest
 	var req3 *vtt.IntentGraphRequest
@@ -143,23 +106,23 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 	}()
 	logger("Processing...")
-	
+
 	sampleRate := 16000.0
 	rec, err := vosk.NewRecognizer(model, sampleRate)
 	if err != nil {
 		log.Fatal(err)
 	}
-	rec.SetWords(1)	
-	
+	rec.SetWords(1)
+
 	inactiveNumMax := 20
-    if !isKnowledgeGraph {
+	if !isKnowledgeGraph {
 		micData = bytesToIntVAD(stream, data, die, isOpus)
 		for _, sample := range micData {
 			//buf := bytesToSamples(sample)
 			if rec.AcceptWaveform(sample) != 0 {
 				fmt.Println(rec.Result())
 			}
-		}		
+		}
 	}
 	vad, err := webrtcvad.New()
 	if err != nil {
@@ -219,7 +182,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 						//buf := bytesToSamples(sample)
 						if rec.AcceptWaveform(sample) != 0 {
 							fmt.Println(rec.Result())
-						}	
+						}
 					}
 					active, err := vad.Process(16000, sample)
 					if err != nil {
@@ -249,7 +212,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 		}
 		if speechDone {
 			if isKnowledgeGraph {
-				if houndEnable {
+				if HoundEnable {
 					logger("Sending requst to Houndify...")
 					if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 						req := houndify.VoiceRequest{
@@ -259,7 +222,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 							RequestInfoFields: make(map[string]interface{}),
 						}
 						partialTranscripts := make(chan houndify.PartialTranscript)
-						serverResponse, err := hKGclient.VoiceSearch(req, partialTranscripts)
+						serverResponse, err := HKGclient.VoiceSearch(req, partialTranscripts)
 						if err != nil {
 							logger(err)
 						}
@@ -276,7 +239,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 				var jres map[string]interface{}
 				json.Unmarshal([]byte(rec.FinalResult()), &jres)
 				transcribedText = jres["text"].(string)
-				logger("transcribed text: "+transcribedText)
+				logger("transcribed text: " + transcribedText)
 				logger("Bot " + strconv.Itoa(justThisBotNum) + " Transcribed text: " + transcribedText)
 				die = true
 			}

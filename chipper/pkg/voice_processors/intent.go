@@ -1,9 +1,8 @@
 package wirepod
 
 import (
-	"strconv"
-
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
+	"strconv"
 )
 
 func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {

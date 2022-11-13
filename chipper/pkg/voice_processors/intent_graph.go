@@ -1,12 +1,11 @@
 package wirepod
 
 import (
-	"strconv"
-
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
+	"strconv"
 )
 
-func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
+func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGraphResponse, error) {
 	var successMatched bool
 	transcribedText, transcribedSlots, isRhino, justThisBotNum, isOpus, err := sttHandler(req, false)
 	if err != nil {
