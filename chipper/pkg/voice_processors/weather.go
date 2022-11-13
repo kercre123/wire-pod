@@ -270,7 +270,7 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 
 			var openWeatherMapAPIResponse openWeatherMapAPIResponseStruct
 
-			if (hoursFromNow > 0) {
+			if hoursFromNow > 0 {
 				// Forecast request
 				var openWeatherMapForecastAPIResponse openWeatherMapForecastAPIResponseStruct
 				err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapForecastAPIResponse)
@@ -374,7 +374,7 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 		specificLocation = false
 	}
 	hoursFromNow = 0
-	if strings.Contains(speechText, STR_WEATHER_FORECAST) {
+	if strings.Contains(speechText, getText(STR_WEATHER_FORECAST)) {
 		hours, _, _ := time.Now().Clock()
 		hoursFromNow = 24 - hours + 9
 		logger("Looking for forecast " + strconv.Itoa(hoursFromNow) + " hours from now...")
