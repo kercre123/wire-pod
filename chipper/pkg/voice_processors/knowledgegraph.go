@@ -2,18 +2,17 @@ package wirepod
 
 import (
 	"encoding/json"
-	"os"
-	"strconv"
-	"strings"
-
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	"github.com/pkg/errors"
 	"github.com/soundhound/houndify-sdk-go"
+	"os"
+	"strconv"
+	"strings"
 )
 
-var hKGclient houndify.Client
-var houndEnable bool = true
+var HKGclient houndify.Client
+var HoundEnable bool = true
 
 func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 	result := make(map[string]interface{})
@@ -34,18 +33,18 @@ func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 func InitHoundify() {
 	if os.Getenv("HOUNDIFY_CLIENT_ID") == "" {
 		logger("Houndify Client ID not provided.")
-		houndEnable = false
+		HoundEnable = false
 	}
 	if os.Getenv("HOUNDIFY_CLIENT_KEY") == "" {
 		logger("Houndify Client Key not provided.")
-		houndEnable = false
+		HoundEnable = false
 	}
-	if houndEnable {
-		hKGclient = houndify.Client{
+	if HoundEnable {
+		HKGclient = houndify.Client{
 			ClientID:  os.Getenv("HOUNDIFY_CLIENT_ID"),
 			ClientKey: os.Getenv("HOUNDIFY_CLIENT_KEY"),
 		}
-		hKGclient.EnableConversationState()
+		HKGclient.EnableConversationState()
 		logger("Houndify for knowledge graph initialized!")
 	}
 }

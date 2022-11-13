@@ -57,7 +57,7 @@ func WithLogCollectorOptions(logcollectorOptions ...logcollector.Option) Option 
 	return func(o *options) {
 		o.logcollectorOpts = append(o.logcollectorOpts, logcollectorOptions...)
 		if o.logcollectorOpts == nil {
-			// even if no options specified, code is saying "run log collector plz" by calling this
+			// even if no options specified, code is saying "run logger collector plz" by calling this
 			o.logcollectorOpts = []logcollector.Option{}
 		}
 	}

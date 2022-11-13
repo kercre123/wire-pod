@@ -51,7 +51,7 @@ func connectRoutine() {
 			connData.m.Unlock()
 		}
 		go func() {
-			// try to connect to OTA server, log how long it took
+			// try to connect to OTA server, logger how long it took
 			dest.stamp = ts
 			ctx, cancel := context.WithTimeout(context.Background(), connInterval)
 			// construct a HTTP URL from OTA address (something like `ota-cdn.anki.com:443`)

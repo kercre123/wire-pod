@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func paramCheckerSlots(req interface{}, intent string, slots map[string]string, isOpus bool, justThisBotNum int, botSerial string) {
+func paramCheckerSlotsEnUS(req interface{}, intent string, slots map[string]string, isOpus bool, justThisBotNum int, botSerial string) {
 	// var req2 *vtt.IntentRequest
 	// var req1 *vtt.KnowledgeGraphRequest
 	// var req3 *vtt.IntentGraphRequest
@@ -197,7 +197,7 @@ func paramCheckerSlots(req interface{}, intent string, slots map[string]string, 
 	IntentPass(req, newIntent, intent, intentParams, isParam, justThisBotNum)
 }
 
-func paramChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
+func paramCheckerEnUS(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
@@ -276,6 +276,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
+	logger("Checking params for candidate intent " + intent)
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
@@ -460,7 +461,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
 }
 
-func prehistoricParamChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
+func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
 	// intent.go detects if the stream uses opus or PCM.
 	// If the stream is PCM, it is likely a bot with 0.10.
 	// This accounts for the newer 0.10.1### builds.
