@@ -127,7 +127,7 @@ type openWeatherMapAPIResponseStruct struct {
 	Cod      int    `json:"cod"`
 }
 
-func getWeather(location string, botUnits string) (string, string, string, string, string, string) {
+func getWeather(location string, botUnits string, hoursFromNow int) (string, string, string, string, string, string) {
 	var weatherEnabled bool
 	var condition string
 	var is_forecast string
@@ -246,7 +246,11 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			if weatherAPIUnit == "F" {
 				units = "imperial"
 			}
-			url = "https://api.openweathermap.org/data/2.5/weather?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+			if hoursFromNow == 0 {
+				url = "https://api.openweathermap.org/data/2.5/weather?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+			} else {
+				url = "https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+			}
 			resp, err = http.Get(url)
 			if err != nil {
 				panic(err)
@@ -264,7 +268,7 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 				panic(err)
 			}
 
-			conditionCode := openWeatherMapAPIResponse.Weather[0].Id
+			conditionCode := openWeatherMapAPIResponse.Weather[hoursFromNow].Id
 
 			logger(weatherResponse)
 			logger(conditionCode)
@@ -330,8 +334,9 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 	var specificLocation bool
 	var apiLocation string
 	var speechLocation string
-	if strings.Contains(speechText, " in ") {
-		splitPhrase := strings.SplitAfter(speechText, " in ")
+	var hoursFromNow int
+	if strings.Contains(speechText, getText(STR_WEATHER_IN)) {
+		splitPhrase := strings.SplitAfter(speechText, getText(STR_WEATHER_IN))
 		speechLocation = strings.TrimSpace(splitPhrase[1])
 		if len(splitPhrase) == 3 {
 			speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2])
@@ -352,12 +357,17 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 		logger("No location parsed from speech")
 		specificLocation = false
 	}
+	hoursFromNow = 0
+	if strings.Contains(speechText, STR_WEATHER_FORECAST) {
+		hours, _, _ := time.Now().Clock()
+		hoursFromNow = 24 - hours + 9
+	}
 	if specificLocation {
 		apiLocation = speechLocation
 	} else {
 		apiLocation = botLocation
 	}
 	// call to weather API
-	condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := getWeather(apiLocation, botUnits)
+	condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := getWeather(apiLocation, botUnits, hoursFromNow)
 	return condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit
 }

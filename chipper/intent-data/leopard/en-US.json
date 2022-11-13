@@ -4,8 +4,8 @@
 		"keyphrases": ["name is", "native is", "names", "name's" ]
 	},
 	{	
-		"name": "intent_weather_extend", 
-		"keyphrases" : ["weather", "whether", "the other", "the water", "no other" ]
+		"name": "intent_weather_extend",
+		"keyphrases" : ["weather", "whether", "the other", "the water", "no other", "weather forecast", "weather tomorrow" ]
 	},
 	{	
 		"name": "intent_names_ask", 
