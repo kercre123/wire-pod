@@ -127,6 +127,13 @@ type openWeatherMapAPIResponseStruct struct {
 	Cod      int    `json:"cod"`
 }
 
+type openWeatherMapForecastAPIResponseStruct struct {
+	Cod     string                            `json:"cod"`
+	Message int                               `json:"message"`
+	Cnt     int                               `json:"cnt"`
+	List    []openWeatherMapAPIResponseStruct `json:"list"`
+}
+
 func getWeather(location string, botUnits string, hoursFromNow int) (string, string, string, string, string, string) {
 	var weatherEnabled bool
 	var condition string
@@ -263,12 +270,21 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 
 			var openWeatherMapAPIResponse openWeatherMapAPIResponseStruct
 
-			err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapAPIResponse)
+			if (hoursFromNow > 0) {
+				// Forecast request
+				var openWeatherMapForecastAPIResponse openWeatherMapForecastAPIResponseStruct
+				err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapForecastAPIResponse)
+				openWeatherMapAPIResponse = openWeatherMapForecastAPIResponse.List[hoursFromNow]
+			} else {
+				// Current weather request
+				err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapAPIResponse)
+			}
+
 			if err != nil {
 				panic(err)
 			}
 
-			conditionCode := openWeatherMapAPIResponse.Weather[hoursFromNow].Id
+			conditionCode := openWeatherMapAPIResponse.Weather[0].Id
 
 			logger(weatherResponse)
 			logger(conditionCode)
@@ -361,6 +377,7 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 	if strings.Contains(speechText, STR_WEATHER_FORECAST) {
 		hours, _, _ := time.Now().Clock()
 		hoursFromNow = 24 - hours + 9
+		logger("Looking for forecast " + strconv.Itoa(hoursFromNow) + " hours from now...")
 	}
 	if specificLocation {
 		apiLocation = speechLocation
