@@ -110,7 +110,7 @@ func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString 
 }
 
 func loadIntents(voiceProcessor string, language string) ([][]string, []string, error) {
-	jsonFile, err := os.ReadFile("./intent-data/" + voiceProcessor + "/" + language + ".json")
+	jsonFile, err := os.ReadFile("./intent-data/" + language + ".json")
 
 	var matches [][]string
 	var intents []string
