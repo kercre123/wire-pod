@@ -127,7 +127,14 @@ type openWeatherMapAPIResponseStruct struct {
 	Cod      int    `json:"cod"`
 }
 
-func getWeather(location string, botUnits string) (string, string, string, string, string, string) {
+type openWeatherMapForecastAPIResponseStruct struct {
+	Cod     string                            `json:"cod"`
+	Message int                               `json:"message"`
+	Cnt     int                               `json:"cnt"`
+	List    []openWeatherMapAPIResponseStruct `json:"list"`
+}
+
+func getWeather(location string, botUnits string, hoursFromNow int) (string, string, string, string, string, string) {
 	var weatherEnabled bool
 	var condition string
 	var is_forecast string
@@ -246,7 +253,11 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 			if weatherAPIUnit == "F" {
 				units = "imperial"
 			}
-			url = "https://api.openweathermap.org/data/2.5/weather?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+			if hoursFromNow == 0 {
+				url = "https://api.openweathermap.org/data/2.5/weather?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+			} else {
+				url = "https://api.openweathermap.org/data/2.5/forecast?lat=" + Lat + "&lon=" + Lon + "&units=" + units + "&appid=" + weatherAPIKey
+			}
 			resp, err = http.Get(url)
 			if err != nil {
 				panic(err)
@@ -259,7 +270,16 @@ func getWeather(location string, botUnits string) (string, string, string, strin
 
 			var openWeatherMapAPIResponse openWeatherMapAPIResponseStruct
 
-			err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapAPIResponse)
+			if hoursFromNow > 0 {
+				// Forecast request: free API results are returned in 3 hours slots
+				var openWeatherMapForecastAPIResponse openWeatherMapForecastAPIResponseStruct
+				err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapForecastAPIResponse)
+				openWeatherMapAPIResponse = openWeatherMapForecastAPIResponse.List[hoursFromNow/3]
+			} else {
+				// Current weather request
+				err = json.Unmarshal([]byte(weatherResponse), &openWeatherMapAPIResponse)
+			}
+
 			if err != nil {
 				panic(err)
 			}
@@ -330,8 +350,9 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 	var specificLocation bool
 	var apiLocation string
 	var speechLocation string
-	if strings.Contains(speechText, " in ") {
-		splitPhrase := strings.SplitAfter(speechText, " in ")
+	var hoursFromNow int
+	if strings.Contains(speechText, getText(STR_WEATHER_IN)) {
+		splitPhrase := strings.SplitAfter(speechText, getText(STR_WEATHER_IN))
 		speechLocation = strings.TrimSpace(splitPhrase[1])
 		if len(splitPhrase) == 3 {
 			speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2])
@@ -352,12 +373,30 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 		logger("No location parsed from speech")
 		specificLocation = false
 	}
+	hoursFromNow = 0
+	hours, _, _ := time.Now().Clock()
+	if strings.Contains(speechText, getText(STR_WEATHER_THIS_AFTERNOON)) {
+		if hours < 14 {
+			hoursFromNow = 14 - hours
+		}
+	} else if strings.Contains(speechText, getText(STR_WEATHER_TONIGHT)) {
+		if hours < 20 {
+			hoursFromNow = 20 - hours
+		}
+	} else if strings.Contains(speechText, getText(STR_WEATHER_THE_DAY_AFTER_TOMORROW)) {
+		hoursFromNow = 24 - hours + 24 + 9
+	} else if strings.Contains(speechText, getText(STR_WEATHER_FORECAST)) ||
+		strings.Contains(speechText, getText(STR_WEATHER_TOMORROW)) {
+		hoursFromNow = 24 - hours + 9
+	}
+	logger("Looking for forecast " + strconv.Itoa(hoursFromNow) + " hours from now...")
+
 	if specificLocation {
 		apiLocation = speechLocation
 	} else {
 		apiLocation = botLocation
 	}
 	// call to weather API
-	condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := getWeather(apiLocation, botUnits)
+	condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := getWeather(apiLocation, botUnits, hoursFromNow)
 	return condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit
 }
