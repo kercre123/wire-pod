@@ -171,6 +171,14 @@ STT services you can choose from:
 - VOSK
 	- VOSK is open source, resonably accurate, fast enough on a RPi. And it supports multi language! Dual English/Italian intents are supported in this release, but many more languages can be added easily.
 
+Weather providers you can choose from:
+
+- weatherapi.com
+  - Offers free developer trial API access, expiring every month
+- openweathermap.com
+  - Offers free basic API access with 60 calls/minute (max 1,000,000 calls/month) 
+
+  
 Things wire-pod has worked on:
 
 - Raspberry Pi 4B+ 4GB RAM with Raspberry Pi OS
@@ -229,6 +237,8 @@ Current implemented actions:
 	- Requires API setup
 - What's the weather in <location>
 	- Requires API setup
+- What's the weather forecast / What's the weather <this afternoon|tonight|tomorrow|the day after tomorrow>
+	- Requires openweathermap API setup
 - Im sorry
 - Back up
 - Come here

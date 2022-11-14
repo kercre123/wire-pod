@@ -5,7 +5,7 @@
 	},
 	{	
 		"name": "intent_weather_extend", 
-		"keyphrases" : [ "che tempo fa", "com'è il tempo", "com'è fuori", "previsioni del tempo", "che tempo fa domani", "che tempo farà domani" ]
+		"keyphrases" : [ "che tempo fa", "com'è il tempo", "com'è fuori", "previsioni del tempo", "che tempo farà" ]
 	},
 	{	
 		"name": "intent_names_ask", 
