@@ -375,19 +375,19 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 	}
 	hoursFromNow = 0
 	hours, _, _ := time.Now().Clock()
-	if strings.Contains(speechText, getText(STR_WEATHER_FORECAST)) ||
-		strings.Contains(speechText, getText(STR_WEATHER_TOMORROW)) {
-		hoursFromNow = 24 - hours + 9
-	} else if strings.Contains(speechText, getText(STR_WEATHER_THE_DAY_AFTER_TOMORROW)) {
-		hoursFromNow = 24 - hours + 24 + 9
+	if strings.Contains(speechText, getText(STR_WEATHER_THIS_AFTERNOON)) {
+		if hours < 14 {
+			hoursFromNow = 14 - hours
+		}
 	} else if strings.Contains(speechText, getText(STR_WEATHER_TONIGHT)) {
 		if hours < 20 {
 			hoursFromNow = 20 - hours
 		}
-	} else if strings.Contains(speechText, getText(STR_WEATHER_THIS_AFTERNOON)) {
-		if hours < 14 {
-			hoursFromNow = 14 - hours
-		}
+	} else if strings.Contains(speechText, getText(STR_WEATHER_THE_DAY_AFTER_TOMORROW)) {
+		hoursFromNow = 24 - hours + 24 + 9
+	} else if strings.Contains(speechText, getText(STR_WEATHER_FORECAST)) ||
+		strings.Contains(speechText, getText(STR_WEATHER_TOMORROW)) {
+		hoursFromNow = 24 - hours + 9
 	}
 	logger("Looking for forecast " + strconv.Itoa(hoursFromNow) + " hours from now...")
 
