@@ -122,9 +122,7 @@ func getNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
 		}
 		req.MicData = append(req.MicData, chunk.InputAudio...)
 		req.DecodedMicData = opusDecode(req)
-		logger(req.PrevLen)
 		dataReturn := req.DecodedMicData[req.PrevLen:]
-		logger(len(req.DecodedMicData))
 		req.PrevLen = len(req.DecodedMicData)
 		return req, dataReturn, nil
 	}
