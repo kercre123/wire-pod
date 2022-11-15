@@ -40,3 +40,11 @@ func voskSttHandler(req SpeechRequest) (string, error) {
 	return transcribedText, nil
 }
 ```
+
+## TODO
+
+-	Overhaul weather, create functon standard
+-	Make logging more consistent
+-	More code comments
+-	Create documentation and more examples for the function standards
+-	Implement in wire-prod-pod
