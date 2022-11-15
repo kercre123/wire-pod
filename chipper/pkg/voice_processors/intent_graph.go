@@ -1,27 +1,28 @@
 package wirepod
 
 import (
-	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	"strconv"
+
+	"github.com/digital-dream-labs/chipper/pkg/vtt"
 )
 
 func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGraphResponse, error) {
+	botNum = botNum + 1
 	var successMatched bool
-	transcribedText, transcribedSlots, isRhino, justThisBotNum, isOpus, err := sttHandler(req, false)
+	speechReq := reqToSpeechRequest(req)
+	transcribedText, err := sttHandler(speechReq)
 	if err != nil {
-		IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, justThisBotNum)
+		botNum = botNum - 1
+		IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, speechReq.BotNum)
 		return nil, nil
 	}
-	if isRhino {
-		successMatched = true
-		paramCheckerSlots(req, transcribedText, transcribedSlots, isOpus, justThisBotNum, req.Device)
-	} else {
-		successMatched = processTextAll(req, transcribedText, matchListList, intentsList, isOpus, justThisBotNum)
-	}
+	successMatched = processTextAll(req, transcribedText, matchListList, intentsList, speechReq.IsOpus, speechReq.BotNum)
 	if !successMatched {
 		logger("No intent was matched.")
-		IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false, justThisBotNum)
+		botNum = botNum - 1
+		IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false, speechReq.BotNum)
 	}
-	logger("Bot " + strconv.Itoa(justThisBotNum) + " request served.")
+	botNum = botNum - 1
+	logger("Bot " + strconv.Itoa(speechReq.BotNum) + " request served.")
 	return nil, nil
 }

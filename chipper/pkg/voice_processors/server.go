@@ -5,51 +5,47 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/digital-dream-labs/opus-go/opus"
 	"os"
 	"strconv"
+
+	"github.com/digital-dream-labs/opus-go/opus"
 )
 
-const (
-	// FallbackIntent is the failure-mode intent response
-	FallbackIntent          = "intent_system_unsupported"
-	IntentWeather           = "intent_weather"
-	IntentWeatherExtend     = "intent_weather_extend"
-	IntentNoLocation        = "intent_weather_unknownlocation"
-	IntentNoDefaultLocation = "intent_weather_nodefaultlocation"
-
-	IntentClockSetTimer                    = "intent_clock_settimer"
-	IntentClockSetTimerExtend              = "intent_clock_settimer_extend"
-	IntentNamesUsername                    = "intent_names_username"
-	IntentNamesUsernameExtend              = "intent_names_username_extend"
-	IntentPlaySpecific                     = "intent_play_specific"
-	IntentPlaySpecificExtend               = "intent_play_specific_extend"
-	IntentMessaqePlayMessage               = "intent_message_playmessage"
-	IntentMessagePlayMessageExtend         = "intent_message_playmessage_extend"
-	IntentMessageRecordMessage             = "intent_message_recordmessage"
-	IntentMessageRecordMessageExtend       = "intent_message_recordmessage_extend"
-	IntentGlobalStop                       = "intent_global_stop"
-	IntentGlobalStopExtend                 = "intent_global_stop_extend"
-	IntentGlobalDelete                     = "intent_global_delete"
-	IntentGlobalDeleteExtend               = "intent_global_delete_extend"
-	IntentPhotoTake                        = "intent_photo_take"
-	IntentPhotoTakeExtend                  = "intent_photo_take_extend"
-	IntentSystemDiscovery                  = "intent_system_discovery"
-	IntentSystemDiscoveryExtend            = "intent_system_discovery_extend"
-	IntentImperativeVolumeLevelExtend      = "intent_imperative_volumelevel_extend"
-	IntentImperativeEyeColorSpecificExtend = "intent_imperative_eyecolor_specific_extend"
-)
-
-// Server stores the config
-type Server struct{}
-
-var VoiceProcessor = ""
+// where a new stt service would be added
 
 const (
 	VoiceProcessorCoqui   = "coqui"
 	VoiceProcessorLeopard = "leopard"
 	VoiceProcessorVosk    = "vosk"
 )
+
+func initSTT(voiceProcessor string) {
+	switch {
+	case voiceProcessor == VoiceProcessorCoqui:
+		CoquiInit()
+	case voiceProcessor == VoiceProcessorLeopard:
+		LeopardInit()
+	case voiceProcessor == VoiceProcessorVosk:
+		VoskInit()
+	}
+}
+
+func sttHandler(req SpeechRequest) (transcribedText string, err error) {
+	switch {
+	case VoiceProcessor == VoiceProcessorCoqui:
+		return CoquiSttHandler(req)
+	case VoiceProcessor == VoiceProcessorLeopard:
+		return LeopardSttHandler(req)
+	case VoiceProcessor == VoiceProcessorVosk:
+		return VoskSTTHandler(req)
+	}
+	return "", errors.New("invalid stt service")
+}
+
+// Server stores the config
+type Server struct{}
+
+var VoiceProcessor = ""
 
 type JsonIntent struct {
 	Name       string   `json:"name"`
@@ -63,7 +59,7 @@ var intentsList = []string{}
 
 var botNum int = 0
 
-func split(buf []byte) [][]byte {
+func splitVAD(buf []byte) [][]byte {
 	var chunk [][]byte
 	for len(buf) >= 320 {
 		chunk = append(chunk, buf[:320])
@@ -83,11 +79,11 @@ func bytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) []
 		if err != nil {
 			logger(err)
 		}
-		byteArray := split(n)
+		byteArray := splitVAD(n)
 		return byteArray
 	} else {
 		// pcm
-		byteArray := split(data)
+		byteArray := splitVAD(data)
 		return byteArray
 	}
 }
@@ -100,16 +96,7 @@ func bytesToSamples(buf []byte) []int16 {
 	return samples
 }
 
-func sttHandler(reqThing interface{}, isKnowledgeGraph bool) (transcribedString string, slots map[string]string, isRhino bool, thisBotNum int, opusUsed bool, err error) {
-	if VoiceProcessorCoqui == VoiceProcessor {
-		return CoquiSttHandler(reqThing, isKnowledgeGraph)
-	} else if VoiceProcessorLeopard == VoiceProcessor {
-		return LeopardSttHandler(reqThing, isKnowledgeGraph)
-	}
-	return VOSKSttHandler(reqThing, isKnowledgeGraph)
-}
-
-func loadIntents(voiceProcessor string, language string) ([][]string, []string, error) {
+func loadIntents(language string) ([][]string, []string, error) {
 	jsonFile, err := os.ReadFile("./intent-data/" + language + ".json")
 
 	var matches [][]string
@@ -147,32 +134,15 @@ func New(voiceProcessor string) (*Server, error) {
 	if len(sttLanguage) == 0 {
 		sttLanguage = "en-US"
 	}
-	logger("Instantiating " + voiceProcessor + " voice processor with language " + sttLanguage)
+	logger("Initiating " + voiceProcessor + " voice processor with language " + sttLanguage)
+	initSTT(voiceProcessor)
 
-	// Instantiate the chosen voice processor and load intents from json
+	// Initiating the chosen voice processor and load intents from json
 	VoiceProcessor = voiceProcessor
-	err := errors.New("Error parsing intents JSON!")
+	var err error
+	matchListList, intentsList, err = loadIntents(sttLanguage)
 
-	if VoiceProcessorCoqui == voiceProcessor {
-		matchListList, intentsList, err = loadIntents(VoiceProcessorCoqui, sttLanguage)
-		if err == nil {
-			return CoquiNew()
-		}
-	} else if VoiceProcessorLeopard == voiceProcessor {
-		matchListList, intentsList, err = loadIntents(VoiceProcessorLeopard, sttLanguage)
-		if err == nil {
-			return LeopardNew()
-		}
-	} else if VoiceProcessorVosk == voiceProcessor {
-		matchListList, intentsList, err = loadIntents(VoiceProcessorVosk, sttLanguage)
-		if err == nil {
-			return VOSKNew()
-		}
-	} else {
-		err = errors.New("Unknown voice processor")
-	}
-
-	return nil, err
+	return &Server{}, err
 }
 
 var debugLogging bool

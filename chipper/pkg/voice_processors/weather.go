@@ -13,6 +13,11 @@ import (
 	"time"
 )
 
+/* TODO:
+Create seperate functions for weatherAPI and openweathermap,
+create a standard for how weather functions should be created
+*/
+
 // *** WEATHERAPI.COM ***
 
 type weatherAPIResponseStruct struct {
@@ -231,7 +236,7 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			if err != nil {
 				logger(err)
 			}
-			if len(geoCodingInfoStruct) < 0 || len(geoCodingInfoStruct) == 0 {
+			if len(geoCodingInfoStruct) == 0 {
 				logger("Geo provided no response.")
 				condition = "undefined"
 				is_forecast = "false"
