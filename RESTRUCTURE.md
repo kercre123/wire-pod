@@ -9,22 +9,26 @@
 ## Plan
 
 -	Create speechrequest.go which contains a new `SpeechRequest` type and functions which deal with this new type.
-	-	`SpeechRequest{Device: string, Session: string, Stream: interface{}, FirstReq []byte}`
-	-	`reqToSpeechRequest` will convert any type of chipperpb req to a SpeechRequest
-	-	`getNextAudioChunk` will return the next audio chunk in the stream
-
--	An sttHandler function should look something like this (not accurate to VOSK, just an example):
+	-	The functions will deal with opus to pcm conversion on their own
+	-	`func reqToSpeechRequest(req interface{}) SpeechRequest` will convert any type of chipperpb req to a SpeechRequest
+	-	`func getNextAudioChunk(req SpeechRequest) (SpeechRequest, []byte, err)` will return the next audio chunk in the stream
+		-	req must be set equal to the output of this function
+-	Each STT service should only need just one go file and minimal modification to server.go
+-	Maybe work on weather too, seperate weatherAPI and openweathermap services into different functions and create a standard for future functions
+-	Make knowledgegraph its own entity, remove from sttHandler functions
+-	Make VAD a function
+-	An sttHandler function should look something like this (not accurate to VOSK at all, just an example):
 ```
-func voskSttHandler(req SpeechRequest) (transcribedText string, err error) {
+func voskSttHandler(req SpeechRequest) (string, error) {
 	var transcribedText string
 	vosk.Process(req.FirstReq)
 	//req.FirstReq is a []byte of the first audio bytes in the stream
 	for {
-		// getNextAudioChunk should handle stream errors on its own
-		isDone, err := vosk.Process(getNextAudioChunk)
+		var chunk []byte
+		req, chunk, err = getNextAudioChunk(req)
 		if err != nil {
 			return "", err
-		}
+		isDone, _ := vosk.Process(chunk)
 		if isDone {
 			transcribedText, err = vosk.Flush()
 			if err != nil {

@@ -20,6 +20,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/alphacep/vosk-api v0.3.43 // indirect
 	github.com/alphacep/vosk-api/go v0.3.43 // indirect
+	github.com/cryptix/wav v0.0.0-20180415113528-8bdace674401 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grd/ogg v0.0.0-20130623210630-0dae53159b70 // indirect
