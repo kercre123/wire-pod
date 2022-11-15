@@ -331,6 +331,7 @@ function IPDNSPrompt() {
 	"1") SANPrefix="IP" ;;
 	"2") SANPrefix="DNS" ;;
 	"3") isEscapePod="epod" ;;
+	"4") noCerts="true" ;;
 	"") SANPrefix="IP" ;;
 	*)
 		echo "Please answer with 1 or 2."
@@ -368,7 +369,11 @@ function generateCerts() {
 	echo "1: IP address (recommended for OSKR Vectors)"
 	echo "2: Domain"
 	echo "3: escapepod.local (recommended for prod Vectors)"
+	if [[ -d ./certs ]]; then
+		echo "4: Keep certificates as is"
+	fi
 	IPDNSPrompt
+	if [[ ${noCerts} != "true" ]]; then
 	if [[ ${isEscapePod} != "epod" ]]; then
 		if [[ ${SANPrefix} == "IP" ]]; then
 			IPPrompt
@@ -410,6 +415,7 @@ function generateCerts() {
 		echo
 		echo "escapepod.local chosen."
 		touch chipper/useepod
+	fi
 	fi
 }
 
