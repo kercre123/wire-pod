@@ -61,7 +61,7 @@ func kgRequestHandler(req SpeechRequest) (string, error) {
 		logger("Sending requst to Houndify...")
 		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 			req := houndify.VoiceRequest{
-				AudioStream:       bytes.NewReader(req.DecodedMicData),
+				AudioStream:       bytes.NewReader(req.MicData),
 				UserID:            req.Device,
 				RequestID:         req.Session,
 				RequestInfoFields: make(map[string]interface{}),
