@@ -10,26 +10,7 @@ import (
 	"strings"
 
 	leopard "github.com/Picovoice/leopard/binding/go"
-	"github.com/digital-dream-labs/opus-go/opus"
-	"github.com/maxhawkins/go-webrtcvad"
 )
-
-func bytesToIntLeopard(stream opus.OggStream, data []byte, die bool, isOpus bool) []int16 {
-	if die {
-		return nil
-	}
-	if isOpus {
-		// opus
-		n, err := stream.Decode(data)
-		if err != nil {
-			logger(err)
-		}
-		return bytesToSamples(n)
-	} else {
-		// pcm
-		return bytesToSamples(data)
-	}
-}
 
 var leopardSTTArray []leopard.Leopard
 var picovoiceInstancesOS string = os.Getenv("PICOVOICE_INSTANCES")
@@ -71,17 +52,9 @@ func LeopardInit() error {
 }
 
 func LeopardSttHandler(req SpeechRequest) (transcribedText string, err error) {
-	logger("Processing...")
+	logger("(Bot " + strconv.Itoa(req.BotNum) + ", Leopard) Processing...")
 	var leopardSTT leopard.Leopard
-	activeNum := 0
-	inactiveNum := 0
-	inactiveNumMax := 20
-	die := false
-	vad, err := webrtcvad.New()
-	if err != nil {
-		logger(err)
-	}
-	vad.SetMode(3)
+	speechIsDone := false
 	if botNum > picovoiceInstances {
 		fmt.Println("Too many bots are connected, sending error to bot " + strconv.Itoa(req.BotNum))
 		return "", fmt.Errorf("too many bots are connected, max is 3")
@@ -89,30 +62,12 @@ func LeopardSttHandler(req SpeechRequest) (transcribedText string, err error) {
 		leopardSTT = leopardSTTArray[botNum-1]
 	}
 	for {
-		var chunk []byte
-		req, chunk, err = getNextStreamChunk(req)
+		req, _, err = getNextStreamChunk(req)
 		if err != nil {
 			return "", err
 		}
-		splitChunk := splitVAD(chunk)
-		for _, chunk := range splitChunk {
-			active, err := vad.Process(16000, chunk)
-			if err != nil {
-				logger(err)
-			}
-			if active {
-				activeNum = activeNum + 1
-				inactiveNum = 0
-			} else {
-				inactiveNum = inactiveNum + 1
-			}
-			if inactiveNum >= inactiveNumMax && activeNum > 20 {
-				logger("Speech completed.")
-				die = true
-				break
-			}
-		}
-		if die {
+		req, speechIsDone = detectEndOfSpeech(req)
+		if speechIsDone {
 			break
 		}
 	}

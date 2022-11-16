@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	vosk "github.com/alphacep/vosk-api/go"
-	"github.com/maxhawkins/go-webrtcvad"
 )
 
 var model *vosk.VoskModel
@@ -31,7 +30,8 @@ func VoskInit() (*Server, error) {
 }
 
 func VoskSTTHandler(req SpeechRequest) (string, error) {
-	logger("NewVoskSTTHandler: Processing...")
+	logger("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
+	speechIsDone := false
 	sampleRate := 16000.0
 	rec, err := vosk.NewRecognizer(model, sampleRate)
 	if err != nil {
@@ -39,15 +39,6 @@ func VoskSTTHandler(req SpeechRequest) (string, error) {
 	}
 	rec.SetWords(1)
 	rec.AcceptWaveform(req.FirstReq)
-	vad, err := webrtcvad.New()
-	if err != nil {
-		logger(err)
-	}
-	vad.SetMode(3)
-	var activeNum int = 0
-	var inactiveNum int = 0
-	var inactiveNumMax int = 20
-	var die bool = false
 	for {
 		var chunk []byte
 		req, chunk, err = getNextStreamChunk(req)
@@ -56,27 +47,8 @@ func VoskSTTHandler(req SpeechRequest) (string, error) {
 		}
 		rec.AcceptWaveform(chunk)
 		// has to be split into 320 []byte chunks for VAD
-		splitChunk := splitVAD(chunk)
-		for _, chunk := range splitChunk {
-			active, err := vad.Process(16000, chunk)
-			if err != nil {
-				logger("err:")
-				logger(err)
-				return "", err
-			}
-			if active {
-				activeNum = activeNum + 1
-				inactiveNum = 0
-			} else {
-				inactiveNum = inactiveNum + 1
-			}
-			if inactiveNum >= inactiveNumMax && activeNum > 20 {
-				logger("Speech completed.")
-				die = true
-				break
-			}
-		}
-		if die {
+		req, speechIsDone = detectEndOfSpeech(req)
+		if speechIsDone {
 			break
 		}
 	}

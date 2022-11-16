@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/asticode/go-asticoqui"
-	"github.com/maxhawkins/go-webrtcvad"
 )
 
 func CoquiInit() error {
@@ -58,11 +57,8 @@ func CoquiInit() error {
 }
 
 func CoquiSttHandler(req SpeechRequest) (string, error) {
-	logger("Processing...")
-	activeNum := 0
-	inactiveNum := 0
-	inactiveNumMax := 20
-	die := false
+	logger("(Bot " + strconv.Itoa(req.BotNum) + ", Coqui) Processing...")
+	speechIsDone := false
 	coquiInstance, _ := asticoqui.New("../stt/model.tflite")
 	if _, err := os.Stat("../stt/large_vocabulary.scorer"); err == nil {
 		coquiInstance.EnableExternalScorer("../stt/large_vocabulary.scorer")
@@ -72,38 +68,16 @@ func CoquiSttHandler(req SpeechRequest) (string, error) {
 		logger("No .scorer file found.")
 	}
 	coquiStream, _ := coquiInstance.NewStream()
-	coquiStream.FeedAudioContent(bytesToSamples(req.FirstReq))
-	vad, err := webrtcvad.New()
-	if err != nil {
-		logger(err)
-	}
-	vad.SetMode(3)
 	for {
 		var chunk []byte
+		var err error
 		req, chunk, err = getNextStreamChunk(req)
 		if err != nil {
 			return "", err
 		}
 		coquiStream.FeedAudioContent(bytesToSamples(chunk))
-		splitChunk := splitVAD(chunk)
-		for _, chunk := range splitChunk {
-			active, err := vad.Process(16000, chunk)
-			if err != nil {
-				logger(err)
-			}
-			if active {
-				activeNum = activeNum + 1
-				inactiveNum = 0
-			} else {
-				inactiveNum = inactiveNum + 1
-			}
-			if inactiveNum >= inactiveNumMax && activeNum > 20 {
-				logger("Speech completed.")
-				die = true
-				break
-			}
-		}
-		if die {
+		req, speechIsDone = detectEndOfSpeech(req)
+		if speechIsDone {
 			break
 		}
 	}
