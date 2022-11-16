@@ -7,6 +7,7 @@ import (
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/chipper/pkg/vtt"
 	"github.com/digital-dream-labs/opus-go/opus"
+	"github.com/maxhawkins/go-webrtcvad"
 )
 
 type SpeechRequest struct {
@@ -21,6 +22,10 @@ type SpeechRequest struct {
 	MicData        []byte
 	DecodedMicData []byte
 	PrevLen        int
+	InactiveFrames int
+	ActiveFrames   int
+	VADInst        *webrtcvad.VAD
+	LastAudioChunk []byte
 	IsOpus         bool
 	OpusStream     opus.OggStream
 	BotNum         int
@@ -52,8 +57,39 @@ func opusDecode(req SpeechRequest) []byte {
 	}
 }
 
+func detectEndOfSpeech(req SpeechRequest) (SpeechRequest, bool) {
+	// changes InactiveFrames and ActiveFrames in req
+	inactiveNumMax := 20
+	vad := req.VADInst
+	vad.SetMode(3)
+	for _, chunk := range splitVAD(req.LastAudioChunk) {
+		active, err := vad.Process(16000, chunk)
+		if err != nil {
+			logger("VAD err:")
+			logger(err)
+			return req, true
+		}
+		if active {
+			req.ActiveFrames = req.ActiveFrames + 1
+			req.InactiveFrames = 0
+		} else {
+			req.InactiveFrames = req.InactiveFrames + 1
+		}
+		if req.InactiveFrames >= inactiveNumMax && req.ActiveFrames > 20 {
+			logger("(Bot " + strconv.Itoa(req.BotNum) + ") End of speech detected.")
+			return req, true
+		}
+	}
+	return req, false
+}
+
 func reqToSpeechRequest(req interface{}) SpeechRequest {
 	var request SpeechRequest
+	var err error
+	request.VADInst, err = webrtcvad.New()
+	if err != nil {
+		logger(err)
+	}
 	request.BotNum = botNum
 	if str, ok := req.(*vtt.IntentRequest); ok {
 		var req1 *vtt.IntentRequest = str
@@ -99,6 +135,7 @@ func getNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
 		req.MicData = append(req.MicData, chunk.InputAudio...)
 		req.DecodedMicData = opusDecode(req)
 		dataReturn := req.DecodedMicData[req.PrevLen:]
+		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
 		return req, dataReturn, nil
 	} else if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentGraphServer); ok {
@@ -111,6 +148,7 @@ func getNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
 		req.MicData = append(req.MicData, chunk.InputAudio...)
 		req.DecodedMicData = opusDecode(req)
 		dataReturn := req.DecodedMicData[req.PrevLen:]
+		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
 		return req, dataReturn, nil
 	} else if str, ok := req.Stream.(pb.ChipperGrpc_StreamingKnowledgeGraphServer); ok {
@@ -123,6 +161,7 @@ func getNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
 		req.MicData = append(req.MicData, chunk.InputAudio...)
 		req.DecodedMicData = opusDecode(req)
 		dataReturn := req.DecodedMicData[req.PrevLen:]
+		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
 		return req, dataReturn, nil
 	}
