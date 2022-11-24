@@ -10,6 +10,10 @@ This is the original wire-pod, which was made to be dev-friendly. For one that i
 
 `vector-cloud` - Vector-cloud is the program which runs on Vector himself which uploads the mic stream to a chipper instance. This repo contains a fork of vector-cloud which has been modified to allow for a custom CA cert.
 
+## Documentation
+
+All documentation will soon be moved into the [wiki](https://github.com/kercre123/wire-pod/wiki).
+
 ## Configuring, Building, Installing
 
 (This is the original wire-pod, which is designed for OSKR/dev bots and to be dev-friendly. If you want to set up a regular production bot, it is recommended you use [wire-prod-pod](https://www.github.com/kercre123/wire-prod-pod))
