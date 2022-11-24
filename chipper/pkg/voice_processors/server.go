@@ -142,6 +142,9 @@ func New(voiceProcessor string) (*Server, error) {
 	var err error
 	matchListList, intentsList, err = loadIntents(sttLanguage)
 
+	// Load plugins
+	LoadPlugins()
+
 	return &Server{}, err
 }
 
