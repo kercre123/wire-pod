@@ -144,7 +144,7 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 	return successMatched
 }
 
-func pluginFunctionHandler(req interface{}, voiceText string, justThisBotNum int) bool {
+func pluginFunctionHandler(req interface{}, voiceText string, justThisBotNum int, botSerial string) bool {
 	matched := false
 	var intent string
 	for num, array := range PluginUtterances {
@@ -152,7 +152,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, justThisBotNum int
 		for _, str := range *array {
 			if strings.Contains(voiceText, str) {
 				logger("Text matched plugin " + PluginNames[num] + ", executing function")
-				intent = PluginFunctions[num](voiceText)
+				intent = PluginFunctions[num](voiceText, botSerial)
 				if intent == "" {
 					intent = "intent_imperative_praise"
 				}
@@ -186,8 +186,8 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 	var matched int = 0
 	var intentNum int = 0
 	var successMatched bool = false
+	pluginMatched := pluginFunctionHandler(req, voiceText, justThisBotNum, botSerial)
 	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, justThisBotNum, botSerial)
-	pluginMatched := pluginFunctionHandler(req, voiceText, justThisBotNum)
 	if !customIntentMatched && !pluginMatched {
 		logger("Not a custom intent")
 		// Look for a perfect match first

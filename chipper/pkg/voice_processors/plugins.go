@@ -8,7 +8,7 @@ import (
 
 var PluginList []*plugin.Plugin
 var PluginUtterances []*[]string
-var PluginFunctions []func(string) string
+var PluginFunctions []func(string, string) string
 var PluginNames []string
 
 func LoadPlugins() {
@@ -19,7 +19,7 @@ func LoadPlugins() {
 		logger(err)
 	}
 	for _, file := range entries {
-		if file.Name() != "placeholder" && !strings.Contains(file.Name(), ".go") {
+		if strings.Contains(file.Name(), ".so") {
 			plugin, err := plugin.Open("./plugins/" + file.Name())
 			if err != nil {
 				logger("Error loading plugin: " + file.Name())
@@ -46,10 +46,10 @@ func LoadPlugins() {
 				logger("Error loading Action func from plugin file " + file.Name())
 				continue
 			} else {
-				if _, ok := a.(func(string) string); ok {
+				if _, ok := a.(func(string, string) string); ok {
 					logger("Action func in plugin " + file.Name() + " is OK")
 				} else {
-					logger("Error: Action func in plugin " + file.Name() + " is not of type func(string)string")
+					logger("Error: Action func in plugin " + file.Name() + " is not of type func(string, string) string")
 					continue
 				}
 			}
@@ -66,12 +66,12 @@ func LoadPlugins() {
 				}
 			}
 			PluginUtterances = append(PluginUtterances, u.(*[]string))
-			PluginFunctions = append(PluginFunctions, a.(func(string) string))
+			PluginFunctions = append(PluginFunctions, a.(func(string, string) string))
 			PluginNames = append(PluginNames, *n.(*string))
 			PluginList = append(PluginList, plugin)
 			logger(file.Name() + " loaded successfully")
 		} else {
-			logger("Not loading " + file.Name() + ". Plugins must be built with go build -buildmode=plugin")
+			logger("Not loading " + file.Name() + ". Plugins must be built with 'go build -buildmode=plugin' and must end in '.so'.")
 		}
 	}
 }
