@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
-	sdk_wrapper "github.com/kercre123/vector-go-sdk/pkg/sdk-wrapper"
+	"github.com/kercre123/vector-go-sdk/pkg/vector"
+	"github.com/kercre123/vector-go-sdk/pkg/vectorpb"
 )
 
 // test of SDK implementation
@@ -15,18 +17,34 @@ var Name = "SDK Plugin Test"
 func Action(transcribedText string, botSerial string) string {
 	fmt.Println("hello world plugin test")
 	phrase := "hello world"
-	sdk_wrapper.InitSDK(botSerial)
+	tokenBytes, _ := os.ReadFile("./robotGUID")
+	token := string(tokenBytes)
+
+	robot, _ := vector.New(
+		vector.WithTarget("192.168.0.199:443"),
+		vector.WithToken(token),
+	)
 	ctx := context.Background()
 	start := make(chan bool)
 	stop := make(chan bool)
 	go func() {
-		_ = sdk_wrapper.Robot.BehaviorControl(ctx, start, stop)
+		err := robot.BehaviorControl(ctx, start, stop)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 
 	for {
 		select {
 		case <-start:
-			sdk_wrapper.SayText(phrase)
+			robot.Conn.SayText(
+				ctx,
+				&vectorpb.SayTextRequest{
+					Text:           phrase,
+					UseVectorVoice: true,
+					DurationScalar: 1.0,
+				},
+			)
 			stop <- true
 			return "intent_imperative_praise"
 		}
