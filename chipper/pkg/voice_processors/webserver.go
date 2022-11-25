@@ -1,6 +1,8 @@
 package wirepod
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +10,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
+
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
@@ -369,6 +374,40 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			logger(err)
 		}
 		fmt.Fprint(w, string(botConfigJSONFile))
+		return
+	case r.URL.Path == "/api/debug":
+		type JWTSegTypeOne struct {
+			Alg  string `json:"alg"`
+			Type string `json:"typ"`
+		}
+		type JWTSegType struct {
+			Expires     string      `json:"expires"`
+			Iat         time.Time   `json:"iat"`
+			Permissions interface{} `json:"permissions"`
+			RequestorID string      `json:"requestor_id"`
+			TokenID     string      `json:"token_id"`
+			TokenType   string      `json:"token_type"`
+			UserID      string      `json:"user_id"`
+		}
+		// Create a new token object, specifying signing method and the claims
+		// you would like it to contain.
+		token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
+			"expires":      "2022-11-26T16:27:51.997352463Z",
+			"nbf":          time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+			"permissions":  nil,
+			"requestor_id": "vic:00601b50",
+			"token_id":     "2ebbfde9-2080-4654-8376-39d8eb098f04",
+			"token_type":   "user+robot",
+			"user_id":      "2gsE4HbQ8UCBpYqurDgsafX",
+		})
+
+		// Sign and get the complete encoded token as a string using the secret
+		rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
+		fmt.Println(rsaKey)
+		tokenString, _ := token.SignedString(rsaKey)
+		fmt.Println("")
+		fmt.Println(tokenString)
+		fmt.Fprintf(w, tokenString)
 		return
 	}
 }
