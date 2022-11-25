@@ -7,6 +7,7 @@ import (
 	jdocspb "github.com/digital-dream-labs/api/go/jdocspb"
 	tokenpb "github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
+	tokenserver "github.com/digital-dream-labs/chipper/pkg/tokenserver"
 	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
 
@@ -43,19 +44,6 @@ func (s *JdocServer) ReadDoc(ctx context.Context, req *jdocspb.ReadDocsReq) (*jd
 	fmt.Println(req.Thing)
 	fmt.Println(req.UserId)
 	return &jdocspb.ReadDocsReq{}, nil
-}
-
-type TokenServer struct {
-	tokenpb.UnimplementedTokenServer
-}
-
-func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
-	fmt.Println("Token request incoming")
-	fmt.Println(req.SessionCertificate)
-	fmt.Println(req.SkipClientToken)
-	return &tokenpb.AssociatePrimaryUserResponse{
-		Data: &tokenpb.TokenBundle{},
-	}, nil
 }
 
 func main() {
@@ -114,9 +102,11 @@ func startServer() {
 		server.WithIntentGraphProcessor(p),
 	)
 
+	tokenServer := tokenserver.NewTokenServer()
+
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
 	jdocspb.RegisterJdocsServer(srv.Transport(), &JdocServer{})
-	tokenpb.RegisterTokenServer(srv.Transport(), &TokenServer{})
+	tokenpb.RegisterTokenServer(srv.Transport(), tokenServer)
 
 	srv.Start()
 	fmt.Println("\033[33m\033[1mServer started successfully!\033[0m")

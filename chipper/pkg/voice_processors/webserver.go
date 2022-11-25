@@ -392,8 +392,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		// Create a new token object, specifying signing method and the claims
 		// you would like it to contain.
 		token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
-			"expires":      "2022-11-26T16:27:51.997352463Z",
-			"nbf":          time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+			"expires":      "2029-11-26T16:27:51.997352463Z",
+			"iat":          time.Now(),
 			"permissions":  nil,
 			"requestor_id": "vic:00601b50",
 			"token_id":     "2ebbfde9-2080-4654-8376-39d8eb098f04",
