@@ -10,7 +10,6 @@ import (
 	"github.com/digital-dream-labs/chipper/pkg/server"
 	tokenserver "github.com/digital-dream-labs/chipper/pkg/tokenserver"
 	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
-	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
 	warnlog "log"
@@ -52,16 +51,12 @@ func main() {
 func startServer() {
 	srv, err := grpcserver.New(
 		grpcserver.WithViper(),
-		grpcserver.WithLogger(log.Base()),
+		//grpcserver.WithLogger(log.Base()),
 		grpcserver.WithReflectionService(),
 
-		grpcserver.WithUnaryServerInterceptors(
-			grpclog.UnaryServerInterceptor(),
-		),
+		grpcserver.WithUnaryServerInterceptors(),
 
-		grpcserver.WithStreamServerInterceptors(
-			grpclog.StreamServerInterceptor(),
-		),
+		grpcserver.WithStreamServerInterceptors(),
 	)
 	if err != nil {
 		log.Fatal(err)
