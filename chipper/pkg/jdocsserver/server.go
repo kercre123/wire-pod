@@ -13,7 +13,7 @@ type JdocServer struct {
 }
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
-	fmt.Println("test")
+	fmt.Println("Jdocs WriteDoc (not impl)")
 	fmt.Println(req.Doc)
 	fmt.Println(req.DocName)
 	fmt.Println(req.Thing)
@@ -22,12 +22,8 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 }
 func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*jdocspb.ReadDocsResp, error) {
 	fmt.Println("Jdocs ReadDoc")
-	fmt.Println(req)
-	fmt.Println("thing")
 	fmt.Println(req.Thing)
-	fmt.Println("items")
 	fmt.Println(req.Items)
-	fmt.Println("end items")
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
 		return &jdocspb.ReadDocsResp{
 			Items: []*jdocspb.ReadDocsResp_Item{
@@ -43,7 +39,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			},
 		}, nil
 	}
-	fmt.Println("not app token")
+	fmt.Println("not app token, still returning app token thing")
 	return &jdocspb.ReadDocsResp{
 		Items: []*jdocspb.ReadDocsResp_Item{
 			&jdocspb.ReadDocsResp_Item{
