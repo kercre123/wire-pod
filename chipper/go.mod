@@ -16,7 +16,9 @@ require (
 require (
 	github.com/Picovoice/leopard/binding/go v1.1.2
 	github.com/alphacep/vosk-api/go v0.3.43
-	github.com/kercre123/vector-go-sdk v0.0.0-20221124100529-96fe39486c7f
+	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/kercre123/vector-go-sdk v0.0.0-20221126192530-19a0391cea24
 )
 
 require (
@@ -25,8 +27,6 @@ require (
 	github.com/alphacep/vosk-api v0.3.43 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grd/ogg v0.0.0-20130623210630-0dae53159b70 // indirect
