@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"fmt"
 	mathrand "math/rand"
-	"os"
 	"time"
 
 	"github.com/digital-dream-labs/api/go/tokenpb"
@@ -36,9 +35,7 @@ type TokenServer struct {
 }
 
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
-	fmt.Println("Token request incoming")
-	fmt.Println("string: " + req.String())
-	os.WriteFile("./sessionCert.pem", req.SessionCertificate, 0644)
+	fmt.Println("Token Associate Primary User")
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"expires":      "2029-11-26T16:27:51.997352463Z",
 		"iat":          time.Now(),
@@ -48,17 +45,14 @@ func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.Ass
 		"token_type":   "user+robot",
 		"user_id":      "2gsE4HbQ8UCBpYqurDgsafX",
 	})
-
-	// Sign and get the complete encoded token as a string using the secret
 	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
-	fmt.Println(rsaKey)
 	tokenString, _ := token.SignedString(rsaKey)
 	fmt.Println("")
 	fmt.Println(tokenString)
+	// constant GUID
 	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
 	fmt.Println("")
 	fmt.Println("GUID: " + clientToken)
-	os.WriteFile("./robotGUID", []byte(clientToken), 0644)
 	fmt.Println("")
 	return &tokenpb.AssociatePrimaryUserResponse{
 		Data: &tokenpb.TokenBundle{
