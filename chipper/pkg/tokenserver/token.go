@@ -55,7 +55,7 @@ func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.Ass
 	tokenString, _ := token.SignedString(rsaKey)
 	fmt.Println("")
 	fmt.Println(tokenString)
-	clientToken := RandomString(24)
+	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
 	fmt.Println("")
 	fmt.Println("GUID: " + clientToken)
 	os.WriteFile("./robotGUID", []byte(clientToken), 0644)
