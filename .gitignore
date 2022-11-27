@@ -19,3 +19,4 @@
 /vosk
 /chipper/customIntents.json
 /chipper/botConfig.json
+/chipper/jdocs/*.json

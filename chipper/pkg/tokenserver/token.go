@@ -62,6 +62,62 @@ func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.Ass
 	}, nil
 }
 
+func (s *TokenServer) AssociateSecondaryUser(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
+	fmt.Println("Token Associate Secondary User")
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
+		"expires":      "2029-11-26T16:27:51.997352463Z",
+		"iat":          time.Now(),
+		"permissions":  nil,
+		"requestor_id": "vic:00601b50",
+		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
+		"token_type":   "user+robot",
+		"user_id":      "2gsE4HbQ8UCBpYqurDgsafX",
+	})
+	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
+	tokenString, _ := token.SignedString(rsaKey)
+	fmt.Println("")
+	fmt.Println(tokenString)
+	// constant GUID
+	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
+	fmt.Println("")
+	fmt.Println("GUID: " + clientToken)
+	fmt.Println("")
+	return &tokenpb.AssociateSecondaryClientResponse{
+		Data: &tokenpb.TokenBundle{
+			Token:       tokenString,
+			ClientToken: clientToken,
+		},
+	}, nil
+}
+
+func (s *TokenServer) RefreshToken(ctx context.Context, req *tokenpb.RefreshTokenRequest) (*tokenpb.RefreshTokenResponse, error) {
+	fmt.Println("Token: Refresh Token")
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
+		"expires":      "2029-11-26T16:27:51.997352463Z",
+		"iat":          time.Now(),
+		"permissions":  nil,
+		"requestor_id": "vic:00601b50",
+		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
+		"token_type":   "user+robot",
+		"user_id":      "2gsE4HbQ8UCBpYqurDgsafX",
+	})
+	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
+	tokenString, _ := token.SignedString(rsaKey)
+	fmt.Println("")
+	fmt.Println(tokenString)
+	// constant GUID
+	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
+	fmt.Println("")
+	fmt.Println("GUID: " + clientToken)
+	fmt.Println("")
+	return &tokenpb.RefreshTokenResponse{
+		Data: &tokenpb.TokenBundle{
+			Token:       tokenString,
+			ClientToken: clientToken,
+		},
+	}, nil
+}
+
 func NewTokenServer() *TokenServer {
 	return &TokenServer{}
 }
