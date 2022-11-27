@@ -301,6 +301,8 @@ github.com/kercre123/vector-go-sdk v0.0.0-20221126192209-02587fc53e02 h1:+lu0A+p
 github.com/kercre123/vector-go-sdk v0.0.0-20221126192209-02587fc53e02/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
 github.com/kercre123/vector-go-sdk v0.0.0-20221126192530-19a0391cea24 h1:MQGZ03iByYIR14HWInG2s1uWM7NrlgTLWdebRWBuZsw=
 github.com/kercre123/vector-go-sdk v0.0.0-20221126192530-19a0391cea24/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
+github.com/kercre123/vector-go-sdk v0.0.0-20221127074537-e8fd56cd3322 h1:yT5+F4YW7x0W0dUad3oHaUr0HEP/+23qYGTSi9+6r1A=
+github.com/kercre123/vector-go-sdk v0.0.0-20221127074537-e8fd56cd3322/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=

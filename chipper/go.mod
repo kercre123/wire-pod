@@ -18,7 +18,7 @@ require (
 	github.com/alphacep/vosk-api/go v0.3.43
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.2
-	github.com/kercre123/vector-go-sdk v0.0.0-20221126192530-19a0391cea24
+	github.com/kercre123/vector-go-sdk v0.0.0-20221127074537-e8fd56cd3322
 )
 
 require (

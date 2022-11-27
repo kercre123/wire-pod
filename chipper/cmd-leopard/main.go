@@ -12,8 +12,6 @@ import (
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
 
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
-
 	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
 	"github.com/digital-dream-labs/hugh/log"
 )
@@ -30,11 +28,11 @@ func startServer() {
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
-		//grpclog.UnaryServerInterceptor(),
+		//	grpclog.UnaryServerInterceptor(),
 		),
 
 		grpcserver.WithStreamServerInterceptors(
-		//grpclog.StreamServerInterceptor(),
+		//	grpclog.StreamServerInterceptor(),
 		),
 	)
 	if err != nil {

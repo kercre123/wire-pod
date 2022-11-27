@@ -37,10 +37,10 @@ func storeBotInfo(ctx context.Context, thing string) {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
 	}
 	robotSDKInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
-	for _, robot := range robotSDKInfo.Robots {
+	for num, robot := range robotSDKInfo.Robots {
 		if robot.Esn == botEsn {
 			appendNew = false
-			robot.IPAddress = ipAddr
+			robotSDKInfo.Robots[num].IPAddress = ipAddr
 		}
 	}
 	if appendNew {
