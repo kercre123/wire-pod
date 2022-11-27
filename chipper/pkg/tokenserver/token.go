@@ -5,37 +5,26 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
-	mathrand "math/rand"
 	"time"
 
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/golang-jwt/jwt"
 )
 
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789="
-
-var seededRand *mathrand.Rand = mathrand.New(
-	mathrand.NewSource(time.Now().UnixNano()))
-
-func StringWithCharset(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func RandomString(length int) string {
-	return StringWithCharset(length, charset)
-}
-
 type TokenServer struct {
 	tokenpb.UnimplementedTokenServer
 }
 
+type RobotSDKInfoStore struct {
+	GlobalGUID string `json:"global_guid"`
+	Robots     []struct {
+		Esn       string `json:"esn"`
+		IPAddress string `json:"ip_address"`
+	} `json:"robots"`
+}
+
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
-	fmt.Println("Token Associate Primary User")
+	fmt.Println("Token: Incoming Associate Primary User request")
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"expires":      "2029-11-26T16:27:51.997352463Z",
 		"iat":          time.Now(),
@@ -47,13 +36,8 @@ func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.Ass
 	})
 	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
 	tokenString, _ := token.SignedString(rsaKey)
-	fmt.Println("")
-	fmt.Println(tokenString)
 	// constant GUID
 	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
-	fmt.Println("")
-	fmt.Println("GUID: " + clientToken)
-	fmt.Println("")
 	return &tokenpb.AssociatePrimaryUserResponse{
 		Data: &tokenpb.TokenBundle{
 			Token:       tokenString,
@@ -63,7 +47,7 @@ func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.Ass
 }
 
 func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
-	fmt.Println("Token Associate Secondary Client")
+	fmt.Println("Token: Incoming Associate Secondary Client request")
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"expires":      "2029-11-26T16:27:51.997352463Z",
 		"iat":          time.Now(),
@@ -75,13 +59,8 @@ func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb
 	})
 	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
 	tokenString, _ := token.SignedString(rsaKey)
-	fmt.Println("")
-	fmt.Println(tokenString)
 	// constant GUID
 	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
-	fmt.Println("")
-	fmt.Println("GUID: " + clientToken)
-	fmt.Println("")
 	return &tokenpb.AssociateSecondaryClientResponse{
 		Data: &tokenpb.TokenBundle{
 			Token:       tokenString,
@@ -91,7 +70,7 @@ func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb
 }
 
 func (s *TokenServer) RefreshToken(ctx context.Context, req *tokenpb.RefreshTokenRequest) (*tokenpb.RefreshTokenResponse, error) {
-	fmt.Println("Token: Refresh Token")
+	fmt.Println("Token: Incoming Refresh Token Request")
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"expires":      "2029-11-26T16:27:51.997352463Z",
 		"iat":          time.Now(),
@@ -103,13 +82,8 @@ func (s *TokenServer) RefreshToken(ctx context.Context, req *tokenpb.RefreshToke
 	})
 	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
 	tokenString, _ := token.SignedString(rsaKey)
-	fmt.Println("")
-	fmt.Println(tokenString)
 	// constant GUID
 	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
-	fmt.Println("")
-	fmt.Println("GUID: " + clientToken)
-	fmt.Println("")
 	return &tokenpb.RefreshTokenResponse{
 		Data: &tokenpb.TokenBundle{
 			Token:       tokenString,

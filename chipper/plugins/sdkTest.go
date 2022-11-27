@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	sdk_wrapper "github.com/kercre123/vector-go-sdk/pkg/sdk-wrapper"
+	"github.com/kercre123/vector-go-sdk/pkg/vector"
 )
 
 // test of SDK implementation
@@ -15,7 +15,10 @@ var Name = "SDK Plugin Test"
 func Action(transcribedText string, botSerial string) string {
 	fmt.Println("hello world plugin test")
 	phrase := "hello world"
-	sdk_wrapper.InitSDK(botSerial)
+	vector.New(
+		vector.WithTarget(""),
+		vector.WithToken(""),
+	)
 	ctx := context.Background()
 	start := make(chan bool)
 	stop := make(chan bool)
