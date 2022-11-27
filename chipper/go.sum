@@ -55,8 +55,6 @@ github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuy
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 h1:s6gZFSlWYmbqAuRjVTiNNhvNRfY2Wxp9nhfyel4rklc=
 github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137/go.mod h1:OMCwj8VM1Kc9e19TLln2VL61YJF0x1XFtfdL4JdbSyE=
-github.com/alphacep/vosk-api v0.3.43 h1:f5z8K9Jqz9uTbM6+6r3haAyD2+O4bUDTvyYyQfWEe9I=
-github.com/alphacep/vosk-api v0.3.43/go.mod h1:4yMGdq4okfhEWX9OpfIhWQmXoniWQ69xWPbfJFK+nDY=
 github.com/alphacep/vosk-api/go v0.3.43 h1:VITYOR7c9ANGweLJmNrnNt24QW3GwtdqqD9LUJ52IbI=
 github.com/alphacep/vosk-api/go v0.3.43/go.mod h1:9X8IJsHnFk/b1xyvjlZifo+ZL5VTAx3LW+JQce/eRcA=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
@@ -254,7 +252,6 @@ github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 h1:+9834+KizmvFV7pXQGSXQTsaW
 github.com/grpc-ecosystem/go-grpc-middleware v1.3.0/go.mod h1:z0ButlSOZa5vEBq9m2m2hlwIgKw+rp3sdCBRoJY+30Y=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
 github.com/grpc-ecosystem/grpc-gateway v1.9.0/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
-github.com/grpc-ecosystem/grpc-gateway v1.16.0 h1:gmcG1KaJ57LophUzW0Hy8NmPhnMZb4M0+kPpLofRdBo=
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.0-beta.5/go.mod h1:fR9dOEfEyRM7ltVH0FTpK/QA6L/5BQq8izXNRu/gyVc=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.14.0 h1:t7uX3JBHdVwAi3G7sSSdbsk8NfgA+LnUS88V/2EKaA0=
@@ -295,14 +292,6 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/karrick/godirwalk v1.8.0/go.mod h1:H5KPZjojv4lE+QYImBI8xVtrBRgYrIVsaRPx4tDPEn4=
 github.com/karrick/godirwalk v1.10.3/go.mod h1:RoGL9dQei4vP9ilrpETWE8CLOZ1kiN0LhBygSwrAsHA=
-github.com/kercre123/vector-go-sdk v0.0.0-20221124100529-96fe39486c7f h1:5vta7835ISTGqYdKcpc7ETXbThHa5g6Jg39Ee0jMPGA=
-github.com/kercre123/vector-go-sdk v0.0.0-20221124100529-96fe39486c7f/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
-github.com/kercre123/vector-go-sdk v0.0.0-20221126192209-02587fc53e02 h1:+lu0A+pc8hhuPh18ApRoqHMe9q//CYSH0YRpkbrJsdM=
-github.com/kercre123/vector-go-sdk v0.0.0-20221126192209-02587fc53e02/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
-github.com/kercre123/vector-go-sdk v0.0.0-20221126192530-19a0391cea24 h1:MQGZ03iByYIR14HWInG2s1uWM7NrlgTLWdebRWBuZsw=
-github.com/kercre123/vector-go-sdk v0.0.0-20221126192530-19a0391cea24/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
-github.com/kercre123/vector-go-sdk v0.0.0-20221127074537-e8fd56cd3322 h1:yT5+F4YW7x0W0dUad3oHaUr0HEP/+23qYGTSi9+6r1A=
-github.com/kercre123/vector-go-sdk v0.0.0-20221127074537-e8fd56cd3322/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
 github.com/kercre123/vector-go-sdk v0.0.0-20221127085929-4652bf662d34 h1:cC0sf4ewwIym/CelIIOuW3oizfCLrDPEgloOMX+vzcY=
 github.com/kercre123/vector-go-sdk v0.0.0-20221127085929-4652bf662d34/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
