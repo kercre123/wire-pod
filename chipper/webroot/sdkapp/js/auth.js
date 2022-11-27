@@ -11,7 +11,7 @@ var x = document.getElementById("botList");
 fetch("/api-sdk/get_sdk_info")
 .then(response => response.text())
 .then ((response) => {
-  if (response.includes("fail")) {
+  if (response.includes("error")) {
     alert("Error, it is likely no bots are authenticated. Debug: " + response)
   } else {
   jsonResp = JSON.parse(response)
