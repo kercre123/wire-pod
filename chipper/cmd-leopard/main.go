@@ -2,10 +2,16 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/digital-dream-labs/chipper/pkg/jdocsserver"
+	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
 	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
+	"github.com/digital-dream-labs/api/go/jdocspb"
+	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
+
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
 
 	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
@@ -20,15 +26,15 @@ func main() {
 func startServer() {
 	srv, err := grpcserver.New(
 		grpcserver.WithViper(),
-		grpcserver.WithLogger(log.Base()),
+		//grpcserver.WithLogger(log.Base()),
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
-		//			grpclog.UnaryServerInterceptor(),
+		//grpclog.UnaryServerInterceptor(),
 		),
 
 		grpcserver.WithStreamServerInterceptors(
-		//			grpclog.StreamServerInterceptor(),
+		//grpclog.StreamServerInterceptor(),
 		),
 	)
 	if err != nil {
@@ -49,7 +55,12 @@ func startServer() {
 		server.WithIntentGraphProcessor(p),
 	)
 
+	tokenServer := tokenserver.NewTokenServer()
+	jdocsserver := jdocsserver.NewJdocsServer()
+
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
+	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsserver)
+	tokenpb.RegisterTokenServer(srv.Transport(), tokenServer)
 
 	srv.Start()
 	fmt.Println("\033[33m\033[1mServer started successfully!\033[0m")
