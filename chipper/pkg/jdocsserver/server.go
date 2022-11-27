@@ -14,17 +14,17 @@ type JdocServer struct {
 }
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
-	fmt.Println("Jdocs WriteDoc (beta impl)")
-	fmt.Println(req.Doc.JsonDoc)
-	fmt.Println(req.UserId)
+	fmt.Println("Jdocs: WriteDoc")
+	fmt.Println(req.DocName)
 	os.WriteFile("./jdocs/"+strings.TrimSpace(req.Thing)+"-"+strings.TrimSpace(req.DocName)+".json", []byte(req.Doc.JsonDoc), 0644)
 	return &jdocspb.WriteDocResp{
 		Status: jdocspb.WriteDocResp_ACCEPTED,
 	}, nil
 }
 func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*jdocspb.ReadDocsResp, error) {
-	fmt.Println("Jdocs ReadDoc")
-	fmt.Println(req.Thing)
+	fmt.Println("Jdocs: ReadDoc")
+	fmt.Println("Robot ID: " + req.Thing)
+	fmt.Println("Item(s) to return: ")
 	fmt.Println(req.Items)
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
 		return &jdocspb.ReadDocsResp{
@@ -50,8 +50,6 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 		}
 		returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &jdocspb.Jdoc{DocVersion: 1, FmtVersion: 1, ClientMetadata: "placeholder", JsonDoc: string(jsonByte)}})
 	}
-	fmt.Println(returnItems)
-	//os.ReadFile("./jdocs/" + strings.TrimSpace(req.UserId) + "-" + strings.TrimSpace(req.Items[0].DocName+".json"))
 	return &jdocspb.ReadDocsResp{Items: returnItems}, nil
 }
 
