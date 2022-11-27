@@ -14,18 +14,16 @@ type JdocServer struct {
 }
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
-	fmt.Println("Jdocs: WriteDoc")
-	fmt.Println(req.DocName)
+	fmt.Println("Jdocs: Incoming WriteDoc request, Item to write: " + req.DocName + ", Robot ID: " + req.Thing)
 	os.WriteFile("./jdocs/"+strings.TrimSpace(req.Thing)+"-"+strings.TrimSpace(req.DocName)+".json", []byte(req.Doc.JsonDoc), 0644)
 	return &jdocspb.WriteDocResp{
 		Status: jdocspb.WriteDocResp_ACCEPTED,
 	}, nil
 }
 func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*jdocspb.ReadDocsResp, error) {
-	fmt.Println("Jdocs: ReadDoc")
-	fmt.Println("Robot ID: " + req.Thing)
-	fmt.Println("Item(s) to return: ")
+	fmt.Println("Jdocs: Incoming ReadDocs request, Robot ID: " + req.Thing + ", Item(s) to return: ")
 	fmt.Println(req.Items)
+	storeBotInfo(ctx, req.Thing)
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
 		return &jdocspb.ReadDocsResp{
 			Items: []*jdocspb.ReadDocsResp_Item{
