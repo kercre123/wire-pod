@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vector SDK App</title>
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+</head>
+<body>
+<div id="outer">
+<div id="content">
+    <h1 class="center">Vector SDK App</h1>
+    <hr>
+    <p>Choose the bot you would like to connect to, then press "Connect".</p>
+    <select id="botList" name="botList"></select>
+    <button onclick="connectSDK()" type="submit">Connect</button>
+    <div id="authResult"></div>
+    <hr>
+</div>
+</div>	
+</body>
+</html>
+  <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
+  <script src="./js/httprequest.js"></script>
+  <script src="./js/auth.js"></script>

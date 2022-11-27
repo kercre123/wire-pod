@@ -7,6 +7,7 @@ import (
 	jdocspb "github.com/digital-dream-labs/api/go/jdocspb"
 	tokenpb "github.com/digital-dream-labs/api/go/tokenpb"
 	jdocsserver "github.com/digital-dream-labs/chipper/pkg/jdocsserver"
+	sdkWeb "github.com/digital-dream-labs/chipper/pkg/sdkapp"
 	"github.com/digital-dream-labs/chipper/pkg/server"
 	tokenserver "github.com/digital-dream-labs/chipper/pkg/tokenserver"
 	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
@@ -64,6 +65,7 @@ func startServer() {
 
 	p, err := wp.New(wp.VoiceProcessorVosk)
 	go wp.StartWebServer()
+	go sdkWeb.BeginServer()
 	wp.InitHoundify()
 	if err != nil {
 		log.Fatal(err)
