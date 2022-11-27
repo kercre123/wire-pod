@@ -62,8 +62,8 @@ func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.Ass
 	}, nil
 }
 
-func (s *TokenServer) AssociateSecondaryUser(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
-	fmt.Println("Token Associate Secondary User")
+func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
+	fmt.Println("Token Associate Secondary Client")
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"expires":      "2029-11-26T16:27:51.997352463Z",
 		"iat":          time.Now(),
