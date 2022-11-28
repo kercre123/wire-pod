@@ -228,7 +228,6 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			defer resp.Body.Close()
 			body, _ := io.ReadAll(resp.Body)
 			geoCodingResponse := string(body)
-			logger(geoCodingResponse)
 
 			var geoCodingInfoStruct []openWeatherMapAPIGeoCodingStruct
 
@@ -270,9 +269,6 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			defer resp.Body.Close()
 			body, _ = io.ReadAll(resp.Body)
 			weatherResponse := string(body)
-
-			logger(weatherResponse)
-
 			var openWeatherMapAPIResponse openWeatherMapAPIResponseStruct
 
 			if hoursFromNow > 0 {
@@ -290,8 +286,6 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			}
 
 			conditionCode := openWeatherMapAPIResponse.Weather[0].Id
-
-			logger(weatherResponse)
 			logger(conditionCode)
 
 			if conditionCode < 300 {

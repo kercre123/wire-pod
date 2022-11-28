@@ -1,14 +1,17 @@
 #!/bin/bash
 
 if [[ ! -d ./chipper ]]; then
-  echo "This must be run in the jank-escape-pod/ directory."
-  exit 0
+  echo "This must be run in the wire-pod/ directory."
+  exit 1
 fi
 
-git pull
-#cd chipper
-#./build.sh
-#cd ..
+if [[ $EUID != "0" ]]; then
+  echo "This must be run as root."
+  exit 1
+fi
+
+git fetch --all
+git reset --hard origin/master
 echo
 echo "Updated!"
 echo
