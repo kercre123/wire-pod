@@ -2,8 +2,14 @@ package main
 
 import (
 	"fmt"
+
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
+	jdocspb "github.com/digital-dream-labs/api/go/jdocspb"
+	tokenpb "github.com/digital-dream-labs/api/go/tokenpb"
+	jdocsserver "github.com/digital-dream-labs/chipper/pkg/jdocsserver"
+	sdkWeb "github.com/digital-dream-labs/chipper/pkg/sdkapp"
 	"github.com/digital-dream-labs/chipper/pkg/server"
+	tokenserver "github.com/digital-dream-labs/chipper/pkg/tokenserver"
 	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
@@ -49,13 +55,9 @@ func startServer() {
 		//grpcserver.WithLogger(log.Base()),
 		grpcserver.WithReflectionService(),
 
-		grpcserver.WithUnaryServerInterceptors(
-		//			grpclog.UnaryServerInterceptor(),
-		),
+		grpcserver.WithUnaryServerInterceptors(),
 
-		grpcserver.WithStreamServerInterceptors(
-		//			grpclog.StreamServerInterceptor(),
-		),
+		grpcserver.WithStreamServerInterceptors(),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -63,6 +65,7 @@ func startServer() {
 
 	p, err := wp.New(wp.VoiceProcessorVosk)
 	go wp.StartWebServer()
+	go sdkWeb.BeginServer()
 	wp.InitHoundify()
 	if err != nil {
 		log.Fatal(err)
@@ -75,7 +78,12 @@ func startServer() {
 		server.WithIntentGraphProcessor(p),
 	)
 
+	tokenServer := tokenserver.NewTokenServer()
+	jdocsserver := jdocsserver.NewJdocsServer()
+
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
+	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsserver)
+	tokenpb.RegisterTokenServer(srv.Transport(), tokenServer)
 
 	srv.Start()
 	fmt.Println("\033[33m\033[1mServer started successfully!\033[0m")

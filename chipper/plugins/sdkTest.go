@@ -20,7 +20,10 @@ func Action(transcribedText string, botSerial string) string {
 	start := make(chan bool)
 	stop := make(chan bool)
 	go func() {
-		_ = sdk_wrapper.Robot.BehaviorControl(ctx, start, stop)
+		err := sdk_wrapper.Robot.BehaviorControl(ctx, start, stop)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 
 	for {
@@ -31,5 +34,4 @@ func Action(transcribedText string, botSerial string) string {
 			return "intent_imperative_praise"
 		}
 	}
-	return "intent_imperative_praise"
 }
