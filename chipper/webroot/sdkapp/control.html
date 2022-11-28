@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vector Web App</title>
+  <link rel="stylesheet" type="text/css" href="./css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+
+  <div id="outer">
+    <div id="content" class="">
+      <h1 class="center">Vector Control (beta)</h1>
+      <hr>
+      <a href="/sdkapp">Back to app</a>
+      <hr>
+      <button onclick="sdkInit()" type="submit">Initiate connection</button>
+      <button onclick="sdkUnInit()" type="submit">End connection</button>
+      <hr>
+      <div id=sdkActions>
+        <h2 class="center">Camera Feed</h2>
+        <div class="center" id="camStream"><img src="/stream"></div>
+        <button onclick="showCamStream()">Begin Camera Stream</button>
+        <button onclick="stopCamStream()">Stop Camera Stream</button>
+        <hr>
+      <h2 class="center">Behavior Control</h2>
+      <small class="center">You must assume behavior control before performing any action</small>
+      <ul>
+        <li><button onclick="sendForm('/api-sdk/assume_behavior_control?priority=high')" type="submit">Assume</button></li>
+        <li><button onclick="sendForm('/api-sdk/release_behavior_control')" type="submit">Release</button></li>
+      </ul>
+      <hr>
+      <h2 class="center">Move Wheels</h2>
+      <button onclick="toggleKeyboard()" type=submit">Toggle Keyboard Controls (unstable)</button></li>
+      <div id="keysKey"><small class="center">Enabled! WASD for wheels, R-lift up, F-lift down, T-head up, G-head down</small></div>
+      <hr>
+      <h2 class="center">Say Text</h2>
+      <div class="center">
+        <form method="POST" action="/api-sdk/say_text" target="hiddenFrame">
+          <input class="tinput" name="text" type="text" placeholder="Put text here">
+          <input class="settingsExtra" type="submit">
+        </form>
+      </div>
+      <hr>
+      </div>
+  </div>
+
+</div>
+<script src="./js/httprequest.js"></script>
+<script src="./js/iro.min.js"></script>
+<script src="./js/control.js"></script>
+<iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
+</body>
+</html>
