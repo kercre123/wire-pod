@@ -16,13 +16,17 @@ require (
 require (
 	github.com/Picovoice/leopard/binding/go v1.1.2
 	github.com/alphacep/vosk-api/go v0.3.43
-	github.com/kercre123/vector-go-sdk v0.0.0-20221124100529-96fe39486c7f
+	github.com/fogleman/gg v1.3.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/gorilla/websocket v1.4.2
+	github.com/kercre123/vector-go-sdk v0.0.0-20221127085929-4652bf662d34
+	hz.tools/mjpeg v0.0.3
 )
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
