@@ -11,39 +11,6 @@ escapepodEnabled = ""
 
 var client = new HttpClient();
 getCurrentSettings()
-document.querySelectorAll('.serverEscape').forEach(item => {
-  item.addEventListener('click', event => {
-    let confirmAction = confirm("This will change Vector's server environment to Escape Pod. This will NOT clear user data but will make parts of this web app inoperable and will restart onboarding. Vector's personality will remain intact. Would you like to continue?");
-    if (confirmAction) {
-      fetch("/api-sdk/server_escape")
-      alert("Executing. After a while, Vector's screen should show 'Configuring'. Once Vector reaches the onboarding screen, the process has finished and you can start onboarding Vector. <<<*IMPORTANT: The Escape Pod's built-in settings implementation will not work. This is normal and is currently being worked on. Once he is set up, press OK. After that, press the 'Skip Onboarding' button (located after the server environment settings).*>>>")
-      location.reload()
-    }
-  })
-})
-document.querySelectorAll('.settingsExtra').forEach(item => {
-  item.addEventListener('click', event => {
-    setTimeout(function(){getCurrentSettings()}, 1700)
-  })
-})
-document.querySelectorAll('.serverProd').forEach(item => {
-  item.addEventListener('click', event => {
-    let confirmAction = confirm("This will change Vector's server environment to Production (normal, stock). This will NOT clear user data but may affect the functionality of this web app and will restart onboarding. Vector's personality will remain intact. Would you like to continue?");
-    if (confirmAction) {
-      fetch("/api-sdk/server_prod")
-      alert("Executing. After a while, Vector's screen should show 'Configuring'. <<<Once Vector reaches the onboarding screen (blinking V), press OK.>>> This will bring you to the auth page which will let you log the robot in with the cloud. You do not need to use the Vector mobile app.")
-      location.reload();
-    }
-  })
-})
-function certReset() {
-  let confirmAction = confirm("This will put Vector back on the Onboarding screen and he will be unauthenticated from his account. You should use this page or the Vector mobile app to authenticate him with an Anki account after this process is complete. Vector's stats and personality will not be changed or erased. Would you like to continue?");
-  if (confirmAction) {
-    fetch("/api-sdk/server_prod")
-    alert("Executing. Vector's eyes will disappear and his face will show 'configuring...'. After a while, he will boot back up to the onboarding screen (blinking V). <<<*Once he is there, press OK and this app will bring up an authentication screen.*>>>");
-    location.reload();
-  };
-};
 
 function revealSdkActions() {
   var x = document.getElementById("sdkActions");

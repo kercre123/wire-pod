@@ -41,7 +41,7 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 		}
 		var robotSettings robotSettingsJson
 		json.Unmarshal(byteValue, &robotSettings)
-		botLocation = robotSettings.Locale
+		botLocation = robotSettings.DefaultLocation
 		if robotSettings.TempIsFahrenheit {
 			botUnits = "F"
 		} else {

@@ -27,7 +27,7 @@ elif [[ "${UNAME}" == *"aarch64"* ]]; then
 	echo "aarch64 architecture confirmed."
 elif [[ "${UNAME}" == *"armv7l"* ]]; then
 	ARCH="armv7l"
-	echo "armv7l WARN: The Coqui bindings are broken for this platform at the moment, so please choose Picovoice when the script asks."
+	echo "armv7l WARN: The Coqui and VOSK bindings are broken for this platform at the moment, so please choose Picovoice when the script asks."
 	exit 1
 else
 	echo "Your CPU architecture not supported. This script currently supports x86_64, aarch64, and armv7l."
@@ -65,13 +65,13 @@ function getPackages() {
 		echo "Installing required packages (ffmpeg, golang, wget, openssl, net-tools, iproute2, sox, opus)"
 		if [[ ${TARGET} == "debian" ]]; then
 			apt update -y
-			apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++
+			apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git
 		elif [[ ${TARGET} == "arch" ]]; then
 			pacman -Sy --noconfirm
-			sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl
+			sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git
 		elif [[ ${TARGET} == "fedora" ]]; then
 			dnf update
-			dnf install -y wget openssl net-tools sox opus make opusfile curl
+			dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git
 		fi
 		touch ./vector-cloud/packagesGotten
 		echo
@@ -157,11 +157,11 @@ function getSTT() {
 		echo "Which speech-to-text service would you like to use?"
 		echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
 		echo "2: Picovoice Leopard (local, usage collected, accurate, account signup required)"
-		echo "3: VOSK (local, accurate, multilanguage)"
+		echo "3: VOSK (local, accurate, multilanguage, fast)"
 		echo
-		read -p "Enter a number (1): " sttServiceNum
+		read -p "Enter a number (3): " sttServiceNum
 		if [[ ! -n ${sttServiceNum} ]]; then
-			sttService="coqui"
+			sttService="vosk"
 		elif [[ ${sttServiceNum} == "1" ]]; then
 			sttService="coqui"
 		elif [[ ${sttServiceNum} == "2" ]]; then
@@ -326,15 +326,15 @@ function getSTT() {
 }
 
 function IPDNSPrompt() {
-	read -p "Enter a number (1): " yn
+	read -p "Enter a number (3): " yn
 	case $yn in
 	"1") SANPrefix="IP" ;;
 	"2") SANPrefix="DNS" ;;
 	"3") isEscapePod="epod" ;;
 	"4") noCerts="true" ;;
-	"") SANPrefix="IP" ;;
+	"") isEscapePod="epod" ;;
 	*)
-		echo "Please answer with 1 or 2."
+		echo "Please answer with 1, 2, 3, or 4."
 		IPDNSPrompt
 		;;
 	esac
@@ -368,7 +368,7 @@ function generateCerts() {
 	echo
 	echo "1: IP address (recommended for OSKR Vectors)"
 	echo "2: Domain"
-	echo "3: escapepod.local (recommended for prod Vectors)"
+	echo "3: escapepod.local (required for regular production Vectors)"
 	if [[ -d ./certs ]]; then
 		echo "4: Keep certificates as is"
 	fi
@@ -457,14 +457,14 @@ function makeSource() {
 		echo "Otherwise, placeholder values will be used."
 		echo
 		echo "1: Yes, and I want to use weatherapi.com"
-		echo "2: Yes, and I want to use openweathermap.org"
+		echo "2: Yes, and I want to use openweathermap.org (with forecast support)"
 		echo "3: No"
-		read -p "Enter a number (1): " yn
+		read -p "Enter a number (3): " yn
 		case $yn in
 		"1") weatherSetup="true" weatherProvider="weatherapi.com";;
 		"2") weatherSetup="true" weatherProvider="openweathermap.org";;
 		"3") weatherSetup="false" ;;
-		"") weatherSetup="true" ;;
+		"") weatherSetup="false" ;;
 		*)
 			echo "Please answer with 1 or 2."
 			weatherPrompt
@@ -514,11 +514,11 @@ function makeSource() {
 		echo
 		echo "1: Yes"
 		echo "2: No"
-		read -p "Enter a number (1): " yn
+		read -p "Enter a number (2): " yn
 		case $yn in
 		"1") knowledgeSetup="true" ;;
 		"2") knowledgeSetup="false" ;;
-		"") knowledgeSetup="true" ;;
+		"") knowledgeSetup="false" ;;
 		*)
 			echo "Please answer with 1 or 2."
 			houndifyPrompt
@@ -784,12 +784,7 @@ function firstPrompt() {
 		generateCerts
 		buildChipper
 		makeSource
-		echo "Everything is done! To copy everything needed to your bot, run this script like this:"
-		echo "Usage: sudo ./setup.sh scp <vector's ip> <path/to/ssh-key>"
-		echo "Example: sudo ./setup.sh scp 192.168.1.150 /home/wire/id_rsa_Vector-R2D2"
-		echo
-		echo "If your Vector is on Wire's custom software or you have an old dev build, you can run this command without an SSH key:"
-		echo "Example: sudo ./setup.sh scp 192.168.1.150"
+		echo -e "\033[33m\033[1mEverything is set up! wire-pod is ready to start!\033[0m"
 		echo
 		if [[ -f ./chipper/useepod ]]; then
 			echo "You chose to use escapepod.local, so you do not need to run any SCP commands for a prod bot to use this. You just need to put on an official escape pod OTA. The instructions can be found in the root of this repo."
@@ -829,17 +824,18 @@ function firstPrompt() {
 		generateCerts
 		buildChipper
 		makeSource
-		echo "Everything is done! To copy everything needed to your bot, run this script like this:"
-		echo "Usage: sudo ./setup.sh scp <vector's ip> <path/to/ssh-key>"
-		echo "Example: sudo ./setup.sh scp 192.168.1.150 /home/wire/id_rsa_Vector-R2D2"
+		echo -e "\033[33m\033[1mEverything is set up! wire-pod is ready to start!\033[0m"
+		# echo "Everything is done! To copy everything needed to your bot, run this script like this:"
+		# echo "Usage: sudo ./setup.sh scp <vector's ip> <path/to/ssh-key>"
+		# echo "Example: sudo ./setup.sh scp 192.168.1.150 /home/wire/id_rsa_Vector-R2D2"
+		# echo
+		# echo "If your Vector is on Wire's custom software or you have an old dev build, you can run this command without an SSH key:"
+		# echo "Example: sudo ./setup.sh scp 192.168.1.150"
 		echo
-		echo "If your Vector is on Wire's custom software or you have an old dev build, you can run this command without an SSH key:"
-		echo "Example: sudo ./setup.sh scp 192.168.1.150"
-		echo
-		if [[ -f ./chipper/useepod ]]; then
-			echo "You chose to use escapepod.local, so you do not need to run any SCP commands for a prod bot to use this. You just need to put on an official escape pod OTA. The instructions can be found in the root of this repo."
-			echo
-		fi
+		# if [[ -f ./chipper/useepod ]]; then
+		# 	echo "You chose to use escapepod.local, so you do not need to run any SCP commands for a prod bot to use this. You just need to put on an official escape pod OTA. The instructions can be found in the root of this repo."
+		# 	echo
+		# fi
 		;;
 	*)
 		echo "Please answer with 1, 2, 3, 4, 5, 6, or just press enter with no input for 1."
@@ -876,9 +872,9 @@ echo "What would you like to do?"
 echo "1: Full Setup (recommended) (builds chipper, gets STT stuff, generates certs, creates source.sh file, and creates server_config.json for your bot"
 echo "2: Just build vic-cloud"
 echo "3: Just build chipper"
-echo "4: Just get STT stuff"
+echo "4: Just get STT assets"
 echo "5: Just generate certs"
-echo "6: Just create source.sh file and config for bot (also for setting up OpenWeatherMap API)"
-echo "If you have done everything you have needed, run './setup.sh scp vectorip path/to/key' to copy the new vic-cloud and server config to Vector."
+echo "6: Create wire-pod config file (change/add API keys)"
+echo "(NOTE: You can just press enter without entering a number to select the default, recommended option)"
 echo
 firstPrompt
