@@ -11,7 +11,7 @@ if [[ $EUID != "0" ]]; then
 fi
 
 git fetch --all
-git reset --hard origin/master
+git reset --hard origin/main
 echo
 echo "Updated!"
 echo
