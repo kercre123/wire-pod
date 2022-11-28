@@ -4,14 +4,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image"
-	"image/color"
-	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -21,8 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fogleman/gg"
-	"github.com/gorilla/websocket"
 	"github.com/kercre123/vector-go-sdk/pkg/vector"
 	"github.com/kercre123/vector-go-sdk/pkg/vectorpb"
 	"hz.tools/mjpeg"
@@ -31,8 +24,6 @@ import (
 const serverFiles string = "./webroot/sdkapp"
 
 var sdkAddress string = "localhost:443"
-
-const vizAddress string = "localhost:8888"
 
 var robot *vector.Vector
 var bcAssumption bool = false
@@ -114,19 +105,15 @@ func assumeBehaviorControl(priority string) {
 			}
 			// * end - modified from official vector-go-sdk
 		}()
-		for {
-			select {
-			case <-start:
-				for {
-					if bcAssumption {
-						time.Sleep(time.Millisecond * 500)
-					} else {
-						break
-					}
+		for range start {
+			for {
+				if bcAssumption {
+					time.Sleep(time.Millisecond * 500)
+				} else {
+					break
 				}
-				stop <- true
-				return
 			}
+			stop <- true
 		}
 	}()
 }
@@ -176,67 +163,6 @@ func releaseBehaviorControl() {
 	bcAssumption = false
 }
 
-func convertPixesTo16BitRGB(r uint32, g uint32, b uint32, a uint32) uint16 {
-	R, G, B := int(r/257), int(g/257), int(b/257)
-
-	return uint16((int(R>>3) << 11) |
-		(int(G>>2) << 5) |
-		(int(B>>3) << 0))
-}
-
-func convertPixelsToRawBitmap(image image.Image) []uint16 {
-	imgHeight, imgWidth := image.Bounds().Max.Y, image.Bounds().Max.X
-	bitmap := make([]uint16, 184*96)
-
-	for y := 0; y < imgHeight; y++ {
-		for x := 0; x < imgWidth; x++ {
-			bitmap[(y)*184+(x)] = convertPixesTo16BitRGB(image.At(x, y).RGBA())
-		}
-	}
-	return bitmap
-}
-
-func TextOnImg(text string, size float64) []byte {
-	bgImage := image.NewRGBA(image.Rectangle{
-		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: 184, Y: 96},
-	})
-	imgWidth := bgImage.Bounds().Dx()
-	imgHeight := bgImage.Bounds().Dy()
-	dc := gg.NewContext(imgWidth, imgHeight)
-	dc.DrawImage(bgImage, 0, 0)
-
-	if err := dc.LoadFontFace("./test.ttf", size); err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	x := float64(imgWidth / 2)
-	y := float64((imgHeight / 2))
-	maxWidth := float64(imgWidth) - 35.0
-	dc.SetColor(color.White)
-	dc.DrawStringWrapped(text, x, y, 0.5, 0.5, maxWidth, 1.5, gg.AlignCenter)
-	buf := new(bytes.Buffer)
-	bitmap := convertPixelsToRawBitmap(dc.Image())
-	for _, ui := range bitmap {
-		binary.Write(buf, binary.LittleEndian, ui)
-	}
-	os.WriteFile("/tmp/test.raw", buf.Bytes(), 0644)
-	return buf.Bytes()
-}
-
-func imgOnFace(text string, size float64) {
-	faceBytes := TextOnImg(text, size)
-	_, _ = robot.Conn.DisplayFaceImageRGB(
-		ctx,
-		&vectorpb.DisplayFaceImageRGBRequest{
-			FaceData:         faceBytes,
-			DurationMs:       5000,
-			InterruptRunning: true,
-		},
-	)
-}
-
 func sendAppIntent(intent string, param string) {
 	if param == "" {
 		_, _ = robot.Conn.AppIntent(
@@ -254,60 +180,6 @@ func sendAppIntent(intent string, param string) {
 			},
 		)
 	}
-}
-
-func playSound(buf []byte, filename string) string {
-	os.WriteFile("/tmp/"+strings.TrimSpace(filename), buf, 0644)
-	var pcmFile []byte
-	if strings.Contains(filename, ".pcm") || strings.Contains(filename, ".raw") {
-		fmt.Println("Assuming already pcm")
-		pcmFile, _ = os.ReadFile("/tmp/" + strings.TrimSpace(filename))
-	} else {
-		conOutput, conError := exec.Command("ffmpeg", "-y", "-i", "/tmp/"+strings.TrimSpace(filename), "-f", "s16le", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", "/tmp/output.pcm").Output()
-		if conError != nil {
-			fmt.Println(conError)
-			return conError.Error()
-		}
-		fmt.Println("FFMPEG output: " + string(conOutput))
-		pcmFile, _ = os.ReadFile("/tmp/output.pcm")
-	}
-	var audioChunks [][]byte
-	for len(pcmFile) >= 1024 {
-		audioChunks = append(audioChunks, pcmFile[:1024])
-		pcmFile = pcmFile[1024:]
-	}
-	var audioClient vectorpb.ExternalInterface_ExternalAudioStreamPlaybackClient
-	audioClient, _ = robot.Conn.ExternalAudioStreamPlayback(
-		ctx,
-	)
-	audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
-		AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamPrepare{
-			AudioStreamPrepare: &vectorpb.ExternalAudioStreamPrepare{
-				AudioFrameRate: 16000,
-				AudioVolume:    100,
-			},
-		},
-	})
-	fmt.Println(len(audioChunks))
-	for _, chunk := range audioChunks {
-		audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
-			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamChunk{
-				AudioStreamChunk: &vectorpb.ExternalAudioStreamChunk{
-					AudioChunkSizeBytes: 1024,
-					AudioChunkSamples:   chunk,
-				},
-			},
-		})
-		time.Sleep(time.Millisecond * 30)
-	}
-	audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
-		AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamComplete{
-			AudioStreamComplete: &vectorpb.ExternalAudioStreamComplete{},
-		},
-	})
-	os.Remove("/tmp/" + strings.TrimSpace(filename))
-	os.Remove("/tmp/output.pcm")
-	return "success"
 }
 
 func getGUID() string {
@@ -402,48 +274,6 @@ func setSettingSDKintbool(setting string, value string) {
 	}
 }
 
-func getAuthStatus() string {
-	if _, err := os.Stat("/wirefiles/escape"); err == nil {
-		return "escapepod"
-	}
-	if _, err := os.Stat("/data/protected/authStatus"); err == nil {
-		fileBytes, err := ioutil.ReadFile("/data/protected/authStatus")
-		if err != nil {
-			return "unknown"
-		}
-		authStatusFileString := string(fileBytes)
-		if strings.Contains(authStatusFileString, "success") {
-			return "authorized"
-		} else if strings.Contains(authStatusFileString, "noguid") {
-			return "notauthorized2"
-		} else {
-			return "unknown"
-		}
-	} else if errors.Is(err, os.ErrNotExist) {
-		return "notauthorized1"
-	} else {
-		return "notauthorized1"
-	}
-}
-
-func sendSocketMessage(message string) {
-	socketUrl := "ws://" + vizAddress + "/socket"
-	conn, _, err1 := websocket.DefaultDialer.Dial(socketUrl, nil)
-	if err1 != nil {
-		log.Fatal("Error connecting to Websocket Server:", err1)
-	}
-	defer conn.Close()
-	err2 := conn.WriteMessage(websocket.TextMessage, []byte(message))
-	if err2 != nil {
-		log.Println("Error during writing to websocket:", err2)
-	}
-	err3 := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-	if err3 != nil {
-		log.Println("Error during closing websocket:", err3)
-		return
-	}
-}
-
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	default:
@@ -502,21 +332,13 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		setSettingSDKstring("time_zone", timezone)
 		fmt.Fprintf(w, "done")
 		return
-	case r.URL.Path == "/api-sdk/stop_timer":
-		sendSocketMessage(`{"type":"data","module":"intents","data":{"intentType":"cloud","request":"{ \"intent\" : \"intent_global_stop_extend\", \"metadata\" : \"text: stop the timer  confidence: 0.000000  handler: HOUNDIFY\", \"parameters\" : \"{\\\"entity_behavior_stoppable\\\":\\\"timer\\\"}\\n\", \"time\" : 1649608984, \"type\" : \"result\" }"}}`)
-		fmt.Fprintf(w, "done")
-		return
-	case r.URL.Path == "/api-sdk/get_auth_status":
-		authStatus := getAuthStatus()
-		fmt.Fprint(w, authStatus)
-		return
 	case r.URL.Path == "/api-sdk/get_sdk_info":
 		jsonBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
 		if err != nil {
 			fmt.Fprintf(w, "error reading file")
 			return
 		}
-		fmt.Fprintf(w, string(jsonBytes))
+		fmt.Fprint(w, string(jsonBytes))
 		return
 	case r.URL.Path == "/api-sdk/get_sdk_settings":
 		settings := getSDKSettings()
@@ -664,28 +486,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		speed, _ := strconv.Atoi(r.FormValue("speed"))
 		moveHead(float32(speed))
 		fmt.Fprintf(w, "")
-		return
-	case r.URL.Path == "/api-sdk/img_on_face":
-		text := r.FormValue("text")
-		sizeInt, _ := strconv.Atoi(r.FormValue("size"))
-		if text == "" {
-			text = "test"
-		}
-		size := float64(sizeInt)
-		fmt.Println(size)
-		imgOnFace(text, size)
-		fmt.Fprintf(w, "done :)")
-		return
-	case r.URL.Path == "/api-sdk/play_sound":
-		var buf bytes.Buffer
-		file, header, err := r.FormFile("file")
-		if err != nil {
-			fmt.Fprintf(w, "error")
-			return
-		}
-		io.Copy(&buf, file)
-		playSound(buf.Bytes(), header.Filename)
-		fmt.Fprintf(w, "success")
 		return
 	}
 }
