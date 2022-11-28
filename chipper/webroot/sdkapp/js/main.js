@@ -17,6 +17,12 @@ function revealSdkActions() {
   x.style.display = "block";
 }
 
+document.querySelectorAll('.settingsExtra').forEach(item => {
+  item.addEventListener('click', event => {
+    setTimeout(function(){getCurrentSettings()}, 1700)
+  })
+})
+
 function sendForm(formURL) {
   let xhr = new XMLHttpRequest();
   if (`${escapepodEnabled}` == "true") {
