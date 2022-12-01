@@ -41,6 +41,8 @@ func handleSdkIntent(req interface{}, intent string, speechText string, intentPa
 				rollADie()
 			}
 		}
+		stop <- true
+		return returnIntent
 	}
 
 	return returnIntent
