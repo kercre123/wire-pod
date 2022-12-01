@@ -13,7 +13,7 @@ import (
 func handleSdkIntent(req interface{}, intent string, speechText string, intentParams map[string]string, isParam bool, justThisBotNum int, serial string) string {
 	returnIntent := "intent_greeting_hello"
 
-	sdk_wrapper.InitSDK(serial)
+	sdk_wrapper.InitSDKForWirepod(serial)
 
 	ctx := context.Background()
 	start := make(chan bool)
