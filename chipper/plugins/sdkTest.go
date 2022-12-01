@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	sdk_wrapper "github.com/kercre123/vector-go-sdk/pkg/sdk-wrapper"
+	sdk_wrapper "github.com/fforchino/vector-go-sdk/pkg/sdk-wrapper"
 )
 
 // test of SDK implementation
