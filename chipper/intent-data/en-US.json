@@ -1,7 +1,7 @@
 [
 	{
 		"name" : "intent_names_username_extend", 
-		"keyphrases": ["name is", "native is", "names", "name's" ]
+		"keyphrases": ["my name is", "native is", "names", "name's", "I am", "I'm" ]
 	},
 	{	
 		"name": "intent_weather_extend", 
@@ -9,7 +9,7 @@
 	},
 	{	
 		"name": "intent_names_ask", 
-		"keyphrases" : ["my name" ]
+		"keyphrases" : ["what's my name", "what is my name", "who am I" ]
 	},
 	{	
 		"name": "intent_imperative_eyecolor",
