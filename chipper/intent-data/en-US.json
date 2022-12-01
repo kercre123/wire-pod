@@ -214,5 +214,17 @@
 	{	
 		"name": "intent_play_keepaway",
 		"keyphrases": ["keepaway", "keep away" ]
+	},
+	{
+		"name": "intent_sdk_set_robot_name",
+		"keyphrases": ["you are", "your name is", "your name's" ]
+	},
+	{
+		"name": "intent_sdk_get_robot_name",
+		"keyphrases": ["who are you", "what's your name", "what is your name" ]
+	},
+	{
+		"name": "intent_sdk_roll_a_die",
+		"keyphrases": ["roll a die","roll the die","roll the dice","roll the die","dice","roll a number","die"]
 	}
 ]
