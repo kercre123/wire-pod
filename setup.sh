@@ -596,8 +596,8 @@ function makeSource() {
 	fi
 	echo "export DEBUG_LOGGING=true" >>source.sh
 	echo "export WIREPOD_EX_TMP_PATH=/tmp" >>source.sh
-	echo "export WIREPOD_EX_DATA_PATH=./plugins/data" >>source.sh
-	echo "export WIREPOD_EX_NVM_PATH=./plugins/nvm" >>source.sh
+	echo "export WIREPOD_EX_DATA_PATH=./data" >>source.sh
+	echo "export WIREPOD_EX_NVM_PATH=./nvm" >>source.sh
 	cd ..
 	echo
 	echo "Created source.sh file!"

@@ -299,6 +299,18 @@ func paramCheckerItIT(req interface{}, intent string, speechText string, justThi
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
+
+	// Now that parsing params is done, handle sdk intents. These are intents that send a generic response to the bot,
+	// and execute some sdk code
+	if strings.Contains(intent, "intent_sdk_") {
+		// Write a dummy response
+		newIntent = handleSdkIntent(req, intent, speechText, intentParams, isParam, justThisBotNum, botSerial)
+		isParam = false
+		intentParam = ""
+		intentParamValue = ""
+		intentParams = map[string]string{intentParam: intentParamValue}
+	}
+
 	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
 }
 
@@ -525,5 +537,17 @@ func prehistoricParamCheckerItIT(req interface{}, intent string, speechText stri
 		isParam = false
 		intentParams = map[string]string{intentParam: intentParamValue}
 	}
+
+	// Now that parsing params is done, handle sdk intents. These are intents that send a generic response to the bot,
+	// and execute some sdk code
+	if strings.Contains(intent, "intent_sdk_") {
+		// Write a dummy response
+		newIntent = handleSdkIntent(req, intent, speechText, intentParams, isParam, justThisBotNum, botSerial)
+		isParam = false
+		intentParam = ""
+		intentParamValue = ""
+		intentParams = map[string]string{intentParam: intentParamValue}
+	}
+
 	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
 }

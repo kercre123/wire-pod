@@ -136,8 +136,8 @@ github.com/evanphx/json-patch v4.12.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQL
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/structs v1.1.0 h1:Q7juDM0QtcnhCpeyLGQKyg4TOIghuNXrkL32pHAUMxo=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
-github.com/fforchino/vector-go-sdk v0.0.0-20221201153332-785b8acdc788 h1:sV/jgkiDGLMBANc0keGFVMFG9mxqYPUph7okcv8+TsI=
-github.com/fforchino/vector-go-sdk v0.0.0-20221201153332-785b8acdc788/go.mod h1:VhuDr1h8ilsmbbjG1Wvp66kIzWfyGFwKA54oIhpwIKQ=
+github.com/fforchino/vector-go-sdk v0.0.0-20221201212502-bb48c49083e0 h1:kNtgYowIFgdCCt0Jto0lUFsxl3nPprWh6WDw4IlozjE=
+github.com/fforchino/vector-go-sdk v0.0.0-20221201212502-bb48c49083e0/go.mod h1:VhuDr1h8ilsmbbjG1Wvp66kIzWfyGFwKA54oIhpwIKQ=
 github.com/fogleman/gg v1.3.0 h1:/7zJX8F6AaYQc57WQCyN9cAIz+4bCJGO9B+dyW29am8=
 github.com/fogleman/gg v1.3.0/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
 github.com/frankban/quicktest v1.14.3 h1:FJKSZTDHjyhriyC81FLQ0LY93eSai0ZyR/ZIkd3ZUKE=
