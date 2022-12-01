@@ -136,8 +136,8 @@ github.com/evanphx/json-patch v4.12.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQL
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/structs v1.1.0 h1:Q7juDM0QtcnhCpeyLGQKyg4TOIghuNXrkL32pHAUMxo=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
-github.com/fforchino/vector-go-sdk v0.0.0-20221201144724-52913d56f626 h1:ouncJ7u7SlR6YldnG4UszdVwRwsA45d5OBSAAwySM48=
-github.com/fforchino/vector-go-sdk v0.0.0-20221201144724-52913d56f626/go.mod h1:VhuDr1h8ilsmbbjG1Wvp66kIzWfyGFwKA54oIhpwIKQ=
+github.com/fforchino/vector-go-sdk v0.0.0-20221201153332-785b8acdc788 h1:sV/jgkiDGLMBANc0keGFVMFG9mxqYPUph7okcv8+TsI=
+github.com/fforchino/vector-go-sdk v0.0.0-20221201153332-785b8acdc788/go.mod h1:VhuDr1h8ilsmbbjG1Wvp66kIzWfyGFwKA54oIhpwIKQ=
 github.com/fogleman/gg v1.3.0 h1:/7zJX8F6AaYQc57WQCyN9cAIz+4bCJGO9B+dyW29am8=
 github.com/fogleman/gg v1.3.0/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
 github.com/frankban/quicktest v1.14.3 h1:FJKSZTDHjyhriyC81FLQ0LY93eSai0ZyR/ZIkd3ZUKE=
@@ -335,8 +335,6 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/karrick/godirwalk v1.8.0/go.mod h1:H5KPZjojv4lE+QYImBI8xVtrBRgYrIVsaRPx4tDPEn4=
 github.com/karrick/godirwalk v1.10.3/go.mod h1:RoGL9dQei4vP9ilrpETWE8CLOZ1kiN0LhBygSwrAsHA=
-github.com/kercre123/vector-go-sdk v0.0.0-20221127085929-4652bf662d34 h1:cC0sf4ewwIym/CelIIOuW3oizfCLrDPEgloOMX+vzcY=
-github.com/kercre123/vector-go-sdk v0.0.0-20221127085929-4652bf662d34/go.mod h1:KV/o6mVJgqwN2M72o3LbA4gwMe6invWQvXmM+vaX6j0=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
