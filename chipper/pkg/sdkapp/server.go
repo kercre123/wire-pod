@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kercre123/vector-go-sdk/pkg/vector"
-	"github.com/kercre123/vector-go-sdk/pkg/vectorpb"
+	"github.com/fforchino/vector-go-sdk/pkg/vector"
+	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"hz.tools/mjpeg"
 )
 
