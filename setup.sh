@@ -61,7 +61,6 @@ echo "Checks have passed!"
 echo
 
 function getPackages() {
-	if [[ ! -f ./vector-cloud/packagesGotten ]]; then
 		echo "Installing required packages (ffmpeg, golang, wget, openssl, net-tools, iproute2, sox, opus)"
 		if [[ ${TARGET} == "debian" ]]; then
 			apt update -y
@@ -80,24 +79,21 @@ function getPackages() {
 		cd golang
 		if [[ ! -f /usr/local/go/bin/go ]]; then
 			if [[ ${ARCH} == "x86_64" ]]; then
-				wget -q --show-progress https://go.dev/dl/go1.18.2.linux-amd64.tar.gz
+				wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-amd64.tar.gz
 				rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
 				export PATH=$PATH:/usr/local/go/bin
 			elif [[ ${ARCH} == "aarch64" ]]; then
-				wget -q --show-progress https://go.dev/dl/go1.18.2.linux-arm64.tar.gz
+				wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-arm64.tar.gz
 				rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-arm64.tar.gz
 				export PATH=$PATH:/usr/local/go/bin
 			elif [[ ${ARCH} == "armv7l" ]]; then
-				wget -q --show-progress https://go.dev/dl/go1.18.2.linux-armv6l.tar.gz
+				wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-armv6l.tar.gz
 				rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-armv6l.tar.gz
 				export PATH=$PATH:/usr/local/go/bin
 			fi
 		fi
 		cd ..
 		rm -rf golang
-	else
-		echo "Required packages already gotten."
-	fi
 	echo
 }
 
@@ -204,7 +200,7 @@ function getSTT() {
 			    VOSK_DIR="vosk-linux-armv7l-0.3.43"
 			fi
 		    VOSK_ARCHIVE="$VOSK_DIR.zip"
-			wget -q --show-progress "https://github.com/alphacep/vosk-api/releases/download/v0.3.43/$VOSK_ARCHIVE"
+			wget -q --show-progress --no-check-certificate "https://github.com/alphacep/vosk-api/releases/download/v0.3.43/$VOSK_ARCHIVE"
 			unzip "$VOSK_ARCHIVE"
 			mv "$VOSK_DIR" libvosk
 			rm -fr "$VOSK_ARCHIVE"
@@ -224,7 +220,7 @@ function getSTT() {
 			echo "Downloading English (US) model"
 			mkdir -p vosk/models/en-US
 			cd vosk/models/en-US
-			wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
 			unzip vosk-model-small-en-us-0.15.zip
 			mv vosk-model-small-en-us-0.15 model
 			rm vosk-model-small-en-us-0.15.zip
@@ -232,7 +228,7 @@ function getSTT() {
 			echo "Downloading Italian (IT) model"
 			mkdir -p vosk/models/it-IT
 			cd vosk/models/it-IT
-			wget https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip
+			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip
 			unzip vosk-model-small-it-0.22.zip
 			mv vosk-model-small-it-0.22 model
 			rm vosk-model-small-it-0.22.zip
@@ -253,18 +249,18 @@ function getSTT() {
 			cd /root/.coqui
 			if [[ ${ARCH} == "x86_64" ]]; then
 				if [[ ${AVXSUPPORT} == "noavx" ]]; then
-					wget -q --show-progress https://wire.my.to/noavx-coqui/native_client.tflite.Linux.tar.xz
+					wget -q --show-progress --no-check-certificate https://wire.my.to/noavx-coqui/native_client.tflite.Linux.tar.xz
 				else
-					wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.Linux.tar.xz
+					wget -q --show-progress --no-check-certificate https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.Linux.tar.xz
 				fi
 				tar -xf native_client.tflite.Linux.tar.xz
 				rm -f ./native_client.tflite.Linux.tar.xz
 			elif [[ ${ARCH} == "aarch64" ]]; then
-				wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.aarch64.tar.xz
+				wget -q --show-progress --no-check-certificate https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.aarch64.tar.xz
 				tar -xf native_client.tflite.linux.aarch64.tar.xz
 				rm -f ./native_client.tflite.linux.aarch64.tar.xz
 			elif [[ ${ARCH} == "armv7l" ]]; then
-				wget -q --show-progress https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.armv7.tar.xz
+				wget -q --show-progress --no-check-certificate https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.armv7.tar.xz
 				tar -xf native_client.tflite.linux.armv7.tar.xz
 				rm -f ./native_client.tflite.linux.armv7.tar.xz
 			fi
@@ -303,14 +299,14 @@ function getSTT() {
 			fi
 			if [[ ${sttModel} == "large_vocabulary" ]]; then
 				echo "Getting STT model..."
-				wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
+				wget -O model.tflite -q --show-progress --no-check-certificate https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
 				echo "Getting STT scorer..."
-				wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
+				wget -O model.scorer -q --show-progress --no-check-certificate https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
 			elif [[ ${sttModel} == "huge_vocabulary" ]]; then
 				echo "Getting STT model..."
-				wget -O model.tflite -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/model.tflite
+				wget -O model.tflite -q --show-progress --no-check-certificate https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/model.tflite
 				echo "Getting STT scorer..."
-				wget -O model.scorer -q --show-progress https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/huge-vocabulary.scorer
+				wget -O model.scorer -q --show-progress --no-check-certificate https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/huge-vocabulary.scorer
 			else
 				echo "Invalid model specified"
 				exit 0
