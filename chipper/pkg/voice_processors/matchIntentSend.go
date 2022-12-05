@@ -1,7 +1,9 @@
 package wirepod
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -108,6 +110,10 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 					for _, arg := range c.ExecArgs {
 						if arg == "!botSerial" {
 							arg = botSerial
+						} else if arg == "!speechText" {
+							arg = "\"" + voiceText + "\""
+						} else if arg == "!intentName" {
+							arg = c.Name
 						}
 						args = append(args, arg)
 					}
@@ -119,11 +125,15 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 						logger("Executing: " + c.Exec + " " + strings.Join(args, " "))
 						customIntentExec = exec.Command(c.Exec, args...)
 					}
-					customOut, err := customIntentExec.Output()
+					var out bytes.Buffer
+					var stderr bytes.Buffer
+					customIntentExec.Stdout = &out
+					customIntentExec.Stderr = &stderr
+					err := customIntentExec.Run()
 					if err != nil {
-						logger(err)
+						fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
 					}
-					logger("Custom Intent Exec Output: " + strings.TrimSpace(string(customOut)))
+					logger("Custom Intent Exec Output: " + strings.TrimSpace(string(out.String())))
 					IntentPass(req, c.Intent, voiceText, intentParams, isParam, justThisBotNum)
 					successMatched = true
 					break
