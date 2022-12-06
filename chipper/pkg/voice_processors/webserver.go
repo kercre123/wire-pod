@@ -43,12 +43,13 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 					ParamName  string `json:"paramname"`
 					ParamValue string `json:"paramvalue"`
 				} `json:"params"`
-				Exec     string   `json:"exec"`
-				ExecArgs []string `json:"execargs"`
+				Exec           string   `json:"exec"`
+				ExecArgs       []string `json:"execargs"`
+				IsSystemIntent bool     `json:"issystem"`
 			}{Name: name, Description: description, Utterances: strings.Split(utterances, ","), Intent: intent, Params: struct {
 				ParamName  string `json:"paramname"`
 				ParamValue string `json:"paramvalue"`
-			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ",")})
+			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ","), IsSystemIntent: false})
 			customIntentJSONFile, _ = json.Marshal(customIntentJSON)
 			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
 		} else {
@@ -62,12 +63,13 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 					ParamName  string `json:"paramname"`
 					ParamValue string `json:"paramvalue"`
 				} `json:"params"`
-				Exec     string   `json:"exec"`
-				ExecArgs []string `json:"execargs"`
+				Exec           string   `json:"exec"`
+				ExecArgs       []string `json:"execargs"`
+				IsSystemIntent bool     `json:"issystem"`
 			}{{Name: name, Description: description, Utterances: strings.Split(utterances, ","), Intent: intent, Params: struct {
 				ParamName  string `json:"paramname"`
 				ParamValue string `json:"paramvalue"`
-			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ",")}})
+			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ","), IsSystemIntent: false}})
 			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
 		}
 		fmt.Fprintf(w, "intent added successfully")
@@ -132,6 +134,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		if execArgs != "" {
 			customIntentJSON[newNumber].ExecArgs = strings.Split(execArgs, ",")
 		}
+		customIntentJSON[newNumber].IsSystemIntent = false
 		newCustomIntentJSONFile, _ := json.Marshal(customIntentJSON)
 		os.WriteFile("./customIntents.json", newCustomIntentJSONFile, 0644)
 		fmt.Fprintf(w, "intent edited successfully")
