@@ -26,11 +26,13 @@ xhr.onload = function() {
   select.id = element + "intents"
   for (const name in listResponse)
   {
-    console.log(listResponse[name]["name"])
-      var option = document.createElement("option");
-      option.value = listResponse[name]["name"];
-      option.text = listResponse[name]["name"]
-      select.appendChild(option);
+    if (false==listResponse[name]["issystem"]) {
+        console.log(listResponse[name]["name"])
+        var option = document.createElement("option");
+        option.value = listResponse[name]["name"];
+        option.text = listResponse[name]["name"]
+        select.appendChild(option);
+    }
   }
   var label = document.createElement("label");
   label.innerHTML = "Choose the intent: "

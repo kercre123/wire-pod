@@ -22,8 +22,14 @@ type intentsStruct []struct {
 		ParamName  string `json:"paramname"`
 		ParamValue string `json:"paramvalue"`
 	} `json:"params"`
-	Exec     string   `json:"exec"`
-	ExecArgs []string `json:"execargs"`
+	Exec           string   `json:"exec"`
+	ExecArgs       []string `json:"execargs"`
+	IsSystemIntent bool     `json:"issystem"`
+}
+
+type systemIntentResponseStruct struct {
+	Status       string `json:"status"`
+	ReturnIntent string `json:"returnIntent"`
 }
 
 func IntentPass(req interface{}, intentThing string, speechText string, intentParams map[string]string, isParam bool, justThisBotNum int) (interface{}, error) {
@@ -97,7 +103,9 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 				//if strings.Contains(voiceText, strings.ToLower(strings.TrimSpace(v))) {
 				// Check whether the custom sentence is either at the end of the spoken text or space-separated...
 				var seekText = strings.ToLower(strings.TrimSpace(v))
-				if strings.HasSuffix(voiceText, seekText) || strings.Contains(voiceText, seekText+" ") {
+				// System intents can also match any utterances (*)
+				if (c.IsSystemIntent && strings.HasPrefix(seekText, "*")) ||
+					strings.HasSuffix(voiceText, seekText) || strings.Contains(voiceText, seekText+" ") {
 					logger("Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
 					var intentParams map[string]string
 					var isParam bool = false
@@ -114,6 +122,8 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 							arg = "\"" + voiceText + "\""
 						} else if arg == "!intentName" {
 							arg = c.Name
+						} else if arg == "!locale" {
+							arg = sttLanguage
 						}
 						args = append(args, arg)
 					}
@@ -134,8 +144,20 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 						fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
 					}
 					logger("Custom Intent Exec Output: " + strings.TrimSpace(string(out.String())))
-					IntentPass(req, c.Intent, voiceText, intentParams, isParam, justThisBotNum)
-					successMatched = true
+
+					if c.IsSystemIntent {
+						// A system intent returns its output in json format
+						var resp systemIntentResponseStruct
+						err := json.Unmarshal(out.Bytes(), &resp)
+						if err == nil && resp.Status == "ok" {
+							logger("System intent parsed and executed successfully")
+							IntentPass(req, resp.ReturnIntent, voiceText, intentParams, isParam, justThisBotNum)
+							successMatched = true
+						}
+					} else {
+						IntentPass(req, c.Intent, voiceText, intentParams, isParam, justThisBotNum)
+						successMatched = true
+					}
 					break
 				}
 				if successMatched {
