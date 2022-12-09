@@ -1,0 +1,218 @@
+[
+  {
+    "name" : "intent_names_username_extend",
+    "keyphrases" : [ "mi nombre es", "me llamo", "yo soy", "aquí está" ]
+  },
+  {
+    "name": "intent_weather_extend",
+    "keyphrases" : [ "qué tiempo hace", "cómo es el tiempo", "cómo está fuera", "pronóstico del tiempo", "qué tiempo hará" ]
+  },
+  {
+    "name": "intent_names_ask",
+    "keyphrases" : [ "cuál es mi nombre", "como me llamo", "quién soy" ]
+  },
+  {
+    "name": "intent_imperative_eyecolor",
+    "keyphrases" : [ "color de ojos", "cambiar color", "ojos" ]
+  },
+  {
+    "name": "intent_character_age",
+    "keyphrases" : [ "cuántos años tienes", "cuál es tu edad" ]
+  },
+  {
+    "name": "intent_explore_start",
+    "keyphrases" : [ "ve a explorar", "explora", "ve a la exploración", "da un paseo" ]
+  },
+  {
+    "name": "intent_system_charger",
+    "keyphrases" : [ "ve a casa", "a casa", "recargate", "colocate en el cargador", "encuentra el cargador", "ve al cargador" ]
+  },
+  {
+    "name": "intent_system_sleep",
+    "keyphrases" : [ "dorme", "ve a dormir", "ve a la cama", "haz la siesta", "en tu cama" ]
+  },
+  {
+    "name": "intent_greeting_goodmorning",
+    "keyphrases" : [ "dia", "mañana", "tarde" ]
+  },
+  {
+    "name": "intent_greeting_goodnight",
+    "keyphrases" : [ "buenas noches", "buenas tardes" ]
+  },
+  {
+    "name": "intent_greeting_goodbye",
+    "keyphrases" : [ "adiós", "hasta luego" ]
+  },
+  {
+    "name": "intent_seasonal_happynewyear",
+    "keyphrases" : [ "fuegos artificiales", "feliz año nuevo", "feliz año nuevo" ]
+  },
+  {
+    "name": "intent_seasonal_happyholidays",
+    "keyphrases" : [ "navidad", "vacaciones", "fiestas" ]
+  },
+  {
+    "name": "intent_amazon_signin",
+    "keyphrases" : [ "regístrate en alexa", "activa alexa" ]
+  },
+  {
+    "name": "intent_amazon_signin",
+    "keyphrases" : [ "sal de alexa", "desactiva alexa", "apaga alexa" ]
+  },
+  {
+    "name": "intent_imperative_forward",
+    "keyphrases" : [ "adelante" ]
+  },
+  {
+    "name": "intent_imperative_turnaround",
+    "keyphrases" : [ "gira" ]
+  },
+  {
+    "name": "intent_imperative_turnleft",
+    "keyphrases" : [ "gira a la izquierda", "ve a la izquierda" ]
+  },
+  {
+    "name": "intent_imperative_turnright",
+    "keyphrases" : [ "gira a la derecha", "ve a la derecha" ]
+  },
+  {
+    "name": "intent_play_rollcube",
+    "keyphrases" : [ "juega con el cubo", "haz rodar el cubo", "mueve el cubo"]
+  },
+  {
+    "name": "intent_play_popawheelie",
+    "keyphrases" : [ "silba" ]
+  },
+  {
+    "name": "intent_play_fistbump",
+    "keyphrases" : [ "dame el cinco", "golpe de puño" ]
+  },
+  {
+    "name": "intent_play_blackjack",
+    "keyphrases" : [ "veintiuna", "blackjack" ]
+  },
+  {
+    "name": "intent_imperative_affirmative",
+    "keyphrases" : [ "sí", "correcto", "verdad", "verdadero" ]
+  },
+  {
+    "name": "intent_imperative_negative",
+    "keyphrases" : [ "no", "incorrecto", "falso" ]
+  },
+  {
+    "name": "intent_photo_take_extend",
+    "keyphrases" : [ "foto", "selfie" ]
+  },
+  {
+    "name": "intent_imperative_praise",
+    "keyphrases" : [ "bravo", "genial", "mítico", "fuerte", "impresionante" ]
+  },
+  {
+    "name": "intent_imperative_abuse",
+    "keyphrases" : [ "malo", "estúpido", "no es bueno" ]
+  },
+  {
+    "name": "intent_imperative_apologize",
+    "keyphrases" : [ "lo siento" ]
+  },
+  {
+    "name": "intent_imperative_backup",
+    "keyphrases" : [ "regresa" ]
+  },
+  {
+    "name": "intent_imperative_volumedown",
+    "keyphrases" : [ "baje el volumen" ]
+  },
+  {
+    "name": "intent_imperative_volumeup",
+    "keyphrases" : [ "sube el volumen" ]
+  },
+  {
+    "name": "intent_imperative_lookatme",
+    "keyphrases" : [ "mírame" ]
+  },
+  {
+    "name": "intent_imperative_volumelevel_extend",
+    "keyphrases" : [ "volumen" ]
+  },
+  {
+    "name": "intent_imperative_shutup",
+    "keyphrases" : [ "cállate" ]
+  },
+  {
+    "name": "intent_greeting_hello",
+    "keyphrases" : [ "hola", "cómo estás", "buenos días", "buenas noches", "buenas tardes" ]
+  },
+  {
+    "name": "intent_imperative_come",
+    "keyphrases" : [ "ven", "de mí", "aquí" ]
+  },
+  {
+    "name": "intent_imperative_love",
+    "keyphrases" : [ "te amo", "eres mi amor", "te quiero" ]
+  },
+  {
+    "name": "intent_knowledge_promptquestion",
+    "keyphrases" : [ "pregunta" ]
+  },
+  {
+    "name": "intent_clock_checktimer",
+    "keyphrases" : [ "comproba el cronómetro", "comproba el temporizador" ]
+  },
+  {
+    "name": "intent_global_stop_extend",
+    "keyphrases" : [  "para el cronómetro", "para el temporizador", "detén el cronómetro", "detén el temporizador" ]
+  },
+  {
+    "name": "intent_clock_settimer_extend",
+    "keyphrases" : [ "empeza el ", "empeza el cronómetro", "empeza el temporizador" ]
+  },
+  {
+    "name": "intent_clock_time",
+    "keyphrases" : [ "qué hora es", "cuál es la hora", "qué hora haces" ]
+  },
+  {
+    "name": "intent_imperative_quiet",
+    "keyphrases" : [ "basta", "detente", "sé bueno", "mantén la calma" ]
+  },
+  {
+    "name": "intent_imperative_dance",
+    "keyphrases" : [ "baila", "hace un ballet", "danza" ]
+  },
+  {
+    "name": "intent_play_pickupcube",
+    "keyphrases" : [ "recoge" ]
+  },
+  {
+    "name": "intent_imperative_fetchcube",
+    "keyphrases" : [ "recoge el cubo", "toma tu cubo", "toma el cubo", "recoge tu cubo" ]
+  },
+  {
+    "name": "intent_imperative_findcube",
+    "keyphrases" : [ "encuentra el cubo", "encuentra tu cubo", "busca el cubo", "busca tu cubo" ]
+  },
+  {
+    "name": "intent_play_anytrick",
+    "keyphrases" : [ "haz algo genial", "sorpréndeme", "impresioname", "inventa algo" ]
+  },
+  {
+    "name": "intent_message_recordmessage_extend",
+    "keyphrases" : [ "graba" ]
+  },
+  {
+    "name": "intent_message_playmessage_extend",
+    "keyphrases" : [ "reproduce el mensaje", "lee el mensaje" ]
+  },
+  {
+    "name": "intent_blackjack_hit",
+    "keyphrases" : [ "hit" ]
+  },
+  {
+    "name": "intent_blackjack_stand",
+    "keyphrases" : [ "stand" ]
+  },
+  {
+    "name": "intent_play_keepaway",
+    "keyphrases" : [ "vete", "vaya", "váyase", "regrese" ]
+  }
+]
