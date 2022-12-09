@@ -266,9 +266,9 @@ function getSTT() {
 			mkdir -p vosk/models/de-DE
 			cd vosk/models/de-DE
 			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-de-0.21.zip
-			unzip vosk-model-small-it-0.21.zip
-			mv vosk-model-small-it-0.21 model
-			rm vosk-model-small-it-0.21.zip
+			unzip vosk-model-small-de-0.21.zip
+			mv vosk-model-small-de-0.21 model
+			rm vosk-model-small-de-0.21.zip
 
 			echo
 			cd ${origDir}/vosk
