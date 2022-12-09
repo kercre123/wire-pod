@@ -214,18 +214,5 @@
 	{	
 		"name": "intent_play_keepaway",
 		"keyphrases" : [ "stai lontano", "via", "allontanati", "indietro" ]
-	},
-	{
-		"name": "intent_sdk_set_robot_name",
-		"keyphrases": ["tu sei", "ti chiami", "il tuo nome è"]
-	},
-	{
-		"name": "intent_sdk_get_robot_name",
-		"keyphrases": ["chi sei", "come ti chiami"]
-	},
-	{
-		"name": "intent_sdk_roll_a_die",
-		"keyphrases": ["tira un dado","lancia un dado"]
 	}
-
 ]

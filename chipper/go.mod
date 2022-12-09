@@ -16,7 +16,7 @@ require (
 require (
 	github.com/Picovoice/leopard/binding/go v1.1.2
 	github.com/alphacep/vosk-api/go v0.3.43
-	github.com/fforchino/vector-go-sdk v0.0.0-20221201212502-bb48c49083e0
+	github.com/fforchino/vector-go-sdk v0.0.0-20221206154028-e868f3ff9285
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	hz.tools/mjpeg v0.0.3
 )

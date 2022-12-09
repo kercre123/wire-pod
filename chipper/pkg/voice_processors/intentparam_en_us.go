@@ -182,7 +182,7 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 			intentParamValue = "VOLUME_1"
 		}
 		intentParams = map[string]string{intentParam: intentParamValue}
-	} else if strings.Contains(intent, "intent_names_username_extend") || strings.Contains(intent, "intent_sdk_set_robot_name") {
+	} else if strings.Contains(intent, "intent_names_username_extend") {
 		var username string
 		var nameSplitter string
 		isParam = true
@@ -277,7 +277,6 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-
 	if botIsEarlyOpus {
 		if strings.Contains(intent, "intent_imperative_praise") {
 			isParam = false
@@ -299,18 +298,6 @@ func paramCheckerEnUS(req interface{}, intent string, speechText string, justThi
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-
-	// Now that parsing params is done, handle sdk intents. These are intents that send a generic response to the bot,
-	// and execute some sdk code
-	if strings.Contains(intent, "intent_sdk_") {
-		// Write a dummy response
-		newIntent = handleSdkIntent(req, intent, speechText, intentParams, isParam, justThisBotNum, botSerial)
-		isParam = false
-		intentParam = ""
-		intentParamValue = ""
-		intentParams = map[string]string{intentParam: intentParamValue}
-	}
-
 	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
 }
 
@@ -444,7 +431,7 @@ func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText stri
 			intentParamValue = "VOLUME_1"
 		}
 		intentParams = map[string]string{intentParam: intentParamValue}
-	} else if strings.Contains(intent, "intent_names_username_extend") || strings.Contains(intent, "intent_sdk_set_robot_name") {
+	} else if strings.Contains(intent, "intent_names_username_extend") {
 		var username string
 		var nameSplitter string
 		isParam = true
@@ -567,17 +554,5 @@ func prehistoricParamCheckerEnUS(req interface{}, intent string, speechText stri
 		isParam = false
 		intentParams = map[string]string{intentParam: intentParamValue}
 	}
-
-	// Now that parsing params is done, handle sdk intents. These are intents that send a generic response to the bot,
-	// and execute some sdk code
-	if strings.Contains(intent, "intent_sdk_") {
-		// Write a dummy response
-		newIntent = handleSdkIntent(req, intent, speechText, intentParams, isParam, justThisBotNum, botSerial)
-		isParam = false
-		intentParam = ""
-		intentParamValue = ""
-		intentParams = map[string]string{intentParam: intentParamValue}
-	}
-
 	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
 }
