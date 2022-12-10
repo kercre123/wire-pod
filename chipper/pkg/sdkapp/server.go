@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"log"
@@ -16,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/digital-dream-labs/hugh/grpc/client"
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"hz.tools/mjpeg"
@@ -274,6 +276,71 @@ func setSettingSDKintbool(setting string, value string) {
 	}
 }
 
+type RobotSDKInfoStore struct {
+	GlobalGUID string `json:"global_guid"`
+	Robots     []struct {
+		Esn       string `json:"esn"`
+		IPAddress string `json:"ip_address"`
+	} `json:"robots"`
+}
+
+type options struct {
+	SerialNo  string
+	RobotName string `ini:"name"`
+	CertPath  string `ini:"cert"`
+	Target    string `ini:"ip"`
+	Token     string `ini:"guid"`
+}
+
+func NewWP(serial string) (*vector.Vector, error) {
+	if serial == "" {
+		log.Fatal("please use the -serial argument and set it to your robots serial number")
+		return nil, fmt.Errorf("Configuration options missing")
+	}
+
+	cfg := options{}
+	wirepodPath := os.Getenv("WIREPOD_HOME")
+	if len(wirepodPath) == 0 {
+		wirepodPath = "."
+	}
+	jsonBytes, err := os.ReadFile("jdocs/botSdkInfo.json")
+	if err != nil {
+		log.Println("vector-go-sdk error: Error opening " + "jdocs/botSdkInfo.json" + ", likely doesn't exist")
+		return nil, err
+	}
+	var robotSDKInfo RobotSDKInfoStore
+	json.Unmarshal(jsonBytes, &robotSDKInfo)
+	matched := false
+	for _, robot := range robotSDKInfo.Robots {
+		if strings.TrimSpace(strings.ToLower(robot.Esn)) == strings.TrimSpace(strings.ToLower(serial)) {
+			cfg.Target = robot.IPAddress + ":443"
+			matched = true
+		}
+	}
+	if !matched {
+		log.Println("vector-go-sdk error: serial did not match any bot in bot json")
+		return nil, errors.New("vector-go-sdk error: serial did not match any bot in bot json")
+	}
+	c, err := client.New(
+		client.WithTarget(cfg.Target),
+		client.WithInsecureSkipVerify(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.Connect(); err != nil {
+		return nil, err
+	}
+
+	cfg.SerialNo = serial
+
+	return vector.New(
+		vector.WithTarget(cfg.Target),
+		vector.WithSerialNo(cfg.SerialNo),
+		vector.WithToken(robotSDKInfo.GlobalGUID),
+	)
+}
+
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	default:
@@ -412,39 +479,20 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var err error
-		robot, err = vector.NewEP(serial)
+		robot, err = NewWP(serial)
 		if err != nil {
-			fmt.Fprintf(w, "failed: "+err.Error())
-			return
-		}
-		jsonBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
-		if err != nil {
-			fmt.Fprintf(w, "failed: "+err.Error())
-			return
-		}
-		type RobotSDKInfoStore struct {
-			GlobalGUID string `json:"global_guid"`
-			Robots     []struct {
-				Esn       string `json:"esn"`
-				IPAddress string `json:"ip_address"`
-			} `json:"robots"`
-		}
-		var robotSdkInfo RobotSDKInfoStore
-		json.Unmarshal(jsonBytes, &robotSdkInfo)
-		matched := false
-		for num, robot := range robotSdkInfo.Robots {
-			if robot.Esn == serial {
-				matched = true
-				sdkAddress = robotSdkInfo.Robots[num].IPAddress + ":443"
+			fmt.Println("Couldn't connect to bot with botinfo json, trying INI")
+			robot, err = vector.NewEP(serial)
+			if err != nil {
+				fmt.Fprint(w, "failed: "+err.Error())
+				return
 			}
 		}
+		sdkAddress = robot.Cfg.Target
+		fmt.Println(sdkAddress)
 		_, err = robot.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 		if err != nil {
-			fmt.Fprintf(w, "failed to get battery info")
-			return
-		}
-		if !matched {
-			fmt.Fprintf(w, "failed to set bot ip")
+			fmt.Fprintf(w, "failed to make test request: "+err.Error())
 			return
 		}
 		fmt.Fprintf(w, "success")
