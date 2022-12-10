@@ -70,8 +70,9 @@ func LoadPlugins() {
 			PluginNames = append(PluginNames, *n.(*string))
 			PluginList = append(PluginList, plugin)
 			logger(file.Name() + " loaded successfully")
-		} else {
-			logger("Not loading " + file.Name() + ". Plugins must be built with 'go build -buildmode=plugin' and must end in '.so'.")
 		}
+		// else {
+		//	logger("Not loading " + file.Name() + ". Plugins must be built with 'go build -buildmode=plugin' and must end in '.so'.")
+		//}
 	}
 }
