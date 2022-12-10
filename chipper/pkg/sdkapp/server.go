@@ -12,7 +12,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +25,8 @@ import (
 const serverFiles string = "./webroot/sdkapp"
 
 var sdkAddress string = "localhost:443"
+var robotGUID string = "tni1TRsTRTaNSapjo0Y+Sw=="
+var globalGUID string = "tni1TRsTRTaNSapjo0Y+Sw=="
 
 var robot *vector.Vector
 var bcAssumption bool = false
@@ -185,7 +186,7 @@ func sendAppIntent(intent string, param string) {
 }
 
 func getGUID() string {
-	clientGUID := string("tni1TRsTRTaNSapjo0Y+Sw==")
+	clientGUID := string(robotGUID)
 	return clientGUID
 }
 
@@ -281,6 +282,7 @@ type RobotSDKInfoStore struct {
 	Robots     []struct {
 		Esn       string `json:"esn"`
 		IPAddress string `json:"ip_address"`
+		GUID      string `json:"guid"`
 	} `json:"robots"`
 }
 
@@ -292,7 +294,7 @@ type options struct {
 	Token     string `ini:"guid"`
 }
 
-func NewWP(serial string) (*vector.Vector, error) {
+func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
 	if serial == "" {
 		log.Fatal("please use the -serial argument and set it to your robots serial number")
 		return nil, fmt.Errorf("Configuration options missing")
@@ -315,6 +317,13 @@ func NewWP(serial string) (*vector.Vector, error) {
 		if strings.TrimSpace(strings.ToLower(robot.Esn)) == strings.TrimSpace(strings.ToLower(serial)) {
 			cfg.Target = robot.IPAddress + ":443"
 			matched = true
+			if robot.GUID == "" {
+				robot.GUID = robotSDKInfo.GlobalGUID
+				cfg.Token = robotSDKInfo.GlobalGUID
+			} else {
+				cfg.Token = robot.GUID
+				fmt.Println("Using " + cfg.Token)
+			}
 		}
 	}
 	if !matched {
@@ -334,10 +343,14 @@ func NewWP(serial string) (*vector.Vector, error) {
 
 	cfg.SerialNo = serial
 
+	if useGlobal {
+		cfg.Token = globalGUID
+	}
+
 	return vector.New(
 		vector.WithTarget(cfg.Target),
 		vector.WithSerialNo(cfg.SerialNo),
-		vector.WithToken(robotSDKInfo.GlobalGUID),
+		vector.WithToken(cfg.Token),
 	)
 }
 
@@ -413,26 +426,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Write(settings)
 		return
-	case r.URL.Path == "/api-sdk/rainbow_on":
-		cmd := exec.Command("/bin/bash", "/sbin/vector-ctrl", "rainbowon")
-		cmd.Run()
-		fmt.Fprintf(w, "done")
-		return
-	case r.URL.Path == "/api-sdk/rainbow_off":
-		cmd := exec.Command("/bin/bash", "/sbin/vector-ctrl", "rainbowoff")
-		cmd.Run()
-		fmt.Fprintf(w, "done")
-		return
-	case r.URL.Path == "/api-sdk/snore_enable":
-		fmt.Fprintf(w, "executing")
-		cmd := exec.Command("/bin/bash", "/sbin/vector-ctrldd", "snore_enable")
-		cmd.Run()
-		return
-	case r.URL.Path == "/api-sdk/snore_disable":
-		fmt.Fprintf(w, "executing")
-		cmd := exec.Command("/bin/bash", "/sbin/vector-ctrldd", "snore_disable")
-		cmd.Run()
-		return
 	case r.URL.Path == "/api-sdk/time_format_12":
 		setSettingSDKintbool("clock_24_hour", "false")
 		fmt.Fprintf(w, "done")
@@ -457,21 +450,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		setSettingSDKintbool("button_wakeword", "1")
 		fmt.Fprintf(w, "done")
 		return
-	case r.URL.Path == "/api-sdk/server_escape":
-		fmt.Fprintf(w, "executing")
-		cmd := exec.Command("/bin/bash", "/sbin/vector-ctrldd", "server_escape")
-		cmd.Run()
-		return
-	case r.URL.Path == "/api-sdk/server_prod":
-		fmt.Fprintf(w, "executing")
-		cmd := exec.Command("/bin/bash", "/sbin/vector-ctrldd", "server_prod")
-		cmd.Run()
-		return
-	case r.URL.Path == "/api-sdk/snowglobe":
-		fmt.Fprintf(w, "executing")
-		cmd := exec.Command("/bin/bash", "/sbin/vector-ctrldd", "snowglobe")
-		cmd.Run()
-		return
 	case r.URL.Path == "/api-sdk/initSDK":
 		serial := r.FormValue("serial")
 		if serial == "" {
@@ -479,21 +457,30 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var err error
-		robot, err = NewWP(serial)
+		robot, err = NewWP(serial, false)
 		if err != nil {
-			fmt.Println("Couldn't connect to bot with botinfo json, trying INI")
-			robot, err = vector.NewEP(serial)
+			fmt.Fprint(w, "failed: "+err.Error())
+			return
+		}
+		sdkAddress = robot.Cfg.Target
+		fmt.Println("sdkApp: Initiating SDK with " + robot.Cfg.SerialNo)
+		robotGUID = robot.Cfg.Token
+		_, err = robot.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
+		if err != nil {
+			fmt.Println("Failed to initiate SDK with normal GUID, trying global GUID")
+			robot, err = NewWP(serial, true)
 			if err != nil {
 				fmt.Fprint(w, "failed: "+err.Error())
 				return
 			}
-		}
-		sdkAddress = robot.Cfg.Target
-		fmt.Println(sdkAddress)
-		_, err = robot.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
-		if err != nil {
-			fmt.Fprintf(w, "failed to make test request: "+err.Error())
-			return
+			sdkAddress = robot.Cfg.Target
+			fmt.Println("sdkApp: Initiating SDK with " + robot.Cfg.SerialNo)
+			robotGUID = robot.Cfg.Token
+			_, err = robot.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
+			if err != nil {
+				fmt.Fprintf(w, "failed to make test request: "+err.Error())
+				return
+			}
 		}
 		fmt.Fprintf(w, "success")
 		return

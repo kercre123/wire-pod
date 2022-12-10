@@ -12,7 +12,6 @@ import (
 	tokenserver "github.com/digital-dream-labs/chipper/pkg/tokenserver"
 	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
 
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/log"
 	warnlog "log"
 	"os"
 
@@ -52,12 +51,7 @@ func main() {
 func startServer() {
 	srv, err := grpcserver.New(
 		grpcserver.WithViper(),
-		//grpcserver.WithLogger(log.Base()),
 		grpcserver.WithReflectionService(),
-
-		grpcserver.WithUnaryServerInterceptors(),
-
-		grpcserver.WithStreamServerInterceptors(),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -72,17 +66,17 @@ func startServer() {
 	}
 
 	s, _ := server.New(
-		//server.WithLogger(log.Base()),
 		server.WithIntentProcessor(p),
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),
 	)
 
 	tokenServer := tokenserver.NewTokenServer()
-	jdocsserver := jdocsserver.NewJdocsServer()
+	jdocsServer := jdocsserver.NewJdocsServer()
+	jdocsserver.IniToJson()
 
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
-	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsserver)
+	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsServer)
 	tokenpb.RegisterTokenServer(srv.Transport(), tokenServer)
 
 	srv.Start()
