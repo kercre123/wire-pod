@@ -218,6 +218,7 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 	var matched int = 0
 	var intentNum int = 0
 	var successMatched bool = false
+	voiceText = strings.ToLower(voiceText)
 	pluginMatched := pluginFunctionHandler(req, voiceText, justThisBotNum, botSerial)
 	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, justThisBotNum, botSerial)
 	if !customIntentMatched && !pluginMatched {
@@ -225,7 +226,7 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 		// Look for a perfect match first
 		for _, b := range listOfLists {
 			for _, c := range b {
-				if voiceText == c {
+				if voiceText == strings.ToLower(c) {
 					if isOpus {
 						paramChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
 					} else {
@@ -248,7 +249,7 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 			matched = 0
 			for _, b := range listOfLists {
 				for _, c := range b {
-					if strings.Contains(voiceText, c) {
+					if strings.Contains(voiceText, strings.ToLower(c)) {
 						if isOpus {
 							paramChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
 						} else {

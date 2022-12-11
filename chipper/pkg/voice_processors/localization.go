@@ -35,20 +35,22 @@ const STR_NAME_IS2 = "str_name_is1"
 const STR_NAME_IS3 = "str_name_is2"
 const STR_FOR = "str_for"
 
+// All text must be lowercase!
+
 var texts = map[string][]string{
 	//  key                 			en-US   it-IT   es-ES    fr-FR    de-DE
 	STR_WEATHER_IN:                     {" in ", " a ", " en ", " en ", " in "},
-	STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "Wettervorhersage"},
+	STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "wettervorhersage"},
 	STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "mañana", "demain", "morgen"},
-	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am Tag nach morgen"},
-	STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "Heute Abend"},
-	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "Heute Nachmittag"},
+	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am tag nach morgen"},
+	STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "heute abend"},
+	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "heute nachmittag"},
 	STR_EYE_COLOR_PURPLE:               {"purple", "lilla", "violeta", "violet", "violett"},
 	STR_EYE_COLOR_BLUE:                 {"blue", "blu", "azul", "bleu", "blau"},
 	STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir"},
 	STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb"},
 	STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün"},
-	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarina", "Acquamarina"},
+	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarina", "acquamarina"},
 	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün"},
 	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange"},
 	STR_ME:                             {"me", "me", "me", "moi", "mir"},
@@ -66,7 +68,7 @@ var texts = map[string][]string{
 	STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts"},
 	STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still"},
 	STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus"},
-	STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "Null"},
+	STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "null"},
 	STR_NAME_IS:                        {" is ", " è ", " es ", " est ", " ist "},
 	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin "},
 	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde"},
