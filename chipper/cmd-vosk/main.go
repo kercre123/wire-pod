@@ -52,6 +52,8 @@ func startServer() {
 	srv, err := grpcserver.New(
 		grpcserver.WithViper(),
 		grpcserver.WithReflectionService(),
+		grpcserver.WithUnaryServerInterceptors(),
+		grpcserver.WithStreamServerInterceptors(),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -70,13 +72,12 @@ func startServer() {
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),
 	)
-
-	tokenServer := tokenserver.NewTokenServer()
-	jdocsServer := jdocsserver.NewJdocsServer()
 	jdocsserver.IniToJson()
+	tokenServer := tokenserver.NewTokenServer()
+	jdocsserver := jdocsserver.NewJdocsServer()
 
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
-	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsServer)
+	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsserver)
 	tokenpb.RegisterTokenServer(srv.Transport(), tokenServer)
 
 	srv.Start()
