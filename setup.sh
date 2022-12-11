@@ -265,10 +265,10 @@ function getSTT() {
 			echo "Downloading German (DE) model"
 			mkdir -p vosk/models/de-DE
 			cd vosk/models/de-DE
-			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-de-0.21.zip
-			unzip vosk-model-small-de-0.21.zip
-			mv vosk-model-small-de-0.21 model
-			rm vosk-model-small-de-0.21.zip
+			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip
+			unzip vosk-model-small-de-0.15.zip
+			mv vosk-model-small-de-0.15 model
+			rm vosk-model-small-de-0.15.zip
 
 			echo
 			cd ${origDir}/vosk
