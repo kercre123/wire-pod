@@ -30,9 +30,15 @@
         <li><button onclick="sendForm('/api-sdk/release_behavior_control')" type="submit">Release</button></li>
       </ul>
       <hr>
-      <h2 class="center">Move Wheels</h2>
+      <h2 class="center">Move Motors</h2>
       <button onclick="toggleKeyboard()" type=submit">Toggle Keyboard Controls (unstable)</button></li>
       <div id="keysKey"><small class="center">Enabled! WASD for wheels, R-lift up, F-lift down, T-head up, G-head down</small></div>
+      <hr>
+      <h2 class="center">Mirror Mode</h2>
+      <ul>
+        <li><button onclick="sendForm('/api-sdk/mirror_mode?enable=true')" type=submit">Mirror Mode On</button></li>
+        <li><button onclick="sendForm('/api-sdk/mirror_mode?enable=false')" type=submit">Mirror Mode Off</button></li>
+      </ul>
       <hr>
       <h2 class="center">Say Text</h2>
       <div class="center">
