@@ -11,7 +11,7 @@ var texts = map[string][]string{
 	//  key                 			en-US   it-IT
 	STR_WEATHER_IN:                     {" in ", " a "},
 	STR_WEATHER_FORECAST:               {"forecast", "previsioni"},
-	STR_WEATHER_TOMORROW:               {"tomorrow", "domani"},
+	STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "to morrow"},
 	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani"},
 	STR_WEATHER_TONIGHT:                {"tonight", "stasera"},
 	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio"},
