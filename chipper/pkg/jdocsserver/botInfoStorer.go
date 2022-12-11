@@ -119,7 +119,7 @@ func storeBotInfo(ctx context.Context, thing string) {
 		if robot.Esn == botEsn {
 			appendNew = false
 			robotSDKInfo.Robots[num].IPAddress = ipAddr
-			if iniErr != nil {
+			if iniErr == nil {
 				section := iniData.Section(botEsn)
 				if section != nil {
 					cfg := options{}
