@@ -522,6 +522,33 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		moveHead(float32(speed))
 		fmt.Fprintf(w, "")
 		return
+	case r.URL.Path == "/api-sdk/mirror_mode":
+		enable := r.FormValue("enable")
+		if enable == "true" {
+			_, err := robot.Conn.EnableMirrorMode(
+				ctx,
+				&vectorpb.EnableMirrorModeRequest{
+					Enable: true,
+				},
+			)
+			if err != nil {
+				fmt.Fprint(w, err)
+				return
+			}
+		} else {
+			_, err := robot.Conn.EnableMirrorMode(
+				ctx,
+				&vectorpb.EnableMirrorModeRequest{
+					Enable: false,
+				},
+			)
+			if err != nil {
+				fmt.Fprint(w, err)
+				return
+			}
+		}
+		fmt.Fprint(w, "success")
+		return
 	}
 }
 
