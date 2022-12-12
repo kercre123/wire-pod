@@ -141,7 +141,7 @@
 	},
 	{	
 		"name": "intent_greeting_hello", 
-		"keyphrases" : ["hello", "are you", "high", "below", "little", "follow", "for you", "far you" ]
+		"keyphrases" : ["hello", "are you", "our you", "high", "below", "little", "follow", "for you", "far you" ]
 	},
 	{	
 		"name": "intent_imperative_come", 
