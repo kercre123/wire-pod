@@ -21,6 +21,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 		logger("No intent was matched.")
 		botNum = botNum - 1
 		IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false, speechReq.BotNum)
+		return nil, nil
 	}
 	botNum = botNum - 1
 	logger("Bot " + strconv.Itoa(speechReq.BotNum) + " request served.")
