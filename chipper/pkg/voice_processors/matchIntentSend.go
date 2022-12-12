@@ -227,6 +227,7 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 		for _, b := range listOfLists {
 			for _, c := range b {
 				if voiceText == strings.ToLower(c) {
+					logger("Perfect match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
 					if isOpus {
 						paramChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
 					} else {
@@ -250,6 +251,7 @@ func processTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 			for _, b := range listOfLists {
 				for _, c := range b {
 					if strings.Contains(voiceText, strings.ToLower(c)) {
+						logger("Partial match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
 						if isOpus {
 							paramChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
 						} else {
