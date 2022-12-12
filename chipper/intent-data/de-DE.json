@@ -1,0 +1,218 @@
+[
+  {
+    "name" : "intent_names_username_extend",
+    "keyphrases": ["Mein Name ist", "Mein Name ist", "Ich bin", "hier ist"]
+  },
+  {
+    "name": "intent_weather_extend",
+    "keyphrases": ["Was ist vor langer Zeit", "Wie Zeit ist es", "wie draußen", "Wettervorhersage"]
+  },
+  {
+    "name": "intent_names_ask",
+    "keyphrases": ["Was ist mein Name", "wie mein Name ist", "wer ich bin"]
+  },
+  {
+    "name": "intent_imperative_eyecolor",
+    "keyphrases": ["Augenfarbe", "Augenfarbe", "Farbe ändern", "Augen"]
+  },
+  {
+    "name": "intent_character_age",
+    "keyphrases": ["Wie alt bist du", "Was ist dein Alter", "wie alt du bist"]
+  },
+  {
+    "name": "intent_explore_start",
+    "keyphrases": ["Gehen Sie zu Erkunden", "Erforschen", "gehen Sie zur Erkundung", "machte eine Schoß"]
+  },
+  {
+    "name": "intent_system_charger",
+    "keyphrases": ["Gehen Sie nach Hause", "zu Hause", "aufgeladen", "ins Amt", "Finden Sie das Ladegerät", "GO verantwortlich"]
+  },
+  {
+    "name": "intent_system_sleep",
+    "Keyphrasen": ["Schlaf", "schlafen gehen", "ein Bett", "ins Bett gehen", "Bett", "Bett"]
+  },
+  {
+    "name": "intent_greeting_goodmorning",
+    "keyphrases": ["Tag", "Morgen", "Nachmittag"]
+  },
+  {
+    "name": "intent_greeting_goodnight",
+    "keyphrases": ["Nacht", "Abend"]
+  },
+  {
+    "name": "intent_greeting_goodbye",
+    "keyphrases": ["Hallo", "Auf Wiedersehen", "Siehe dich"]
+  },
+  {
+    "name": "intent_seasonal_happynewyear",
+    "keyphrases": ["Feuerwerk", "Frohes Neues Jahr", "Frohes neues Jahr"]
+  },
+  {
+    "name": "intent_seasonal_happyholidays",
+    "keyphrases": ["Weihnachten", "Urlaub", "Urlaub", "Partys"]
+  },
+  {
+    "name": "intent_amazon_signin",
+    "Keyphrasen": ["Enter Alexa", "Registrieren Sie sich auf Alexa", "Active Alexa", "Turn On Alexa"]
+  },
+  {
+    "name": "intent_amazon_signin",
+    "Keyphrasen": ["Get aus Alexa raus", "Deaktiviere Alexa", "Spens Alexa"]
+  },
+  {
+    "name": "intent_imperative_forward",
+    "keyphrases": ["Forward"]
+  },
+  {
+    "name": "intent_imperative_turnaround",
+    "keyphrases": ["dreht"]
+  },
+  {
+    "name": "intent_imperative_turnleft",
+    "keyphrases": ["links abbiegen", "links"]
+  },
+  {
+    "name": "intent_imperative_turnright",
+    "keyphrases": ["rechts abbiegen", "go rechts"]
+  },
+  {
+    "name": "intent_play_rollcube",
+    "keyphrases": ["Spielen mit dem Würfel spielen", "Roll the Cube", "Move the Cube"]
+  },
+  {
+    "name": "intent_play_popawheelie",
+    "Keyphrasen": ["Pfeifen", "Pfeife", "Whistle"]
+  },
+  {
+    "name": "intent_play_fistbump",
+    "keyphrases": ["Gib mir fünf", "gib mir die fünf"]
+  },
+  {
+    "name": "intent_play_blackjack",
+    "keyphrases": ["Twenty -One", "Blackjack"]
+  },
+  {
+    "name": "intent_imperative_affirmative",
+    "keyphrases": ["Ja", "rechts", "Richtig", "Ja", "wahr"]
+  },
+  {
+    "name": "intent_imperative_negative",
+    "keyphrases": ["Nein", "nicht", "falsch", "Falsch"]
+  },
+  {
+    "name": "intent_photo_take_extend",
+    "keyphrases": ["Foto", "Selfie", "Bild"]
+  },
+  {
+    "name": "intent_imperative_praise",
+    "keyphrases": ["Gut", "groß", "mythisch", "stark", "beeindruckend"]
+  },
+  {
+    "name": "intent_imperative_abuse",
+    "keyphrases": ["schlecht", "dumm", "so geht es nicht"]
+  },
+  {
+    "name": "intent_imperative_apologize",
+    "keyphrases": ["Es tut mir leid", "Entschuldigung", "Entschuldigung", "Es tut mir leid"]
+  },
+  {
+    "name": "intent_imperative_backup",
+    "keyphrases": ["zurück", "abbrechen"]
+  },
+  {
+    "name": "intent_imperative_volumedown",
+    "keyphrases": ["senkt die Lautstärke"]
+  },
+  {
+    "name": "intent_imperative_volumeup",
+    "keyphrases": ["erhöht den Band"]
+  },
+  {
+    "name": "intent_imperative_lookatme",
+    "keyphrases": ["Schau mich an"]
+  },
+  {
+    "name": "intent_imperative_volumelevel_extend",
+    "keyphrases": ["Volumen"]
+  },
+  {
+    "name": "intent_imperative_shutup",
+    "keyphrases": ["Halt die Klappe", "du schweigen", "Halt die Klappe"]
+  },
+  {
+    "name": "intent_greeting_hello",
+    "keyphrases": ["Hallo", "Wie geht es dir", "Guten Morgen", "Guten Abend", "Guten Tag", "Hey", "Hallo"]
+  },
+  {
+    "name": "intent_imperative_come",
+    "keyphrases": ["Come", "von mir", "hier"]
+  },
+  {
+    "name": "intent_imperative_love",
+    "Keyphrasen": ["Ich liebe dich", "Du bist meine Liebe", "Ich liebe dich"]
+  },
+  {
+    "name": "intent_knowledge_promptquestion",
+    "keyphrases": ["Frage"]
+  },
+  {
+    "name": "intent_clock_checktimer",
+    "keyphrases": ["Überprüfen Sie die Stoppuhr", "Überprüfen Sie den Timer"]
+  },
+  {
+    "name": "intent_global_stop_extend",
+    "keyphrases": ["Stoppen Sie die Stoppuhr", "Stop the Timer", "Stop the Timer"]
+  },
+  {
+    "name": "intent_clock_settimer_extend",
+    "keyphrases": ["Starten Sie den Zeitfahren", "Starten Sie den Zeitfahren", "Zeitplan"]
+  },
+  {
+    "name": "intent_clock_time",
+    "Keyphrasen": ["Was ist jetzt", "Wie spät bin ich", "Was ist die Zeit", "Wie spät machst du"]
+  },
+  {
+    "name": "intent_imperative_quiet",
+    "keyphrases": ["Genug", "Stop", "Bleib gut", "Bleib ruhig"]
+  },
+  {
+    "name": "intent_imperative_dance",
+    "Keyphrasen": ["Balla", "Make a Ballet", "Tanz"]
+  },
+  {
+    "name": "intent_play_pickupcube",
+    "keyphrases": ["sammeln"]
+  },
+  {
+    "name": "intent_imperative_fetchcube",
+    "keyphrases": ["Take the Cube", "Take Your Cube", "sammeln Sie den Würfel"]
+  },
+  {
+    "name": "intent_imperative_findcube",
+    "keyphrases": ["Find the Cube", "Find Your Cube"]
+  },
+  {
+    "name": "intent_play_anytrick",
+    "keyphrases": ["etwas Cooles machen", "Wunder mich", "Impression Me", "etwas erfinden"]
+  },
+  {
+    "name": "intent_message_recordmessage_extend",
+    "keyphrases": ["Register"]
+  },
+  {
+    "name": "intent_message_playmessage_extend",
+    "keyphrases": ["reproduzieren die Nachricht", "die Nachricht lesen"]
+  },
+  {
+    "name": "intent_blackjack_hit",
+    "keyphrases": ["Hit"]
+  },
+  {
+    "name": "intent_blackjack_stand",
+    "keyphrases": ["Stand"]
+  },
+  {
+    "name": "intent_play_keepaway",
+    "keyphrases": ["weit bleiben", "weg", "entfernt", "zurück"]
+  }
+]

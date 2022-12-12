@@ -165,7 +165,7 @@
 	},
 	{	
 		"name": "intent_clock_settimer_extend",
-		"keyphrases" : [ "timer", "cronometro" ]
+		"keyphrases" : [ "avvia il cronometro", "fai partire il cronometro", "cronometra" ]
 	},
 	{	
 		"name": "intent_clock_time", 
