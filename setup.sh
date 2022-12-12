@@ -130,6 +130,9 @@ function getLanguage() {
 		echo "Which STT language would you like to use?"
 		echo "1: English (US)"
 		echo "2: Italian (IT)"
+		echo "3: Spanish (ES)"
+		echo "4: French (FR)"
+		echo "5: German (DE)"
 		echo
 		read -p "Enter a number (1): " languageNum
 		if [[ ! -n ${languageNum} ]]; then
@@ -138,6 +141,12 @@ function getLanguage() {
 			languageNum="en-US"
 		elif [[ ${languageNum} == "2" ]]; then
 			languageNum="it-IT"
+		elif [[ ${languageNum} == "3" ]]; then
+			languageNum="es-ES"
+		elif [[ ${languageNum} == "4" ]]; then
+			languageNum="fr-FR"
+		elif [[ ${languageNum} == "5" ]]; then
+			languageNum="de-DE"
 		else
 			echo
 			echo "Choose a valid number, or just press enter to use the default number."
@@ -204,9 +213,9 @@ function getSTT() {
 			unzip "$VOSK_ARCHIVE"
 			mv "$VOSK_DIR" libvosk
 			rm -fr "$VOSK_ARCHIVE"
-			
+
 			cd ${origDir}/chipper
-			export CGO_ENABLED=1 
+			export CGO_ENABLED=1
 			export CGO_CFLAGS="-I/root/.vosk/libvosk"
 			export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
 			export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
@@ -224,6 +233,7 @@ function getSTT() {
 			unzip vosk-model-small-en-us-0.15.zip
 			mv vosk-model-small-en-us-0.15 model
 			rm vosk-model-small-en-us-0.15.zip
+
 			cd ${origDir}
 			echo "Downloading Italian (IT) model"
 			mkdir -p vosk/models/it-IT
@@ -232,6 +242,34 @@ function getSTT() {
 			unzip vosk-model-small-it-0.22.zip
 			mv vosk-model-small-it-0.22 model
 			rm vosk-model-small-it-0.22.zip
+
+			cd ${origDir}
+			echo "Downloading Spanish (ES) model"
+			mkdir -p vosk/models/es-ES
+			cd vosk/models/es-ES
+			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip
+			unzip vosk-model-small-es-0.42.zip
+			mv vosk-model-small-es-0.42 model
+			rm vosk-model-small-es-0.42.zip
+
+			cd ${origDir}
+			echo "Downloading French (FR) model"
+			mkdir -p vosk/models/fr-FR
+			cd vosk/models/fr-FR
+			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip
+			unzip vosk-model-small-fr-0.22.zip
+			mv vosk-model-small-fr-0.22 model
+			rm vosk-model-small-fr-0.22.zip
+
+			cd ${origDir}
+			echo "Downloading German (DE) model"
+			mkdir -p vosk/models/de-DE
+			cd vosk/models/de-DE
+			wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip
+			unzip vosk-model-small-de-0.15.zip
+			mv vosk-model-small-de-0.15 model
+			rm vosk-model-small-de-0.15.zip
+
 			echo
 			cd ${origDir}/vosk
 			touch completed
