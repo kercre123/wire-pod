@@ -639,7 +639,7 @@ function makeSource() {
 	if [[ ! -f ./chipper/useepod ]]; then
 		cd certs
 		echo "Creating server_config.json for robot"
-		echo '{"jdocs": "jdocs.api.anki.com:443", "tms": "token.api.anki.com:443", "chipper": "REPLACEME", "check": "conncheck.global.anki-services.com/ok", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
+		echo '{"jdocs": "REPLACEME", "tms": "REPLACEME", "chipper": "REPLACEME", "check": "conncheck.global.anki-services.com/ok", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
 		address=$(cat address)
 		sed -i "s/REPLACEME/${address}:${port}/g" server_config.json
 		cd ..
@@ -647,7 +647,7 @@ function makeSource() {
 		mkdir -p certs
 		cd certs
 		echo "Creating server_config.json for robot"
-		echo '{"jdocs": "jdocs.api.anki.com:443", "tms": "token.api.anki.com:443", "chipper": "escapepod.local:443", "check": "conncheck.global.anki-services.com/ok", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
+		echo '{"jdocs": "escapepod.local:443", "tms": "escapepod.local:443", "chipper": "escapepod.local:443", "check": "conncheck.global.anki-services.com/ok", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
 		cd ..
 	fi
 	echo "Created!"
@@ -723,19 +723,23 @@ function scpToBot() {
 		echo "Unable to communicate with robot. The key may be invalid, the bot may not be unlocked, or this device and the robot are not on the same network."
 		exit 0
 	fi
-	ssh -i ${keyPath} root@${botAddress} "mount -o rw,remount / && systemctl stop vic-cloud && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak"
-	scp ${oldVar} -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
-	scp ${oldVar} -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
+	ssh  -oStrictHostKeyChecking=no -i ${keyPath} root@${botAddress} "mount -o rw,remount / && mount -o rw,remount,exec /data && systemctl stop anki-robot.target && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak"
+	scp  -oStrictHostKeyChecking=no ${oldVar} -i ${keyPath} ./vector-cloud/build/vic-cloud root@${botAddress}:/anki/bin/
+	scp  -oStrictHostKeyChecking=no ${oldVar} -i ${keyPath} ./certs/server_config.json root@${botAddress}:/anki/data/assets/cozmo_resources/config/
+	scp  -oStrictHostKeyChecking=no ${oldVar} -i ${keyPath} ./vector-cloud/pod-bot-install.sh root@${botAddress}:/data/
 	if [[ -f ./chipper/useepod ]]; then
-		scp ${oldVar} -i ${keyPath} ./chipper/epod/ep.crt root@${botAddress}:/data/data/customCaCert.crt
+		scp -oStrictHostKeyChecking=no ${oldVar} -i ${keyPath} ./chipper/epod/ep.crt root@${botAddress}:/anki/etc/wirepod-cert.crt
+		scp -oStrictHostKeyChecking=no ${oldVar} -i ${keyPath} ./chipper/epod/ep.crt root@${botAddress}:/data/data/wirepod-cert.crt
 	else
-		scp ${oldVar} -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/customCaCert.crt
+		scp -oStrictHostKeyChecking=no ${oldVar} -i ${keyPath} ./certs/cert.crt root@${botAddress}:/anki/etc/wirepod-cert.crt
+		scp -oStrictHostKeyChecking=no ${oldVar} -i ${keyPath} ./certs/cert.crt root@${botAddress}:/data/data/wirepod-cert.crt
 	fi
-	ssh -i ${keyPath} root@${botAddress} "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/customCaCert.crt && systemctl start vic-cloud"
+	ssh -oStrictHostKeyChecking=no -i ${keyPath} root@${botAddress} "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/wirepod-cert.crt /anki/etc/wirepod-cert.crt /data/pod-bot-install.sh && /data/pod-bot-install.sh"
 	rm -f /tmp/sshTest
 	rm -f /tmp/scpTest
+	echo "Vector has been reset to Onboarding mode, but no user data has actually been erased."
 	echo
-	echo "Everything has been copied to the bot! Voice commands should work now without needing to reboot Vector."
+	echo "Everything has been copied to the bot! Use https://keriganc.com/vector-epod-setup on any device with Bluetooth to finish setting up your Vector!"
 	echo
 	echo "Everything is now setup! You should be ready to run chipper. sudo ./chipper/start.sh"
 	echo
