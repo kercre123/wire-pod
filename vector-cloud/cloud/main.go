@@ -11,8 +11,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"strings"
-	"io/ioutil"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/clad/cloud"
 	"github.com/digital-dream-labs/vector-cloud/internal/cloudproc"
@@ -31,6 +29,7 @@ import (
 var checkDataFunc func() error // overwritten by platform_linux.go
 var certErrorFunc func() bool  // overwritten by cert_error_dev.go, determines if error should cause exit
 var platformOpts []cloudproc.Option
+var podCert string = "wirepod-cert.crt"
 
 func getSocketWithRetry(name string, client string) ipc.Conn {
 	for {
@@ -48,7 +47,7 @@ func getHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs: rootcerts.ServerCertPool(),
+				RootCAs:            rootcerts.ServerCertPool(),
 				InsecureSkipVerify: true,
 			},
 		},
@@ -76,18 +75,45 @@ func testReader(serv ipc.Server, send voice.MsgSender) {
 }
 
 func main() {
-
-if _, err := os.Stat("/data/data/customCaCert.crt"); err == nil {
-		certBytes, err := ioutil.ReadFile("/data/data/customCaCert.crt")
-		if err != nil {
-			//nothing
+	var pool = rootcerts.ServerCertPool()
+	// load custom cert
+	// /anki/etc/wirepod-cert.crt
+	certBytes, err := os.ReadFile("/anki/etc/" + podCert)
+	if err == nil {
+		log.Println("Found /anki/etc/" + podCert + ", appending")
+		ok := pool.AppendCertsFromPEM(certBytes)
+		if ok {
+			log.Println("Successfully loaded custom cert! Writing to /data")
+			os.WriteFile("/data/data/wirepod-cert.crt", certBytes, 0644)
+		} else {
+			log.Println("Failed to load /anki/etc/"+podCert, ", trying /data/data/wirepod-cert.crt")
+			certBytes, err := os.ReadFile("/data/data/" + podCert)
+			if err == nil {
+				log.Println("Found /data/data/" + podCert + ", appending")
+				ok := pool.AppendCertsFromPEM(certBytes)
+				if ok {
+					log.Println("Successfully loaded custom cert!")
+				} else {
+					log.Println("Custom cert loader failed")
+				}
+			}
 		}
-		awesomeCert := strings.TrimSpace(string(certBytes))
-		var pool = rootcerts.ServerCertPool()
-		var _ = pool.AppendCertsFromPEM([]byte(awesomeCert))
-		log.Println("Loaded custom cert!")
-}
-	log.Println("Starting up")
+	} else {
+		log.Println("Failed to load /anki/etc/"+podCert, ", trying /data/data/wirepod-cert.crt")
+		certBytes, err := os.ReadFile("/data/data/" + podCert)
+		if err == nil {
+			log.Println("Found /data/data/" + podCert + ", appending")
+			ok := pool.AppendCertsFromPEM(certBytes)
+			if ok {
+				log.Println("Successfully loaded custom cert!")
+			} else {
+				log.Println("Custom cert loader failed")
+			}
+		} else {
+			log.Println("Failed to load custom certs")
+		}
+	}
+	log.Println("Starting up vic-cloud")
 
 	robot.InstallCrashReporter(log.Tag)
 
