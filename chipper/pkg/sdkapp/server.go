@@ -580,10 +580,12 @@ func BeginServer() {
 	fileServer := http.FileServer(http.Dir(serverFiles))
 	http.Handle("/sdk-app", fileServer)
 	http.Handle("/stream", camStream)
+	// in jdocspinger.go
+	http.HandleFunc("/ok:80", connCheck)
 	fmt.Println("Starting SDK app")
 
-	// fmt.Printf("Starting server at port 8081\n")
-	// if err := http.ListenAndServe(":8081", nil); err != nil {
-	// 	log.Fatal(err)
-	// }
+	fmt.Printf("Starting server at port 80 for connCheck\n")
+	if err := http.ListenAndServe(":80", nil); err != nil {
+		fmt.Println("A process is already using port 80 - connCheck functionality will not work")
+	}
 }
