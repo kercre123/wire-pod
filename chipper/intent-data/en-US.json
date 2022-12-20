@@ -205,7 +205,7 @@
 	},
 		{	
 		"name": "intent_blackjack_hit", 
-		"keyphrases" : ["hit", "it", "hot" ]
+		"keyphrases" : ["hit"]
 	},
 	{	
 		"name": "intent_blackjack_stand", 
