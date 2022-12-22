@@ -1,0 +1,27 @@
+# Roadmap
+
+-   Tokens which expire and refresh - implemented but still experimenting
+    -   Unique GUID per bot
+        -   Currently, there is one global GUID used for all bots
+        -   When a GUID is generated, add it to the sdk_config.ini file
+            -   If it isn't there, generate the file
+    -   Reason for difficulty: the official servers have access to every bot's factory certificate, and are able to get the serial number of the requester bot by checking the CN of the certificate. We have to work around that
+        -   Current implementation involves "linking" a bot in the web interface. This makes it save a bot's serial number and associate it with its IP, so whenever a request is made it is able to know what the serial number is
+            -   The Token request is the first in the chain of auth requests to the server stack, which is weird because the request only contains a session certificate and no other useful details. The serial number is pretty much required in order to save the generated token and have it be associated with a certain bot
+                -   It may not be the worst thing in the world to put in a placeholder value for requester_id, at least for the first token, then associate that token with just the IP address. The subsequent jdoc request which asks for the token hashes includes the serial number
+-   Implement face recognition settings in sdkApp
+    -   Change name of someone
+    -   Delete a face
+    -   Maybe initiate a recognition
+-   Implement photo export in sdkApp
+-   Refactor
+    -   Separate intent parameter parser into its own component
+    -   Speech-to-text handlers should all be in one folder
+    -   Many internal things could be cleaned up
+        -   botNum doesn't have to be a thing
+-   Implement wire-pod status page
+    -   Should include:
+        -   Bot serial numbers
+        -   Saved bot targets (IP addresses)
+        -   How long it has been since last connCheck per bot
+    -   May end up being a wire-prod-pod thing only
