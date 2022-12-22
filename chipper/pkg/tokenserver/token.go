@@ -30,8 +30,12 @@ const (
 )
 
 // array of {"target", "guid", "guidhash"}
-// temporary and used for less than a second per bot, so it is better to keep in ram
+// for primary user auth
 var TokenHashStore [][3]string
+
+// array of {"esn", "target", "guid", "guidhash"}
+// for secondary user auth
+var SecondaryTokenStore [][4]string
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
@@ -77,6 +81,7 @@ func SetBotGUID(esn string, guid string, guidHash string) error {
 		if strings.EqualFold(esn, robot.Esn) {
 			robotInfo.Robots[num].GUID = guid
 			robotInfo.Robots[num].Activated = true
+			fmt.Println(robot.Esn + " sucessfully activated with wire-pod")
 			matched = true
 			break
 		}
@@ -118,11 +123,26 @@ func WriteTokenHash(esn string, tokenHash string) error {
 	return err
 }
 
-func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
+func RemoveFromSecondStore(s [][4]string, index int) {
+	fmt.Println("Removing " + s[index][0] + " from temporary token-hash store")
+	SecondaryTokenStore = append(s[:index], s[index+1:]...)
+	return
+}
+
+func RemoveFromPrimaryStore(s [][3]string, index int) {
+	fmt.Println("Removing " + s[index][0] + " from temporary token-hash store")
+	TokenHashStore = append(s[:index], s[index+1:]...)
+	return
+}
+
+func CreateJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 	// defaults
 	requestorId := "vic:00601b50"
 	clientToken := GlobalGUID
 	bundle := &tokenpb.TokenBundle{}
+	secondary := false
+	secondaryGUID := ""
+	secondaryHash := ""
 
 	// figure out current time and the time in one day
 	currentTime := time.Now().Format(TimeFormat)
@@ -134,6 +154,20 @@ func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
 	esn, err := GetEsnFromTarget(ipAddr)
+
+	// secondary handler
+	if err == nil {
+		for num, robot := range SecondaryTokenStore {
+			if robot[0] == esn {
+				skipGuid = true
+				secondary = true
+				secondaryGUID = robot[2]
+				secondaryHash = robot[3]
+				RemoveFromSecondStore(SecondaryTokenStore, num)
+				break
+			}
+		}
+	}
 
 	// create token and hash
 	// if esn is not found, put tokenHash into ram
@@ -159,6 +193,12 @@ func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 		bundle.ClientToken = clientToken
 	}
 
+	if secondary {
+		SetBotGUID(esn, secondaryGUID, secondaryHash)
+		bundle.ClientToken = secondaryGUID
+		fmt.Println("Secondary client: " + secondaryGUID)
+	}
+
 	// create actual JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"expires":      expiresAt,
@@ -178,14 +218,14 @@ func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
 	fmt.Println("Token: Incoming Associate Primary User request")
 	return &tokenpb.AssociatePrimaryUserResponse{
-		Data: createJWT(ctx, req.SkipClientToken),
+		Data: CreateJWT(ctx, req.SkipClientToken),
 	}, nil
 }
 
 func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
 	fmt.Println("Token: Incoming Associate Secondary Client request")
 	return &tokenpb.AssociateSecondaryClientResponse{
-		Data: createJWT(ctx, false),
+		Data: CreateJWT(ctx, false),
 	}, nil
 }
 
@@ -196,7 +236,7 @@ func (s *TokenServer) RefreshToken(ctx context.Context, req *tokenpb.RefreshToke
 		refresh = false
 	}
 	return &tokenpb.RefreshTokenResponse{
-		Data: createJWT(ctx, refresh),
+		Data: CreateJWT(ctx, refresh),
 	}, nil
 }
 

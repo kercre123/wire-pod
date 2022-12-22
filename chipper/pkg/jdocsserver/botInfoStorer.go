@@ -25,13 +25,28 @@ type options struct {
 	Token     string `ini:"guid"`
 }
 
+func IsBotInInfo(esn string) bool {
+	esn = strings.TrimSpace(strings.ToLower(esn))
+	var botInfo tokenserver.RobotInfoStore
+	fileBytes, err := os.ReadFile(InfoPath)
+	if err == nil {
+		json.Unmarshal(fileBytes, &botInfo)
+		for _, robot := range botInfo.Robots {
+			if esn == strings.TrimSpace(strings.ToLower(robot.Esn)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func IniToJson() {
 	var robotSDKInfo tokenserver.RobotInfoStore
 	eFileBytes, err := os.ReadFile(InfoPath)
 	if err == nil {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
 	}
-	robotSDKInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
+	robotSDKInfo.GlobalGUID = tokenserver.GlobalGUID
 	iniData, err := ini.Load("../../.anki_vector/sdk_config.ini")
 	if err == nil {
 		for _, section := range iniData.Sections() {
@@ -99,38 +114,24 @@ func IniToJson() {
 }
 
 func StoreBotInfo(ctx context.Context, thing string) {
-	fmt.Println("Storing bot info for later SDK use")
 	var appendNew bool = true
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
-	fmt.Println("Bot IP: `" + ipAddr + "`")
 	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
-	fmt.Println("Bot ESN: `" + botEsn + "`")
 	var robotSDKInfo tokenserver.RobotInfoStore
 	eFileBytes, err := os.ReadFile(InfoPath)
 	if err == nil {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
 	}
 	robotSDKInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
-	iniData, iniErr := ini.Load("../../.anki_vector/sdk_config.ini")
 	for num, robot := range robotSDKInfo.Robots {
 		if robot.Esn == botEsn {
 			appendNew = false
 			robotSDKInfo.Robots[num].IPAddress = ipAddr
-			if robotSDKInfo.Robots[num].GUID == "" {
-				if iniErr == nil {
-					section := iniData.Section(botEsn)
-					if section != nil {
-						cfg := options{}
-						section.MapTo(&cfg)
-						robotSDKInfo.Robots[num].GUID = cfg.Token
-						fmt.Println("Found GUID in ini, " + cfg.Token)
-					}
-				}
-			}
 		}
 	}
 	if appendNew {
+		fmt.Println("Adding " + botEsn + " to bot info store")
 		robotSDKInfo.Robots = append(robotSDKInfo.Robots, struct {
 			Esn       string `json:"esn"`
 			IPAddress string `json:"ip_address"`
@@ -140,7 +141,6 @@ func StoreBotInfo(ctx context.Context, thing string) {
 	}
 	finalJsonBytes, _ := json.Marshal(robotSDKInfo)
 	os.WriteFile(InfoPath, finalJsonBytes, 0644)
-	fmt.Println(string(finalJsonBytes))
 }
 
 func StoreBotInfoStrings(target string, botEsn string) {
