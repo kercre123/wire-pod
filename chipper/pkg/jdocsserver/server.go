@@ -70,17 +70,19 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 
 func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*jdocspb.ReadDocsResp, error) {
 	globalGUIDHash := `{"client_tokens":[{"hash":"J5TAnJTPRCioMExFo5KzH2fHOAXyM5fuO8YRbQSamIsNzymnJ8KDIerFxuJV4qBN","client_name":"","app_id":"","issued_at":"2022-11-26T18:23:08Z","is_primary":true}]}`
+	// global guid now only used in edge cases
 	fmt.Println("Jdocs: Incoming ReadDocs request, Robot ID: " + req.Thing + ", Item(s) to return: ")
 	fmt.Println(req.Items)
-	StoreBotInfo(ctx, req.Thing)
 	esn := strings.Split(req.Thing, ":")[1]
+	isAlreadyKnown := IsBotInInfo(esn)
+	StoreBotInfo(ctx, req.Thing)
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
 		if _, err := os.Stat(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil {
 			fmt.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
 			matched := false
-			for _, pair := range tokenserver.TokenHashStore {
+			for num, pair := range tokenserver.TokenHashStore {
 				if strings.EqualFold(pair[0], ipAddr) {
 					err := tokenserver.WriteTokenHash(strings.ToLower(strings.TrimSpace(esn)), pair[2])
 					if err != nil {
@@ -94,10 +96,31 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					}
 					fmt.Println("ReadJdocs: bot " + esn + " matched with IP " + ipAddr + " in token store")
 					matched = true
+					tokenserver.RemoveFromPrimaryStore(tokenserver.TokenHashStore, num)
 				}
 			}
 			if !matched {
-				fmt.Println("Bot not found in token store, providing global GUID")
+				if !isAlreadyKnown {
+					fmt.Println("Bot was not known to wire-pod, creating token and hash (in ReadDocs)")
+					guid, hash, _ := tokenserver.CreateTokenAndHashedToken()
+					tokenserver.SecondaryTokenStore = append(tokenserver.SecondaryTokenStore, [4]string{esn, ipAddr, guid, hash})
+					// creates apptoken jdoc file
+					tokenserver.WriteTokenHash(esn, hash)
+					// bot is not authenticated yet, do not write to botinfo json
+					filename := JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"
+					fileBytes, _ := os.ReadFile(filename)
+					var jdoc jdocspb.Jdoc
+					json.Unmarshal(fileBytes, &jdoc)
+					return &jdocspb.ReadDocsResp{
+						Items: []*jdocspb.ReadDocsResp_Item{
+							{
+								Status: jdocspb.ReadDocsResp_CHANGED,
+								Doc:    &jdoc,
+							},
+						},
+					}, nil
+				}
+				fmt.Println("Bot not found in any store, providing global GUID")
 				return &jdocspb.ReadDocsResp{
 					Items: []*jdocspb.ReadDocsResp_Item{
 						{

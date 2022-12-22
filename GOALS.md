@@ -1,7 +1,7 @@
 # Roadmap
 
 -   Tokens which are unique, do expire, and do refresh - in progress
-    -   Status: Associating after clear user data works perfectly, but associating without clearing doesn't
+    -   Status: Implementation seems to be working perfectly, just need to export to sdk_config.ini
         -   Associating as a secondary user gets the AppTokens first, then makes the token request. Different order than primary
     -   Retain backwards compatibility
         -   Global GUID code still in there
