@@ -45,9 +45,10 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 		err = json.Unmarshal(byteValue, &jdoc)
 		if err != nil {
 			logger("Deprecated jdoc found, set location in the sdk web app again to update")
+			json.Unmarshal(byteValue, &robotSettings)
+		} else {
+			json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
 		}
-		json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
-		logger(robotSettings)
 		botLocation = robotSettings.DefaultLocation
 		if robotSettings.TempIsFahrenheit {
 			botUnits = "F"
@@ -322,6 +323,7 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 	var botUnits string = "F"
 	if _, err := os.Stat("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json"); err == nil {
 		logger("Found robot settings jdoc for " + botSerial + ", using location and units from that")
+		var jdoc jdocspb.Jdoc
 		type robotSettingsJson struct {
 			ButtonWakeword int  `json:"button_wakeword"`
 			Clock24Hour    bool `json:"clock_24_hour"`
@@ -343,7 +345,13 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 			logger(err)
 		}
 		var robotSettings robotSettingsJson
-		json.Unmarshal(byteValue, &robotSettings)
+		err = json.Unmarshal(byteValue, &jdoc)
+		if err != nil {
+			logger("Deprecated jdoc found, set location in the sdk web app again to update")
+			json.Unmarshal(byteValue, &robotSettings)
+		} else {
+			json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
+		}
 		botLocation = robotSettings.DefaultLocation
 		if robotSettings.TempIsFahrenheit {
 			botUnits = "F"

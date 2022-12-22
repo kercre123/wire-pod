@@ -7,20 +7,15 @@ import (
 	"os"
 	"strings"
 
+	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
 	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
 )
 
-type RobotInfoStore struct {
-	GlobalGUID string `json:"global_guid"`
-	Robots     []struct {
-		Esn       string `json:"esn"`
-		IPAddress string `json:"ip_address"`
-		// 192.168.1.150:443
-		GUID      string `json:"guid"`
-		Activated bool   `json:"activated"`
-	} `json:"robots"`
-}
+const (
+	BotInfoFile = tokenserver.BotInfoFile
+	InfoPath    = JdocsPath + BotInfoFile
+)
 
 type options struct {
 	SerialNo  string
@@ -31,8 +26,8 @@ type options struct {
 }
 
 func IniToJson() {
-	var robotSDKInfo RobotInfoStore
-	eFileBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
+	var robotSDKInfo tokenserver.RobotInfoStore
+	eFileBytes, err := os.ReadFile(InfoPath)
 	if err == nil {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
 	}
@@ -46,10 +41,12 @@ func IniToJson() {
 			if cfg.SerialNo != "DEFAULT" {
 				matched := false
 				for _, robot := range robotSDKInfo.Robots {
-					if cfg.SerialNo == robot.Esn {
-						matched = true
-						robot.GUID = cfg.Token
-						robot.IPAddress = cfg.Target
+					if robot.GUID == "" {
+						if cfg.SerialNo == robot.Esn {
+							matched = true
+							robot.GUID = cfg.Token
+							robot.IPAddress = cfg.Target
+						}
 					}
 				}
 				if !matched {
@@ -73,10 +70,12 @@ func IniToJson() {
 				if cfg.SerialNo != "DEFAULT" {
 					matched := false
 					for _, robot := range robotSDKInfo.Robots {
-						if cfg.SerialNo == robot.Esn {
-							matched = true
-							robot.GUID = cfg.Token
-							robot.IPAddress = cfg.Target
+						if robot.GUID == "" {
+							if cfg.SerialNo == robot.Esn {
+								matched = true
+								robot.GUID = cfg.Token
+								robot.IPAddress = cfg.Target
+							}
 						}
 					}
 					if !matched {
@@ -95,7 +94,7 @@ func IniToJson() {
 		}
 	}
 	finalJsonBytes, _ := json.Marshal(robotSDKInfo)
-	os.WriteFile("./jdocs/botSdkInfo.json", finalJsonBytes, 0644)
+	os.WriteFile(InfoPath, finalJsonBytes, 0644)
 	fmt.Println("Ini to JSON finished")
 }
 
@@ -107,8 +106,8 @@ func StoreBotInfo(ctx context.Context, thing string) {
 	fmt.Println("Bot IP: `" + ipAddr + "`")
 	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
 	fmt.Println("Bot ESN: `" + botEsn + "`")
-	var robotSDKInfo RobotInfoStore
-	eFileBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
+	var robotSDKInfo tokenserver.RobotInfoStore
+	eFileBytes, err := os.ReadFile(InfoPath)
 	if err == nil {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
 	}
@@ -140,7 +139,7 @@ func StoreBotInfo(ctx context.Context, thing string) {
 		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
 	}
 	finalJsonBytes, _ := json.Marshal(robotSDKInfo)
-	os.WriteFile("./jdocs/botSdkInfo.json", finalJsonBytes, 0644)
+	os.WriteFile(InfoPath, finalJsonBytes, 0644)
 	fmt.Println(string(finalJsonBytes))
 }
 
@@ -148,8 +147,8 @@ func StoreBotInfoStrings(target string, botEsn string) {
 	fmt.Println("Storing bot info for later SDK use")
 	var appendNew bool = true
 	ipAddr := strings.TrimSpace(strings.Split(target, ":")[0])
-	var robotSDKInfo RobotInfoStore
-	eFileBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
+	var robotSDKInfo tokenserver.RobotInfoStore
+	eFileBytes, err := os.ReadFile(InfoPath)
 	if err == nil {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
 	}
@@ -181,6 +180,6 @@ func StoreBotInfoStrings(target string, botEsn string) {
 		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
 	}
 	finalJsonBytes, _ := json.Marshal(robotSDKInfo)
-	os.WriteFile("./jdocs/botSdkInfo.json", finalJsonBytes, 0644)
+	os.WriteFile(InfoPath, finalJsonBytes, 0644)
 	fmt.Println(string(finalJsonBytes))
 }
