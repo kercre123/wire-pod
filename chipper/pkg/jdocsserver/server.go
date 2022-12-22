@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
+	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
+	"google.golang.org/grpc/peer"
 )
 
 type JdocServer struct {
@@ -67,22 +69,35 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	fmt.Println("Jdocs: Incoming ReadDocs request, Robot ID: " + req.Thing + ", Item(s) to return: ")
 	fmt.Println(req.Items)
 	StoreBotInfo(ctx, req.Thing)
+	esn := strings.Split(req.Thing, ":")[1]
+	p, _ := peer.FromContext(ctx)
+	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
 		if _, err := os.Stat("./jdocs/" + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil {
-			fmt.Println("App tokens jdoc not found for this bot, returning global app token")
-			return &jdocspb.ReadDocsResp{
-				Items: []*jdocspb.ReadDocsResp_Item{
-					{
-						Status: jdocspb.ReadDocsResp_CHANGED,
-						Doc: &jdocspb.Jdoc{
-							DocVersion:     1,
-							FmtVersion:     1,
-							ClientMetadata: "placeholder",
-							JsonDoc:        globalGUIDHash,
+			fmt.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
+			matched := false
+			for _, pair := range tokenserver.TokenHashStore {
+				if strings.EqualFold(pair[0], ipAddr) {
+					tokenserver.WriteTokenHash(esn, pair[1])
+					fmt.Println("ReadJdocs: " + esn + " matched with bot " + ipAddr + "in token store")
+					matched = true
+				}
+			}
+			if !matched {
+				return &jdocspb.ReadDocsResp{
+					Items: []*jdocspb.ReadDocsResp_Item{
+						{
+							Status: jdocspb.ReadDocsResp_CHANGED,
+							Doc: &jdocspb.Jdoc{
+								DocVersion:     1,
+								FmtVersion:     1,
+								ClientMetadata: "placeholder",
+								JsonDoc:        globalGUIDHash,
+							},
 						},
 					},
-				},
-			}, nil
+				}, nil
+			}
 		}
 	}
 	var returnItems []*jdocspb.ReadDocsResp_Item
