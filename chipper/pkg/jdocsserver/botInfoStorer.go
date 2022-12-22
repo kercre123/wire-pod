@@ -11,17 +11,14 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-var PerRobotSDKInfo struct {
-	Esn       string `json:"esn"`
-	IPAddress string `json:"ip_address"`
-}
-
-type RobotSDKInfoStore struct {
+type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
 	Robots     []struct {
 		Esn       string `json:"esn"`
 		IPAddress string `json:"ip_address"`
+		// 192.168.1.150:443
 		GUID      string `json:"guid"`
+		Activated bool   `json:"activated"`
 	} `json:"robots"`
 }
 
@@ -34,7 +31,7 @@ type options struct {
 }
 
 func IniToJson() {
-	var robotSDKInfo RobotSDKInfoStore
+	var robotSDKInfo RobotInfoStore
 	eFileBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
 	if err == nil {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
@@ -61,7 +58,8 @@ func IniToJson() {
 						Esn       string `json:"esn"`
 						IPAddress string `json:"ip_address"`
 						GUID      string `json:"guid"`
-					}{Esn: cfg.SerialNo, IPAddress: cfg.Target, GUID: cfg.Token})
+						Activated bool   `json:"activated"`
+					}{Esn: cfg.SerialNo, IPAddress: cfg.Target, GUID: cfg.Token, Activated: false})
 				}
 			}
 		}
@@ -87,7 +85,8 @@ func IniToJson() {
 							Esn       string `json:"esn"`
 							IPAddress string `json:"ip_address"`
 							GUID      string `json:"guid"`
-						}{Esn: cfg.SerialNo, IPAddress: cfg.Target, GUID: cfg.Token})
+							Activated bool   `json:"activated"`
+						}{Esn: cfg.SerialNo, IPAddress: cfg.Target, GUID: cfg.Token, Activated: false})
 					}
 				}
 			}
@@ -100,7 +99,7 @@ func IniToJson() {
 	fmt.Println("Ini to JSON finished")
 }
 
-func storeBotInfo(ctx context.Context, thing string) {
+func StoreBotInfo(ctx context.Context, thing string) {
 	fmt.Println("Storing bot info for later SDK use")
 	var appendNew bool = true
 	p, _ := peer.FromContext(ctx)
@@ -108,7 +107,7 @@ func storeBotInfo(ctx context.Context, thing string) {
 	fmt.Println("Bot IP: `" + ipAddr + "`")
 	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
 	fmt.Println("Bot ESN: `" + botEsn + "`")
-	var robotSDKInfo RobotSDKInfoStore
+	var robotSDKInfo RobotInfoStore
 	eFileBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
 	if err == nil {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
@@ -119,13 +118,15 @@ func storeBotInfo(ctx context.Context, thing string) {
 		if robot.Esn == botEsn {
 			appendNew = false
 			robotSDKInfo.Robots[num].IPAddress = ipAddr
-			if iniErr == nil {
-				section := iniData.Section(botEsn)
-				if section != nil {
-					cfg := options{}
-					section.MapTo(&cfg)
-					robotSDKInfo.Robots[num].GUID = cfg.Token
-					fmt.Println("Found GUID in ini, " + cfg.Token)
+			if robotSDKInfo.Robots[num].GUID == "" {
+				if iniErr == nil {
+					section := iniData.Section(botEsn)
+					if section != nil {
+						cfg := options{}
+						section.MapTo(&cfg)
+						robotSDKInfo.Robots[num].GUID = cfg.Token
+						fmt.Println("Found GUID in ini, " + cfg.Token)
+					}
 				}
 			}
 		}
@@ -135,7 +136,49 @@ func storeBotInfo(ctx context.Context, thing string) {
 			Esn       string `json:"esn"`
 			IPAddress string `json:"ip_address"`
 			GUID      string `json:"guid"`
-		}{Esn: botEsn, IPAddress: ipAddr, GUID: ""})
+			Activated bool   `json:"activated"`
+		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
+	}
+	finalJsonBytes, _ := json.Marshal(robotSDKInfo)
+	os.WriteFile("./jdocs/botSdkInfo.json", finalJsonBytes, 0644)
+	fmt.Println(string(finalJsonBytes))
+}
+
+func StoreBotInfoStrings(target string, botEsn string) {
+	fmt.Println("Storing bot info for later SDK use")
+	var appendNew bool = true
+	ipAddr := strings.TrimSpace(strings.Split(target, ":")[0])
+	var robotSDKInfo RobotInfoStore
+	eFileBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
+	if err == nil {
+		json.Unmarshal(eFileBytes, &robotSDKInfo)
+	}
+	robotSDKInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
+	iniData, iniErr := ini.Load("../../.anki_vector/sdk_config.ini")
+	for num, robot := range robotSDKInfo.Robots {
+		if robot.Esn == botEsn {
+			appendNew = false
+			robotSDKInfo.Robots[num].IPAddress = ipAddr
+			if robotSDKInfo.Robots[num].GUID == "" {
+				if iniErr == nil {
+					section := iniData.Section(botEsn)
+					if section != nil {
+						cfg := options{}
+						section.MapTo(&cfg)
+						robotSDKInfo.Robots[num].GUID = cfg.Token
+						fmt.Println("Found GUID in ini, " + cfg.Token)
+					}
+				}
+			}
+		}
+	}
+	if appendNew {
+		robotSDKInfo.Robots = append(robotSDKInfo.Robots, struct {
+			Esn       string `json:"esn"`
+			IPAddress string `json:"ip_address"`
+			GUID      string `json:"guid"`
+			Activated bool   `json:"activated"`
+		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
 	}
 	finalJsonBytes, _ := json.Marshal(robotSDKInfo)
 	os.WriteFile("./jdocs/botSdkInfo.json", finalJsonBytes, 0644)

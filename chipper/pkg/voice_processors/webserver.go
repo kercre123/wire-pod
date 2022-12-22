@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
 )
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
@@ -372,6 +374,18 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			logger(err)
 		}
 		fmt.Fprint(w, string(botConfigJSONFile))
+		return
+	case r.URL.Path == "/api/debug":
+		token, tokenHash, _ := tokenserver.CreateTokenAndHashedToken()
+		fmt.Println(tokenHash)
+		fmt.Println(token)
+		err := tokenserver.CompareHashAndToken(tokenHash, token)
+		if err == nil {
+			fmt.Println("Successfully matched!")
+		} else {
+			fmt.Println(err)
+		}
+		fmt.Fprintf(w, "done")
 		return
 	}
 }
