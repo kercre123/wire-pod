@@ -9,6 +9,7 @@
         -   Current implementation involves "linking" a bot in the web interface. This makes it save a bot's serial number and associate it with its IP, so whenever a request is made it is able to know what the serial number is
             -   The Token request is the first in the chain of auth requests to the server stack, which is weird because the request only contains a session certificate and no other useful details. The serial number is pretty much required in order to save the generated token and have it be associated with a certain bot
                 -   It may not be the worst thing in the world to put in a placeholder value for requester_id, at least for the first token, then associate that token with just the IP address. The subsequent jdoc request which asks for the token hashes includes the serial number
+			- 3 A.M. update: this is now implemented, currently untested
 -   Implement face recognition settings in sdkApp
     -   Change name of someone
     -   Delete a face
