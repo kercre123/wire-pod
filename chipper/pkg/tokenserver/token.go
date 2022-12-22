@@ -4,91 +4,179 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/golang-jwt/jwt"
+	"google.golang.org/grpc/peer"
 )
 
 type TokenServer struct {
 	tokenpb.UnimplementedTokenServer
 }
 
-type RobotSDKInfoStore struct {
+type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
 	Robots     []struct {
 		Esn       string `json:"esn"`
 		IPAddress string `json:"ip_address"`
+		// 192.168.1.150:443
+		GUID      string `json:"guid"`
+		Activated bool   `json:"activated"`
 	} `json:"robots"`
+}
+
+func GetEsnFromTarget(target string) (string, error) {
+	jsonBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
+	if err != nil {
+		return "", err
+	}
+	var robotInfo RobotInfoStore
+	err = json.Unmarshal(jsonBytes, &robotInfo)
+	if err != nil {
+		return "", err
+	}
+	for _, robot := range robotInfo.Robots {
+		if strings.TrimSpace(target) == strings.TrimSpace(robot.IPAddress) {
+			return robot.Esn, nil
+		}
+	}
+	return "", fmt.Errorf("bot not found")
+}
+
+func SetBotGUID(esn string, guid string, guidHash string) error {
+	jsonBytes, err := os.ReadFile("./jdocs/botSdkInfo.json")
+	if err != nil {
+		return err
+	}
+	var robotInfo RobotInfoStore
+	err = json.Unmarshal(jsonBytes, &robotInfo)
+	if err != nil {
+		return err
+	}
+	matched := false
+	for num, robot := range robotInfo.Robots {
+		if strings.EqualFold(esn, robot.Esn) {
+			robotInfo.Robots[num].GUID = guid
+			robotInfo.Robots[num].Activated = true
+			matched = true
+			break
+		}
+	}
+	if !matched {
+		return fmt.Errorf("bot not found")
+	}
+	writeBytes, err := json.Marshal(robotInfo)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	os.WriteFile("./jdocs/botSdkInfo.json", writeBytes, 0644)
+	return nil
+}
+
+func WriteTokenHash(esn string, tokenHash string) error {
+	var tokenJson ClientTokenManager
+	jdoc := jdocspb.Jdoc{}
+	filename := "./jdocs/vic:" + esn + "-vic.AppTokens.json"
+	jsonBytes, err := os.ReadFile(filename)
+	if err == nil {
+		json.Unmarshal(jsonBytes, &jdoc)
+	} else {
+		jdoc.DocVersion = 1
+		jdoc.FmtVersion = 1
+		jdoc.ClientMetadata = "wirepod-new-tokens"
+	}
+	var clientToken ClientToken
+	clientToken.IssuedAt = time.Now().Format("2006-01-02T15:04:05.999999999Z07:00")
+	clientToken.ClientName = "wirepod"
+	clientToken.Hash = tokenHash
+	clientToken.AppId = "SDK"
+	tokenJson.ClientTokens = append(tokenJson.ClientTokens, clientToken)
+	newJsonBytes, _ := json.Marshal(tokenJson)
+	jdoc.JsonDoc = string(newJsonBytes)
+	writeBytes, _ := json.Marshal(jdoc)
+	err = os.WriteFile(filename, writeBytes, 0644)
+	return err
+}
+
+func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
+	// defaults
+	requestorId := "vic:00601b50"
+	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
+	bundle := &tokenpb.TokenBundle{}
+
+	// figure out current time and the time in one day
+	currentTime := time.Now().Format("2006-01-02T15:04:05.999999999Z07:00")
+	expiresAt := time.Now().Add(time.Hour * 24).Format("2006-01-02T15:04:05.999999999Z07:00")
+	fmt.Println("Current time: " + currentTime)
+	fmt.Println("Token expires: " + expiresAt)
+
+	// get esn using ip address of request
+	p, _ := peer.FromContext(ctx)
+	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
+	esn, err := GetEsnFromTarget(ipAddr)
+
+	// create token and hash if esn found, global if not found
+	if err == nil {
+		fmt.Println("Found ESN for target " + ipAddr + ": " + esn)
+		requestorId = "vic:" + esn
+		if !skipGuid {
+			guid, tokenHash, _ := CreateTokenAndHashedToken()
+			WriteTokenHash(esn, tokenHash)
+			SetBotGUID(esn, guid, tokenHash)
+			clientToken = guid
+		}
+	} else {
+		fmt.Println("ESN not found in store, using old auth method")
+	}
+	if !skipGuid {
+		bundle.ClientToken = clientToken
+	}
+
+	// create actual JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
+		"expires":      expiresAt,
+		"iat":          currentTime,
+		"permissions":  nil,
+		"requestor_id": requestorId,
+		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
+		"token_type":   "user+robot",
+		"user_id":      "wirepod",
+	})
+	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
+	tokenString, _ := token.SignedString(rsaKey)
+	bundle.Token = tokenString
+	return bundle
 }
 
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
 	fmt.Println("Token: Incoming Associate Primary User request")
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
-		"expires":      "2029-11-26T16:27:51.997352463Z",
-		"iat":          time.Now(),
-		"permissions":  nil,
-		"requestor_id": "vic:00601b50",
-		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
-		"token_type":   "user+robot",
-		"user_id":      "2gsE4HbQ8UCBpYqurDgsafX",
-	})
-	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
-	tokenString, _ := token.SignedString(rsaKey)
-	// constant GUID
-	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
 	return &tokenpb.AssociatePrimaryUserResponse{
-		Data: &tokenpb.TokenBundle{
-			Token:       tokenString,
-			ClientToken: clientToken,
-		},
+		Data: createJWT(ctx, req.SkipClientToken),
 	}, nil
 }
 
 func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
 	fmt.Println("Token: Incoming Associate Secondary Client request")
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
-		"expires":      "2029-11-26T16:27:51.997352463Z",
-		"iat":          time.Now(),
-		"permissions":  nil,
-		"requestor_id": "vic:00601b50",
-		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
-		"token_type":   "user+robot",
-		"user_id":      "2gsE4HbQ8UCBpYqurDgsafX",
-	})
-	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
-	tokenString, _ := token.SignedString(rsaKey)
-	// constant GUID
-	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
 	return &tokenpb.AssociateSecondaryClientResponse{
-		Data: &tokenpb.TokenBundle{
-			Token:       tokenString,
-			ClientToken: clientToken,
-		},
+		Data: createJWT(ctx, false),
 	}, nil
 }
 
 func (s *TokenServer) RefreshToken(ctx context.Context, req *tokenpb.RefreshTokenRequest) (*tokenpb.RefreshTokenResponse, error) {
-	fmt.Println("Token: Incoming Refresh Token Request")
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
-		"expires":      "2029-11-26T16:27:51.997352463Z",
-		"iat":          time.Now(),
-		"permissions":  nil,
-		"requestor_id": "vic:00601b50",
-		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
-		"token_type":   "user+robot",
-		"user_id":      "2gsE4HbQ8UCBpYqurDgsafX",
-	})
-	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
-	tokenString, _ := token.SignedString(rsaKey)
-	// constant GUID
-	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
+	fmt.Println("Token: Incoming Refresh Token request")
+	var refresh bool = true
+	if req.RefreshJwtTokens {
+		refresh = false
+	}
 	return &tokenpb.RefreshTokenResponse{
-		Data: &tokenpb.TokenBundle{
-			Token:       tokenString,
-			ClientToken: clientToken,
-		},
+		Data: createJWT(ctx, refresh),
 	}, nil
 }
 

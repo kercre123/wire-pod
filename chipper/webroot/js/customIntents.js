@@ -482,6 +482,20 @@ function editBotFormCreate() {
     }
 }
 
+function sendLinkForm() {
+    var data = "esn=" + document.getElementById("link_esn").value + "&target=" + document.getElementById("link_ip").value
+    console.log(data)
+    fetch("/link-esn-and-target?" + data)
+    .then(response => response.text())
+    .then((response) => {
+        if (response.includes("success")) {
+            alert("Bot successfully linked! You may now set your bot up via https://keriganc.com/vector-epod-setup")
+        } else {
+            alert(response)
+        }
+    })
+}
+
 // send post to /api/edit_bot
 function sendBotEdit() {
     var form = document.getElementById("botEditFormNoDiv");
