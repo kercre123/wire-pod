@@ -12,6 +12,10 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+const (
+	JdocsPath = tokenserver.JdocsPath
+)
+
 type JdocServer struct {
 	jdocspb.UnimplementedJdocsServer
 }
@@ -37,7 +41,7 @@ func ConvertToProperJdoc(filename string) {
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
 	fmt.Println("Jdocs: Incoming WriteDoc request, Item to write: " + req.DocName + ", Robot ID: " + req.Thing)
-	filename := "./jdocs/" + strings.TrimSpace(req.Thing) + "-" + strings.TrimSpace(req.DocName) + ".json"
+	filename := JdocsPath + strings.TrimSpace(req.Thing) + "-" + strings.TrimSpace(req.DocName) + ".json"
 	var latestVersion uint64 = 0
 
 	// decode already-existing json (if it exists)
@@ -73,17 +77,27 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
-		if _, err := os.Stat("./jdocs/" + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil {
+		if _, err := os.Stat(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil {
 			fmt.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
 			matched := false
 			for _, pair := range tokenserver.TokenHashStore {
 				if strings.EqualFold(pair[0], ipAddr) {
-					tokenserver.WriteTokenHash(esn, pair[1])
-					fmt.Println("ReadJdocs: " + esn + " matched with bot " + ipAddr + "in token store")
+					err := tokenserver.WriteTokenHash(strings.ToLower(strings.TrimSpace(esn)), pair[2])
+					if err != nil {
+						fmt.Println("Error writing token hash to vic.AppTokens.json")
+						fmt.Println(err)
+					}
+					err = tokenserver.SetBotGUID(esn, pair[1], pair[2])
+					if err != nil {
+						fmt.Println("Error writing token hash to " + tokenserver.BotInfoFile)
+						fmt.Println(err)
+					}
+					fmt.Println("ReadJdocs: bot " + esn + " matched with IP " + ipAddr + " in token store")
 					matched = true
 				}
 			}
 			if !matched {
+				fmt.Println("Bot not found in token store, providing global GUID")
 				return &jdocspb.ReadDocsResp{
 					Items: []*jdocspb.ReadDocsResp_Item{
 						{
@@ -102,7 +116,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	}
 	var returnItems []*jdocspb.ReadDocsResp_Item
 	for _, item := range req.Items {
-		filename := "./jdocs/" + strings.TrimSpace(req.Thing) + "-" + strings.TrimSpace(item.DocName) + ".json"
+		filename := JdocsPath + strings.TrimSpace(req.Thing) + "-" + strings.TrimSpace(item.DocName) + ".json"
 		jsonByte, err := os.ReadFile(filename)
 		if err != nil {
 			jdoc := jdocspb.Jdoc{}

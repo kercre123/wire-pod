@@ -23,9 +23,9 @@ import (
 func pingJdocs(target string) {
 	target = strings.Split(target, ":")[0]
 	var serial string
-	jsonBytes, err := os.ReadFile("jdocs/botSdkInfo.json")
+	jsonBytes, err := os.ReadFile(jdocsserver.InfoPath)
 	if err != nil {
-		fmt.Println("Error opening " + "jdocs/botSdkInfo.json" + ", this bot likely hasn't been authed")
+		fmt.Println("Error opening " + jdocsserver.InfoPath + ", this bot likely hasn't been authed")
 		fmt.Println("Error pinging jdocs")
 		return
 	}
@@ -62,8 +62,7 @@ func pingJdocs(target string) {
 		robotGUID = robotTmp.Cfg.Token
 		_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Error pinging jdocs")
+			fmt.Println("Error pinging jdocs, likely unauthenticated")
 			return
 		}
 	}
@@ -145,7 +144,7 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		//	fmt.Println("connCheck request from " + r.RemoteAddr)
 		robotTarget := strings.Split(r.RemoteAddr, ":")[0] + ":443"
 		robotTargetCheck := strings.Split(r.RemoteAddr, ":")[0]
-		jsonB, _ := os.ReadFile("./jdocs/botSdkInfo.json")
+		jsonB, _ := os.ReadFile(jdocsserver.InfoPath)
 		json := string(jsonB)
 		if strings.Contains(json, strings.TrimSpace(robotTargetCheck)) {
 			ping := jdocsPingTimer(robotTarget)

@@ -21,15 +21,17 @@ type TokenServer struct {
 }
 
 const (
-	timeFormat     = time.RFC3339Nano
-	jdocsPath      = "./jdocs/"
-	botInfoFile    = "botSdkIasdnfo.json"
-	expirationTime = time.Hour * 24
-	userId         = "wirepod"
+	TimeFormat     = time.RFC3339Nano
+	JdocsPath      = "./jdocs/"
+	BotInfoFile    = "botSdkInfo.json"
+	ExpirationTime = time.Hour * 24
+	UserId         = "wirepod"
+	GlobalGUID     = "tni1TRsTRTaNSapjo0Y+Sw=="
 )
 
-// array of {"target", "hash"}
-var TokenHashStore [][2]string
+// array of {"target", "guid", "guidhash"}
+// temporary and used for less than a second per bot, so it is better to keep in ram
+var TokenHashStore [][3]string
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
@@ -43,7 +45,7 @@ type RobotInfoStore struct {
 }
 
 func GetEsnFromTarget(target string) (string, error) {
-	jsonBytes, err := os.ReadFile(jdocsPath + botInfoFile)
+	jsonBytes, err := os.ReadFile(JdocsPath + BotInfoFile)
 	if err != nil {
 		return "", err
 	}
@@ -61,7 +63,7 @@ func GetEsnFromTarget(target string) (string, error) {
 }
 
 func SetBotGUID(esn string, guid string, guidHash string) error {
-	jsonBytes, err := os.ReadFile(jdocsPath + botInfoFile)
+	jsonBytes, err := os.ReadFile(JdocsPath + BotInfoFile)
 	if err != nil {
 		return err
 	}
@@ -87,14 +89,14 @@ func SetBotGUID(esn string, guid string, guidHash string) error {
 		fmt.Println(err)
 		return err
 	}
-	os.WriteFile(jdocsPath+botInfoFile, writeBytes, 0644)
+	os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
 	return nil
 }
 
 func WriteTokenHash(esn string, tokenHash string) error {
 	var tokenJson ClientTokenManager
 	jdoc := jdocspb.Jdoc{}
-	filename := jdocsPath + "vic:" + esn + "-vic.AppTokens.json"
+	filename := JdocsPath + "vic:" + esn + "-vic.AppTokens.json"
 	jsonBytes, err := os.ReadFile(filename)
 	if err == nil {
 		json.Unmarshal(jsonBytes, &jdoc)
@@ -104,7 +106,7 @@ func WriteTokenHash(esn string, tokenHash string) error {
 		jdoc.ClientMetadata = "wirepod-new-tokens"
 	}
 	var clientToken ClientToken
-	clientToken.IssuedAt = time.Now().Format(timeFormat)
+	clientToken.IssuedAt = time.Now().Format(TimeFormat)
 	clientToken.ClientName = "wirepod"
 	clientToken.Hash = tokenHash
 	clientToken.AppId = "SDK"
@@ -119,19 +121,17 @@ func WriteTokenHash(esn string, tokenHash string) error {
 func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 	// defaults
 	requestorId := "vic:00601b50"
-	clientToken := "tni1TRsTRTaNSapjo0Y+Sw=="
+	clientToken := GlobalGUID
 	bundle := &tokenpb.TokenBundle{}
 
 	// figure out current time and the time in one day
-	currentTime := time.Now().Format(timeFormat)
-	expiresAt := time.Now().Add(expirationTime).Format(timeFormat)
+	currentTime := time.Now().Format(TimeFormat)
+	expiresAt := time.Now().Add(ExpirationTime).Format(TimeFormat)
 	fmt.Println("Current time: " + currentTime)
 	fmt.Println("Token expires: " + expiresAt)
 
 	// get esn using ip address of request
 	p, _ := peer.FromContext(ctx)
-	fmt.Println(p.AuthInfo)
-	fmt.Println("authinfo")
 	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
 	esn, err := GetEsnFromTarget(ipAddr)
 
@@ -151,8 +151,7 @@ func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 		if !skipGuid {
 			fmt.Println("Adding " + ipAddr + " to TokenHashStore")
 			guid, tokenHash, _ := CreateTokenAndHashedToken()
-			TokenHashStore = append(TokenHashStore, [2]string{ipAddr, tokenHash})
-			fmt.Println(TokenHashStore)
+			TokenHashStore = append(TokenHashStore, [3]string{ipAddr, guid, tokenHash})
 			clientToken = guid
 		}
 	}
@@ -168,7 +167,7 @@ func createJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 		"requestor_id": requestorId,
 		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
 		"token_type":   "user+robot",
-		"user_id":      userId,
+		"user_id":      UserId,
 	})
 	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
 	tokenString, _ := token.SignedString(rsaKey)
