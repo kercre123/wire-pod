@@ -2,8 +2,12 @@ package jdocsserver
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 
@@ -40,6 +44,79 @@ func IsBotInInfo(esn string) bool {
 	return false
 }
 
+func WriteToIni(botName string) {
+	// 	[008060ec]
+	// cert = /home/kerigan/.anki_vector/Vector-B6H9-008060ec.cert
+	// ip = 192.168.1.155
+	// name = Vector-B6H9
+	// guid = 1YbXk1yrS9C1I78snYy8xA==
+
+	var robotSDKInfo tokenserver.RobotInfoStore
+	eFileBytes, err := os.ReadFile(InfoPath)
+	if err == nil {
+		json.Unmarshal(eFileBytes, &robotSDKInfo)
+	} else {
+		return
+	}
+	userIniData, err := ini.Load("../../.anki_vector/sdk_config.ini")
+	fullPath, _ := os.Getwd()
+	fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/"
+	if err != nil {
+		os.Mkdir(fullPath, 0755)
+		userIniData = ini.Empty()
+	}
+	for _, robot := range robotSDKInfo.Robots {
+		matched := false
+		for _, section := range userIniData.Sections() {
+			if section.Name() == robot.Esn {
+				matched = true
+				if botName != "" {
+					section.Key("cert").SetValue(fullPath + botName + "-" + robot.Esn + ".cert")
+					section.Key("name").SetValue(botName)
+				}
+				section.Key("ip").SetValue(robot.IPAddress)
+				if robot.GUID == "" {
+					section.Key("guid").SetValue(robotSDKInfo.GlobalGUID)
+				} else {
+					section.Key("guid").SetValue(robot.GUID)
+				}
+			}
+		}
+		if !matched {
+			newSection, err := userIniData.NewSection(robot.Esn)
+			if err != nil {
+				fmt.Println(err)
+			}
+			setGuid := robot.GUID
+			if robot.GUID == "" {
+				setGuid = robotSDKInfo.GlobalGUID
+			}
+			fmt.Println("Getting session cert from Anki server")
+			resp, err := http.Get("https://session-certs.token.global.anki-services.com/vic/" + robot.Esn)
+			if err != nil {
+				fmt.Println(err)
+			}
+			certBytesOrig, _ := io.ReadAll(resp.Body)
+			block, _ := pem.Decode(certBytesOrig)
+			certBytes := block.Bytes
+			cert, err := x509.ParseCertificate(certBytes)
+			if err != nil {
+				fmt.Println(err)
+			}
+			botName = cert.Issuer.CommonName
+			out, err := os.Create(fullPath + botName + "-" + robot.Esn + ".cert")
+			out.Write(certBytesOrig)
+			newSection.NewKey("cert", fullPath+botName+"-"+robot.Esn+".cert")
+			newSection.NewKey("ip", robot.IPAddress)
+			newSection.NewKey("name", botName)
+			newSection.NewKey("guid", setGuid)
+		}
+	}
+	fmt.Println("JSON to ini done")
+	userIniData.SaveTo("../../.anki_vector/sdk_config.ini")
+	return
+}
+
 func IniToJson() {
 	var robotSDKInfo tokenserver.RobotInfoStore
 	eFileBytes, err := os.ReadFile(InfoPath)
@@ -56,9 +133,9 @@ func IniToJson() {
 			if cfg.SerialNo != "DEFAULT" {
 				matched := false
 				for _, robot := range robotSDKInfo.Robots {
-					if robot.GUID == "" {
-						if cfg.SerialNo == robot.Esn {
-							matched = true
+					if cfg.SerialNo == robot.Esn {
+						matched = true
+						if robot.GUID == "" {
 							robot.GUID = cfg.Token
 							robot.IPAddress = cfg.Target
 						}
@@ -85,9 +162,9 @@ func IniToJson() {
 				if cfg.SerialNo != "DEFAULT" {
 					matched := false
 					for _, robot := range robotSDKInfo.Robots {
-						if robot.GUID == "" {
-							if cfg.SerialNo == robot.Esn {
-								matched = true
+						if cfg.SerialNo == robot.Esn {
+							matched = true
+							if robot.GUID == "" {
 								robot.GUID = cfg.Token
 								robot.IPAddress = cfg.Target
 							}

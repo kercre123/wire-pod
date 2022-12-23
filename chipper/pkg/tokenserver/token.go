@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -36,6 +37,10 @@ var TokenHashStore [][3]string
 // array of {"esn", "target", "guid", "guidhash"}
 // for secondary user auth
 var SecondaryTokenStore [][4]string
+
+// {"target", "name"}
+var SessionWriteStoreNames [][2]string
+var SessionWriteStoreCerts [][]byte
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
@@ -217,6 +222,10 @@ func CreateJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
 	fmt.Println("Token: Incoming Associate Primary User request")
+	cert, _ := x509.ParseCertificate(req.SessionCertificate)
+	SessionWriteStoreCerts = append(SessionWriteStoreCerts, req.SessionCertificate)
+	p, _ := peer.FromContext(ctx)
+	SessionWriteStoreNames = append(SessionWriteStoreNames, [2]string{p.Addr.String(), cert.Issuer.CommonName})
 	return &tokenpb.AssociatePrimaryUserResponse{
 		Data: CreateJWT(ctx, req.SkipClientToken),
 	}, nil
