@@ -230,25 +230,14 @@ func StoreBotInfoStrings(target string, botEsn string) {
 		json.Unmarshal(eFileBytes, &robotSDKInfo)
 	}
 	robotSDKInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
-	iniData, iniErr := ini.Load("../../.anki_vector/sdk_config.ini")
 	for num, robot := range robotSDKInfo.Robots {
 		if robot.Esn == botEsn {
 			appendNew = false
 			robotSDKInfo.Robots[num].IPAddress = ipAddr
-			if robotSDKInfo.Robots[num].GUID == "" {
-				if iniErr == nil {
-					section := iniData.Section(botEsn)
-					if section != nil {
-						cfg := options{}
-						section.MapTo(&cfg)
-						robotSDKInfo.Robots[num].GUID = cfg.Token
-						fmt.Println("Found GUID in ini, " + cfg.Token)
-					}
-				}
-			}
 		}
 	}
 	if appendNew {
+		fmt.Println("Adding " + botEsn + " to bot info store")
 		robotSDKInfo.Robots = append(robotSDKInfo.Robots, struct {
 			Esn       string `json:"esn"`
 			IPAddress string `json:"ip_address"`
@@ -258,5 +247,4 @@ func StoreBotInfoStrings(target string, botEsn string) {
 	}
 	finalJsonBytes, _ := json.Marshal(robotSDKInfo)
 	os.WriteFile(InfoPath, finalJsonBytes, 0644)
-	fmt.Println(string(finalJsonBytes))
 }

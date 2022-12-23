@@ -66,13 +66,18 @@ func pingJdocs(target string) {
 			return
 		}
 	}
-	_, err = robotTmp.Conn.PullJdocs(ctx, &vectorpb.PullJdocsRequest{
+	resp, err := robotTmp.Conn.PullJdocs(ctx, &vectorpb.PullJdocsRequest{
 		JdocTypes: []vectorpb.JdocType{vectorpb.JdocType_ROBOT_SETTINGS},
 	})
 	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Failed to pull jdocs")
 		return
 	}
 	fmt.Println("Successfully got jdocs from " + serial)
+	// write to file
+	writeBytes, _ := json.Marshal(resp.NamedJdocs[0].Doc)
+	os.WriteFile("./jdocs/vic:"+serial+"-vic.RobotSettings.json", writeBytes, 0644)
 	return
 }
 
@@ -170,7 +175,7 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		}
 		pinger.Count = 1
 		pinger.Timeout = time.Second * 2
-		err = pinger.Run() // Blocks until finished.
+		err = pinger.Run()
 		if err != nil {
 			fmt.Println(err)
 			fmt.Fprintf(w, "failed to link bot: Couldn't ping bot, make sure you have entered the correct ip address")

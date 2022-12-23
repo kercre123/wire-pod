@@ -72,7 +72,7 @@ func startServer() {
 		server.WithKnowledgeGraphProcessor(p),
 		server.WithIntentGraphProcessor(p),
 	)
-	jdocsserver.IniToJson()
+	//jdocsserver.IniToJson()
 	tokenServer := tokenserver.NewTokenServer()
 	jdocsserver := jdocsserver.NewJdocsServer()
 
