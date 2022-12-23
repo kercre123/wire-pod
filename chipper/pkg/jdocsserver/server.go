@@ -99,6 +99,21 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					tokenserver.RemoveFromPrimaryStore(tokenserver.TokenHashStore, num)
 				}
 			}
+			sessionMatched := false
+			for num, pair := range tokenserver.SessionWriteStoreNames {
+				if ipAddr == pair[0] {
+					sessionMatched = true
+					fullPath, _ := os.Getwd()
+					fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/" + pair[1] + "-" + esn + ".cert"
+					fmt.Println(fullPath)
+					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
+					WriteToIni(pair[1])
+					break
+				}
+			}
+			if !sessionMatched {
+				WriteToIni("")
+			}
 			if !matched {
 				if !isAlreadyKnown {
 					fmt.Println("Bot was not known to wire-pod, creating token and hash (in ReadDocs)")
