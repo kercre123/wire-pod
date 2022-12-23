@@ -21,7 +21,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 	successMatched = processTextAll(req, transcribedText, matchListList, intentsList, speechReq.IsOpus, speechReq.BotNum)
 	if !successMatched {
 		logger("No intent was matched.")
-		if os.Getenv("KNOWLEDGE_INTENT_GRAPH") == "true" {
+		if os.Getenv("KNOWLEDGE_INTENT_GRAPH") == "true" && len([]rune(transcribedText)) > 8 {
 			apiResponse, err := openaiRequest(transcribedText)
 			if err != nil {
 				botNum = botNum - 1
