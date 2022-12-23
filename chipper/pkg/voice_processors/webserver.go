@@ -1,15 +1,16 @@
 package wirepod
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
 )
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
@@ -376,15 +377,19 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(botConfigJSONFile))
 		return
 	case r.URL.Path == "/api/debug":
-		token, tokenHash, _ := tokenserver.CreateTokenAndHashedToken()
-		fmt.Println(tokenHash)
-		fmt.Println(token)
-		err := tokenserver.CompareHashAndToken(tokenHash, token)
-		if err == nil {
-			fmt.Println("Successfully matched!")
-		} else {
+		resp, err := http.Get("https://session-certs.token.global.anki-services.com/vic/00e20145")
+		if err != nil {
 			fmt.Println(err)
 		}
+		certBytes, _ := io.ReadAll(resp.Body)
+		block, _ := pem.Decode(certBytes)
+		certBytes = block.Bytes
+		cert, err := x509.ParseCertificate(certBytes)
+		if err != nil {
+			fmt.Println(err)
+		}
+		botName := cert.Issuer.CommonName
+		fmt.Println(botName)
 		fmt.Fprintf(w, "done")
 		return
 	}
