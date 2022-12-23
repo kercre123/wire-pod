@@ -57,7 +57,7 @@ func startServer() {
 
 	tokenServer := tokenserver.NewTokenServer()
 	jdocsServer := jdocsserver.NewJdocsServer()
-	jdocsserver.IniToJson()
+	//jdocsserver.IniToJson()
 
 	pb.RegisterChipperGrpcServer(srv.Transport(), s)
 	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsServer)

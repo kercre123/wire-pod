@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"strings"
@@ -222,7 +223,8 @@ func CreateJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
 	fmt.Println("Token: Incoming Associate Primary User request")
-	cert, _ := x509.ParseCertificate(req.SessionCertificate)
+	pemBytes, _ := pem.Decode(req.SessionCertificate)
+	cert, _ := x509.ParseCertificate(pemBytes.Bytes)
 	SessionWriteStoreCerts = append(SessionWriteStoreCerts, req.SessionCertificate)
 	p, _ := peer.FromContext(ctx)
 	SessionWriteStoreNames = append(SessionWriteStoreNames, [2]string{p.Addr.String(), cert.Issuer.CommonName})
