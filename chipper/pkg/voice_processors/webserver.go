@@ -1,8 +1,11 @@
 package wirepod
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -372,6 +375,22 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			logger(err)
 		}
 		fmt.Fprint(w, string(botConfigJSONFile))
+		return
+	case r.URL.Path == "/api/debug":
+		resp, err := http.Get("https://session-certs.token.global.anki-services.com/vic/00e20145")
+		if err != nil {
+			fmt.Println(err)
+		}
+		certBytes, _ := io.ReadAll(resp.Body)
+		block, _ := pem.Decode(certBytes)
+		certBytes = block.Bytes
+		cert, err := x509.ParseCertificate(certBytes)
+		if err != nil {
+			fmt.Println(err)
+		}
+		botName := cert.Issuer.CommonName
+		fmt.Println(botName)
+		fmt.Fprintf(w, "done")
 		return
 	}
 }

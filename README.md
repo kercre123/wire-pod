@@ -2,11 +2,15 @@
 
 `wire-pod` is a custom server stack for Vector created with a variety of open-sourced Digital Dream Labs programs, mainly based on [chipper](https://github.com/digital-dream-labs/chipper).
 
-It acts as a full Vector escape pod alternative, and works with every Vector 1.0.
+It acts as a full Vector escape pod alternative, and works with every Vector 1.0. Not just OSKR/dev-unlocked robots.
 
 ## Documentation
 
 Check out the [wiki](https://github.com/kercre123/wire-pod/wiki) for a better description of what wire-pod is, guides on how to install wire-pod, how to develop for it, etc.
+
+## wire-pod vs. wire-prod-pod
+
+This repository contains the original wire-pod, which is generally more dev-friendly and feature rich. If you want something more user-friendly and easy to setup/understand, check out [wire-prod-pod](https://github.com/kercre123/wire-prod-pod).
 
 ## Credits
 

@@ -277,12 +277,14 @@ func setSettingSDKintbool(setting string, value string) {
 	}
 }
 
-type RobotSDKInfoStore struct {
+type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
 	Robots     []struct {
 		Esn       string `json:"esn"`
 		IPAddress string `json:"ip_address"`
+		// 192.168.1.150:443
 		GUID      string `json:"guid"`
+		Activated bool   `json:"activated"`
 	} `json:"robots"`
 }
 
@@ -310,7 +312,7 @@ func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
 		log.Println("vector-go-sdk error: Error opening " + "jdocs/botSdkInfo.json" + ", likely doesn't exist")
 		return nil, err
 	}
-	var robotSDKInfo RobotSDKInfoStore
+	var robotSDKInfo RobotInfoStore
 	json.Unmarshal(jsonBytes, &robotSDKInfo)
 	matched := false
 	for _, robot := range robotSDKInfo.Robots {
@@ -582,6 +584,7 @@ func BeginServer() {
 	http.Handle("/stream", camStream)
 	// in jdocspinger.go
 	http.HandleFunc("/ok:80", connCheck)
+	http.HandleFunc("/link-esn-and-target", connCheck)
 	fmt.Println("Starting SDK app")
 
 	fmt.Printf("Starting server at port 80 for connCheck\n")
