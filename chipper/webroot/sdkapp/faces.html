@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Faces manager</title>
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+</head>
+<body>
+<div id="outer">
+<div id="content">
+    <h1 class="center">Face Manager</h1>
+    <hr>
+    <a href="/sdkapp/settings.html">Back</a>
+    <hr>
+    <p class="center">Choose the face you would like to modify.</p>
+    <select id="faceList" name="faceList"></select>
+    <button onclick="refreshFaceList()" type="submit">Refresh list</button>
+    <button onclick="deleteFace()" type="submit">Delete</button>
+    <button onclick="renameFace()" type="submit">Rename</button>
+    <div id="faceResult"></div>
+    <hr>
+</div>
+</div>	
+</body>
+</html>
+  <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
+  <script src="./js/httprequest.js"></script>
+  <script src="./js/faces.js"></script>

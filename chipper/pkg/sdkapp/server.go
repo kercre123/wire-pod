@@ -524,6 +524,51 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		moveHead(float32(speed))
 		fmt.Fprintf(w, "")
 		return
+	case r.URL.Path == "/api-sdk/get_faces":
+		resp, err := robot.Conn.RequestEnrolledNames(
+			ctx,
+			&vectorpb.RequestEnrolledNamesRequest{})
+		if err != nil {
+			fmt.Fprintf(w, err.Error())
+			return
+		}
+		bytes, _ := json.Marshal(resp.Faces)
+		fmt.Fprintf(w, string(bytes))
+		return
+	case r.URL.Path == "/api-sdk/rename_face":
+		id := r.FormValue("id")
+		oldname := r.FormValue("oldname")
+		newname := r.FormValue("newname")
+		idInt, _ := strconv.Atoi(id)
+		idInt32 := int32(idInt)
+		_, err := robot.Conn.UpdateEnrolledFaceByID(
+			ctx,
+			&vectorpb.UpdateEnrolledFaceByIDRequest{
+				FaceId:  idInt32,
+				OldName: oldname,
+				NewName: newname,
+			})
+		if err != nil {
+			fmt.Fprintf(w, err.Error())
+			return
+		}
+		fmt.Fprintf(w, "success")
+		return
+	case r.URL.Path == "/api-sdk/delete_face":
+		id := r.FormValue("id")
+		idInt, _ := strconv.Atoi(id)
+		idInt32 := int32(idInt)
+		_, err := robot.Conn.EraseEnrolledFaceByID(
+			ctx,
+			&vectorpb.EraseEnrolledFaceByIDRequest{
+				FaceId: idInt32,
+			})
+		if err != nil {
+			fmt.Fprintf(w, err.Error())
+			return
+		}
+		fmt.Fprintf(w, "success")
+		return
 	case r.URL.Path == "/api-sdk/mirror_mode":
 		enable := r.FormValue("enable")
 		if enable == "true" {
