@@ -36,7 +36,6 @@ func ConvertToProperJdoc(filename string) {
 		return
 	}
 	os.WriteFile(filename, writeBytes, 0644)
-	return
 }
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
@@ -101,7 +100,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			}
 			sessionMatched := false
 			for num, pair := range tokenserver.SessionWriteStoreNames {
-				if ipAddr == pair[0] {
+				if ipAddr == strings.Split(pair[0], ":")[0] {
 					sessionMatched = true
 					fullPath, _ := os.Getwd()
 					fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/" + pair[1] + "-" + esn + ".cert"
