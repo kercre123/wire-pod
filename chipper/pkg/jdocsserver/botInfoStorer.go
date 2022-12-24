@@ -105,7 +105,9 @@ func WriteToIni(botName string) {
 			}
 			botName = cert.Issuer.CommonName
 			out, err := os.Create(fullPath + botName + "-" + robot.Esn + ".cert")
-			out.Write(certBytesOrig)
+			if err == nil {
+				out.Write(certBytesOrig)
+			}
 			newSection.NewKey("cert", fullPath+botName+"-"+robot.Esn+".cert")
 			newSection.NewKey("ip", robot.IPAddress)
 			newSection.NewKey("name", botName)
@@ -114,7 +116,6 @@ func WriteToIni(botName string) {
 	}
 	fmt.Println("JSON to ini done")
 	userIniData.SaveTo("../../.anki_vector/sdk_config.ini")
-	return
 }
 
 func IniToJson() {
