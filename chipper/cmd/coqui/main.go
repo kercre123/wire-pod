@@ -6,19 +6,47 @@ import (
 	"github.com/digital-dream-labs/chipper/pkg/jdocsserver"
 	sdkWeb "github.com/digital-dream-labs/chipper/pkg/sdkapp"
 	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
-	wp "github.com/digital-dream-labs/chipper/pkg/voice_processors"
+	wp "github.com/digital-dream-labs/chipper/pkg/wirepod-prs"
+	wpweb "github.com/digital-dream-labs/chipper/pkg/wirepod-ws"
+
+	// the import path should be the only thing you need to change if you want another stt engine
+	stt "github.com/digital-dream-labs/chipper/pkg/wirepod-stt/coqui"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/digital-dream-labs/chipper/pkg/server"
 
+	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
+	warnlog "log"
+	"os"
+
 	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
 	"github.com/digital-dream-labs/hugh/log"
 )
 
+// set false for no warning
+const warnIfNoSTT string = "false"
+
 func main() {
 	log.SetJSONFormat("2006-01-02 15:04:05")
+	if warnIfNoSTT == "true" {
+		if _, err := os.Stat("/root/.coqui/stt"); err == nil {
+			warnlog.Println("STT binary found!")
+			if _, err := os.Stat("../stt/large_vocabulary.scorer"); err == nil {
+				warnlog.Println("STT scorer found!")
+				if _, err := os.Stat("../stt/model.tflite"); err == nil {
+					warnlog.Println("STT model found! Speech-to-text should work like normal.")
+				} else {
+					warnlog.Println("No STT model found. This must be placed at ../stt/model.tflite. Please read the README. Speech-to-text may not work.")
+				}
+			} else {
+				warnlog.Println("No scorer file found. This must be placed at ../stt/large_vocabulary.scorer. Please read the README. Speech-to-text may not work.")
+			}
+		} else {
+			warnlog.Println("Coqui STT was not found or chipper is being run from outside it's directory. Please read the README. Speech-to-text may not work.")
+		}
+	}
 	startServer()
 }
 
@@ -29,21 +57,21 @@ func startServer() {
 		grpcserver.WithReflectionService(),
 
 		grpcserver.WithUnaryServerInterceptors(
-		//	grpclog.UnaryServerInterceptor(),
+		//			grpclog.UnaryServerInterceptor(),
 		),
 
 		grpcserver.WithStreamServerInterceptors(
-		//	grpclog.StreamServerInterceptor(),
+		//			grpclog.StreamServerInterceptor(),
 		),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	p, err := wp.New(wp.VoiceProcessorLeopard)
-	go wp.StartWebServer()
-	go sdkWeb.BeginServer()
+	p, err := wp.New(stt.Init, stt.STT, stt.Name)
+	go wpweb.StartWebServer()
 	wp.InitHoundify()
+	go sdkWeb.BeginServer()
 	if err != nil {
 		log.Fatal(err)
 	}

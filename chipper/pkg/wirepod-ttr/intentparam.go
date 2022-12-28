@@ -1,4 +1,4 @@
-package wirepod
+package wirepod_ttr
 
 import (
 	"encoding/json"
@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
+	"github.com/digital-dream-labs/chipper/pkg/logger"
 )
 
-func paramChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
+func ParamChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
@@ -19,7 +20,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
 	if _, err := os.Stat("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json"); err == nil {
-		logger("Found robot settings jdoc for " + botSerial + ", using location and units from that")
+		logger.Println("Found robot settings jdoc for " + botSerial + ", using location and units from that")
 		var jdoc jdocspb.Jdoc
 		type robotSettingsJson struct {
 			ButtonWakeword int  `json:"button_wakeword"`
@@ -39,12 +40,12 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 		}
 		byteValue, err := os.ReadFile("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		var robotSettings robotSettingsJson
 		err = json.Unmarshal(byteValue, &jdoc)
 		if err != nil {
-			logger("Deprecated jdoc found, set location in the sdk web app again to update")
+			logger.Println("Deprecated jdoc found, set location in the sdk web app again to update")
 			json.Unmarshal(byteValue, &robotSettings)
 		} else {
 			json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
@@ -66,13 +67,13 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger("Found bot config for " + bot.ESN)
+				logger.Println("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 				botPlaySpecific = bot.UsePlaySpecific
@@ -125,7 +126,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-	logger("Checking params for candidate intent " + intent)
+	logger.Println("Checking params for candidate intent " + intent)
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
@@ -213,12 +214,12 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger("Name parsed from speech: " + "`" + username + "`")
+			logger.Println("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger("No name parsed from speech")
+			logger.Println("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -227,7 +228,7 @@ func paramChecker(req interface{}, intent string, speechText string, justThisBot
 		isParam = true
 		newIntent = intent
 		timerSecs := words2num(speechText)
-		logger("Seconds parsed from speech: " + timerSecs)
+		logger.Println("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}
@@ -322,7 +323,7 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 	var botLocation string = "San Francisco"
 	var botUnits string = "F"
 	if _, err := os.Stat("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json"); err == nil {
-		logger("Found robot settings jdoc for " + botSerial + ", using location and units from that")
+		logger.Println("Found robot settings jdoc for " + botSerial + ", using location and units from that")
 		var jdoc jdocspb.Jdoc
 		type robotSettingsJson struct {
 			ButtonWakeword int  `json:"button_wakeword"`
@@ -342,12 +343,12 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		}
 		byteValue, err := os.ReadFile("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		var robotSettings robotSettingsJson
 		err = json.Unmarshal(byteValue, &jdoc)
 		if err != nil {
-			logger("Deprecated jdoc found, set location in the sdk web app again to update")
+			logger.Println("Deprecated jdoc found, set location in the sdk web app again to update")
 			json.Unmarshal(byteValue, &robotSettings)
 		} else {
 			json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
@@ -369,13 +370,13 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		}
 		byteValue, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		var botConfig botConfigJSON
 		json.Unmarshal(byteValue, &botConfig)
 		for _, bot := range botConfig {
 			if strings.ToLower(bot.ESN) == botSerial {
-				logger("Found bot config for " + bot.ESN)
+				logger.Println("Found bot config for " + bot.ESN)
 				botLocation = bot.Location
 				botUnits = bot.Units
 			}
@@ -469,12 +470,12 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 			} else if len(splitPhrase) > 4 {
 				username = username + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
 			}
-			logger("Name parsed from speech: " + "`" + username + "`")
+			logger.Println("Name parsed from speech: " + "`" + username + "`")
 			intentParam = "username"
 			intentParamValue = username
 			intentParams = map[string]string{intentParam: intentParamValue}
 		} else {
-			logger("No name parsed from speech")
+			logger.Println("No name parsed from speech")
 			intentParam = "username"
 			intentParamValue = ""
 			intentParams = map[string]string{intentParam: intentParamValue}
@@ -483,7 +484,7 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		isParam = true
 		newIntent = "intent_clock_settimer"
 		timerSecs := words2num(speechText)
-		logger("Seconds parsed from speech: " + timerSecs)
+		logger.Println("Seconds parsed from speech: " + timerSecs)
 		intentParam = "timer_duration"
 		intentParamValue = timerSecs
 		intentParams = map[string]string{intentParam: intentParamValue}

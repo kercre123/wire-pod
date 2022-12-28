@@ -875,20 +875,20 @@ function setupSystemd() {
     cd chipper
     if [[ ${STT_SERVICE} == "leopard" ]]; then
         echo "wire-pod.service created, building chipper with Picovoice STT service..."
-        /usr/local/go/bin/go build -tags leopard cmd-leopard/main.go
+        /usr/local/go/bin/go build cmd/leopard/main.go
     elif [[ ${STT_SERVICE} == "vosk" ]]; then
         echo "wire-pod.service created, building chipper with VOSK STT service..."
         export CGO_ENABLED=1
         export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
         export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
         export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags vosk cmd-vosk/main.go
+        /usr/local/go/bin/go build cmd/vosk/main.go
     else
         echo "wire-pod.service created, building chipper with Coqui STT service..."
         export CGO_LDFLAGS="-L$HOME/.coqui/"
         export CGO_CXXFLAGS="-I$HOME/.coqui/"
         export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags coqui cmd/main.go
+        /usr/local/go/bin/go build cmd/coqui/main.go
     fi
     mv main chipper
     echo

@@ -1,4 +1,4 @@
-package wirepod
+package webserver
 
 import (
 	"crypto/x509"
@@ -11,7 +11,23 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/digital-dream-labs/chipper/pkg/logger"
 )
+
+type intentsStruct []struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Utterances  []string `json:"utterances"`
+	Intent      string   `json:"intent"`
+	Params      struct {
+		ParamName  string `json:"paramname"`
+		ParamValue string `json:"paramvalue"`
+	} `json:"params"`
+	Exec           string   `json:"exec"`
+	ExecArgs       []string `json:"execargs"`
+	IsSystemIntent bool     `json:"issystem"`
+}
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
@@ -32,11 +48,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if _, err := os.Stat("./customIntents.json"); err == nil {
-			logger("Found customIntents.json")
+			logger.Println("Found customIntents.json")
 			var customIntentJSON intentsStruct
 			customIntentJSONFile, _ := os.ReadFile("./customIntents.json")
 			json.Unmarshal(customIntentJSONFile, &customIntentJSON)
-			logger("Number of custom intents (current): " + strconv.Itoa(len(customIntentJSON)))
+			logger.Println("Number of custom intents (current): " + strconv.Itoa(len(customIntentJSON)))
 			customIntentJSON = append(customIntentJSON, struct {
 				Name        string   `json:"name"`
 				Description string   `json:"description"`
@@ -56,7 +72,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			customIntentJSONFile, _ = json.Marshal(customIntentJSON)
 			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
 		} else {
-			logger("Creating customIntents.json")
+			logger.Println("Creating customIntents.json")
 			customIntentJSONFile, _ := json.Marshal([]struct {
 				Name        string   `json:"name"`
 				Description string   `json:"description"`
@@ -104,7 +120,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var customIntentJSON intentsStruct
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -151,7 +167,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		fmt.Fprint(w, string(customIntentJSONFile))
 		return
@@ -170,7 +186,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var customIntentJSON intentsStruct
 		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -235,7 +251,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			// read botConfig.json and append to it with the form information
 			botConfigFile, err := os.ReadFile("./botConfig.json")
 			if err != nil {
-				logger(err)
+				logger.Println(err)
 			}
 			json.Unmarshal(botConfigFile, &botConfig)
 			botConfig = append(botConfig, struct {
@@ -278,7 +294,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var botConfigJSON botConfigStruct
 		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		json.Unmarshal(botConfigJSONFile, &botConfigJSON)
 		newNumbera, _ := strconv.Atoi(number)
@@ -287,7 +303,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(botConfigJSON))+" bots")
 			return
 		}
-		logger(botConfigJSON[newNumber].Esn + " bot is being removed")
+		logger.Println(botConfigJSON[newNumber].Esn + " bot is being removed")
 		botConfigJSON = append(botConfigJSON[:newNumber], botConfigJSON[newNumber+1:]...)
 		newBotConfigJSONFile, _ := json.Marshal(botConfigJSON)
 		os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
@@ -345,7 +361,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			// read botConfig.json and append to it with the form information
 			botConfigFile, err := os.ReadFile("./botConfig.json")
 			if err != nil {
-				logger(err)
+				logger.Println(err)
 			}
 			json.Unmarshal(botConfigFile, &botConfig)
 			newNumbera, _ := strconv.Atoi(number)
@@ -372,7 +388,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
 		if err != nil {
-			logger(err)
+			logger.Println(err)
 		}
 		fmt.Fprint(w, string(botConfigJSONFile))
 		return
@@ -404,7 +420,7 @@ func StartWebServer() {
 		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
 			webPort = os.Getenv("WEBSERVER_PORT")
 		} else {
-			logger("WEBSERVER_PORT contains letters, using default of 8080")
+			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
 			webPort = "8080"
 		}
 	} else {

@@ -1,36 +1,42 @@
-//go:build vosk
-// +build vosk
-
-package wirepod
+package wirepod_vosk
 
 import (
 	"encoding/json"
 	"log"
+	"os"
 	"strconv"
 
 	vosk "github.com/alphacep/vosk-api/go"
+	"github.com/digital-dream-labs/chipper/pkg/logger"
+	sr "github.com/digital-dream-labs/chipper/pkg/speechrequest"
 )
+
+var Name string = "vosk"
 
 var model *vosk.VoskModel
 
-// New returns a new server
-func VoskInit() (*Server, error) {
+var Init func() error = func() error {
+	sttLanguage := os.Getenv("STT_LANGUAGE")
+	if len(sttLanguage) == 0 {
+		sttLanguage = "en-US"
+	}
 	// Open model
-	logger("Opening model")
+	logger.Println("Opening model")
 	aModel, err := vosk.NewModel("../vosk/models/" + sttLanguage + "/model")
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 	model = aModel
-	logger("Model open!")
+	logger.Println("Model open!")
 
-	logger("Server OK")
+	logger.Println("Server OK")
 
-	return &Server{}, nil
+	return nil
 }
 
-func VoskSTTHandler(req SpeechRequest) (string, error) {
-	logger("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
+var STT func(sr.SpeechRequest) (string, error) = func(req sr.SpeechRequest) (string, error) {
+	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
 	speechIsDone := false
 	sampleRate := 16000.0
 	rec, err := vosk.NewRecognizer(model, sampleRate)
@@ -41,13 +47,13 @@ func VoskSTTHandler(req SpeechRequest) (string, error) {
 	rec.AcceptWaveform(req.FirstReq)
 	for {
 		var chunk []byte
-		req, chunk, err = getNextStreamChunk(req)
+		req, chunk, err = sr.GetNextStreamChunk(req)
 		if err != nil {
 			return "", err
 		}
 		rec.AcceptWaveform(chunk)
 		// has to be split into 320 []byte chunks for VAD
-		req, speechIsDone = detectEndOfSpeech(req)
+		req, speechIsDone = sr.DetectEndOfSpeech(req)
 		if speechIsDone {
 			break
 		}
@@ -55,6 +61,6 @@ func VoskSTTHandler(req SpeechRequest) (string, error) {
 	var jres map[string]interface{}
 	json.Unmarshal([]byte(rec.FinalResult()), &jres)
 	transcribedText := jres["text"].(string)
-	logger("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
+	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
 	return transcribedText, nil
 }
