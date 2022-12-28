@@ -1,7 +1,7 @@
 package wirepod_ttr
 
 import (
-	sr "github.com/digital-dream-labs/chipper/pkg/speechrequest"
+	sr "github.com/kercre123/chipper/pkg/speechrequest"
 )
 
 const STR_WEATHER_IN = "str_weather_in"

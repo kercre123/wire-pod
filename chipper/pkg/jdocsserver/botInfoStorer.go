@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
+	"github.com/kercre123/chipper/pkg/tokenserver"
 	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
 )
