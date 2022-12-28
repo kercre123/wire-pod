@@ -30,7 +30,7 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
 	if [[ -f ./chipper ]]; then
 	  ./chipper
 	else
-	  /usr/local/go/bin/go run -tags ${STT_SERVICE} cmd-leopard/main.go
+	  /usr/local/go/bin/go run cmd/leopard/main.go
 	fi
 elif [[ ${STT_SERVICE} == "vosk" ]]; then
 	if [[ -f ./chipper ]]; then
@@ -44,7 +44,7 @@ elif [[ ${STT_SERVICE} == "vosk" ]]; then
 		export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
 		export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
 		export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
-		/usr/local/go/bin/go run -tags ${STT_SERVICE} cmd-vosk/main.go
+		/usr/local/go/bin/go run cmd/vosk/main.go
 	fi
 else
 if [[ -f ./chipper ]]; then
@@ -56,6 +56,6 @@ else
       export CGO_LDFLAGS="-L$HOME/.coqui/"
       export CGO_CXXFLAGS="-I$HOME/.coqui/"
       export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
-      /usr/local/go/bin/go run -tags ${STT_SERVICE} cmd/main.go
+      /usr/local/go/bin/go run cmd/coqui/main.go
 fi
 fi
