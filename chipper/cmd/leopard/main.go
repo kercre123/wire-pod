@@ -3,19 +3,19 @@ package main
 import (
 	"fmt"
 
-	"github.com/digital-dream-labs/chipper/pkg/jdocsserver"
-	sdkWeb "github.com/digital-dream-labs/chipper/pkg/sdkapp"
-	"github.com/digital-dream-labs/chipper/pkg/tokenserver"
-	wp "github.com/digital-dream-labs/chipper/pkg/wirepod-prs"
-	wpweb "github.com/digital-dream-labs/chipper/pkg/wirepod-ws"
+	"github.com/kercre123/chipper/pkg/jdocsserver"
+	sdkWeb "github.com/kercre123/chipper/pkg/sdkapp"
+	"github.com/kercre123/chipper/pkg/tokenserver"
+	wp "github.com/kercre123/chipper/pkg/wirepod-prs"
+	wpweb "github.com/kercre123/chipper/pkg/wirepod-ws"
 
 	// the import path should be the only thing you need to change if you want another stt engine
-	stt "github.com/digital-dream-labs/chipper/pkg/wirepod-stt/leopard"
+	stt "github.com/kercre123/chipper/pkg/wirepod-stt/leopard"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
-	"github.com/digital-dream-labs/chipper/pkg/server"
+	"github.com/kercre123/chipper/pkg/server"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
 

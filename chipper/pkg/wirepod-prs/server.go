@@ -5,9 +5,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/digital-dream-labs/chipper/pkg/logger"
-	sr "github.com/digital-dream-labs/chipper/pkg/speechrequest"
-	ttr "github.com/digital-dream-labs/chipper/pkg/wirepod-ttr"
+	"github.com/kercre123/chipper/pkg/logger"
+	sr "github.com/kercre123/chipper/pkg/speechrequest"
+	ttr "github.com/kercre123/chipper/pkg/wirepod-ttr"
 )
 
 // Server stores the config

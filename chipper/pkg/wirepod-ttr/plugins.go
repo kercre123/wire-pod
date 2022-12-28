@@ -5,7 +5,7 @@ import (
 	"plugin"
 	"strings"
 
-	"github.com/digital-dream-labs/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/logger"
 )
 
 var PluginList []*plugin.Plugin

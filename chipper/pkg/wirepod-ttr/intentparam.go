@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
-	"github.com/digital-dream-labs/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/logger"
 )
 
 func ParamChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {

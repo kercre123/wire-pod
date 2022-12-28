@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
-	"github.com/digital-dream-labs/chipper/pkg/logger"
-	sr "github.com/digital-dream-labs/chipper/pkg/speechrequest"
-	"github.com/digital-dream-labs/chipper/pkg/vtt"
+	"github.com/kercre123/chipper/pkg/logger"
+	sr "github.com/kercre123/chipper/pkg/speechrequest"
+	"github.com/kercre123/chipper/pkg/vtt"
 )
 
 type intentsStruct []struct {

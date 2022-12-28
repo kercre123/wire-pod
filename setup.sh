@@ -65,7 +65,7 @@ echo "Checks have passed!"
 echo
 
 function getPackages() {
-    echo "Installing required packages (ffmpeg, golang, wget, openssl, net-tools, iproute2, sox, opus)"
+    echo "Installing required packages"
     if [[ ${TARGET} == "debian" ]]; then
         apt update -y
         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev
@@ -83,18 +83,16 @@ function getPackages() {
     cd golang
     if [[ ! -f /usr/local/go/bin/go ]]; then
         if [[ ${ARCH} == "x86_64" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-amd64.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
+            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
         elif [[ ${ARCH} == "aarch64" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-arm64.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-arm64.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
+            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-arm64.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-arm64.tar.gz
         elif [[ ${ARCH} == "armv7l" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-armv6l.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-armv6l.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
+            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-armv6l.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-armv6l.tar.gz
         fi
+	ln -s /usr/local/go/bin/go /usr/bin/go
     fi
     cd ..
     rm -rf golang

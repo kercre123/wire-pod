@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	vosk "github.com/alphacep/vosk-api/go"
-	"github.com/digital-dream-labs/chipper/pkg/logger"
-	sr "github.com/digital-dream-labs/chipper/pkg/speechrequest"
+	"github.com/kercre123/chipper/pkg/logger"
+	sr "github.com/kercre123/chipper/pkg/speechrequest"
 )
 
 var Name string = "vosk"
