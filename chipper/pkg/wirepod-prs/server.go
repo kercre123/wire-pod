@@ -26,15 +26,6 @@ var sttHandler func(sr.SpeechRequest) (string, error)
 var matchListList [][]string
 var intentsList = []string{}
 
-func splitVAD(buf []byte) [][]byte {
-	var chunk [][]byte
-	for len(buf) >= 320 {
-		chunk = append(chunk, buf[:320])
-		buf = buf[320:]
-	}
-	return chunk
-}
-
 func loadIntents(language string) ([][]string, []string, error) {
 	jsonFile, err := os.ReadFile("./intent-data/" + language + ".json")
 

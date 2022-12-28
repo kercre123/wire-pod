@@ -131,7 +131,7 @@ func kgVADHandler(req sr.SpeechRequest) (sr.SpeechRequest, error) {
 		if err != nil {
 			return req, err
 		}
-		splitChunk := splitVAD(chunk)
+		splitChunk := sr.SplitVAD(chunk)
 		for _, chunk := range splitChunk {
 			active, err := vad.Process(16000, chunk)
 			if err != nil {
