@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digital-dream-labs/chipper/pkg/jdocsserver"
+	"github.com/kercre123/chipper/pkg/jdocsserver"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/go-ping/ping"
 )
