@@ -1,4 +1,8 @@
-package wirepod
+package wirepod_ttr
+
+import (
+	sr "github.com/kercre123/chipper/pkg/speechrequest"
+)
 
 const STR_WEATHER_IN = "str_weather_in"
 const STR_WEATHER_FORECAST = "str_weather_forecast"
@@ -78,13 +82,13 @@ var texts = map[string][]string{
 func getText(key string) string {
 	var data = texts[key]
 	if data != nil {
-		if sttLanguage == "it-IT" {
+		if sr.SttLanguage == "it-IT" {
 			return data[1]
-		} else if sttLanguage == "es-ES" {
+		} else if sr.SttLanguage == "es-ES" {
 			return data[2]
-		} else if sttLanguage == "fr-FR" {
+		} else if sr.SttLanguage == "fr-FR" {
 			return data[3]
-		} else if sttLanguage == "de-DE" {
+		} else if sr.SttLanguage == "de-DE" {
 			return data[4]
 		}
 	}

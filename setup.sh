@@ -65,7 +65,7 @@ echo "Checks have passed!"
 echo
 
 function getPackages() {
-    echo "Installing required packages (ffmpeg, golang, wget, openssl, net-tools, iproute2, sox, opus)"
+    echo "Installing required packages"
     if [[ ${TARGET} == "debian" ]]; then
         apt update -y
         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev
@@ -83,18 +83,16 @@ function getPackages() {
     cd golang
     if [[ ! -f /usr/local/go/bin/go ]]; then
         if [[ ${ARCH} == "x86_64" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-amd64.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
+            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
         elif [[ ${ARCH} == "aarch64" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-arm64.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-arm64.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
+            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-arm64.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-arm64.tar.gz
         elif [[ ${ARCH} == "armv7l" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.18.2.linux-armv6l.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.2.linux-armv6l.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
+            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-armv6l.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-armv6l.tar.gz
         fi
+	ln -s /usr/local/go/bin/go /usr/bin/go
     fi
     cd ..
     rm -rf golang
@@ -875,20 +873,20 @@ function setupSystemd() {
     cd chipper
     if [[ ${STT_SERVICE} == "leopard" ]]; then
         echo "wire-pod.service created, building chipper with Picovoice STT service..."
-        /usr/local/go/bin/go build -tags leopard cmd-leopard/main.go
+        /usr/local/go/bin/go build cmd/leopard/main.go
     elif [[ ${STT_SERVICE} == "vosk" ]]; then
         echo "wire-pod.service created, building chipper with VOSK STT service..."
         export CGO_ENABLED=1
         export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
         export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
         export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags vosk cmd-vosk/main.go
+        /usr/local/go/bin/go build cmd/vosk/main.go
     else
         echo "wire-pod.service created, building chipper with Coqui STT service..."
         export CGO_LDFLAGS="-L$HOME/.coqui/"
         export CGO_CXXFLAGS="-I$HOME/.coqui/"
         export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags coqui cmd/main.go
+        /usr/local/go/bin/go build cmd/coqui/main.go
     fi
     mv main chipper
     echo
@@ -913,6 +911,7 @@ function disableSystemd() {
     echo "Disabling wire-pod.service"
     systemctl stop wire-pod.service
     systemctl disable wire-pod.service
+    rm ./chipper/chipper
     rm -f /lib/systemd/system/wire-pod.service
     systemctl daemon-reload
     echo

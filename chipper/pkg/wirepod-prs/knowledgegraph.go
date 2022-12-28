@@ -1,4 +1,4 @@
-package wirepod
+package processreqs
 
 import (
 	"bytes"
@@ -11,7 +11,9 @@ import (
 	"strings"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
-	"github.com/digital-dream-labs/chipper/pkg/vtt"
+	"github.com/kercre123/chipper/pkg/logger"
+	sr "github.com/kercre123/chipper/pkg/speechrequest"
+	"github.com/kercre123/chipper/pkg/vtt"
 	"github.com/maxhawkins/go-webrtcvad"
 	"github.com/pkg/errors"
 	"github.com/soundhound/houndify-sdk-go"
@@ -24,7 +26,7 @@ func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 	result := make(map[string]interface{})
 	err := json.Unmarshal([]byte(serverResponseJSON), &result)
 	if err != nil {
-		logger(err.Error())
+		logger.Println(err.Error())
 		return "", errors.New("failed to decode json")
 	}
 	if !strings.EqualFold(result["Status"].(string), "OK") {
@@ -40,12 +42,12 @@ func InitHoundify() {
 	if os.Getenv("KNOWLEDGE_ENABLED") == "" {
 		// initing with old source.sh
 		if os.Getenv("HOUNDIFY_CLIENT_ID") == "" {
-			logger("Houndify Client ID not found.")
+			logger.Println("Houndify Client ID not found.")
 			HoundEnable = false
 			return
 		}
 		if os.Getenv("HOUNDIFY_CLIENT_KEY") == "" {
-			logger("Houndify Client Key not found.")
+			logger.Println("Houndify Client Key not found.")
 			HoundEnable = false
 			return
 		}
@@ -55,17 +57,17 @@ func InitHoundify() {
 				ClientKey: os.Getenv("HOUNDIFY_CLIENT_KEY"),
 			}
 			HKGclient.EnableConversationState()
-			logger("Houndify for knowledge graph initialized!")
+			logger.Println("Houndify for knowledge graph initialized!")
 		}
 	} else {
 		if os.Getenv("KNOWLEDGE_PROVIDER") == "houndify" {
 			if os.Getenv("KNOWLEDGE_ID") == "" {
-				logger("Houndify Client ID not found.")
+				logger.Println("Houndify Client ID not found.")
 				HoundEnable = false
 				return
 			}
 			if os.Getenv("KNOWLEDGE_KEY") == "" {
-				logger("Houndify Client Key not found.")
+				logger.Println("Houndify Client Key not found.")
 				HoundEnable = false
 				return
 			}
@@ -75,10 +77,10 @@ func InitHoundify() {
 					ClientKey: os.Getenv("KNOWLEDGE_KEY"),
 				}
 				HKGclient.EnableConversationState()
-				logger("Houndify for knowledge graph initialized!")
+				logger.Println("Houndify for knowledge graph initialized!")
 			}
 		} else {
-			logger("Knowledge provider: " + os.Getenv("KNOWLEDGE_PROVIDER"))
+			logger.Println("Knowledge provider: " + os.Getenv("KNOWLEDGE_PROVIDER"))
 		}
 	}
 }
@@ -86,10 +88,10 @@ func InitHoundify() {
 var NoResult string = "NoResultCommand"
 var NoResultSpoken string
 
-func kgHoundifyRequestHandler(req SpeechRequest) (string, error) {
+func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
 	var transcribedText string
 	if HoundEnable {
-		logger("Sending requst to Houndify...")
+		logger.Println("Sending requst to Houndify...")
 		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
 			req := houndify.VoiceRequest{
 				AudioStream:       bytes.NewReader(req.MicData),
@@ -100,40 +102,40 @@ func kgHoundifyRequestHandler(req SpeechRequest) (string, error) {
 			partialTranscripts := make(chan houndify.PartialTranscript)
 			serverResponse, err := HKGclient.VoiceSearch(req, partialTranscripts)
 			if err != nil {
-				logger(err)
+				logger.Println(err)
 			}
 			transcribedText, _ = ParseSpokenResponse(serverResponse)
-			logger("Transcribed text: " + transcribedText)
+			logger.Println("Transcribed text: " + transcribedText)
 		}
 	} else {
 		transcribedText = "Houndify is not enabled."
-		logger("Houndify is not enabled.")
+		logger.Println("Houndify is not enabled.")
 	}
 	return transcribedText, nil
 }
 
-func kgVADHandler(req SpeechRequest) (SpeechRequest, error) {
-	logger("Processing...")
+func kgVADHandler(req sr.SpeechRequest) (sr.SpeechRequest, error) {
+	logger.Println("Processing...")
 	activeNum := 0
 	inactiveNum := 0
 	inactiveNumMax := 20
 	die := false
 	vad, err := webrtcvad.New()
 	if err != nil {
-		logger(err)
+		logger.Println(err)
 	}
 	vad.SetMode(3)
 	for {
 		var chunk []byte
-		req, chunk, err = getNextStreamChunk(req)
+		req, chunk, err = sr.GetNextStreamChunk(req)
 		if err != nil {
 			return req, err
 		}
-		splitChunk := splitVAD(chunk)
+		splitChunk := sr.SplitVAD(chunk)
 		for _, chunk := range splitChunk {
 			active, err := vad.Process(16000, chunk)
 			if err != nil {
-				logger(err)
+				logger.Println(err)
 			}
 			if active {
 				activeNum = activeNum + 1
@@ -142,7 +144,7 @@ func kgVADHandler(req SpeechRequest) (SpeechRequest, error) {
 				inactiveNum = inactiveNum + 1
 			}
 			if inactiveNum >= inactiveNumMax && activeNum > 20 {
-				logger("Speech completed.")
+				logger.Println("Speech completed.")
 				die = true
 				break
 			}
@@ -154,15 +156,15 @@ func kgVADHandler(req SpeechRequest) (SpeechRequest, error) {
 	return req, nil
 }
 
-func houndifyKG(req SpeechRequest) (string, error) {
+func houndifyKG(req sr.SpeechRequest) (string, error) {
 	req, _ = kgVADHandler(req)
 	apiResponse, err := kgHoundifyRequestHandler(req)
 	return apiResponse, err
 }
 
 func openaiRequest(transcribedText string) (string, error) {
-	sendString := "You are a helpful robot called the Anki Vector. You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\""
-	logger("Making request to OpenAI...")
+	sendString := "You are a helpful robot called the Anki Vector. You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
+	logger.Println("Making request to OpenAI...")
 	url := "https://api.openai.com/v1/completions"
 	formData := `{
 "model": "text-davinci-003",
@@ -208,11 +210,11 @@ func openaiRequest(transcribedText string) (string, error) {
 		return "", err
 	}
 	apiResponse := strings.TrimSpace(openAIResponse.Choices[0].Text)
-	logger("OpenAI response: " + apiResponse)
+	logger.Println("OpenAI response: " + apiResponse)
 	return apiResponse, nil
 }
 
-func openaiKG(speechReq SpeechRequest) (string, error) {
+func openaiKG(speechReq sr.SpeechRequest) (string, error) {
 	transcribedText, err := sttHandler(speechReq)
 	if err != nil {
 		return "", nil
@@ -221,17 +223,17 @@ func openaiKG(speechReq SpeechRequest) (string, error) {
 }
 
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
-	botNum = botNum + 1
+	sr.BotNum = sr.BotNum + 1
 	var apiResponse string
 	var err error
-	speechReq := reqToSpeechRequest(req)
+	speechReq := sr.ReqToSpeechRequest(req)
 	if os.Getenv("KNOWLEDGE_PROVIDER") == "houndify" || os.Getenv("HOUNDIFY_CLIENT_ID") != "" {
 		apiResponse, err = houndifyKG(speechReq)
 	} else if os.Getenv("KNOWLEDGE_PROVIDER") == "openai" {
 		apiResponse, err = openaiKG(speechReq)
 	}
 	if err != nil {
-		logger(err)
+		logger.Println(err)
 		NoResultSpoken = err.Error()
 		kg := pb.KnowledgeGraphResponse{
 			Session:     req.Session,
@@ -253,8 +255,8 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 		CommandType: NoResult,
 		SpokenText:  NoResultSpoken,
 	}
-	botNum = botNum - 1
-	logger("(KG) Bot " + strconv.Itoa(speechReq.BotNum) + " request served.")
+	sr.BotNum = sr.BotNum - 1
+	logger.Println("(KG) Bot " + strconv.Itoa(speechReq.BotNum) + " request served.")
 	if err := req.Stream.Send(&kg); err != nil {
 		return nil, err
 	}
