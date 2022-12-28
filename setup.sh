@@ -913,6 +913,7 @@ function disableSystemd() {
     echo "Disabling wire-pod.service"
     systemctl stop wire-pod.service
     systemctl disable wire-pod.service
+    rm ./chipper/chipper
     rm -f /lib/systemd/system/wire-pod.service
     systemctl daemon-reload
     echo
