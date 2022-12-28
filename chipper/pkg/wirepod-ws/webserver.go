@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/digital-dream-labs/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/logger"
 )
 
 type intentsStruct []struct {

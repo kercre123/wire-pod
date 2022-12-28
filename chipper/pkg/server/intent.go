@@ -4,7 +4,7 @@ import (
 	"time"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
-	"github.com/digital-dream-labs/chipper/pkg/vtt"
+	"github.com/kercre123/chipper/pkg/vtt"
 	"github.com/digital-dream-labs/hugh/log"
 )
 
