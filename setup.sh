@@ -677,6 +677,7 @@ function makeSource() {
                 knowledgeKey="$KNOWLEDGE_KEY"
                 knowledgeID="$KNOWLEDGE_ID"
                 knowledgeProvider="$KNOWLEDGE_PROVIDER"
+                knowledgeIntent="$KNOWLEDGE_INTENT_GRAPH"
             else
                 if [[ "$HOUNDIFY_ENABLED" == "true" ]]; then
                     knowledgeKey="$HOUNDIFY_CLIENT_KEY"
