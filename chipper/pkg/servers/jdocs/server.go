@@ -74,10 +74,21 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	logger.Println(req.Items)
 	esn := strings.Split(req.Thing, ":")[1]
 	isAlreadyKnown := IsBotInInfo(esn)
-	StoreBotInfo(ctx, req.Thing)
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+	for _, pair := range tokenserver.SessionWriteStoreNames {
+		if ipAddr == strings.Split(pair[0], ":")[0] {
+			// the bot being here means that userdata was cleared, so we will also (attempt to) remove the AppTokens json
+			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json")
+			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AccountSettings.json")
+			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.RobotLifetimeStats.json")
+			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.RobotSettings.json")
+			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.UserEntitlements.json")
+			break
+		}
+	}
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
+		StoreBotInfo(ctx, req.Thing)
 		if _, err := os.Stat(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil {
 			logger.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
 			matched := false
@@ -104,9 +115,10 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					sessionMatched = true
 					fullPath, _ := os.Getwd()
 					fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/" + pair[1] + "-" + esn + ".cert"
-					logger.Println(fullPath)
+					logger.Println("Outputting session cert to " + fullPath)
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
 					WriteToIni(pair[1])
+					tokenserver.RemoveFromSessionStore(num)
 					break
 				}
 			}

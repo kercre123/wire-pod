@@ -17,6 +17,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/kercre123/chipper/pkg/logger"
 	"google.golang.org/grpc/peer"
+	"gopkg.in/ini.v1"
 )
 
 type TokenServer struct {
@@ -30,6 +31,7 @@ const (
 	ExpirationTime = time.Hour * 24
 	UserId         = "wirepod"
 	GlobalGUID     = "tni1TRsTRTaNSapjo0Y+Sw=="
+	InfoPath       = JdocsPath + BotInfoFile
 )
 
 // array of {"target", "guid", "guidhash"}
@@ -127,6 +129,9 @@ func WriteTokenHash(esn string, tokenHash string) error {
 	jdoc.JsonDoc = string(newJsonBytes)
 	writeBytes, _ := json.Marshal(jdoc)
 	err = os.WriteFile(filename, writeBytes, 0644)
+	if err != nil {
+		logger.Println(err)
+	}
 	return err
 }
 
@@ -142,7 +147,57 @@ func RemoveFromPrimaryStore(s [][3]string, index int) {
 	return
 }
 
-func CreateJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
+func RemoveFromSessionStore(index int) {
+	//var SessionWriteStoreNames [][2]string
+	//var SessionWriteStoreCerts [][]byte
+	logger.Println("Removing " + SessionWriteStoreNames[index][0] + " from cert-write store")
+	SessionWriteStoreNames = append(SessionWriteStoreNames[:index], SessionWriteStoreNames[index+1:]...)
+	SessionWriteStoreCerts = append(SessionWriteStoreCerts[:index], SessionWriteStoreCerts[index+1:]...)
+	return
+}
+
+func ChangeGUIDInIni(esn string) {
+	// 	[008060ec]
+	// cert = /home/kerigan/.anki_vector/Vector-B6H9-008060ec.cert
+	// ip = 192.168.1.155
+	// name = Vector-B6H9
+	// guid = 1YbXk1yrS9C1I78snYy8xA==
+
+	var robotSDKInfo RobotInfoStore
+	eFileBytes, err := os.ReadFile(InfoPath)
+	if err == nil {
+		json.Unmarshal(eFileBytes, &robotSDKInfo)
+	} else {
+		logger.Println("Error reading robotSDKInfo")
+		logger.Println(err)
+		return
+	}
+	userIniData, err := ini.Load("../../.anki_vector/sdk_config.ini")
+	if err != nil {
+		logger.Println(err)
+		return
+	}
+	for _, robot := range robotSDKInfo.Robots {
+		matched := false
+		for _, section := range userIniData.Sections() {
+			if strings.EqualFold(section.Name(), esn) {
+				matched = true
+				section.Key("ip").SetValue(robot.IPAddress)
+				if robot.GUID == "" {
+					section.Key("guid").SetValue(robotSDKInfo.GlobalGUID)
+				} else {
+					section.Key("guid").SetValue(robot.GUID)
+				}
+			}
+		}
+		if !matched {
+			logger.Println("Bot is not in sdk_config.ini. Clear your bot's userdata and try authenticating again to create it.")
+		}
+	}
+	userIniData.SaveTo("../../.anki_vector/sdk_config.ini")
+}
+
+func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.TokenBundle {
 	// defaults
 	requestorId := "vic:00601b50"
 	clientToken := GlobalGUID
@@ -178,17 +233,18 @@ func CreateJWT(ctx context.Context, skipGuid bool) *tokenpb.TokenBundle {
 
 	// create token and hash
 	// if esn is not found, put tokenHash into ram
-	if err == nil {
+	if err == nil && !isPrimary {
 		logger.Println("Found ESN for target " + ipAddr + ": " + esn)
 		requestorId = "vic:" + esn
 		if !skipGuid {
 			guid, tokenHash, _ := CreateTokenAndHashedToken()
 			WriteTokenHash(esn, tokenHash)
 			SetBotGUID(esn, guid, tokenHash)
+			ChangeGUIDInIni(esn)
 			clientToken = guid
 		}
 	} else {
-		logger.Println("ESN not found in store, this bot is new")
+		logger.Println("ESN not found in store or this is an associate primary user request, this bot is new")
 		if !skipGuid {
 			logger.Println("Adding " + ipAddr + " to TokenHashStore")
 			guid, tokenHash, _ := CreateTokenAndHashedToken()
@@ -230,25 +286,21 @@ func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.Ass
 	p, _ := peer.FromContext(ctx)
 	SessionWriteStoreNames = append(SessionWriteStoreNames, [2]string{p.Addr.String(), cert.Issuer.CommonName})
 	return &tokenpb.AssociatePrimaryUserResponse{
-		Data: CreateJWT(ctx, req.SkipClientToken),
+		Data: CreateJWT(ctx, false, true),
 	}, nil
 }
 
 func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
 	logger.Println("Token: Incoming Associate Secondary Client request")
 	return &tokenpb.AssociateSecondaryClientResponse{
-		Data: CreateJWT(ctx, false),
+		Data: CreateJWT(ctx, false, false),
 	}, nil
 }
 
 func (s *TokenServer) RefreshToken(ctx context.Context, req *tokenpb.RefreshTokenRequest) (*tokenpb.RefreshTokenResponse, error) {
 	logger.Println("Token: Incoming Refresh Token request")
-	var refresh bool = true
-	if req.RefreshJwtTokens {
-		refresh = false
-	}
 	return &tokenpb.RefreshTokenResponse{
-		Data: CreateJWT(ctx, refresh),
+		Data: CreateJWT(ctx, false, false),
 	}, nil
 }
 
