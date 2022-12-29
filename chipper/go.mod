@@ -19,6 +19,11 @@ require (
 	github.com/fforchino/vector-go-sdk v0.0.0-20221216080054-dfe1a258d335
 	github.com/go-ping/ping v1.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang/protobuf v1.5.2
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
+	github.com/soheilhy/cmux v0.1.4
+	golang.org/x/sync v0.1.0
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/ini.v1 v1.67.0
 	hz.tools/mjpeg v0.0.3
 )
@@ -27,17 +32,17 @@ require (
 	github.com/PerformLine/go-stockutil v1.9.3 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
+	github.com/alphacep/vosk-api v0.3.45 // indirect
 	github.com/bregydoc/gtranslate v0.0.0-20200913051839-1bd07f6c1fc5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grd/ogg v0.0.0-20130623210630-0dae53159b70 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/hajimehoshi/oto/v2 v2.3.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -61,11 +66,9 @@ require (
 	github.com/subosito/gotenv v1.4.1 // indirect
 	golang.org/x/image v0.2.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/hraban/opus.v2 v2.0.0-20220302220929-eeacdbcb92d0 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
