@@ -9,7 +9,7 @@
 	},
 	{	
 		"name": "intent_names_ask", 
-		"keyphrases" : ["my name" ]
+		"keyphrases" : ["my name", "who am"]
 	},
 	{	
 		"name": "intent_imperative_eyecolor",
