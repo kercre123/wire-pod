@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
-	"github.com/go-ping/ping"
 	"github.com/kercre123/chipper/pkg/logger"
 	jdocsserver "github.com/kercre123/chipper/pkg/servers/jdocs"
 )
@@ -20,6 +19,9 @@ import (
 // this doesn't happen at every boot
 // this utilizes Vector's connCheck to see if a bot has disconnected from the server for more than 10 seconds
 // if it has, it will pull jdocs from the bot which will cause the CA cert to get appended to the store
+
+// setting JDOCS_PINGER_ENABLED=false will disable jdocs pinger
+var PingerEnabled bool = true
 
 func pingJdocs(target string) {
 	target = strings.Split(target, ":")[0]
@@ -147,43 +149,20 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	case r.URL.Path == "/ok:80":
-		//	logger.Println("connCheck request from " + r.RemoteAddr)
-		robotTarget := strings.Split(r.RemoteAddr, ":")[0] + ":443"
-		robotTargetCheck := strings.Split(r.RemoteAddr, ":")[0]
-		jsonB, _ := os.ReadFile(jdocsserver.InfoPath)
-		json := string(jsonB)
-		if strings.Contains(json, strings.TrimSpace(robotTargetCheck)) {
-			ping := jdocsPingTimer(robotTarget)
-			if ping {
-				pingJdocs(robotTarget)
+		if PingerEnabled {
+			//	logger.Println("connCheck request from " + r.RemoteAddr)
+			robotTarget := strings.Split(r.RemoteAddr, ":")[0] + ":443"
+			robotTargetCheck := strings.Split(r.RemoteAddr, ":")[0]
+			jsonB, _ := os.ReadFile(jdocsserver.InfoPath)
+			json := string(jsonB)
+			if strings.Contains(json, strings.TrimSpace(robotTargetCheck)) {
+				ping := jdocsPingTimer(robotTarget)
+				if ping {
+					pingJdocs(robotTarget)
+				}
 			}
 		}
 		fmt.Fprintf(w, "ok")
-		return
-	case r.URL.Path == "/link-esn-and-target":
-		esn := r.FormValue("esn")
-		target := r.FormValue("target")
-		logger.Println(len([]rune(esn)))
-		if len([]rune(esn)) != 8 {
-			fmt.Fprintf(w, "failed to link bot: Serial number should equal 8 characters")
-			return
-		}
-		pinger, err := ping.NewPinger(target)
-		pinger.SetPrivileged(true)
-		if err != nil {
-			fmt.Fprintf(w, "failed to link bot: IP address not valid")
-			return
-		}
-		pinger.Count = 1
-		pinger.Timeout = time.Second * 2
-		err = pinger.Run()
-		if err != nil {
-			logger.Println(err)
-			fmt.Fprintf(w, "failed to link bot: Couldn't ping bot, make sure you have entered the correct ip address")
-			return
-		}
-		jdocsserver.StoreBotInfoStrings(target, esn)
-		fmt.Fprintf(w, "success")
 		return
 	}
 }
