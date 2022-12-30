@@ -601,6 +601,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func BeginServer() {
+	if os.Getenv("JDOCS_PINGER_ENABLED") == "false" {
+		PingerEnabled = false
+		logger.Println("Jdocs pinger has been disabled")
+	}
 	ctx = context.Background()
 	camStream := mjpeg.NewStream()
 	i := image.NewGray(image.Rectangle{
