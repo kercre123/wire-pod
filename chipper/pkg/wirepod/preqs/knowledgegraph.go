@@ -106,6 +106,9 @@ func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
 			}
 			transcribedText, _ = ParseSpokenResponse(serverResponse)
 			logger.Println("Transcribed text: " + transcribedText)
+		} else {
+			transcribedText = "Houndify API Key missing."
+			logger.Println("Houndify API Key missing.")	
 		}
 	} else {
 		transcribedText = "Houndify is not enabled."
