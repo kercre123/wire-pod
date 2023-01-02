@@ -92,7 +92,7 @@ func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
 	var transcribedText string
 	if HoundEnable {
 		logger.Println("Sending requst to Houndify...")
-		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
+		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" || os.Getenv("KNOWLEDGE_KEY") != "" {
 			req := houndify.VoiceRequest{
 				AudioStream:       bytes.NewReader(req.MicData),
 				UserID:            req.Device,
@@ -106,6 +106,9 @@ func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
 			}
 			transcribedText, _ = ParseSpokenResponse(serverResponse)
 			logger.Println("Transcribed text: " + transcribedText)
+		} else {
+			transcribedText = "Houndify API Key missing."
+			logger.Println("Houndify API Key missing.")	
 		}
 	} else {
 		transcribedText = "Houndify is not enabled."
