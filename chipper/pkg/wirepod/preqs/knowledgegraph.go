@@ -92,7 +92,7 @@ func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
 	var transcribedText string
 	if HoundEnable {
 		logger.Println("Sending requst to Houndify...")
-		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" {
+		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" || os.Getenv("KNOWLEDGE_KEY") != "" {
 			req := houndify.VoiceRequest{
 				AudioStream:       bytes.NewReader(req.MicData),
 				UserID:            req.Device,
