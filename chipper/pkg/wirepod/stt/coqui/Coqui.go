@@ -14,7 +14,7 @@ import (
 var Name string = "coqui"
 
 // Init should be defined as `func() error`
-var Init func() error = func() error {
+func Init() error {
 	var testTimer float64
 	var timerDie bool = false
 	logger.Println("Running a Coqui test...")
@@ -60,7 +60,7 @@ var Init func() error = func() error {
 
 // STT funcs should be defined as func(sr.SpeechRequest) (string, error)
 
-var STT func(sr.SpeechRequest) (string, error) = func(req sr.SpeechRequest) (string, error) {
+func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Coqui) Processing...")
 	speechIsDone := false
 	coquiInstance, _ := asticoqui.New("../stt/model.tflite")

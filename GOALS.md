@@ -18,10 +18,19 @@
 
 -   Implement photo export in sdkApp
 
--   Refactor - IN PROGRESS - 12/27/22
+-   Refactor - always in progress
     -   Goal: Make it simple to implement your own STT engine, clean things up
     -   Separate more things into their own components
         -   speechrequest, wirepod_coqui(etc...), ttr(text-to-response)
+
+-   Speech-to-intent support - IN PROGRESS
+    -	I would like to implement Picovoice Rhino because it works on Vector's CPU
+    -	The current code is designed to accomodate just speech-to-text engines
+
+-   Streaming to houndify - IN PROGRESS
+    -	Currently, VAD is used to detect the end of speech and a big chunk of data is sent all at once to the Houndify servers
+    -	Streaming is supported by their servers and I would like to implement this
+	-   This would make requests a lot faster
 
 -   Implement wire-pod status page
     -   Should include:
