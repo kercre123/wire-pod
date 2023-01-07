@@ -13,13 +13,16 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	sr.BotNum = sr.BotNum + 1
 	var successMatched bool
 	speechReq := sr.ReqToSpeechRequest(req)
-	transcribedText, err := sttHandler(speechReq)
-	if err != nil {
-		sr.BotNum = sr.BotNum - 1
-		ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, speechReq.BotNum)
-		return nil, nil
+	var transcribedText = ""
+	if !isSti {
+		transcribedText, err := sttHandler(speechReq)
+		if err != nil {
+			sr.BotNum = sr.BotNum - 1
+			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, speechReq.BotNum)
+			return nil, nil
+		}
+		successMatched = ttr.ProcessTextAll(req, transcribedText, matchListList, intentsList, speechReq.IsOpus, speechReq.BotNum)
 	}
-	successMatched = ttr.ProcessTextAll(req, transcribedText, matchListList, intentsList, speechReq.IsOpus, speechReq.BotNum)
 	if !successMatched {
 		logger.Println("No intent was matched.")
 		sr.BotNum = sr.BotNum - 1

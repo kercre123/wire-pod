@@ -15,7 +15,7 @@ var Name string = "vosk"
 
 var model *vosk.VoskModel
 
-var Init func() error = func() error {
+func Init() error {
 	sttLanguage := os.Getenv("STT_LANGUAGE")
 	if len(sttLanguage) == 0 {
 		sttLanguage = "en-US"
@@ -35,7 +35,7 @@ var Init func() error = func() error {
 	return nil
 }
 
-var STT func(sr.SpeechRequest) (string, error) = func(req sr.SpeechRequest) (string, error) {
+func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
 	speechIsDone := false
 	sampleRate := 16000.0

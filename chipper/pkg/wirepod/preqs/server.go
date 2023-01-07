@@ -2,6 +2,7 @@ package processreqs
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -21,7 +22,14 @@ type JsonIntent struct {
 }
 
 var sttLanguage string = "en-US"
+
+// speech-to-text
 var sttHandler func(sr.SpeechRequest) (string, error)
+
+// speech-to-intent (rhino)
+var stiHandler func(sr.SpeechRequest) (string, map[string]string, error)
+
+var isSti bool = false
 
 var matchListList [][]string
 var intentsList = []string{}
@@ -46,18 +54,7 @@ func loadIntents(language string) ([][]string, []string, error) {
 }
 
 // New returns a new server
-func New(InitFunc func() error, SttHandler func(sr.SpeechRequest) (string, error), voiceProcessor string) (*Server, error) {
-	// Setup logging
-	if os.Getenv("DEBUG_LOGGING") != "true" && os.Getenv("DEBUG_LOGGING") != "false" {
-		logger.Println("No valid value for DEBUG_LOGGING, setting to true")
-		debugLogging = true
-	} else {
-		if os.Getenv("DEBUG_LOGGING") == "true" {
-			debugLogging = true
-		} else {
-			debugLogging = false
-		}
-	}
+func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (*Server, error) {
 
 	// Decide the TTS language
 	sr.InitLanguage()
@@ -67,7 +64,19 @@ func New(InitFunc func() error, SttHandler func(sr.SpeechRequest) (string, error
 	if err != nil {
 		return nil, err
 	}
-	sttHandler = SttHandler
+
+	// SttHandler can either be `func(sr.SpeechRequest) (string, error)` or `func (sr.SpeechRequest) (string, map[string]string, error)`
+	// second one exists to accomodate Rhino
+
+	// check function type
+	if str, is := SttHandler.(func(sr.SpeechRequest) (string, error)); is {
+		sttHandler = str
+	} else if str, is := SttHandler.(func(sr.SpeechRequest) (string, map[string]string, error)); is {
+		stiHandler = str
+		isSti = true
+	} else {
+		return nil, fmt.Errorf("stthandler not of correct type")
+	}
 
 	// Initiating the chosen voice processor and load intents from json
 	VoiceProcessor = voiceProcessor
@@ -78,5 +87,3 @@ func New(InitFunc func() error, SttHandler func(sr.SpeechRequest) (string, error
 
 	return &Server{}, err
 }
-
-var debugLogging bool

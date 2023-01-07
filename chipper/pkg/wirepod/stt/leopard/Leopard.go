@@ -18,7 +18,7 @@ var picovoiceInstancesOS string = os.Getenv("PICOVOICE_INSTANCES")
 var picovoiceInstances int
 
 // New returns a new server
-var Init func() error = func() error {
+func Init() error {
 	var picovoiceKey string
 	picovoiceKeyOS := os.Getenv("PICOVOICE_APIKEY")
 	leopardKeyOS := os.Getenv("LEOPARD_APIKEY")
@@ -52,7 +52,7 @@ var Init func() error = func() error {
 	return nil
 }
 
-var STT func(sr.SpeechRequest) (string, error) = func(req sr.SpeechRequest) (transcribedText string, err error) {
+func STT(req sr.SpeechRequest) (transcribedText string, err error) {
 	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Leopard) Processing...")
 	var leopardSTT leopard.Leopard
 	speechIsDone := false
