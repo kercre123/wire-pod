@@ -29,6 +29,7 @@ type SpeechRequest struct {
 	MicData        []byte
 	DecodedMicData []byte
 	PrevLen        int
+	PrevLenRaw     int
 	InactiveFrames int
 	ActiveFrames   int
 	VADInst        *webrtcvad.VAD
@@ -136,6 +137,7 @@ func DetectEndOfSpeech(req SpeechRequest) (SpeechRequest, bool) {
 
 func ReqToSpeechRequest(req interface{}) SpeechRequest {
 	var request SpeechRequest
+	request.PrevLen = 0
 	var err error
 	request.VADInst, err = webrtcvad.New()
 	if err != nil {
@@ -175,7 +177,7 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 }
 
 func GetNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
-	// returns next chunk in voice stream as pcm
+	// returns next chunk in voice stream as opus
 	if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentServer); ok {
 		var stream pb.ChipperGrpc_StreamingIntentServer = str
 		chunk, chunkErr := stream.Recv()
@@ -214,6 +216,49 @@ func GetNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
 		dataReturn := req.DecodedMicData[req.PrevLen:]
 		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
+		return req, dataReturn, nil
+	}
+	logger.Println("invalid type")
+	return req, nil, errors.New("invalid type")
+}
+
+func GetNextStreamChunkNoD(req SpeechRequest) (SpeechRequest, []byte, error) {
+	// returns next chunk in voice stream as pcm
+	if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentServer); ok {
+		var stream pb.ChipperGrpc_StreamingIntentServer = str
+		chunk, chunkErr := stream.Recv()
+		if chunkErr != nil {
+			logger.Println(chunkErr)
+			return req, nil, chunkErr
+		}
+		req.MicData = append(req.MicData, chunk.InputAudio...)
+		dataReturn := req.MicData[req.PrevLenRaw:]
+		req.LastAudioChunk = req.MicData[req.PrevLenRaw:]
+		req.PrevLenRaw = len(req.MicData)
+		return req, dataReturn, nil
+	} else if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentGraphServer); ok {
+		var stream pb.ChipperGrpc_StreamingIntentGraphServer = str
+		chunk, chunkErr := stream.Recv()
+		if chunkErr != nil {
+			logger.Println(chunkErr)
+			return req, nil, chunkErr
+		}
+		req.MicData = append(req.MicData, chunk.InputAudio...)
+		dataReturn := req.MicData[req.PrevLenRaw:]
+		req.LastAudioChunk = req.MicData[req.PrevLenRaw:]
+		req.PrevLenRaw = len(req.MicData)
+		return req, dataReturn, nil
+	} else if str, ok := req.Stream.(pb.ChipperGrpc_StreamingKnowledgeGraphServer); ok {
+		var stream pb.ChipperGrpc_StreamingKnowledgeGraphServer = str
+		chunk, chunkErr := stream.Recv()
+		if chunkErr != nil {
+			logger.Println(chunkErr)
+			return req, nil, chunkErr
+		}
+		req.MicData = append(req.MicData, chunk.InputAudio...)
+		dataReturn := req.MicData[req.PrevLenRaw:]
+		req.LastAudioChunk = req.MicData[req.PrevLenRaw:]
+		req.PrevLenRaw = len(req.MicData)
 		return req, dataReturn, nil
 	}
 	logger.Println("invalid type")
