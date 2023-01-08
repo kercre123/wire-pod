@@ -93,22 +93,25 @@ func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
 	if HoundEnable {
 		logger.Println("Sending requst to Houndify...")
 		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" || os.Getenv("KNOWLEDGE_KEY") != "" {
-			req := houndify.VoiceRequest{
-				AudioStream:       bytes.NewReader(req.MicData),
-				UserID:            req.Device,
-				RequestID:         req.Session,
-				RequestInfoFields: make(map[string]interface{}),
-			}
-			partialTranscripts := make(chan houndify.PartialTranscript)
-			serverResponse, err := HKGclient.VoiceSearch(req, partialTranscripts)
-			if err != nil {
-				logger.Println(err)
-			}
+			// req := houndify.VoiceRequest{
+			// 	AudioStream:       bytes.NewReader(req.MicData),
+			// 	UserID:            req.Device,
+			// 	RequestID:         req.Session,
+			// 	RequestInfoFields: make(map[string]interface{}),
+			// }
+			// partialTranscripts := make(chan houndify.PartialTranscript)
+			// serverResponse, err := HKGclient.VoiceSearch(req, partialTranscripts)
+			// if err != nil {
+			// 	logger.Println(err)
+			// }
+			// transcribedText, _ = ParseSpokenResponse(serverResponse)
+			// logger.Println("Transcribed text: " + transcribedText)
+			serverResponse := StreamAudio(req, HKGclient, "", "")
 			transcribedText, _ = ParseSpokenResponse(serverResponse)
-			logger.Println("Transcribed text: " + transcribedText)
+			logger.Println("Houndify response: " + transcribedText)
 		} else {
 			transcribedText = "Houndify API Key missing."
-			logger.Println("Houndify API Key missing.")	
+			logger.Println("Houndify API Key missing.")
 		}
 	} else {
 		transcribedText = "Houndify is not enabled."
@@ -117,6 +120,7 @@ func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
 	return transcribedText, nil
 }
 
+// i am aware this gives an error because it is not used. it could have future use
 func kgVADHandler(req sr.SpeechRequest) (sr.SpeechRequest, error) {
 	logger.Println("Processing...")
 	activeNum := 0
@@ -160,7 +164,7 @@ func kgVADHandler(req sr.SpeechRequest) (sr.SpeechRequest, error) {
 }
 
 func houndifyKG(req sr.SpeechRequest) (string, error) {
-	req, _ = kgVADHandler(req)
+	//req, _ = kgVADHandler(req)
 	apiResponse, err := kgHoundifyRequestHandler(req)
 	return apiResponse, err
 }

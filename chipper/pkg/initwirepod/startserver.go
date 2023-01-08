@@ -18,7 +18,6 @@ import (
 	wpweb "github.com/kercre123/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/chipper/pkg/wirepod/sdkapp"
-	"github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 	"github.com/soheilhy/cmux"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
@@ -28,7 +27,6 @@ import (
 
 func serveOk(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "ok")
-	return
 }
 
 func httpServe(l net.Listener) error {
@@ -68,7 +66,7 @@ func grpcServe(l net.Listener, p *wp.Server) error {
 	return srv.Transport().Serve(l)
 }
 
-func StartServer(sttInitFunc func() error, sttHandlerFunc func(speechrequest.SpeechRequest) (string, error), voiceProcessorName string) {
+func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) {
 	logger.Init()
 
 	// begin wirepod stuff
@@ -89,9 +87,12 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc func(speechrequest.Spe
 	}
 	listener, err := tls.Listen("tcp", ":"+os.Getenv("DDL_RPC_PORT"), &tls.Config{
 		Certificates: []tls.Certificate{cert},
-		// Set appropriate ciphersuites here
 		CipherSuites: nil,
 	})
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	m := cmux.New(listener)
 	grpcListener := m.Match(cmux.HTTP2())
 	httpListener := m.Match(cmux.HTTP1Fast())
