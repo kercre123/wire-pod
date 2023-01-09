@@ -32,6 +32,18 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
 	else
 	  /usr/local/go/bin/go run cmd/leopard/main.go
 	fi
+elif [[ ${STT_SERVICE} == "rhino" ]]; then
+	if [[ -f ./chipper ]]; then
+          ./chipper
+        else
+          /usr/local/go/bin/go run cmd/experimental/rhino/main.go
+        fi
+elif [[ ${STT_SERVICE} == "houndify" ]]; then
+	if [[ -f ./chipper ]]; then
+          ./chipper
+        else
+          /usr/local/go/bin/go run cmd/experimental/houndify/main.go
+        fi
 elif [[ ${STT_SERVICE} == "vosk" ]]; then
 	if [[ -f ./chipper ]]; then
 		export CGO_ENABLED=1 

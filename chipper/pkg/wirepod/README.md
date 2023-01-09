@@ -7,6 +7,9 @@
 ## preqs
 -	Process request functions, the first which get launched in the chain of code
 
+## stintent
+-   Speech-to-intent, for services like Picovoice Rhino
+
 ## stt
 -	Speech-to-text functions, where you would put your own STT engine implementation
 

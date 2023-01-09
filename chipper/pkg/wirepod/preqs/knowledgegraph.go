@@ -14,7 +14,6 @@ import (
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vtt"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
-	"github.com/maxhawkins/go-webrtcvad"
 	"github.com/pkg/errors"
 	"github.com/soundhound/houndify-sdk-go"
 )
@@ -88,81 +87,23 @@ func InitHoundify() {
 var NoResult string = "NoResultCommand"
 var NoResultSpoken string
 
-func kgHoundifyRequestHandler(req sr.SpeechRequest) (string, error) {
-	var transcribedText string
+func houndifyKG(req sr.SpeechRequest) (string, error) {
+	var apiResponse string
 	if HoundEnable {
-		logger.Println("Sending requst to Houndify...")
+		logger.Println("Sending request to Houndify...")
 		if os.Getenv("HOUNDIFY_CLIENT_KEY") != "" || os.Getenv("KNOWLEDGE_KEY") != "" {
-			req := houndify.VoiceRequest{
-				AudioStream:       bytes.NewReader(req.MicData),
-				UserID:            req.Device,
-				RequestID:         req.Session,
-				RequestInfoFields: make(map[string]interface{}),
-			}
-			partialTranscripts := make(chan houndify.PartialTranscript)
-			serverResponse, err := HKGclient.VoiceSearch(req, partialTranscripts)
-			if err != nil {
-				logger.Println(err)
-			}
-			transcribedText, _ = ParseSpokenResponse(serverResponse)
-			logger.Println("Transcribed text: " + transcribedText)
+			serverResponse := StreamAudioToHoundify(req, HKGclient)
+			apiResponse, _ = ParseSpokenResponse(serverResponse)
+			logger.Println("Houndify response: " + apiResponse)
 		} else {
-			transcribedText = "Houndify API Key missing."
-			logger.Println("Houndify API Key missing.")	
+			apiResponse = "Houndify API Key missing."
+			logger.Println("Houndify API Key missing.")
 		}
 	} else {
-		transcribedText = "Houndify is not enabled."
+		apiResponse = "Houndify is not enabled."
 		logger.Println("Houndify is not enabled.")
 	}
-	return transcribedText, nil
-}
-
-func kgVADHandler(req sr.SpeechRequest) (sr.SpeechRequest, error) {
-	logger.Println("Processing...")
-	activeNum := 0
-	inactiveNum := 0
-	inactiveNumMax := 20
-	die := false
-	vad, err := webrtcvad.New()
-	if err != nil {
-		logger.Println(err)
-	}
-	vad.SetMode(3)
-	for {
-		var chunk []byte
-		req, chunk, err = sr.GetNextStreamChunk(req)
-		if err != nil {
-			return req, err
-		}
-		splitChunk := sr.SplitVAD(chunk)
-		for _, chunk := range splitChunk {
-			active, err := vad.Process(16000, chunk)
-			if err != nil {
-				logger.Println(err)
-			}
-			if active {
-				activeNum = activeNum + 1
-				inactiveNum = 0
-			} else {
-				inactiveNum = inactiveNum + 1
-			}
-			if inactiveNum >= inactiveNumMax && activeNum > 20 {
-				logger.Println("Speech completed.")
-				die = true
-				break
-			}
-		}
-		if die {
-			break
-		}
-	}
-	return req, nil
-}
-
-func houndifyKG(req sr.SpeechRequest) (string, error) {
-	req, _ = kgVADHandler(req)
-	apiResponse, err := kgHoundifyRequestHandler(req)
-	return apiResponse, err
+	return apiResponse, nil
 }
 
 func openaiRequest(transcribedText string) (string, error) {
@@ -225,16 +166,20 @@ func openaiKG(speechReq sr.SpeechRequest) (string, error) {
 	return openaiRequest(transcribedText)
 }
 
+// Takes a SpeechRequest, figures out knowledgegraph provider, makes request, returns API response
+func KgRequest(speechReq sr.SpeechRequest) (string, error) {
+	if os.Getenv("KNOWLEDGE_PROVIDER") == "houndify" {
+		return houndifyKG(speechReq)
+	} else if os.Getenv("KNOWLEDGE_PROVIDER") == "openai" {
+		return openaiKG(speechReq)
+	}
+	return "", fmt.Errorf("invalid kg provider")
+}
+
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
 	sr.BotNum = sr.BotNum + 1
-	var apiResponse string
-	var err error
 	speechReq := sr.ReqToSpeechRequest(req)
-	if os.Getenv("KNOWLEDGE_PROVIDER") == "houndify" || os.Getenv("HOUNDIFY_CLIENT_ID") != "" {
-		apiResponse, err = houndifyKG(speechReq)
-	} else if os.Getenv("KNOWLEDGE_PROVIDER") == "openai" {
-		apiResponse, err = openaiKG(speechReq)
-	}
+	apiResponse, err := KgRequest(speechReq)
 	if err != nil {
 		logger.Println(err)
 		NoResultSpoken = err.Error()
