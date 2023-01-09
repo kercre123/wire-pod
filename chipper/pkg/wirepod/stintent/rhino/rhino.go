@@ -10,6 +10,8 @@ import (
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
 
+// experimental, not officially supported
+
 var Name string = "rhino"
 
 var rhinoSTIArray []rhino.Rhino

@@ -21,17 +21,14 @@ func Init() error {
 		sttLanguage = "en-US"
 	}
 	// Open model
-	logger.Println("Opening model")
+	logger.Println("Opening VOSK model")
 	aModel, err := vosk.NewModel("../vosk/models/" + sttLanguage + "/model")
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 	model = aModel
-	logger.Println("Model open!")
-
-	logger.Println("Server OK")
-
+	logger.Println("VOSK model opened")
 	return nil
 }
 
