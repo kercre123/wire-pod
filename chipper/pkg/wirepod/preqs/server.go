@@ -44,11 +44,12 @@ func loadIntents(language string) ([][]string, []string, error) {
 		var jsonIntents []JsonIntent
 		json.Unmarshal(jsonFile, &jsonIntents)
 
-		for index, element := range jsonIntents {
-			logger.Println("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
+		for _, element := range jsonIntents {
+			//logger.Println("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
 			intents = append(intents, element.Name)
 			matches = append(matches, element.Keyphrases)
 		}
+		logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches")
 	}
 	return matches, intents, err
 }

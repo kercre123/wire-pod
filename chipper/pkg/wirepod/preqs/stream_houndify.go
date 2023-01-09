@@ -35,7 +35,6 @@ func StreamAudioToHoundify(sreq sr.SpeechRequest, client houndify.Client) string
 				}
 				wp.Write(chunk)
 				if speechDone {
-					fmt.Println("End of speech detected by VAD")
 					return
 				}
 			}
