@@ -16,7 +16,6 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 	var successMatched bool
 	speechReq := sr.ReqToSpeechRequest(req)
 	var transcribedText string
-
 	if !isSti {
 		var err error
 		transcribedText, err = sttHandler(speechReq)
@@ -44,10 +43,9 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 		sr.BotNum = sr.BotNum - 1
 		return nil, nil
 	}
-
 	if !successMatched {
 		logger.Println("No intent was matched.")
-		if os.Getenv("KNOWLEDGE_INTENT_GRAPH") == "true" && len([]rune(transcribedText)) > 8 {
+		if os.Getenv("KNOWLEDGE_INTENT_GRAPH") == "true" && len([]rune(transcribedText)) >= 8 {
 			apiResponse, err := openaiRequest(transcribedText)
 			if err != nil {
 				sr.BotNum = sr.BotNum - 1

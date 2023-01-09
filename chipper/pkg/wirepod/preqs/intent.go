@@ -9,6 +9,7 @@ import (
 	ttr "github.com/kercre123/chipper/pkg/wirepod/ttr"
 )
 
+// This is here for compatibility with 1.6 and older software
 func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
 	sr.BotNum = sr.BotNum + 1
 	var successMatched bool
