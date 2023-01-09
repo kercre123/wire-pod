@@ -15,6 +15,7 @@ require (
 
 require (
 	github.com/Picovoice/leopard/binding/go v1.1.3
+	github.com/Picovoice/rhino/binding/go/v2 v2.1.5
 	github.com/alphacep/vosk-api/go v0.3.45
 	github.com/fforchino/vector-go-sdk v0.0.0-20221216080054-dfe1a258d335
 	github.com/golang-jwt/jwt v3.2.2+incompatible

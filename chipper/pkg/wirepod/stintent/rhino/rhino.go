@@ -1,19 +1,20 @@
-package wirepod_leopard
+package wirepod_rhino
 
 import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 
-	leopard "github.com/Picovoice/leopard/binding/go"
+	rhino "github.com/Picovoice/rhino/binding/go/v2"
 	"github.com/kercre123/chipper/pkg/logger"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
 
-var Name string = "leopard"
+// experimental, not officially supported
 
-var leopardSTTArray []leopard.Leopard
+var Name string = "rhino"
+
+var rhinoSTIArray []rhino.Rhino
 var picovoiceInstancesOS string = os.Getenv("PICOVOICE_INSTANCES")
 var picovoiceInstances int
 
@@ -46,37 +47,55 @@ func Init() error {
 	fmt.Println("Initializing " + strconv.Itoa(picovoiceInstances) + " Picovoice Instances...")
 	for i := 0; i < picovoiceInstances; i++ {
 		fmt.Println("Initializing Picovoice Instance " + strconv.Itoa(i))
-		leopardSTTArray = append(leopardSTTArray, leopard.NewLeopard(picovoiceKey))
-		leopardSTTArray[i].Init()
+		rhinoSTIArray = append(rhinoSTIArray, rhino.Rhino{AccessKey: picovoiceKey, ContextPath: "./rhino.rhn", Sensitivity: 0.5, EndpointDurationSec: 0.5})
+		rhinoSTIArray[i].Init()
 	}
 	return nil
 }
 
-func STT(req sr.SpeechRequest) (transcribedText string, err error) {
-	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Leopard) Processing...")
-	var leopardSTT leopard.Leopard
-	speechIsDone := false
+func STT(req sr.SpeechRequest) (intent string, slots map[string]string, err error) {
+	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Rhino) Processing...")
+	var rhinoSTI rhino.Rhino
 	if req.BotNum > picovoiceInstances {
 		fmt.Println("Too many bots are connected, sending error to bot " + strconv.Itoa(req.BotNum))
-		return "", fmt.Errorf("too many bots are connected, max is 3")
+		return "", map[string]string{}, fmt.Errorf("too many bots are connected, max is 3")
 	} else {
-		leopardSTT = leopardSTTArray[req.BotNum-1]
+		rhinoSTI = rhinoSTIArray[req.BotNum-1]
 	}
+	breakOut := false
 	for {
-		req, _, err = sr.GetNextStreamChunk(req)
+		var chunk []byte
+		req, chunk, err = sr.GetNextStreamChunk(req)
 		if err != nil {
-			return "", err
+			return "", map[string]string{}, err
 		}
-		req, speechIsDone = sr.DetectEndOfSpeech(req)
-		if speechIsDone {
+		nint := sr.BytesToSamples(chunk)
+		chunks := make([][]int16, len(nint)/512)
+		for i := 0; i < len(nint)/512; i++ {
+			chunks[i] = nint[i*512 : (i+1)*512]
+		}
+		for _, bytes := range chunks {
+			isFinal, err := rhinoSTI.Process(bytes)
+			if err != nil {
+				return "", map[string]string{}, err
+			}
+			if isFinal {
+				breakOut = true
+				break
+			}
+		}
+		if breakOut {
 			break
 		}
 	}
-	transcribedTextPre, _, err := leopardSTT.Process(sr.BytesToSamples(req.DecodedMicData))
+	inf, err := rhinoSTI.GetInference()
 	if err != nil {
 		logger.Println(err)
+		return "", map[string]string{}, err
 	}
-	transcribedText = strings.ToLower(transcribedTextPre)
-	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
-	return transcribedText, nil
+	if !inf.IsUnderstood {
+		return "", map[string]string{}, fmt.Errorf("inference not understood")
+	}
+	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " intent: " + inf.Intent)
+	return inf.Intent, inf.Slots, nil
 }
