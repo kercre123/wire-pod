@@ -1,8 +1,8 @@
 # wire-pod
 
-`wire-pod` is a fully-featured server stack for the Digital Dream Labs [Vector](https://www.digitaldreamlabs.com/pages/meet-vector) robot. It was created with the help of Digital Dream Labs' [open-sourced code](https://github.com/digital-dream-labs), primarily [chipper](https://github.com/digital-dream-labs/chipper).
+`wire-pod` is a fully-featured server stack for the Digital Dream Labs [Vector](https://www.digitaldreamlabs.com/pages/meet-vector) robot. It was created thanks to Digital Dream Labs' [open-sourced code](https://github.com/digital-dream-labs), and is primarily based on [chipper](https://github.com/digital-dream-labs/chipper).
 
-It acts as a full cloud alternative, and works with every Vector 1.0. Not just OSKR/dev-unlocked robots.
+It allows voice commands to work with any Vector 1.0 for no fee, including with regular production robots. Not just with OSKR/dev-unlocked robots.
 
 ## Documentation
 
@@ -16,6 +16,6 @@ This repository contains the original wire-pod, which is generally more dev-frie
 
 - [Digital Dream Labs](https://github.com/digital-dream-labs) for saving Vector and for open sourcing chipper which made this possible
 - [dietb](https://github.com/dietb) for rewriting chipper and giving tips
-- [fforchino](https://github.com/fforchino) for adding many features and helping out
+- [fforchino](https://github.com/fforchino) for adding many features such as localization and multilanguage, and for helping out
 - [xanathon](https://github.com/xanathon) for the publicity and web interface help
 - Anyone who has opened an issue and/or created a pull request for wire-pod
