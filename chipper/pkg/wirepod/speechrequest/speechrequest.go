@@ -29,6 +29,7 @@ type SpeechRequest struct {
 	MicData        []byte
 	DecodedMicData []byte
 	PrevLen        int
+	PrevLenRaw     int
 	InactiveFrames int
 	ActiveFrames   int
 	VADInst        *webrtcvad.VAD
@@ -108,6 +109,7 @@ func BytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) []
 	}
 }
 
+// Uses VAD to detect when the user stops speaking
 func DetectEndOfSpeech(req SpeechRequest) (SpeechRequest, bool) {
 	// changes InactiveFrames and ActiveFrames in req
 	inactiveNumMax := 20
@@ -134,8 +136,10 @@ func DetectEndOfSpeech(req SpeechRequest) (SpeechRequest, bool) {
 	return req, false
 }
 
+// Converts a vtt.*Request to a SpeechRequest, which allows functions like DetectEndOfSpeech to work
 func ReqToSpeechRequest(req interface{}) SpeechRequest {
 	var request SpeechRequest
+	request.PrevLen = 0
 	var err error
 	request.VADInst, err = webrtcvad.New()
 	if err != nil {
@@ -174,6 +178,7 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 	return request
 }
 
+// Returns the next chunk in the stream as 16000 Hz PCM
 func GetNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
 	// returns next chunk in voice stream as pcm
 	if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentServer); ok {
@@ -214,6 +219,55 @@ func GetNextStreamChunk(req SpeechRequest) (SpeechRequest, []byte, error) {
 		dataReturn := req.DecodedMicData[req.PrevLen:]
 		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
+		return req, dataReturn, nil
+	}
+	logger.Println("invalid type")
+	return req, nil, errors.New("invalid type")
+}
+
+// Returns next chunk in the stream as whatever the original format is (OPUS 99% of the time)
+func GetNextStreamChunkOpus(req SpeechRequest) (SpeechRequest, []byte, error) {
+	if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentServer); ok {
+		var stream pb.ChipperGrpc_StreamingIntentServer = str
+		chunk, chunkErr := stream.Recv()
+		if chunkErr != nil {
+			logger.Println(chunkErr)
+			return req, nil, chunkErr
+		}
+		req.MicData = append(req.MicData, chunk.InputAudio...)
+		req.DecodedMicData = OpusDecode(req)
+		dataReturn := req.MicData[req.PrevLenRaw:]
+		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
+		req.PrevLen = len(req.DecodedMicData)
+		req.PrevLenRaw = len(req.MicData)
+		return req, dataReturn, nil
+	} else if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentGraphServer); ok {
+		var stream pb.ChipperGrpc_StreamingIntentGraphServer = str
+		chunk, chunkErr := stream.Recv()
+		if chunkErr != nil {
+			logger.Println(chunkErr)
+			return req, nil, chunkErr
+		}
+		req.MicData = append(req.MicData, chunk.InputAudio...)
+		req.DecodedMicData = OpusDecode(req)
+		dataReturn := req.MicData[req.PrevLenRaw:]
+		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
+		req.PrevLen = len(req.DecodedMicData)
+		req.PrevLenRaw = len(req.MicData)
+		return req, dataReturn, nil
+	} else if str, ok := req.Stream.(pb.ChipperGrpc_StreamingKnowledgeGraphServer); ok {
+		var stream pb.ChipperGrpc_StreamingKnowledgeGraphServer = str
+		chunk, chunkErr := stream.Recv()
+		if chunkErr != nil {
+			logger.Println(chunkErr)
+			return req, nil, chunkErr
+		}
+		req.MicData = append(req.MicData, chunk.InputAudio...)
+		req.DecodedMicData = OpusDecode(req)
+		dataReturn := req.MicData[req.PrevLenRaw:]
+		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
+		req.PrevLen = len(req.DecodedMicData)
+		req.PrevLenRaw = len(req.MicData)
 		return req, dataReturn, nil
 	}
 	logger.Println("invalid type")
