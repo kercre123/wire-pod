@@ -24,13 +24,17 @@
         -   speechrequest, wirepod_coqui(etc...), ttr(text-to-response)
 
 -   Speech-to-intent support - IN PROGRESS
+    -   Status: Implemented, but still experimental and must be set up manually (not in setup.sh)
     -	I would like to implement Picovoice Rhino because it works on Vector's CPU
     -	The current code is designed to accomodate just speech-to-text engines
 
--   Streaming to houndify - IN PROGRESS
-    -	Currently, VAD is used to detect the end of speech and a big chunk of data is sent all at once to the Houndify servers
-    -	Streaming is supported by their servers and I would like to implement this
-	-   This would make requests a lot faster
+-   Streaming to houndify - DONE - 1/8/22
+    -   Status: Implemented. Audio is streamed to Houndify and VAD is used to figure out when to stop the stream. Response comes in surprisingly fast
+    -   New findings after implementing: After experimenting with Houndify's dashboard, it seems to be what DDL is piping every single cloud voice request into. It has "custom commands" which they likely programmed every intent into, and it falls back to a normal knowledge graph response if it doesn't match, which is how the "intent graph" feature works. Also, their direct speech-to-text is super fast (after my VAD modification) and I may implement it as an option (NOTE: 1/8/22 - it is now implemented as an experimental option). Though it is a little difficult to describe how to set it up in the dashboard
+    -   Why (pre-impl)
+        -	Currently, VAD is used to detect the end of speech and a big chunk of data is sent all at once to the Houndify servers
+        -	Streaming is supported by their servers and I would like to implement this
+	    -   This would make requests a lot faster
 
 -   Implement wire-pod status page
     -   Should include:
