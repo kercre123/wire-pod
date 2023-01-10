@@ -44,7 +44,9 @@ h1, h2, h3, h4, small, p, li {
   color: white;
 }
 
-
+.content {
+  display: none;
+}
 
 p, small {
 }
