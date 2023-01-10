@@ -44,9 +44,11 @@ h1, h2, h3, h4, small, p, li, label {
   color: white;
 }
 
-
-
 p, small {
+}
+
+.content {
+  display: none;
 }
 
 .wrap {
