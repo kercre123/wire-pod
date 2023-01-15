@@ -214,3 +214,35 @@ function getCurrentSettings() {
     s11.appendChild(s11P);
   };
 };
+
+
+// ##############################################
+function toggleContent(element) {
+  if (element.style.display === "block") {
+    element.style.display = "none";
+  } else {
+    element.style.display = "block";
+  }
+}
+
+var headings = document.getElementsByTagName("h2");
+for (var i = 0; i < headings.length; i++) {
+  headings[i].addEventListener("click", function() {
+    toggleContent(this.nextElementSibling);
+  });
+}
+
+function togglePlusMinusSymbols() {
+  var h2Elements = document.getElementsByTagName("h2");
+  for (var i = 0; i < h2Elements.length; i++) {
+    h2Elements[i].addEventListener("click", function() {
+      var plusMinusElement = this.firstElementChild;
+      if (plusMinusElement.innerHTML === "-") {
+        plusMinusElement.innerHTML = "+";
+      } else {
+        plusMinusElement.innerHTML = "-";
+      }
+    });
+  }
+}
+togglePlusMinusSymbols();
