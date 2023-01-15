@@ -38,6 +38,7 @@ func Init() error {
 }
 
 func STT(sreq sr.SpeechRequest) (string, error) {
+	logger.Println("Incoming request")
 	var err error
 	rp, wp := io.Pipe()
 	req := houndify.VoiceRequest{
