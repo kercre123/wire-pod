@@ -7,7 +7,7 @@ fetch("/api-sdk/get_faces")
 .then(response => response.text())
 .then ((response) => {
   if (response.includes("null")) {
-    alert("Error, no faces exist.")
+    console.log("no faces exist.")
   } else {
   jsonResp = JSON.parse(response)
   for (var i = 0; i < jsonResp.length; i++){
