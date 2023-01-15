@@ -44,77 +44,105 @@ func IsBotInInfo(esn string) bool {
 	return false
 }
 
-func WriteToIni(botName string) {
-	// 	[008060ec]
-	// cert = /home/kerigan/.anki_vector/Vector-B6H9-008060ec.cert
-	// ip = 192.168.1.155
-	// name = Vector-B6H9
-	// guid = 1YbXk1yrS9C1I78snYy8xA==
-
-	var robotSDKInfo tokenserver.RobotInfoStore
-	eFileBytes, err := os.ReadFile(InfoPath)
-	if err == nil {
-		json.Unmarshal(eFileBytes, &robotSDKInfo)
-	} else {
-		return
-	}
-	userIniData, err := ini.Load("../../.anki_vector/sdk_config.ini")
+// This function write a bot name, esn, guid, and target to sdk_config.ini
+// Should only be used for primary auth
+// IP should just be "xxx.xxx.xxx.xxx", no port
+func WriteToIniPrimary(botName, esn, guid, ip string) {
 	fullPath, _ := os.Getwd()
 	fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/"
+	userIniData, err := ini.Load(fullPath + "sdk_config.ini")
 	if err != nil {
 		os.Mkdir(fullPath, 0755)
 		userIniData = ini.Empty()
 	}
-	for _, robot := range robotSDKInfo.Robots {
-		matched := false
-		for _, section := range userIniData.Sections() {
-			if section.Name() == robot.Esn {
-				matched = true
-				if botName != "" {
-					section.Key("cert").SetValue(fullPath + botName + "-" + robot.Esn + ".cert")
-					section.Key("name").SetValue(botName)
-				}
-				section.Key("ip").SetValue(robot.IPAddress)
-				if robot.GUID == "" {
-					section.Key("guid").SetValue(robotSDKInfo.GlobalGUID)
-				} else {
-					section.Key("guid").SetValue(robot.GUID)
-				}
-			}
-		}
-		if !matched {
-			newSection, err := userIniData.NewSection(robot.Esn)
-			if err != nil {
-				logger.Println(err)
-			}
-			setGuid := robot.GUID
-			if robot.GUID == "" {
-				setGuid = robotSDKInfo.GlobalGUID
-			}
-			logger.Println("Getting session cert from Anki server")
-			resp, err := http.Get("https://session-certs.token.global.anki-services.com/vic/" + robot.Esn)
-			if err != nil {
-				logger.Println(err)
-			}
-			certBytesOrig, _ := io.ReadAll(resp.Body)
-			block, _ := pem.Decode(certBytesOrig)
-			certBytes := block.Bytes
-			cert, err := x509.ParseCertificate(certBytes)
-			if err != nil {
-				logger.Println(err)
-			}
-			botName = cert.Issuer.CommonName
-			out, err := os.Create(fullPath + botName + "-" + robot.Esn + ".cert")
-			if err == nil {
-				out.Write(certBytesOrig)
-			}
-			newSection.NewKey("cert", fullPath+botName+"-"+robot.Esn+".cert")
-			newSection.NewKey("ip", robot.IPAddress)
-			newSection.NewKey("name", botName)
-			newSection.NewKey("guid", setGuid)
+	matched := false
+	for _, section := range userIniData.Sections() {
+		if strings.EqualFold(section.Name(), esn) {
+			matched = true
+			logger.Println("WriteToIniPrimary: bot already in INI matched, setting info")
+			section.Key("cert").SetValue(fullPath + botName + "-" + esn + ".cert")
+			section.Key("name").SetValue(botName)
+			section.Key("ip").SetValue(ip)
+			section.Key("guid").SetValue(guid)
 		}
 	}
-	logger.Println("JSON to ini done")
+	if !matched {
+		logger.Println("WriteToIniPrimary: ESN did not match any section in sdk config file, creating")
+		newSection, err := userIniData.NewSection(esn)
+		if err != nil {
+			logger.Println(err)
+		}
+		logger.Println("Getting session cert from Anki server")
+		newSection.NewKey("cert", fullPath+botName+"-"+esn+".cert")
+		newSection.NewKey("ip", ip)
+		newSection.NewKey("name", botName)
+		newSection.NewKey("guid", guid)
+	}
+	userIniData.SaveTo(fullPath + "sdk_config.ini")
+	logger.Println("WriteToIniPrimary: successfully wrote INI")
+}
+
+// Less information is given with a secondary auth request, we have to get the cert from the Anki servers
+// If a cert is already there, it does not get the Anki server cert
+func WriteToIniSecondary(esn, guid, ip string) {
+	certPath := ""
+	botName := ""
+	certExists := false
+	fullPath, _ := os.Getwd()
+	fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/"
+	userIniData, err := ini.Load(fullPath + "sdk_config.ini")
+	if err != nil {
+		os.Mkdir(fullPath, 0755)
+		userIniData = ini.Empty()
+	}
+	// see if cert already exists, get name from that if it does
+	// if not, get from ANKI servers
+	for _, section := range userIniData.Sections() {
+		if strings.EqualFold(section.Name(), esn) {
+			logger.Println("WriteToIniSecondary: Name found from ESN in INI, setting info")
+			botNameKey, _ := section.GetKey("name")
+			botName = botNameKey.String()
+			certPath = fullPath + botName + "-" + esn + ".cert"
+			certExists = true
+			// set information
+			section.Key("guid").SetValue(guid)
+			section.Key("ip").SetValue(ip)
+		}
+	}
+	if !certExists {
+		logger.Println("WriteToIniSecondary: getting session cert from Anki server")
+		resp, err := http.Get("https://session-certs.token.global.anki-services.com/vic/" + esn)
+		if err != nil {
+			logger.Println(err)
+		}
+		certBytesOrig, _ := io.ReadAll(resp.Body)
+		block, _ := pem.Decode(certBytesOrig)
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			logger.Println(err)
+		}
+		botName = cert.Issuer.CommonName
+		certPath = fullPath + botName + "-" + esn + ".cert"
+		out, err := os.Create(certPath)
+		if err == nil {
+			out.Write(certBytesOrig)
+		}
+	}
+	logger.Println("WriteToIniSecondary: robot name is " + botName)
+
+	// create an entry
+	if !certExists {
+		logger.Println("WriteToIniSecondary: creating INI entry")
+		newSection, err := userIniData.NewSection(esn)
+		if err != nil {
+			logger.Println(err)
+		}
+		newSection.NewKey("cert", certPath)
+		newSection.NewKey("ip", ip)
+		newSection.NewKey("name", botName)
+		newSection.NewKey("guid", guid)
+	}
+	logger.Println("WriteToIniSecondary complete")
 	userIniData.SaveTo("../../.anki_vector/sdk_config.ini")
 }
 
