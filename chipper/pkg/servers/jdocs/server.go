@@ -76,8 +76,10 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	isAlreadyKnown := IsBotInInfo(esn)
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+	deletingData := false
 	for _, pair := range tokenserver.SessionWriteStoreNames {
 		if ipAddr == strings.Split(pair[0], ":")[0] {
+			deletingData = true
 			// the bot being here means that userdata was cleared, so we will also (attempt to) remove the AppTokens json
 			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json")
 			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AccountSettings.json")
@@ -89,9 +91,10 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	}
 	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
 		StoreBotInfo(ctx, req.Thing)
-		if _, err := os.Stat(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil {
+		if _, err := os.Stat(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil || deletingData {
 			logger.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
 			matched := false
+			botGUID := ""
 			for num, pair := range tokenserver.TokenHashStore {
 				if strings.EqualFold(pair[0], ipAddr) {
 					err := tokenserver.WriteTokenHash(strings.ToLower(strings.TrimSpace(esn)), pair[2])
@@ -100,6 +103,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 						logger.Println(err)
 					}
 					err = tokenserver.SetBotGUID(esn, pair[1], pair[2])
+					botGUID = pair[1]
 					if err != nil {
 						logger.Println("Error writing token hash to " + tokenserver.BotInfoFile)
 						logger.Println(err)
@@ -111,19 +115,17 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			}
 			sessionMatched := false
 			for num, pair := range tokenserver.SessionWriteStoreNames {
-				if ipAddr == strings.Split(pair[0], ":")[0] {
+				if strings.EqualFold(ipAddr, strings.Split(pair[0], ":")[0]) {
 					sessionMatched = true
 					fullPath, _ := os.Getwd()
 					fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/" + pair[1] + "-" + esn + ".cert"
 					logger.Println("Outputting session cert to " + fullPath)
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
-					WriteToIni(pair[1])
+					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
 					tokenserver.RemoveFromSessionStore(num)
+					logger.Println("Session certificate successfully output")
 					break
 				}
-			}
-			if !sessionMatched {
-				WriteToIni("")
 			}
 			if !matched {
 				if !isAlreadyKnown {
@@ -132,9 +134,13 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					tokenserver.SecondaryTokenStore = append(tokenserver.SecondaryTokenStore, [4]string{esn, ipAddr, guid, hash})
 					// creates apptoken jdoc file
 					tokenserver.WriteTokenHash(esn, hash)
+					if !sessionMatched {
+						WriteToIniSecondary(esn, guid, ipAddr)
+					}
 					// bot is not authenticated yet, do not write to botinfo json
 					filename := JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"
 					fileBytes, _ := os.ReadFile(filename)
+					tokenserver.RemoveFromSecondStore(tokenserver.SecondaryTokenStore, len(tokenserver.SecondaryTokenStore)-1)
 					var jdoc jdocspb.Jdoc
 					json.Unmarshal(fileBytes, &jdoc)
 					return &jdocspb.ReadDocsResp{
