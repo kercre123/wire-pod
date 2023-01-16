@@ -3,9 +3,21 @@
 echo
 
 UNAME=$(uname -a)
-CPUINFO=$(cat /proc/cpuinfo)
 
-if [[ -f /usr/bin/apt ]]; then
+if [[ ${UNAME} == *"Darwin"* ]]; then
+    if [[ -f /usr/local/Homebrew/bin/brew ]]; then
+        TARGET="darwin"
+        echo "macOS confirmed."
+        if [[ ! -f /usr/local/go/bin/go ]]; then
+            echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
+            exit 1
+        fi
+    else
+        echo "macOS detected, but 'brew' was not found. Install it with the following command and try running setup.sh again:"
+        echo '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+        exit 1
+    fi
+elif [[ -f /usr/bin/apt ]]; then
     TARGET="debian"
     echo "Debian-based Linux confirmed."
 elif [[ -f /usr/bin/pacman ]]; then
@@ -49,7 +61,8 @@ if [[ ! -d ./chipper ]]; then
 fi
 
 if [[ $1 != "-f" ]]; then
-    if [[ ${ARCH} == "x86_64" ]]; then
+    if [[ ${ARCH} == "x86_64" ]] && [[ ${TARGET} != "darwin" ]]; then
+        CPUINFO=$(cat /proc/cpuinfo)
         if [[ "${CPUINFO}" == *"avx"* ]]; then
             echo "AVX support confirmed."
         else
@@ -75,24 +88,30 @@ function getPackages() {
     elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git
+    elif [[ ${TARGET} == "darwin" ]]; then
+        echo "macOS target, assuming packages already installed (opus opusfile pkg-config)"
     fi
     touch ./vector-cloud/packagesGotten
     echo
     echo "Installing golang binary package"
     mkdir golang
     cd golang
-    if [[ ! -f /usr/local/go/bin/go ]]; then
-        if [[ ${ARCH} == "x86_64" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
-        elif [[ ${ARCH} == "aarch64" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-arm64.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-arm64.tar.gz
-        elif [[ ${ARCH} == "armv7l" ]]; then
-            wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-armv6l.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-armv6l.tar.gz
+    if [[ ${TARGET} != "darwin" ]]; then
+        if [[ ! -f /usr/local/go/bin/go ]]; then
+            if [[ ${ARCH} == "x86_64" ]]; then
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
+                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
+            elif [[ ${ARCH} == "aarch64" ]]; then
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-arm64.tar.gz
+                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-arm64.tar.gz
+            elif [[ ${ARCH} == "armv7l" ]]; then
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-armv6l.tar.gz
+                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-armv6l.tar.gz
+            fi
+            ln -s /usr/local/go/bin/go /usr/bin/go
         fi
-	ln -s /usr/local/go/bin/go /usr/bin/go
+    else
+        echo "This is a macOS target, assuming Go is installed already"
     fi
     cd ..
     rm -rf golang
@@ -222,6 +241,10 @@ function getLanguage() {
 function getSTT() {
     rm -f ./chipper/pico.key
     function sttServicePrompt() {
+        if [[ ${TARGET} == "darwin" ]]; then
+            sttService="leopard"
+            echo "Using Picovoice Leopard because that is the only speech-to-text service supported for macOS."
+        else
         echo
         echo "Which speech-to-text service would you like to use?"
         echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
@@ -241,6 +264,7 @@ function getSTT() {
             echo
             echo "Choose a valid number, or just press enter to use the default number."
             sttServicePrompt
+        fi
         fi
     }
     sttServicePrompt
@@ -387,7 +411,11 @@ function IPDNSPrompt() {
 }
 
 function IPPrompt() {
-    IPADDRESS=$(ip -4 addr | grep $(ip addr | awk '/state UP/ {print $2}' | sed 's/://g') | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+    if [[ ${TARGET} == "darwin" ]]; then
+        IPADDRESS=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d\  -f2)
+    else
+        IPADDRESS=$(ip -4 addr | grep $(ip addr | awk '/state UP/ {print $2}' | sed 's/://g') | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+    fi
     read -p "Enter the IP address of the machine you are running this script on (${IPADDRESS}): " ipaddress
     if [[ ! -n ${ipaddress} ]]; then
         address=${IPADDRESS}
@@ -744,8 +772,13 @@ function makeSource() {
         echo "Creating server_config.json for robot"
         echo '{"jdocs": "REPLACEME", "tms": "REPLACEME", "chipper": "REPLACEME", "check": "REPLACECONN/ok:80", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
         address=$(cat address)
-        sed -i "s/REPLACEME/${address}:${port}/g" server_config.json
-        sed -i "s/REPLACECONN/${address}/g" server_config.json
+        if [[ ${TARGET} == "darwin" ]]; then
+            perl -i -pe"s/REPLACEME/${address}:${port}/g" server_config.json
+            perl -i -pe"s/REPLACECONN/${address}/g" server_config.json
+        else
+            sed -i "s/REPLACEME/${address}:${port}/g" server_config.json
+            sed -i "s/REPLACECONN/${address}/g" server_config.json
+        fi
         cd ..
     else
         mkdir -p certs
