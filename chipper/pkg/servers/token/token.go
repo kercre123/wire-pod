@@ -135,16 +135,14 @@ func WriteTokenHash(esn string, tokenHash string) error {
 	return err
 }
 
-func RemoveFromSecondStore(s [][4]string, index int) {
-	logger.Println("Removing " + s[index][0] + " from temporary token-hash store")
-	SecondaryTokenStore = append(s[:index], s[index+1:]...)
-	return
+func RemoveFromSecondStore(index int) {
+	logger.Println("Removing " + SecondaryTokenStore[index][0] + " from temporary token-hash store")
+	SecondaryTokenStore = append(SecondaryTokenStore[:index], SecondaryTokenStore[index+1:]...)
 }
 
-func RemoveFromPrimaryStore(s [][3]string, index int) {
-	logger.Println("Removing " + s[index][0] + " from temporary token-hash store")
-	TokenHashStore = append(s[:index], s[index+1:]...)
-	return
+func RemoveFromPrimaryStore(index int) {
+	logger.Println("Removing " + TokenHashStore[index][0] + " from temporary token-hash store")
+	TokenHashStore = append(TokenHashStore[:index], TokenHashStore[index+1:]...)
 }
 
 func RemoveFromSessionStore(index int) {
@@ -153,7 +151,6 @@ func RemoveFromSessionStore(index int) {
 	logger.Println("Removing " + SessionWriteStoreNames[index][0] + " from cert-write store")
 	SessionWriteStoreNames = append(SessionWriteStoreNames[:index], SessionWriteStoreNames[index+1:]...)
 	SessionWriteStoreCerts = append(SessionWriteStoreCerts[:index], SessionWriteStoreCerts[index+1:]...)
-	return
 }
 
 func ChangeGUIDInIni(esn string) {
@@ -225,7 +222,7 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 				secondary = true
 				secondaryGUID = robot[2]
 				secondaryHash = robot[3]
-				RemoveFromSecondStore(SecondaryTokenStore, num)
+				RemoveFromSecondStore(num)
 				break
 			}
 		}
@@ -244,7 +241,7 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 			clientToken = guid
 		}
 	} else {
-		logger.Println("ESN not found in store or this is an associate primary user request, this bot is new")
+		logger.Println("ESN not found in store or this is an associate primary user request, act as if this is a new robot")
 		if !skipGuid {
 			logger.Println("Adding " + ipAddr + " to TokenHashStore")
 			guid, tokenHash, _ := CreateTokenAndHashedToken()
@@ -264,9 +261,12 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 
 	// create actual JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
-		"expires":      expiresAt,
-		"iat":          currentTime,
-		"permissions":  nil,
+		"expires":     expiresAt,
+		"iat":         currentTime,
+		"permissions": nil,
+		// the requestorId will be vic:00601b50 on first auth because we don't have access
+		// to the factory certs like the official servers do. future token requests should
+		// have the actual bot esn because they are "associated" with wire-pod
 		"requestor_id": requestorId,
 		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
 		"token_type":   "user+robot",
