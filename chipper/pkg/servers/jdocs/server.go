@@ -110,7 +110,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					}
 					logger.Println("ReadJdocs: bot " + esn + " matched with IP " + ipAddr + " in token store")
 					matched = true
-					tokenserver.RemoveFromPrimaryStore(tokenserver.TokenHashStore, num)
+					tokenserver.RemoveFromPrimaryStore(num)
 				}
 			}
 			sessionMatched := false
@@ -140,7 +140,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					// bot is not authenticated yet, do not write to botinfo json
 					filename := JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"
 					fileBytes, _ := os.ReadFile(filename)
-					tokenserver.RemoveFromSecondStore(tokenserver.SecondaryTokenStore, len(tokenserver.SecondaryTokenStore)-1)
+					tokenserver.RemoveFromSecondStore(len(tokenserver.SecondaryTokenStore) - 1)
 					var jdoc jdocspb.Jdoc
 					json.Unmarshal(fileBytes, &jdoc)
 					return &jdocspb.ReadDocsResp{
