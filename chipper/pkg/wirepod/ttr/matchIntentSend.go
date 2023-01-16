@@ -45,23 +45,28 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 		req2 = str
 		isIntentGraph = true
 	}
-	intent := pb.IntentResponse{
-		IsFinal: true,
-		IntentResult: &pb.IntentResult{
+	var intentResult pb.IntentResult
+	if isParam {
+		intentResult = pb.IntentResult{
 			QueryText:  speechText,
 			Action:     intentThing,
 			Parameters: intentParams,
-		},
+		}
+	} else {
+		intentResult = pb.IntentResult{
+			QueryText: speechText,
+			Action:    intentThing,
+		}
+	}
+	intent := pb.IntentResponse{
+		IsFinal:      true,
+		IntentResult: &intentResult,
 	}
 	intentGraphSend := pb.IntentGraphResponse{
 		ResponseType: pb.IntentGraphMode_INTENT,
 		IsFinal:      true,
-		IntentResult: &pb.IntentResult{
-			QueryText:  speechText,
-			Action:     intentThing,
-			Parameters: intentParams,
-		},
-		CommandType: pb.RobotMode_VOICE_COMMAND.String(),
+		IntentResult: &intentResult,
+		CommandType:  pb.RobotMode_VOICE_COMMAND.String(),
 	}
 	if !isIntentGraph {
 		if err := req1.Stream.Send(&intent); err != nil {
