@@ -11,16 +11,18 @@ import (
 	"github.com/kercre123/chipper/pkg/logger"
 )
 
+// mostly copied from vector-cloud
+
 const (
 	tokenSize = 16
 	saltSize  = 16
 	hashSize  = sha256.Size
 
-	errMismatchedTokenAndHash = "Hash mismatch"
-	errHashTooLong            = "Hash too long"
-	errHashTooShort           = "Hash too short"
-	errTokenTooLong           = "Token too long"
-	errTokenTooShort          = "Token too short"
+	errMismatchedTokenAndHash = "hash mismatch"
+	errHashTooLong            = "hash too long"
+	errHashTooShort           = "hash too short"
+	errTokenTooLong           = "token too long"
+	errTokenTooShort          = "token too short"
 )
 
 type hashed struct {
