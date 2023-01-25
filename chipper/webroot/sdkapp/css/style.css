@@ -12,19 +12,136 @@
 }
 
 button:disabled {
-  background: #F5F5F5;
-  color : #C3C3C3;
+  background: #F5F5F5; /* very light gray */
+  color : #C3C3C3;     /* not so light gray */
 }
+
+
+
+
+.py {
+  position: relative;
+  left: 40%;
+}
+
+.option-input {
+  appearance: none;
+  top: 13.33333px;
+  right: 50%;
+  bottom: 0;
+  left: 0;
+  height: 40px;
+  width: 40px;
+  transition: all 0.15s ease-out 0s;
+  background: #111111;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  z-index: 1000;
+}
+.option-input:hover {
+  box-shadow: rgba(45, 35, 66, .4) 0 4px 8px, rgba(45, 35, 66, .3) 0 7px 13px -3px, #00FF00 0 -3px 0 inset;
+  transform: translateY(-2px);
+  background: #222222;
+}
+.option-input:checked {
+  background: #00FF00;
+}
+.option-input:checked::before {
+  width: 40px;
+  height: 40px;
+  display:flex;
+  font-size: 25px;
+  font-weight:bold;
+  position: absolute;
+  align-items:center;
+  justify-content:center;
+  font-family:"DroidSans";
+}
+.option-input:checked::after {
+  -webkit-animation: click-wave 0.65s;
+  -moz-animation: click-wave 0.65s;
+  animation: click-wave 0.65s;
+  background: #00FF00;
+  content: '';
+  display: block;
+  position: relative;
+  z-index: 100;
+}
+.option-input.radio {
+  border-radius: 50%;
+}
+.option-input.radio::after {
+  border-radius: 50%;
+}
+
+@keyframes click-wave {
+  0% {
+    height: 40px;
+    width: 40px;
+    opacity: 0.35;
+    position: relative;
+  }
+  100% {
+    height: 200px;
+    width: 200px;
+    margin-left: -80px;
+    margin-top: -80px;
+    opacity: 0;
+  }
+}
+
+
+
+
+
+
+
+
+
+
 button {
   width: 170px;
+  align-items: center;
   margin-left: 168px !important;
+  appearance: none;
+  background-image: radial-gradient(100% 100% at 100% 0, #00FF00 0, #00CC00 100%);
+  border: 0;
+  border-radius: 6px;
+  box-shadow: rgba(45, 35, 66, .4) 0 2px 4px,rgba(45, 35, 66, .3) 0 7px 13px -3px,rgba(58, 65, 111, .5) 0 -3px 0 inset;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  line-height: 1;
+  list-style: none;
+  overflow: hidden;
+  padding-left: 16px;
+  padding-right: 16px;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: box-shadow .15s,transform .15s;
+  user-select: none;
+  white-space: nowrap;
+  font-size: 18px;
+}
+button:hover {
+  box-shadow: rgba(45, 35, 66, .4) 0 4px 8px, rgba(45, 35, 66, .3) 0 7px 13px -3px, #00FF00 0 -3px 0 inset;
+  transform: translateY(-2px);
+}
+
+label {
   color: white;
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #000;
+  background-color: #2B2A33; /* dark gray */
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   padding: 12px 16px;
@@ -36,7 +153,7 @@ button {
 }
 
 body {
-  background-color: black;
+  background-color: #2B2A33; /* dark gray */
   /*font-family: Arial, Helvetica, sans-serif;*/
   font-family: "DroidSans";
 }
@@ -46,20 +163,19 @@ h1, h2, h3, h4, small, p, li {
 }
 
 .foldable {
-  background-color: black;
-  margin: 10px;
-  border: 0;
-}
-
-h2 i.f7-icons {
-  transform: translateY(-10%);
+  cursor: pointer;
+  color: white;
+  background-color: #2B2A33; /* dark gray */
+  margin: 5px;
+  border: 5px;
+  border-color: green;
 }
 
 .content {
   display: none;
-  background-color: black;
+  background-color: #2B2A33; /* dark gray */
   margin: 5px;
-  border: 5px;
+  border: 1px;
 }
 
 p, small {
@@ -73,16 +189,16 @@ p, small {
 hr {
   border: 0;
   height: 1px;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+  background-image: linear-gradient(to right, rgba(0, 255, 0, 0), rgba(0, 255, 0, 0.75), rgba(0, 255, 0, 0));
 }
 
 a {
-  color:aqua;
+  color: #00ff00; /* light green */
 }
 
 a:hover {
   text-decoration: none;
-  color: aqua;
+  color: #00ff00; /* light green */
 }
 
 ul {
@@ -98,20 +214,20 @@ ul, li {
 
 .tinput {
   width: 100px !important;
-  background-color: #4B4B4B !important;
-  color: #ffffff !important;
+  background-color: #4B4B4B !important; /* light gray */
+  color: white !important;
 }
 
 .tinputauth {
   width: 499px !important;
-  background-color: #4B4B4B !important;
-  color: #ffffff !important;
+  background-color: #4B4B4B !important; /* light gray */
+  color: white !important;
 }
 
 #username, #password {
   width: 499px !important;
-  background-color: #4B4B4B !important;
-  color: #ffffff !important;
+  background-color: #4B4B4B !important; /* light gray */
+  color: white !important; 
 }
 
 #content {
