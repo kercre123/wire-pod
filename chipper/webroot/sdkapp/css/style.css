@@ -1,9 +1,9 @@
 @import url("wing.css");
 
 @font-face{ 
-	font-family: 'DroidSans';
-	src: url('DroidSans.woff') format('woff');
-	/*font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans*/
+  font-family: 'DroidSans';
+  src: url('DroidSans.woff') format('woff');
+  /*font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans*/
 }
 
 .dropdown {
@@ -12,12 +12,13 @@
 }
 
 button:disabled {
-    background: #F5F5F5;
-    color : #C3C3C3;
+  background: #F5F5F5;
+  color : #C3C3C3;
 }
 button {
-	width: 170px;
-	margin-left: 168px !important;
+  width: 170px;
+  margin-left: 168px !important;
+  color: white;
 }
 
 .dropdown-content {
@@ -44,67 +45,84 @@ h1, h2, h3, h4, small, p, li {
   color: white;
 }
 
+.foldable {
+  background-color: black;
+  margin: 10px;
+  border: 0;
+}
+
+h2 i.f7-icons {
+  transform: translateY(-10%);
+}
+
 .content {
   display: none;
+  background-color: black;
+  margin: 5px;
+  border: 5px;
 }
 
 p, small {
 }
 
 .wrap {
-overflow: hidden !important;
-white-space: nowrap !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
 }
 
 hr {
-    border: 0;
-    height: 1px;
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
 }
 
 a {
   color:aqua;
 }
+
 a:hover {
-	text-decoration: none;
-	color: aqua;
+  text-decoration: none;
+  color: aqua;
 }
 
 ul {
-	list-style-type:none;
+  list-style-type:none;
 }
 
-ul, li { list-style-type: none;
-        list-style-position:inside;
-        margin:0;
-        padding:0; }
+ul, li {
+  list-style-type: none;
+  list-style-position:inside;
+  margin:0;
+  padding:0;
+}
 
 .tinput {
-	width: 100px !important;
-	background-color: #4B4B4B !important;
-	color: #ffffff !important;
+  width: 100px !important;
+  background-color: #4B4B4B !important;
+  color: #ffffff !important;
 }
 
 .tinputauth {
-	width: 499px !important;
-	background-color: #4B4B4B !important;
-	color: #ffffff !important;
+  width: 499px !important;
+  background-color: #4B4B4B !important;
+  color: #ffffff !important;
 }
 
 #username, #password {
-	width: 499px !important;
-	background-color: #4B4B4B !important;
-	color: #ffffff !important;
+  width: 499px !important;
+  background-color: #4B4B4B !important;
+  color: #ffffff !important;
 }
 
 #content {
-	width: 500px !important;
-    /*word-break:break-all !important;*/
-	/*word-wrap: break-all !important;*/
-    white-space:normal !important;
+  width: 500px !important;
+  /*word-break:break-all !important;*/
+  /*word-wrap: break-all !important;*/
+  white-space:normal !important;
 }
+
 #outer {
-	width: 100%;
-	display: flex;
-    justify-content: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }

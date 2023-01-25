@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Wire-Pod Interface</title>
-	<link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="./sdkapp/css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
@@ -13,9 +13,8 @@
     <h2><a href="/sdkapp">Configure bots via the SDK interface</a></h2>
     <hr>
 
-    <h2>
-        <span>+</span>
-        Add a custom intent
+    <h2 class="foldable">
+        <span>+</span> Add custom intent
     </h2>
     <div class="content">
         <p>It is recommended you read <a href="https://github.com/kercre123/wire-pod/blob/main/README.md" target="_blank">README.md</a></p>
@@ -43,9 +42,8 @@
         <hr>
     </div>
 
-    <h2>
-        <span>+</span> 
-        Edit a custom intent
+    <h2 class="foldable">
+        <span>+</span> Edit custom intent
     </h2>
     <div class="content">
         <div id="editSelect"></div>
@@ -55,9 +53,8 @@
         <hr>
     </div>
 
-    <h2>
-        <span>+</span>
-        Delete a custom intent
+    <h2 class="foldable">
+        <span>+</span> Delete custom intent
     </h2>
     <div class="content">
         <div id="deleteSelect"></div>
@@ -66,9 +63,8 @@
         <hr>
     </div>
 
-    <h2>
-        <span>+</span>
-        Add a bot configuration
+    <h2 class="foldable">
+        <span>+</span> Add bot configuration
     </h2>
     <div class="content">
         <small>This will be deprecated soon, please start using <a href="/sdkapp">the app alternative</a> which uses actual jdocs</small>
@@ -94,9 +90,8 @@
         <hr>
     </div>
 
-    <h2>
-        <span>+</span>
-        Edit a bot configuration
+    <h2 class="foldable">
+        <span>+</span> Edit bot configuration
     </h2>
     <div class="content">
         <div id="botEditSelect"></div>
@@ -106,9 +101,8 @@
         <hr>
     </div>
 
-    <h2>
-        <span>+</span>
-        Delete a bot configuration
+    <h2 class="foldable">
+        <span>+</span> Delete bot configuration
     </h2>
     <div class="content">
         <div id="botDeleteSelect"></div>
@@ -117,13 +111,13 @@
         <hr>
     </div>
 
-    <h2>
-        <span>+</span>
-        Log
+    <h2 class="foldable">
+        <span>+</span> Log
     </h2>
     <div class="content" id="botTranscriptedText"></div>
 </div>	
 </div>
+
 </body>
 <script src="./js/customIntents.js"></script>
 <script src="./sdkapp/js/main.js"></script>

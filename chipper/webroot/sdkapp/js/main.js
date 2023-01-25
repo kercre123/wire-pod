@@ -199,17 +199,17 @@ function getCurrentSettings() {
     s5.appendChild(s5P);
     var s6 = document.getElementById('currentButton');
     const s6P = document.createElement('p');
-    s6P.textContent = "Current Button Setting: " + buttonT
+    s6P.textContent = "Current Button Action: " + buttonT
     s6.innerHTML = ''
     s6.appendChild(s6P);
     var s10 = document.getElementById('currentLocation');
     const s10P = document.createElement('p');
-    s10P.textContent = "Current Location Setting: " + `${location}`
+    s10P.textContent = "Current Location: " + `${location}`
     s10.innerHTML = ''
     s10.appendChild(s10P);
     var s11 = document.getElementById('currentTimeZone');
     const s11P = document.createElement('p');
-    s11P.textContent = "Current Time Zone Setting: " + `${timezone}`
+    s11P.textContent = "Current Time Zone: " + `${timezone}`
     s11.innerHTML = ''
     s11.appendChild(s11P);
   };
@@ -218,6 +218,13 @@ function getCurrentSettings() {
 
 // ##############################################
 function toggleContent(element) {
+  var allContents = document.getElementsByClassName("content");
+  var plusMinusElements = document.getElementsByTagName("span");
+  for (var i = 0; i < allContents.length; i++) {
+    allContents[i].style.display = "none";
+    plusMinusElements[i].innerHTML = "+";
+  }
+
   if (element.style.display === "block") {
     element.style.display = "none";
   } else {
