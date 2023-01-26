@@ -1,0 +1,258 @@
+@charset "UTF-8";
+
+@import url("wing.css");
+
+@font-face{ 
+  font-family: 'DroidSans';
+  src: url('DroidSans.woff') format('woff');
+  /*font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans*/
+}
+
+:root {
+  --bg-color: rgba(43,42,51,1);			/* gray #2B2A33 */
+  --bg-color-alt: rgba(196,196,196,1);		/* light gray #C4C4C4*/
+  --button-color: rgba(76,76,76,1);		/* dark gray #4C4C4C */
+  --button-color-alt: rgba(34,34,34,0);		/* dark gray #222222 */
+  --fg-color: rgba(0,255,0,1);		        /* light green 00FF00 rgba(0, 255, 0, 1) */
+  --alt-fg-color: rgba(0,255,0,.05);		/* light green 00FF00 rgba(0, 255, 0, 0) */
+  --text-color: rgba(255,255,255,1);		/* white #FFFFFF */
+  --alt-text-color: rgba(0,0,0,1);		/* black #000000 */
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.py {
+  position: relative;
+  left: 40%;
+}
+
+.option-input {
+  appearance: none;
+  top: 13.33333px;
+  right: 50%;
+  bottom: 0;
+  left: 0;
+  height: 40px;
+  width: 40px;
+  transition: all 0.15s ease-out 0s;
+  background: var(--button-color);
+  border: none;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  z-index: 1000;
+}
+
+.option-input:hover {
+  box-shadow: var(--alt-fg-color) 0 4px 8px, var(--alt-fg-color) 0 7px 13px -3px, var(--fg-color) 0 -3px 0 inset;
+  transform: translateY(-2px);
+  background: var(--button-color-alt);
+}
+
+.option-input:checked {
+  background: var(--fg-color);
+}
+
+.option-input:checked::before {
+  width: 40px;
+  height: 40px;
+  display:flex;
+  font-size: 25px;
+  font-weight:bold;
+  position: absolute;
+  align-items:center;
+  justify-content:center;
+  font-family:"DroidSans";
+}
+
+.option-input:checked::after {
+  -webkit-animation: click-wave 0.65s;
+  -moz-animation: click-wave 0.65s;
+  animation: click-wave 0.65s;
+  background: var(--fg-color);
+  content: '';
+  display: block;
+  position: relative;
+  z-index: 100;
+}
+
+.option-input.radio {
+  border-radius: 50%;
+}
+
+.option-input.radio::after {
+  border-radius: 50%;
+}
+
+@keyframes click-wave {
+  0% {
+    height: 40px;
+    width: 40px;
+    opacity: 0.35;
+    position: relative;
+  }
+  100% {
+    height: 200px;
+    width: 200px;
+    margin-left: -80px;
+    margin-top: -80px;
+    opacity: 0;
+  }
+}
+
+button {
+  width: 170px;
+  align-items: center;
+  margin-left: 168px !important;
+  appearance: none;
+  background-image: radial-gradient(100% 100% at 100% 0, var(--fg-color) 0, var(--fg-color) 100%);
+  border: 0;
+  border-radius: 6px;
+  box-shadow: var(--alt-fg-color) 0 2px 4px,var(--alt-fg-color) 0 7px 13px -3px,rgba(58, 65, 111, .5) 0 -3px 0 inset;
+  box-sizing: border-box;
+  color: var(--text-color);
+  cursor: pointer;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  line-height: 1;
+  list-style: none;
+  overflow: hidden;
+  padding-left: 16px;
+  padding-right: 16px;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: box-shadow .15s,transform .15s;
+  user-select: none;
+  white-space: nowrap;
+  font-size: 18px;
+}
+
+button:disabled {
+  background: var(--bg-color);
+  color : var(--bg-color-alt);
+}
+
+button:hover {
+  box-shadow: var(--alt-fg-color) 0 4px 8px, var(--alt-fg-color) 0 7px 13px -3px, var(--fg-color) 0 -3px 0 inset;
+  transform: translateY(-2px);
+  background: var(--button-color-alt);
+}
+
+button[type=submit] {
+  background: var(--button-color);
+  color: var(--text-color);
+}
+
+label {
+  color: var(--text-color);
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: var(--bg-color);
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+body {
+  background-color: var(--bg-color);
+  /*font-family: Arial, Helvetica, sans-serif;*/
+  font-family: "DroidSans";
+}
+
+h1, h2, h3, h4, small, p, li {
+  color: var(--text-color);
+}
+
+.foldable {
+  cursor: pointer;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  margin: 5px;
+  border: 5px;
+  border-color: var(--fg-color);
+}
+
+.content {
+  display: none;
+  background-color: var(--bg-color);
+  margin: 5px;
+  border: 1px;
+}
+
+p, small {
+}
+
+.wrap {
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--alt-fg-color), var(--fg-color), var(--alt-fg-color));
+}
+
+a {
+  color: var(--fg-color);
+}
+
+a:hover {
+  text-decoration: none;
+  color: var(--fg-color);
+}
+
+ul {
+  list-style-type:none;
+}
+
+ul, li {
+  list-style-type: none;
+  list-style-position:inside;
+  margin:0;
+  padding:0;
+}
+
+.tinput {
+  width: 100px !important;
+  background-color: var(--bg-color-alt) !important;
+  color: var(--text-color) !important;
+}
+
+.tinputauth {
+  width: 499px !important;
+  background-color: var(--bg-color-alt) !important;
+  color: var(--text-color) !important;
+}
+
+#username, #password {
+  width: 499px !important;
+  background-color: var(--bg-color-alt) !important;
+  color: var(--text-color) !important; 
+}
+
+#content {
+  width: 500px !important;
+  /*word-break:break-all !important;*/
+  /*word-wrap: break-all !important;*/
+  white-space:normal !important;
+}
+
+#outer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
