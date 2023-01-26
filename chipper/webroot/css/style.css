@@ -17,7 +17,7 @@ button:disabled {
 }
 button {
 	width: 170px;
-	margin-left: 168px !important;
+	margin-left: 315px !important;
 }
 
 .dropdown-content {
@@ -42,6 +42,11 @@ body {
 
 h1, h2, h3, h4, small, p, li, label {
   color: white;
+}
+
+h1 {
+    text-align: center;
+    text-transform: uppercase;
 }
 
 p, small {
@@ -98,7 +103,7 @@ ul, li { list-style-type: none;
 }
 
 #content {
-	width: 500px !important;
+	width: 800px !important;
     /*word-break:break-all !important;*/
 	/*word-wrap: break-all !important;*/
     white-space:normal !important;
@@ -107,4 +112,41 @@ ul, li { list-style-type: none;
 	width: 100%;
 	display: flex;
     justify-content: center;
+}
+
+.main-nav-parent {
+    /*border: 1px solid black;*/
+    margin: 1rem;
+    padding: 2rem 2rem;
+    text-align: center;
+}
+
+.main-nav-child {
+    display: inline-block;
+    /*border: 1px solid white;*/
+    padding: 0rem 0rem 2rem 0rem;
+    vertical-align: top;
+    width: 85px;
+}
+
+.main-nav-child a {
+    text-decoration: none;
+    font-size: 75%;
+    color: #c3c3c3;
+}
+
+.main-nav-child a:hover {
+    color: white;
+}
+
+.main-nav-child a i {
+    text-decoration: none;
+    font-size: 60px;
+    /*padding-left: 20px;
+    padding-right: 20px;*/
+    padding-bottom: 10px;
+}
+
+.main-nav-child a img {
+    width:50%;
 }
