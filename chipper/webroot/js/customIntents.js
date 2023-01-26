@@ -541,9 +541,15 @@ function deleteSelectedBot() {
         })
     
 }
-
-// ##############################################
+// #############################
 function toggleContent(element) {
+  var allContents = document.getElementByClassName("content");
+  var plusMinusElements = document.getElementByTagName("span");
+  for (var i = 0; i < allContents.length; i++) {
+    allContents[i].style.display = "none";
+    plusMinusElements[i].innerHTML = "+";
+  }
+
   if (element.style.display === "block") {
     element.style.display = "none";
   } else {
@@ -572,4 +578,5 @@ function togglePlusMinusSymbols() {
   }
 }
 togglePlusMinusSymbols();
+
 
