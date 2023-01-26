@@ -112,15 +112,19 @@ a:hover {
 /*------------------------------------------------------------
   Forms
 ------------------------------------------------------------*/
-
 input[type=text], input[type=password], input[type=email], input[type=search], input[type=number], input[type=file], input[type=tel], select, textarea, textarea[type=text] {
   margin: 1rem 0;
-  width: 100%;
-  max-width: 100%;
+  width: 90%;
+  max-width: 90%;
   border-radius: 2px;
   border: 1px solid #a4a4a4;
   font-size: 1.3rem;
   transition: all .2s ease;
+}
+
+select {
+  width: 95%;
+  max-width: 95%;
 }
 
 input[type=text]:hover, input[type=password]:hover, input[type=email]:hover, input[type=search]:hover, input[type=number]:hover, input[type=file], input[type=tel], select:hover, textarea:hover, textarea[type=text]:hover {
@@ -334,7 +338,7 @@ ol {
 }
 
 .center {
-  display: flex;
+  display: grid;
   align-items: center;
   justify-content: center;
 }

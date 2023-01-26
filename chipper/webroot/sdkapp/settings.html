@@ -22,24 +22,24 @@
       </h2>
       <div class="content">
         <div id="currentVolume" class="center"></div>
-        <div class='py'>
+        <div class="center">
           <label>
-	    <input type="radio" class="option-input radio" name="vol" id="Mute" value="Mute" onclick="sendForm('/api-sdk/volume?volume=0')">Mute<br>
+	    <input type="radio" class="oi radio" name="vol" id="Mute" value="Mute" onclick="sendForm('/api-sdk/volume?volume=0')">Mute<br>
           </label>
           <label>
-	    <input type="radio" class="option-input radio" name="vol" id="Low" value="Low" onclick="sendForm('/api-sdk/volume?volume=1')">Low<br>
+	    <input type="radio" class="oi radio" name="vol" id="Low" value="Low" onclick="sendForm('/api-sdk/volume?volume=1')">Low<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="vol" id="Medium Low" value="Medium Low" onclick="sendForm('/api-sdk/volume?volume=2')">Medium Low<br>
+            <input type="radio" class="oi radio" name="vol" id="Medium Low" value="Medium Low" onclick="sendForm('/api-sdk/volume?volume=2')">Medium Low<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="vol" id="Medium" value="Medium" onclick="sendForm('/api-sdk/volume?volume=3')">Medium<br>
+            <input type="radio" class="oi radio" name="vol" id="Medium" value="Medium" onclick="sendForm('/api-sdk/volume?volume=3')">Medium<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="vol" id="Medium High" value="Medium High" onclick="sendForm('/api-sdk/volume?volume=4')">Medium High<br>
+            <input type="radio" class="oi radio" name="vol" id="Medium High" value="Medium High" onclick="sendForm('/api-sdk/volume?volume=4')">Medium High<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="vol" id="High" value="High" onclick="sendForm('/api-sdk/volume?volume=5')">High<br>
+            <input type="radio" class="oi radio" name="vol" id="High" value="High" onclick="sendForm('/api-sdk/volume?volume=5')">High<br>
           </label>
 	  <br>
         </div>
@@ -53,33 +53,35 @@
       <div class="content">
         <div id="currentEyeColor" class="center"></div>
         <h4 class="center">Preset Eye Colors:</h4>       
-        <div class='py'>
+        <div class="center">
           <label>
-	    <input type="radio" class="option-input radio" name="eye" id="Teal" value="Teal" onclick="sendForm('/api-sdk/eye_color?color=0')">Teal<br>
+	    <input type="radio" class="oi radio" name="eye" id="Teal" value="Teal" onclick="sendForm('/api-sdk/eye_color?color=0')">Teal<br>
           </label>
           <label>
-	    <input type="radio" class="option-input radio" name="eye" id="Orange" value="Orange" onclick="sendForm('/api-sdk/eye_color?color=1')">Orange<br>
+	    <input type="radio" class="oi radio" name="eye" id="Orange" value="Orange" onclick="sendForm('/api-sdk/eye_color?color=1')">Orange<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="eye" id="Yellow" value="Yellow" onclick="sendForm('/api-sdk/eye_color?color=2')">Yellow<br>
+            <input type="radio" class="oi radio" name="eye" id="Yellow" value="Yellow" onclick="sendForm('/api-sdk/eye_color?color=2')">Yellow<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="eye" id="Lime Green" value="Lime Green" onclick="sendForm('/api-sdk/eye_color?color=3')">Lime Green<br>
+            <input type="radio" class="oi radio" name="eye" id="Lime Green" value="Lime Green" onclick="sendForm('/api-sdk/eye_color?color=3')">Lime Green<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="eye" id="Azure Blue" value="Azure Blue" onclick="sendForm('/api-sdk/eye_color?color=4')">Azure Blue<br>
+            <input type="radio" class="oi radio" name="eye" id="Azure Blue" value="Azure Blue" onclick="sendForm('/api-sdk/eye_color?color=4')">Azure Blue<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="eye" id="Purple" value="Purple" onclick="sendForm('/api-sdk/eye_color?color=5')">Purple<br>
+            <input type="radio" class="oi radio" name="eye" id="Purple" value="Purple" onclick="sendForm('/api-sdk/eye_color?color=5')">Purple<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="eye" id="Other Green" value="Other Green" onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
+            <input type="radio" class="oi radio" name="eye" id="Other Green" value="Other Green" onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
           </label>
 	  <br>
         </div>
         <h4 class="center">Custom Eye Color:</h4>
         <div class="center" id="picker"></div><br />
-        <button onclick="sendCustomColor()" type="submit">Submit</button>
+        <div class="center">
+          <button onclick="sendCustomColor()" type="submit">Submit</button>
+	</div>
         <hr>
       </div>
 
@@ -90,10 +92,12 @@
       <div class="content">
         <p class="center">Choose the face you would like to modify.</p>
         <select id="faceList" name="faceList"></select>
-        <button onclick="refreshFaceList()" type="submit">Refresh list</button>
-        <button onclick="deleteFace()" type="submit">Delete</button>
-        <button onclick="renameFace()" type="submit">Rename</button>
-        <div id="faceResult"></div>
+        <div class="center">
+          <button onclick="refreshFaceList()" type="submit">Refresh list</button><br>
+	  <button onclick="deleteFace()" type="submit">Delete</button><br>
+	  <button onclick="renameFace()" type="submit">Rename</button><br>
+          <div id="faceResult"></div>
+	</div>
         <hr>
       </div>
 
@@ -102,11 +106,13 @@
         <span>+</span> Quick Action
       </h2>
       <div class="content">
-        <button onclick="sendForm('/api-sdk/cloud_intent?intent=explore_start')" type="submit">Explore Start</button>
-        <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_dance')" type="submit">Listen for Beat</button>
-        <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_sleep')" type="submit">Go to Sleep</button>
-        <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_fetchcube')" type="submit">Fetch Cube</button>
-        <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_charger')" type="submit">Go Home</button>
+        <div class="center">
+ 	  <button onclick="sendForm('/api-sdk/cloud_intent?intent=explore_start')" type="submit">Explore Start</button><br>
+	  <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_dance')" type="submit">Listen for Beat</button><br>
+	  <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_sleep')" type="submit">Go to Sleep</button><br>
+	  <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_fetchcube')" type="submit">Fetch Cube</button><br>
+	  <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_charger')" type="submit">Go Home</button><br>
+	</div>
         <hr>
       </div>
 
@@ -117,7 +123,9 @@
       <div class="content">
         <form method="POST" action="/api-sdk/set_timer" target="hiddenFrame">
           <input class="center" name="timer" type="text" placeholder="Put seconds here">
-          <button onclick="sendForm('/api-sdk/set_timer')" type="submit">Submit</button>
+          <div class="center">
+            <button onclick="sendForm('/api-sdk/set_timer')" type="submit">Submit</button>
+	  </div>
         </form>
 	<hr>
       </div>      
@@ -128,24 +136,24 @@
       </h2>
       <div class="content">
         <div id="currentLocale" class="center"></div>
-        <div class='py'>
+        <div class="center">
           <label>
-	    <input type="radio" class="option-input radio" name="locale" id="en-US" value="English (US)" onclick="sendForm('/api-sdk/locale?locale=en-US')">English (US)<br>
+	    <input type="radio" class="oi radio" name="locale" id="en-US" value="English (US)" onclick="sendForm('/api-sdk/locale?locale=en-US')">English (US)<br>
           </label>
           <label>
-	    <input type="radio" class="option-input radio" name="locale" id="en-GB" value="English (GB)" onclick="sendForm('/api-sdk/locale?locale=en-GB')">English (GB)<br>
+	    <input type="radio" class="oi radio" name="locale" id="en-GB" value="English (GB)" onclick="sendForm('/api-sdk/locale?locale=en-GB')">English (GB)<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="locale" id="en-AU" value="English (AU)" onclick="sendForm('/api-sdk/locale?locale=en-AU')">English (AU)<br>
+            <input type="radio" class="oi radio" name="locale" id="en-AU" value="English (AU)" onclick="sendForm('/api-sdk/locale?locale=en-AU')">English (AU)<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="locale" id="de-DE" value="German" onclick="sendForm('/api-sdk/locale?locale=de-DE')">German<br>
+            <input type="radio" class="oi radio" name="locale" id="de-DE" value="German" onclick="sendForm('/api-sdk/locale?locale=de-DE')">German<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="locale" id="fr-FR" value="French" onclick="sendForm('/api-sdk/locale?locale=fr-FR')">French<br>
+            <input type="radio" class="oi radio" name="locale" id="fr-FR" value="French" onclick="sendForm('/api-sdk/locale?locale=fr-FR')">French<br>
           </label>
           <label>
-            <input type="radio" class="option-input radio" name="locale" id="ja-FP" value="Japanese" onclick="sendForm('/api-sdk/locale?locale=ja-JP')">Japanese<br>
+            <input type="radio" class="oi radio" name="locale" id="ja-FP" value="Japanese" onclick="sendForm('/api-sdk/locale?locale=ja-JP')">Japanese<br>
           </label>
 	  <br>
         </div>
@@ -158,12 +166,12 @@
       </h2>
       <div class="content">
         <div id="currentTimeSet" class="center"></div>
-        <div class='py'>
+        <div class="center">
           <label>
-	    <input type="radio" class="option-input radio" name="time" id="12 Hour" value="12 Hour" onclick="sendForm('/api-sdk/time_format_12')">12 Hour<br>
+	    <input type="radio" class="oi radio" name="time" id="12 Hour" value="12 Hour" onclick="sendForm('/api-sdk/time_format_12')">12 Hour<br>
           </label>
           <label>
-	    <input type="radio" class="option-input radio" name="time" id="24 Hour" value="24 Hour" onclick="sendForm('/api-sdk/time_format_24')">24 Hour<br>
+	    <input type="radio" class="oi radio" name="time" id="24 Hour" value="24 Hour" onclick="sendForm('/api-sdk/time_format_24')">24 Hour<br>
           </label>
 	  <br>
         </div>
@@ -176,12 +184,12 @@
       </h2>
       <div class="content">
         <div id="currentTempFormat" class="center"></div>
-        <div class='py'>
+        <div class="center">
           <label>
-	    <input type="radio" class="option-input radio" name="temp" id="Celcius" value="Celsius" onclick="sendForm('/api-sdk/temp_c')">Celcius<br>
+	    <input type="radio" class="oi radio" name="temp" id="Celcius" value="Celsius" onclick="sendForm('/api-sdk/temp_c')">Celcius<br>
           </label>
           <label>
-	    <input type="radio" class="option-input radio" name="temp" id="Fahrenheit" value="Fahrenheit" onclick="sendForm('/api-sdk/temp_f')">Fahrenheit<br>
+	    <input type="radio" class="oi radio" name="temp" id="Fahrenheit" value="Fahrenheit" onclick="sendForm('/api-sdk/temp_f')">Fahrenheit<br>
           </label>
 	  <br>
         </div>
@@ -194,12 +202,12 @@
       </h2>
       <div class="content">
         <div id="currentButton" class="center"></div>
-        <div class='py'>
+        <div class="center">
           <label>
-	    <input type="radio" class="option-input radio" name="but" id="Hey Vector" value="Hey Vector" onclick="sendForm('/api-sdk/button_hey_vector')">Hey Vector<br>
+	    <input type="radio" class="oi radio" name="but" id="Hey Vector" value="Hey Vector" onclick="sendForm('/api-sdk/button_hey_vector')">Hey Vector<br>
           </label>
           <label>
-	    <input type="radio" class="option-input radio" name="but" id"Alexa" value="Alexa" onclick="sendForm('/api-sdk/button_alexa')">Alexa<br>
+	    <input type="radio" class="oi radio" name="but" id"Alexa" value="Alexa" onclick="sendForm('/api-sdk/button_alexa')">Alexa<br>
           </label>
 	  <br>
         </div>
@@ -214,8 +222,10 @@
         <div id="alexaStatus" class="center"></div>
         <small class="center">After changing this setting, refresh this page for the above text to update.</small>
         <a class="center" target="_blank" rel="noopener noreferrer" href="https://amazon.com/code">https://amazon.com/code</a>       
-        <button onclick="sendForm('/api-sdk/alexa_sign_in')" type="submit">Signin Alexa</button>
-        <button onclick="sendForm('/api-sdk/alexa_sign_out')" type="submit">Signout Alexa</button>
+        <div class="center">
+	  <button onclick="sendForm('/api-sdk/alexa_sign_in')" type="submit">Signin Alexa</button><br>
+	  <button onclick="sendForm('/api-sdk/alexa_sign_out')" type="submit">Signout Alexa</button><br>
+	</div>
         <hr>
       </div>
 
@@ -227,7 +237,9 @@
         <div id="currentLocation" class="center"></div>
         <form method="POST" action="/api-sdk/location" target="hiddenFrame">
           <input class="center" name="location" type="text" placeholder="San Francisco, California">
-          <button onclick="sendForm('/api-sdk/location')" type="submit">Submit</button>
+          <div class="center">
+            <button onclick="sendForm('/api-sdk/location')" type="submit">Submit</button>
+	  </div>
         </form>
         <hr>
       </div>
@@ -240,7 +252,9 @@
         <div id="currentTimeZone" class="center"></div>
         <form method="POST" action="/api-sdk/timezone" target="hiddenFrame">
           <input class="center" name="timezone" type="text" placeholder="America/Chicago">
-          <button onclick="sendForm('/api-sdk/timezone')" type="submit">Submit</button>
+          <div class="center">
+            <button onclick="sendForm('/api-sdk/timezone')" type="submit">Submit</button>
+	  </div>
         </form>
       </div>
  

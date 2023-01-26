@@ -37,7 +37,9 @@
         <label for="execAdd">Arguments for program (seperated by ,)</label>
         <input type="text" name="execAddArgs" id="execAddArgs" size="50"><br>
       </form>
-      <button onclick="sendIntentAdd()" type="submit">Add intent</button>
+      <div class="center">
+        <button onclick="sendIntentAdd()" type="submit">Add intent</button>
+      </div>
       <hr>
     </div>
 
@@ -47,7 +49,9 @@
     <div class="content">
         <div id="editSelect"></div>
         <div id="editIntentStatus"></div><br>
-        <button onclick="editFormCreate()" type="submit">Edit selected intent</button>
+        <div class="center">
+          <button onclick="editFormCreate()" type="submit">Edit selected intent</button>
+        </div>
         <div id="editIntentForm"></div>
         <hr>
     </div>
@@ -58,7 +62,9 @@
     <div class="content">
       <div id="deleteSelect"></div>
       <div id="deleteIntentStatus"></div><br>
-      <button onclick="deleteSelectedIntent()" type="submit">Delete selected intent</button>
+      <div class="center">
+        <button onclick="deleteSelectedIntent()" type="submit">Delete selected intent</button>
+      </div>
       <hr>
     </div>
 
@@ -85,7 +91,9 @@
           <option value="0.11">0.14 and below</option>
         </select>
       </form>
-      <button onclick="sendBotAdd()" type="submit">Add Bot</button>
+      <div class="center">
+        <button onclick="sendBotAdd()" type="submit">Add Bot</button>
+      </div>
       <hr>
     </div>
 
@@ -93,11 +101,13 @@
       <span>+</span> Edit Bot configuration
     </h2>
     <div class="content">
-        <div id="botEditSelect"></div>
-        <div id="botEditStatus"></div><br>
+      <div id="botEditSelect"></div>
+      <div id="botEditStatus"></div><br>
+      <div class="center">
         <button onclick="editBotFormCreate()" type="submit">Start editing selected Bot</button>
-        <div id="botEditForm"></div>
-        <hr>
+      </div>
+      <div id="botEditForm"></div>
+      <hr>
     </div>
 
     <h2 class="foldable">
@@ -106,7 +116,9 @@
     <div class="content">
       <div id="botDeleteSelect"></div>
       <div id="botDeleteStatus"></div><br>
-      <button onclick="deleteSelectedBot()" type="submit">Delete selected Bot</button>
+      <div class="center">
+        <button onclick="deleteSelectedBot()" type="submit">Delete selected Bot</button>
+      </div>
       <hr>
     </div>
 
