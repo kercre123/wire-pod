@@ -573,3 +573,166 @@ function togglePlusMinusSymbols() {
 }
 togglePlusMinusSymbols();
 
+function showLog() {
+    document.getElementById("section-intents").style.display = "none";
+    document.getElementById("section-bot-config").style.display = "none";
+    document.getElementById("section-log").style.display = "block";
+}
+
+function showIntents() {
+    document.getElementById("section-log").style.display = "none";
+    document.getElementById("section-bot-config").style.display = "none";
+    document.getElementById("section-intents").style.display = "block";
+}
+
+function showBotConfig() {
+    document.getElementById("section-log").style.display = "none";
+    document.getElementById("section-intents").style.display = "none";
+    document.getElementById("section-bot-config").style.display = "block";
+}
+
+function showWeather() {
+    document.getElementById("section-weather").style.display = "block";
+    document.getElementById("section-stt").style.display = "none";
+    document.getElementById("section-restart").style.display = "none";
+    document.getElementById("section-kg").style.display = "none";
+}
+
+function showKG() {
+    document.getElementById("section-weather").style.display = "none";
+    document.getElementById("section-stt").style.display = "none";
+    document.getElementById("section-restart").style.display = "none";
+    document.getElementById("section-kg").style.display = "block";
+}
+
+function showSTT() {
+    document.getElementById("section-weather").style.display = "none";
+    document.getElementById("section-kg").style.display = "none";
+    document.getElementById("section-stt").style.display = "block";
+    document.getElementById("section-restart").style.display = "none";
+}
+
+function showRestart() {
+    document.getElementById("section-weather").style.display = "none";
+    document.getElementById("section-kg").style.display = "none";
+    document.getElementById("section-stt").style.display = "none";
+    document.getElementById("section-restart").style.display = "block";
+}
+
+function checkWeather() {
+    if (document.getElementById("weatherProvider").value=="") {
+        document.getElementById("apiKey").value = "";
+        document.getElementById("apiKeySpan").style.display = "none";
+    }
+    else {
+        document.getElementById("apiKeySpan").style.display = "block";
+    }
+}
+
+function sendWeatherAPIKey(element) {
+    var form = document.getElementById("weatherAPIAddForm");
+    var provider = document.getElementById("weatherProvider").value;
+
+    var data = "provider=" + provider + "&api_key=" + form.elements["apiKey"].value;
+    var result = document.getElementById('addWeatherProviderAPIStatus');
+    const resultP = document.createElement('p');
+    resultP.textContent =  "Saving...";
+    result.innerHTML = '';
+    result.appendChild(resultP);
+    fetch("/api/set_weather_api?" + data)
+        .then(response => response.text())
+        .then((response) => {
+            resultP.innerHTML = response
+            result.innerHTML = '';
+            result.appendChild(resultP);
+        })
+}
+
+function updateWeatherAPI() {
+    fetch("/api/get_weather_api")
+        .then(response => response.text())
+        .then((response) => {
+            obj = JSON.parse(response);
+            document.getElementById("weatherProvider").value = obj.weatherProvider;
+            document.getElementById("apiKey").value = obj.weatherApiKey;
+            checkWeather();
+        })
+}
+
+function checkKG() {
+    if (document.getElementById("kgProvider").value=="") {
+        document.getElementById("kgKey").value = "";
+        document.getElementById("kgKeySpan").style.display = "none";
+    }
+    else {
+        document.getElementById("kgKeySpan").style.display = "block";
+    }
+}
+
+function sendKGAPIKey(element) {
+    var form = document.getElementById("kgAPIAddForm");
+    var provider = document.getElementById("kgProvider").value;
+
+    var data = "provider=" + provider + "&api_key=" + form.elements["kgKey"].value;
+    var result = document.getElementById('addKGProviderAPIStatus');
+    const resultP = document.createElement('p');
+    resultP.textContent =  "Saving...";
+    result.innerHTML = '';
+    result.appendChild(resultP);
+    fetch("/api/set_kg_api?" + data)
+        .then(response => response.text())
+        .then((response) => {
+            resultP.innerHTML = response
+            result.innerHTML = '';
+            result.appendChild(resultP);
+        })
+}
+
+function updateKGAPI() {
+    fetch("/api/get_kg_api")
+        .then(response => response.text())
+        .then((response) => {
+            obj = JSON.parse(response);
+            document.getElementById("kgProvider").value = obj.kgProvider;
+            document.getElementById("kgKey").value = obj.kgApiKey;
+            checkKG();
+        })
+}
+
+function sendSTTLanguage() {
+    var language = document.getElementById("sttLanguage").value;
+    var data = "language=" + language;
+    var result = document.getElementById('addSTTStatus');
+    const resultP = document.createElement('p');
+    resultP.textContent =  "Saving...";
+    result.innerHTML = '';
+    result.appendChild(resultP);
+    fetch("/api/set_stt_info?" + data)
+        .then(response => response.text())
+        .then((response) => {
+            resultP.innerHTML = response
+            result.innerHTML = '';
+            result.appendChild(resultP);
+        })
+}
+
+function updateSTTLanguage() {
+    fetch("/api/get_stt_info")
+        .then(response => response.text())
+        .then((response) => {
+            obj = JSON.parse(response);
+            //document.getElementById("sttProvider").value = obj.sttProvider;
+            document.getElementById("sttLanguage").value = obj.sttLanguage;
+        })
+}
+
+function sendRestart() {
+    fetch("/api/reset")
+        .then(response => response.text())
+        .then((response) => {
+            resultP.innerHTML = response
+            result.innerHTML = '';
+            result.appendChild(resultP);
+        })
+}
+

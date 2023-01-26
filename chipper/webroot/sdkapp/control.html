@@ -2,8 +2,9 @@
 <html>
 <head>
   <title>Vector Web App</title>
-  <link rel="stylesheet" type="text/css" href="./css/style.css">
+  <link rel="stylesheet" type="text/css" href="../css/style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -12,7 +13,9 @@
     <div id="content" class="">
       <h1 class="center">Vector control (beta)</h1>
       <hr>
-      <a href="/sdkapp/settings.html">Back to Vector configuration</a>
+      <div class="main-nav-parent">
+        <div class="main-nav-child"><a href="/sdkapp/settings.html"><i class="fa-solid fa-reply"><br/>Back</a></div>
+      </div>
       <hr>
       <button onclick="sdkInit()" type="submit">Initiate connection</button>
       <button onclick="sdkUnInit()" type="submit">End connection</button>
@@ -47,7 +50,6 @@
           <input class="settingsExtra" type="submit">
         </form>
       </div>
-      <hr>
       </div>
   </div>
 
