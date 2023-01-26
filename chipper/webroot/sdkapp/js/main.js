@@ -174,34 +174,28 @@ function getCurrentSettings() {
     }
     var s1 = document.getElementById('currentVolume');
     const s1P = document.createElement('p');
-    s1P.textContent = "Current Volume: " + volumeT
-    s1.innerHTML= ''
-    s1.appendChild(s1P);
+    document.getElementById(volumeT).checked = true;
+    
     var s2 = document.getElementById('currentEyeColor');
     const s2P = document.createElement('p');
-    s2P.textContent = "Current Eye Color: " + eyeColorT
-    s2.innerHTML = ''
-    s2.appendChild(s2P);
+    document.getElementById(eyeColorT).checked = true;
+    
     var s3 = document.getElementById('currentLocale');
     const s3P = document.createElement('p');
-    s3P.textContent = "Current Locale: " + localeS
-    s3.innerHTML = ''
-    s3.appendChild(s3P);
+    document.getElementById(localeS).checked = true;
+    
     var s4 = document.getElementById('currentTimeSet');
     const s4P = document.createElement('p');
-    s4P.textContent = "Current Time Format: " + timeSetT
-    s4.innerHTML = ''
-    s4.appendChild(s4P);
+    document.getElementById(timeSetT).checked = true;
+    
     var s5 = document.getElementById('currentTempFormat');
     const s5P = document.createElement('p');
-    s5P.textContent = "Current Temp Format: " + tempFormatT
-    s5.innerHTML = ''
-    s5.appendChild(s5P);
+    document.getElementById(tempFormatT).checked = true;
+    
     var s6 = document.getElementById('currentButton');
     const s6P = document.createElement('p');
-    s6P.textContent = "Current Button Action: " + buttonT
-    s6.innerHTML = ''
-    s6.appendChild(s6P);
+    document.getElementById(buttonT).checked = true;
+    
     var s10 = document.getElementById('currentLocation');
     const s10P = document.createElement('p');
     s10P.textContent = "Current Location: " + `${location}`

@@ -110,46 +110,6 @@ a:hover {
 }
 
 /*------------------------------------------------------------
-  Buttons
-------------------------------------------------------------*/
-
-button, [type=submit] {
-  padding: 1.1rem 3.5rem;
-  margin: 1rem 0;
-  background: #111111;
-  color: #f5f5f5;
-  border-radius: 2px;
-  border: none;
-  font-size: 1.3rem;
-  transition: all .2s ease;
-}
-
-button.outline, [type=submit].outline {
-  padding: 1.1rem 3.5rem;
-  background: none;
-  color: #111111;
-  border: 1.5px solid #111111;
-}
-
-button:hover, [type=submit]:hover {
-  background: #222222;
-}
-
-button.outline:hover, [type=submit].outline:hover {
-  background: none;
-  border: 1.5px solid #444444;
-  color: #444444;
-}
-
-button:focus, [type=submit]:focus {
-  outline: none;
-}
-
-button:active, [type=submit]:active {
-  transform: scale(.99);
-}
-
-/*------------------------------------------------------------
   Forms
 ------------------------------------------------------------*/
 
@@ -282,7 +242,7 @@ ol {
 
 /*------------------------------------------------------------
   Tables
-  ------------------------------------------------------------*/
+------------------------------------------------------------*/
 
 .table {
   width: 100%;
@@ -431,7 +391,7 @@ pre > code {
 
 /*------------------------------------------------------------
   Navigation
-  ------------------------------------------------------------*/
+------------------------------------------------------------*/
 
 .nav {
   position: relative;

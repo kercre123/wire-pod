@@ -1,6 +1,8 @@
 @charset "UTF-8";
 
+
 @import url("wing.css");
+
 
 @font-face{ 
   font-family: 'DroidSans';
@@ -14,9 +16,9 @@
   --button-color: rgba(76,76,76,1);		/* dark gray #4C4C4C */
   --button-color-alt: rgba(34,34,34,0);		/* dark gray #222222 */
   --fg-color: rgba(0,255,0,1);		        /* light green 00FF00 rgba(0, 255, 0, 1) */
-  --alt-fg-color: rgba(0,255,0,.05);		/* light green 00FF00 rgba(0, 255, 0, 0) */
+  --fg-color-alt: rgba(0,255,0,.05);		/* light green 00FF00 rgba(0, 255, 0, 0) */
   --text-color: rgba(255,255,255,1);		/* white #FFFFFF */
-  --alt-text-color: rgba(0,0,0,1);		/* black #000000 */
+  --text-color-alt: rgba(34,34,34,1);		/* black #000000 */
 }
 
 .dropdown {
@@ -47,7 +49,7 @@
 }
 
 .option-input:hover {
-  box-shadow: var(--alt-fg-color) 0 4px 8px, var(--alt-fg-color) 0 7px 13px -3px, var(--fg-color) 0 -3px 0 inset;
+  box-shadow: var(--fg-color-alt) 0 4px 8px, var(--fg-color-alt) 0 7px 13px -3px, var(--fg-color) 0 -3px 0 inset;
   transform: translateY(-2px);
   background: var(--button-color-alt);
 }
@@ -104,32 +106,34 @@
 }
 
 button {
-  width: 170px;
+  width: 200px;
   align-items: center;
-  margin-left: 168px !important;
+  margin-left: 100px !important;
+  margin: 5px;
   appearance: none;
   background-image: radial-gradient(100% 100% at 100% 0, var(--fg-color) 0, var(--fg-color) 100%);
   border: 0;
   border-radius: 6px;
-  box-shadow: var(--alt-fg-color) 0 2px 4px,var(--alt-fg-color) 0 7px 13px -3px,rgba(58, 65, 111, .5) 0 -3px 0 inset;
+  box-shadow: var(--fg-color-alt) 0 2px 4px,var(--fg-color-alt) 0 7px 13px -3px,rgba(58, 65, 111, .5) 0 -3px 0 inset;
   box-sizing: border-box;
-  color: var(--text-color);
+  color: var(--text-color-alt);
   cursor: pointer;
   display: inline-flex;
-  height: 48px;
+  height: 40px;
   justify-content: center;
   line-height: 1;
   list-style: none;
   overflow: hidden;
   padding-left: 16px;
   padding-right: 16px;
-  position: relative;
   text-align: left;
   text-decoration: none;
   transition: box-shadow .15s,transform .15s;
   user-select: none;
   white-space: nowrap;
-  font-size: 18px;
+  font-size: 16px;
+  position: relative;
+  left: 10%;
 }
 
 button:disabled {
@@ -138,15 +142,12 @@ button:disabled {
 }
 
 button:hover {
-  box-shadow: var(--alt-fg-color) 0 4px 8px, var(--alt-fg-color) 0 7px 13px -3px, var(--fg-color) 0 -3px 0 inset;
+  box-shadow: var(--fg-color-alt) 0 4px 8px, var(--fg-color-alt) 0 7px 13px -3px, var(--fg-color) 0 -3px 0 inset;
   transform: translateY(-2px);
   background: var(--button-color-alt);
-}
-
-button[type=submit] {
-  background: var(--button-color);
   color: var(--text-color);
 }
+
 
 label {
   color: var(--text-color);
@@ -203,7 +204,7 @@ p, small {
 hr {
   border: 0;
   height: 1px;
-  background-image: linear-gradient(to right, var(--alt-fg-color), var(--fg-color), var(--alt-fg-color));
+  background-image: linear-gradient(to right, var(--fg-color-alt), var(--fg-color), var(--fg-color-alt));
 }
 
 a {
@@ -224,18 +225,6 @@ ul, li {
   list-style-position:inside;
   margin:0;
   padding:0;
-}
-
-.tinput {
-  width: 100px !important;
-  background-color: var(--bg-color-alt) !important;
-  color: var(--text-color) !important;
-}
-
-.tinputauth {
-  width: 499px !important;
-  background-color: var(--bg-color-alt) !important;
-  color: var(--text-color) !important;
 }
 
 #username, #password {
