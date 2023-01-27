@@ -27,9 +27,12 @@ function renameFace() {
   oldFaceName = x.value.split(":")[1]
   faceId = x.value.split(":")[0]
   newFaceName = window.prompt('Enter the new name here:');
-  fetch("/api-sdk/rename_face?oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
-    .then (function(){alert("Success!"); refreshFaceList()})
-}
+if(newFaceName = 'null') {
+    window.alert('Face name cannot be empty')
+} else {
+    fetch("/api-sdk/rename_face?oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
+      .then (function(){alert("Success!"); refreshFaceList()})
+}}
 
 function deleteFace() {
   var x = document.getElementById("faceList");
