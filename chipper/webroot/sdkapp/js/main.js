@@ -227,9 +227,7 @@ function toggleContent(element) {
 
 var headings = document.getElementsByTagName("h2");
 for (var i = 0; i < headings.length; i++) {
-  headings[i].addEventListener("click", function() {
-    toggleContent(this.nextElementSibling);
-  });
+  headings[i].nextElementSibling.style.display = "block";
 }
 
 function togglePlusMinusSymbols() {
