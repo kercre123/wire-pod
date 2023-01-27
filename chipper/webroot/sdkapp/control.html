@@ -10,38 +10,49 @@
 
 
   <div id="outer">
-    <div id="content" class="">
+    <div id="content">
       <h1 class="center">Vector control (beta)</h1>
       <hr>
       <div class="main-nav-parent">
         <div class="main-nav-child"><a href="/sdkapp/settings.html"><i class="fa-solid fa-reply"><br/>Back</a></div>
       </div>
       <hr>
-      <button onclick="sdkInit()" type="submit">Initiate connection</button>
-      <button onclick="sdkUnInit()" type="submit">End connection</button>
+
+      <div class="center">
+        <button onclick="sdkInit()" type="submit">Initiate connection</button>
+        <button onclick="sdkUnInit()" type="submit">End connection</button>
+      </div>
       <hr>
+
       <div id=sdkActions>
         <h2 class="center">Camera Feed</h2>
         <div class="center" id="camStream"><img src="/stream"></div>
-        <button onclick="showCamStream()">Begin Camera Stream</button>
-        <button onclick="stopCamStream()">Stop Camera Stream</button>
-        <hr>
+	<div class="center">
+          <button onclick="showCamStream()">Begin Camera Stream</button>
+          <button onclick="stopCamStream()">Stop Camera Stream</button>
+	</div>
+      <hr>
+
       <h2 class="center">Behavior Control</h2>
       <small class="center">You must assume behavior control before performing any action</small>
-      <ul>
-        <li><button onclick="sendForm('/api-sdk/assume_behavior_control?priority=high')" type="submit">Assume</button></li>
-        <li><button onclick="sendForm('/api-sdk/release_behavior_control')" type="submit">Release</button></li>
-      </ul>
+      <div class="center">
+        <button onclick="sendForm('/api-sdk/assume_behavior_control?priority=high')" type="submit">Assume</button>
+        <button onclick="sendForm('/api-sdk/release_behavior_control')" type="submit">Release</button>
+      </div>
       <hr>
+
       <h2 class="center">Move Motors</h2>
-      <button onclick="toggleKeyboard()" type=submit">Toggle Keyboard Controls (unstable)</button></li>
+      <div class="center">
+        <button onclick="toggleKeyboard()" type=submit">Toggle Keyboard Controls (unstable)</button></li>
+      </div>
       <div id="keysKey"><small class="center">Enabled! WASD for wheels, R-lift up, F-lift down, T-head up, G-head down</small></div>
       <hr>
+
       <h2 class="center">Mirror Mode</h2>
-      <ul>
-        <li><button onclick="sendForm('/api-sdk/mirror_mode?enable=true')" type=submit">Mirror Mode On</button></li>
-        <li><button onclick="sendForm('/api-sdk/mirror_mode?enable=false')" type=submit">Mirror Mode Off</button></li>
-      </ul>
+      <div class="center">
+        <button onclick="sendForm('/api-sdk/mirror_mode?enable=true')" type=submit">Mirror Mode On</button>
+        <button onclick="sendForm('/api-sdk/mirror_mode?enable=false')" type=submit">Mirror Mode Off</button>
+      </div>
       <hr>
       <h2 class="center">Say Text</h2>
       <div class="center">
@@ -50,13 +61,15 @@
           <input class="settingsExtra" type="submit">
         </form>
       </div>
-      </div>
+    </div>
   </div>
 
 </div>
+
 <script src="./js/httprequest.js"></script>
 <script src="./js/iro.min.js"></script>
 <script src="./js/control.js"></script>
 <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
+
 </body>
 </html>

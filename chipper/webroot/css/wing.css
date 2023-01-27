@@ -155,21 +155,26 @@ button:active, [type=submit]:active {
 
 input[type=text], input[type=password], input[type=email], input[type=search], input[type=number], input[type=file], input[type=tel], select, textarea, textarea[type=text] {
   margin: 1rem 0;
-  width: 100%;
-  max-width: 100%;
+  width: 90%;
+  max-width: 90%;
   border-radius: 2px;
   border: 1px solid #a4a4a4;
   font-size: 1.3rem;
   transition: all .2s ease;
 }
 
-input[type=text]:hover, input[type=password]:hover, input[type=email]:hover, input[type=search]:hover, input[type=number]:hover, input[type=file], input[type=tel], select:hover, textarea:hover, textarea[type=text]:hover {
+select {
+  width: 90%;
+  max-width: 90%;
+}
+
+input[type=text]:hover, input[type=password]:hover, input[type=email]:hover, input[type=search]:hover, input[type=number]:hover, input[type=radio]:hover, input[type=file], input[type=tel], select:hover, textarea:hover, textarea[type=text]:hover {
   border: 1px solid #111111;
 }
 
 input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, input[type=search]:focus, input[type=number], input[type=file], input[type=tel], select:focus textarea:focus, textarea[type=text]:focus {
   outline: none;
-  border: 1px solid #104cfb;
+  border: 1px solid #00ff00;
 }
 
 input[type=text], input[type=password], input[type=email], input[type=search], input[type=number], input[type=file], input[type=tel], select {
@@ -374,7 +379,7 @@ ol {
 }
 
 .center {
-  display: flex;
+  display: grid;
   align-items: center;
   justify-content: center;
 }
