@@ -2,8 +2,9 @@
 <html>
 <head>
   <title>Vector Web App</title>
-  <link rel="stylesheet" type="text/css" href="./css/style.css">
+  <link rel="stylesheet" type="text/css" href="../css/style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -11,31 +12,44 @@
     <div id="content" class="">
       <h1 class="center">Vector configuration</h1>
       <hr>
-      <div class="center"><a href="../index.html">Back to Wire Pod Interface</a></div>
-      <div class="center"><a href="/sdkapp">Select Robot</a></div>
-      <div class="center"><a href="./control.html">Vector control (beta)</a></div>
+      <div class="main-nav-parent">
+        <div class="main-nav-child"><a href="../index.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
+        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot<br/>via the SDK interface</a></div>
+        <div class="main-nav-child"><a href="control.html"><i class="fa-solid fa-gamepad"></i><br/>Vector Control<br/>(Beta)</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i class="fa-solid fa-volume-high"></i><br/>Volume</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i class="fa-solid fa-eye"></i><br/>Eye Color</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-faces'); return false;"><i class="fa-solid fa-user"></i><br/>Face manager</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running"></i><br/>Quick Actions</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-timer'); return false;"><i class="fa-solid fa-stopwatch"></i><br/>Timer</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas"></i><br/>Locale</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-time'); return false;"><i class="fa-solid fa-clock"></i><br/>Time Format</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-temp'); return false;"><i class="fa-solid fa-temperature-half"></i><br/>Temperature Format</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-button'); return false;"><i class="fa-solid fa-circle-dot"></i><br/>Button Action</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-alexa'); return false;"><i class="fa-solid fa-house-signal"></i><br/>Alexa</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-location'); return false;"><i class="fa-solid fa-location-crosshairs"></i><br/>Set Location</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-timezone'); return false;"><i class="fa-solid fa-hourglass"></i><br/>Set Time Zone</a></div>
+      </div>
       <hr>
 
-      <h2>
-        <span>+</span>
-        Volume
-      </h2>
-      <div class="content">
-        <div id="currentVolume" class="center"></div>
-        <ul>
-          <li><button onclick="sendForm('/api-sdk/volume?volume=0')" type="submit">Mute</button></li>
-          <li><button onclick="sendForm('/api-sdk/volume?volume=1')" type="submit">Low</button></li>
-          <li><button onclick="sendForm('/api-sdk/volume?volume=2')" type="submit">Medium Low</button></li>
-          <li><button onclick="sendForm('/api-sdk/volume?volume=3')" type="submit">Medium</button></li>
-          <li><button onclick="sendForm('/api-sdk/volume?volume=4')" type="submit">Medium High</button></li>
-          <li><button onclick="sendForm('/api-sdk/volume?volume=5')" type="submit">High</button></li>
-        </ul>
-        <hr>
+      <div id="section-volume" class="toggleable-section" style="display:none;">
+        <h2>
+          Volume
+        </h2>
+        <div class="content">
+          <div id="currentVolume" class="center"></div>
+          <ul>
+            <li><button onclick="sendForm('/api-sdk/volume?volume=0')" type="submit">Mute</button></li>
+            <li><button onclick="sendForm('/api-sdk/volume?volume=1')" type="submit">Low</button></li>
+            <li><button onclick="sendForm('/api-sdk/volume?volume=2')" type="submit">Medium Low</button></li>
+            <li><button onclick="sendForm('/api-sdk/volume?volume=3')" type="submit">Medium</button></li>
+            <li><button onclick="sendForm('/api-sdk/volume?volume=4')" type="submit">Medium High</button></li>
+            <li><button onclick="sendForm('/api-sdk/volume?volume=5')" type="submit">High</button></li>
+          </ul>
+        </div>
       </div>
 
-
+      <div id="section-eyes" class="toggleable-section" style="display:none;">
       <h2>
-        <span>+</span>
         Eye Color
       </h2>
       <div class="content">
@@ -52,27 +66,26 @@
         </ul>
         <h4 class="center">Custom Eye Color:</h4>
         <div class="center" id="picker"></div><br />
-        <button class="settings" onclick="sendCustomColor()">Submit</button>
-        <hr>
+          <button class="settings" onclick="sendCustomColor()">Submit</button>
+      </div>
       </div>
 
-      
+      <div id="section-faces" class="toggleable-section" style="display:none;">
       <h2>
-        <span>+</span>
         Face Manager
       </h2>
       <div class="content">
         <p class="center">Choose the face you would like to modify.</p>
         <select id="faceList" name="faceList"></select>
-        <button onclick="refreshFaceList()" type="submit">Refresh list</button>
-        <button onclick="deleteFace()" type="submit">Delete</button>
-        <button onclick="renameFace()" type="submit">Rename</button>
-        <div id="faceResult"></div>
+          <button onclick="refreshFaceList()" type="submit">Refresh list</button>
+          <button onclick="deleteFace()" type="submit">Delete</button>
+          <button onclick="renameFace()" type="submit">Rename</button>
+          <div id="faceResult"></div>
+      </div>
       </div>
 
-      
-      <h2>
-        <span>+</span>
+      <div id="section-actions" class="toggleable-section" style="display:none;">
+        <h2>
         Quick Actions
       </h2>
       <div class="content">
@@ -88,11 +101,11 @@
         <form method="POST" action="/api-sdk/cloud_intent?intent=intent_imperative_fetchcube" target="hiddenFrame">
           <button type="submit">Fetch Cube</button>
         </form>
-        <hr>
+      </div>
       </div>
 
-      
-      <h2>
+      <div id="section-timer" class="toggleable-section" style="display:none;">
+        <h2>
         <span>+</span>
         Timer
       </h2>
@@ -103,12 +116,11 @@
             <input type="submit">
           </form>
         </div>
-        <hr>
-      </div>      
+      </div>
+      </div>
 
-
-      <h2>
-        <span>+</span>
+      <div id="section-locale" class="toggleable-section" style="display:none;">
+        <h2>
         Locale
       </h2>
       <div class="content">
@@ -121,12 +133,11 @@
           <li><button onclick="sendForm('/api-sdk/locale?locale=fr-FR')" type="submit">French</button></li>
           <li><button onclick="sendForm('/api-sdk/locale?locale=ja-JP')" type="submit">Japanese</button></li>
         </ul>
-        <hr>
+      </div>
       </div>
 
-
-      <h2>
-        <span>+</span>
+      <div id="section-time" class="toggleable-section" style="display:none;">
+        <h2>
         Time Format
       </h2>
       <div class="content">
@@ -135,11 +146,11 @@
           <li><button onclick="sendForm('/api-sdk/time_format_12')" type="submit">12 Hour</button></li>
           <li><button onclick="sendForm('/api-sdk/time_format_24')" type="submit">24 Hour</button></li>
         </ul>
-        <hr>
       </div>
-      
+      </div>
 
-      <h2>
+      <div id="section-temp" class="toggleable-section" style="display:none;">
+        <h2>
         <span>+</span>
         Temp Format
       </h2>
@@ -149,13 +160,11 @@
           <li><button onclick="sendForm('/api-sdk/temp_c')" type="submit">Celsius</button></li>
           <li><button onclick="sendForm('/api-sdk/temp_f')" type="submit">Fahrenheit</button></li>
         </ul>
-        <hr>
+      </div>
       </div>
 
-
-      
+      <div id="section-button" class="toggleable-section" style="display:none;">
       <h2>
-        <span>+</span>
         Button Action
       </h2>
       <div class="content">
@@ -166,10 +175,10 @@
         </ul>
         <hr>
       </div>
+      </div>
 
-
-      <h2>
-        <span>+</span>
+      <div id="section-alexa" class="toggleable-section" style="display:none;">
+        <h2>
         Alexa
       </h2>
       <div class="content">
@@ -182,12 +191,11 @@
           </form></li>
           <li><button onclick="sendForm('/api-sdk/alexa_sign_out')" type="submit">Signout Alexa</button></li>
         </ul>
-        <hr>
+      </div>
       </div>
 
-
-      <h2>
-        <span>+</span>
+      <div id="section-location" class="toggleable-section" style="display:none;">
+        <h2>
         Set Location
       </h2>
       <div class="content">
@@ -199,11 +207,11 @@
             <input class="settingsExtra" type="submit">
           </form>
         </div>
-        <hr>
+      </div>
       </div>
 
-
-      <h2>
+      <div id="section-timezone" class="toggleable-section" style="display:none;">
+        <h2>
         <span>+</span>
         Set Time Zone
       </h2>
@@ -217,11 +225,11 @@
           </form>
         </div>
       </div>
- 
-    <hr>
+      </div>
   </div>
 
 </div>
+<script src="./js/settings.js"></script>
 <script src="./js/httprequest.js"></script>
 <script src="./js/iro.min.js"></script>
 <script src="./js/main.js"></script>
