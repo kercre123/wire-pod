@@ -36,25 +36,6 @@ function sendForm(formURL) {
     };
   }
 }
-function sendFormSound(formURL) {
-  let xhr = new XMLHttpRequest();
-    xhr.open("POST", formURL);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send();
-    xhr.onload = function() { 
-      soundResponse = xhr.response
-      console.log(soundResponse)
-      if (`${soundResponse}` == "error") {
-        alert("Unable to contact wire.my.to, the server is probably down. Please wait a while then try again")
-      } else if (`${soundResponse}` == "executing") {
-        alert("Executing. Vector's screen will be dark for a while, then 'configuring...' will show on his screen. After about 10-40 seconds (depends on internet speed), his eyes will return and he will have different noises. Press OK once that happens.")
-        location.reload();
-      } else {
-        alert("unknown :(" + soundResponse)
-      }
-      getCurrentSettings()
-  }
-}
 
 function sendCustomColor() {
   var pickerHue = colorPicker.color.hue;

@@ -12,10 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
 )
@@ -76,21 +77,12 @@ func GetEsnFromTarget(target string) (string, error) {
 }
 
 func SetBotGUID(esn string, guid string, guidHash string) error {
-	jsonBytes, err := os.ReadFile(JdocsPath + BotInfoFile)
-	if err != nil {
-		return err
-	}
-	var robotInfo RobotInfoStore
-	err = json.Unmarshal(jsonBytes, &robotInfo)
-	if err != nil {
-		return err
-	}
 	matched := false
-	for num, robot := range robotInfo.Robots {
+	for num, robot := range vars.BotInfo.Robots {
 		if strings.EqualFold(esn, robot.Esn) {
-			robotInfo.Robots[num].GUID = guid
-			robotInfo.Robots[num].Activated = true
-			logger.Println(robot.Esn + " sucessfully activated with wire-pod")
+			vars.BotInfo.Robots[num].GUID = guid
+			vars.BotInfo.Robots[num].Activated = true
+			logger.Println("GUID and hash successfully written for " + robot.Esn)
 			matched = true
 			break
 		}
@@ -98,7 +90,7 @@ func SetBotGUID(esn string, guid string, guidHash string) error {
 	if !matched {
 		return fmt.Errorf("bot not found")
 	}
-	writeBytes, err := json.Marshal(robotInfo)
+	writeBytes, err := json.Marshal(vars.BotInfo)
 	if err != nil {
 		logger.Println(err)
 		return err
@@ -108,31 +100,30 @@ func SetBotGUID(esn string, guid string, guidHash string) error {
 }
 
 func WriteTokenHash(esn string, tokenHash string) error {
+	// will return blank jdoc if it doesn't exist
+	jdoc, jdocExists := vars.GetJdoc(esn, "vic.AppTokens")
 	var tokenJson ClientTokenManager
-	jdoc := jdocspb.Jdoc{}
-	filename := JdocsPath + "vic:" + esn + "-vic.AppTokens.json"
-	jsonBytes, err := os.ReadFile(filename)
-	if err == nil {
-		json.Unmarshal(jsonBytes, &jdoc)
-	} else {
+	if !jdocExists {
 		jdoc.DocVersion = 1
 		jdoc.FmtVersion = 1
-		jdoc.ClientMetadata = "wirepod-new-tokens"
+		jdoc.ClientMetadata = "wirepod-new-token"
 	}
+	json.Unmarshal([]byte(jdoc.JsonDoc), &tokenJson)
 	var clientToken ClientToken
 	clientToken.IssuedAt = time.Now().Format(TimeFormat)
 	clientToken.ClientName = "wirepod"
 	clientToken.Hash = tokenHash
 	clientToken.AppId = "SDK"
 	tokenJson.ClientTokens = append(tokenJson.ClientTokens, clientToken)
-	newJsonBytes, _ := json.Marshal(tokenJson)
-	jdoc.JsonDoc = string(newJsonBytes)
-	writeBytes, _ := json.Marshal(jdoc)
-	err = os.WriteFile(filename, writeBytes, 0644)
+	jdocJsoc, err := json.Marshal(tokenJson)
 	if err != nil {
+		logger.Println("Error marshaling token hash json")
 		logger.Println(err)
 	}
-	return err
+	jdoc.JsonDoc = string(jdocJsoc)
+	vars.AddJdoc("vic:"+esn, "vic.AppTokens", jdoc)
+	vars.WriteJdocs()
+	return nil
 }
 
 func RemoveFromSecondStore(index int) {
@@ -160,28 +151,19 @@ func ChangeGUIDInIni(esn string) {
 	// name = Vector-B6H9
 	// guid = 1YbXk1yrS9C1I78snYy8xA==
 
-	var robotSDKInfo RobotInfoStore
-	eFileBytes, err := os.ReadFile(InfoPath)
-	if err == nil {
-		json.Unmarshal(eFileBytes, &robotSDKInfo)
-	} else {
-		logger.Println("Error reading robotSDKInfo")
-		logger.Println(err)
-		return
-	}
-	userIniData, err := ini.Load("../../.anki_vector/sdk_config.ini")
+	userIniData, err := ini.Load(vars.SDKIniPath + "sdk_config.ini")
 	if err != nil {
 		logger.Println(err)
 		return
 	}
-	for _, robot := range robotSDKInfo.Robots {
+	for _, robot := range vars.BotInfo.Robots {
 		matched := false
 		for _, section := range userIniData.Sections() {
 			if strings.EqualFold(section.Name(), esn) {
 				matched = true
 				section.Key("ip").SetValue(robot.IPAddress)
 				if robot.GUID == "" {
-					section.Key("guid").SetValue(robotSDKInfo.GlobalGUID)
+					section.Key("guid").SetValue(vars.BotInfo.GlobalGUID)
 				} else {
 					section.Key("guid").SetValue(robot.GUID)
 				}
@@ -191,7 +173,12 @@ func ChangeGUIDInIni(esn string) {
 			logger.Println("Bot is not in sdk_config.ini. Clear your bot's userdata and try authenticating again to create it.")
 		}
 	}
-	userIniData.SaveTo("../../.anki_vector/sdk_config.ini")
+	userIniData.SaveTo(vars.SDKIniPath + "sdk_config.ini")
+}
+
+func GenerateUUID() string {
+	uuid := uuid.New()
+	return uuid.String()
 }
 
 func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.TokenBundle {
@@ -259,6 +246,9 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 		logger.Println("Secondary client: " + secondaryGUID)
 	}
 
+	requestUUID := GenerateUUID()
+	logger.Println("UUID for this token request: " + requestUUID)
+
 	// create actual JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
 		"expires":     expiresAt,
@@ -268,7 +258,7 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 		// to the factory certs like the official servers do. future token requests should
 		// have the actual bot esn because they are "associated" with wire-pod
 		"requestor_id": requestorId,
-		"token_id":     "11ec68ca-1d4c-4e45-b1a2-715fd5e0abf9",
+		"token_id":     requestUUID,
 		"token_type":   "user+robot",
 		"user_id":      UserId,
 	})

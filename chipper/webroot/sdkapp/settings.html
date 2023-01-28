@@ -14,11 +14,11 @@
       <hr>
       <div class="main-nav-parent">
         <div class="main-nav-child"><a href="../index.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
-        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot<br/>via the SDK interface</a></div>
+        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot</a></div>
         <div class="main-nav-child"><a href="control.html"><i class="fa-solid fa-gamepad"></i><br/>Vector Control<br/>(Beta)</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i class="fa-solid fa-volume-high"></i><br/>Volume</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i class="fa-solid fa-eye"></i><br/>Eye Color</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-faces'); return false;"><i class="fa-solid fa-user"></i><br/>Face manager</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showFaceSection(); return false;"><i class="fa-solid fa-user"></i><br/>Face manager</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running"></i><br/>Quick Actions</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-timer'); return false;"><i class="fa-solid fa-stopwatch"></i><br/>Timer</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas"></i><br/>Locale</a></div>
@@ -102,11 +102,14 @@
         <h2>Face Manager</h2>
         <div class="content">
           <p class="center">Choose the face you would like to modify.</p>
-          <select id="faceList" name="faceList"></select>
+          <select id="faceList" class="center" name="faceList"></select>
           <div class="center">
-            <button onclick="refreshFaceList()" type="submit">Refresh list</button>
-            <button onclick="deleteFace()" type="submit">Delete</button>
-            <button onclick="renameFace()" type="submit">Rename</button>
+            <button class="center" onclick="refreshFaceList()" type="submit">Refresh list</button>
+          </div>
+          <div class="center" id="faceButtons">
+            <button  class="center" onclick="deleteFace()" type="submit">Delete</button>
+            <button  class="center" onclick="renameFace()" type="submit">Rename</button>
+          </div>
 	    <div id="faceResult"></div>
 	  </div>
 	  <hr>
@@ -224,7 +227,6 @@
         <h2>Alexa</h2>
         <div class="content">
           <div id="alexaStatus" class="center"></div>
-          <small class="center">After changing this setting, refresh this page for the above text to update.</small>
           <a class="center" target="_blank" rel="noopener noreferrer" href="https://amazon.com/code">https://amazon.com/code</a>
           <div class="center">
 	    <button onclick="sendForm('/api-sdk/alexa_sign_in')" type="submit">Signin Alexa</button>

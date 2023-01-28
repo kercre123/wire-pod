@@ -1,5 +1,7 @@
 var client = new HttpClient();
 
+showFaceButtons = false
+
 function refreshFaceList() {
 var x = document.getElementById("faceList");
 x.innerHTML = ""
@@ -10,6 +12,7 @@ fetch("/api-sdk/get_faces")
     console.log("no faces exist.")
   } else {
   jsonResp = JSON.parse(response)
+  showFaceButtons = true
   for (var i = 0; i < jsonResp.length; i++){
     var option = document.createElement("option");
     option.text = jsonResp[i]["name"]
@@ -21,6 +24,20 @@ fetch("/api-sdk/get_faces")
 }
 
 refreshFaceList()
+
+function showFaceSection() {
+  id = "section-faces"
+  var headings = document.getElementsByClassName("toggleable-section");
+  for (var i = 0; i < headings.length; i++) {
+      headings[i].style.display = "none";
+  }
+  document.getElementById(id).style.display = "block";
+  if (showFaceSection == true) {
+    document.getElementById("faceButtons").style.display = "block";
+  } else {
+    document.getElementById("faceButtons").style.display = "none";
+  }
+}
 
 function renameFace() {
   var x = document.getElementById("faceList");

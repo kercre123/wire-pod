@@ -4,30 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/vtt"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
-
-type intentsStruct []struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Utterances  []string `json:"utterances"`
-	Intent      string   `json:"intent"`
-	Params      struct {
-		ParamName  string `json:"paramname"`
-		ParamValue string `json:"paramvalue"`
-	} `json:"params"`
-	Exec           string   `json:"exec"`
-	ExecArgs       []string `json:"execargs"`
-	IsSystemIntent bool     `json:"issystem"`
-}
 
 type systemIntentResponseStruct struct {
 	Status       string `json:"status"`
@@ -101,11 +87,8 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 
 func customIntentHandler(req interface{}, voiceText string, intentList []string, isOpus bool, justThisBotNum int, botSerial string) bool {
 	var successMatched bool = false
-	if _, err := os.Stat("./customIntents.json"); err == nil {
-		var customIntentJSON intentsStruct
-		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
-		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
-		for _, c := range customIntentJSON {
+	if vars.CustomIntentsExist {
+		for _, c := range vars.CustomIntents {
 			for _, v := range c.Utterances {
 				//if strings.Contains(voiceText, strings.ToLower(strings.TrimSpace(v))) {
 				// Check whether the custom sentence is either at the end of the spoken text or space-separated...
@@ -175,10 +158,6 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 				break
 			}
 		}
-		if err != nil {
-			logger.Println(err)
-		}
-
 	}
 	return successMatched
 }
