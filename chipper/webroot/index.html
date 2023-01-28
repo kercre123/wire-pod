@@ -1,142 +1,153 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Wire-Pod Interface</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
+  <title>Wire-Pod Interface</title>
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <div id="outer">
     <div id="content" class="">
     <h1>Wire-Pod Interface</h1>
     <hr>
-        <div class="main-nav-parent">
-            <div class="main-nav-child"><a href="setup.html"><i class="fa-solid fa-gear"></i><br/>Initial Setup</a></div>
-            <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Configure Bots<br/>via the SDK interface</a></div>
-            <div class="main-nav-child"><a href="#" onclick="showIntents(); return false;"><i class="fa solid fa-microphone-lines"></i><br/>Custom Intents</a></div>
-            <div class="main-nav-child"><a href="#" onclick="showBotConfig(); return false;"><i class="fa solid fa-robot"></i><br/>Bot Configuration</a></div>
-            <div class="main-nav-child"><a href="#" onclick="showLog(); return false;"><i class="fa-solid fa-file-lines"></i><br/>Log</a></div>
-        </div>
+
+    <div class="main-nav-parent">
+      <div class="main-nav-child"><a href="setup.html"><i class="fa-solid fa-gear"></i><br/>Initial Setup</a></div>
+      <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Configure Bots<br/>via the SDK interface</a></div>
+      <div class="main-nav-child"><a href="#" onclick="showIntents(); return false;"><i class="fa solid fa-microphone-lines"></i><br/>Custom Intents</a></div>
+      <div class="main-nav-child"><a href="#" onclick="showBotConfig(); return false;"><i class="fa solid fa-robot"></i><br/>Bot Configuration</a></div>
+      <div class="main-nav-child"><a href="#" onclick="showLog(); return false;"><i class="fa-solid fa-file-lines"></i><br/>Log</a></div>
+    </div>
     <hr>
 
     <div id="section-intents" style="display:none">
-        <h2>
-            <span>+</span>
-            Add a custom intent
-        </h2>
-        <div class="content">
-            <p>It is recommended you read <a href="https://github.com/kercre123/wire-pod/blob/main/README.md" target="_blank">README.md</a></p>
-            <p>
-            <div id="addIntentStatus"></div>
-            <form id="intentAddForm">
-                <label for="nameAdd">Custom intent name:</label>
-                <input type="text" name="nameAdd" id="nameAdd"><br>
-                <label for="descriptionAdd">Custom intent description:</label>
-                <input type="text" name="descriptionAdd" id="descriptionAdd"><br>
-                <label for="utterancesAdd">Utterances that will trigger the intent (separated by ,):</label>
-                <input type="text" name="utterancesAdd" id="utterancesAdd"><br>
-                <div id="intentAddSelect"></div>
-                <label for="paramnameAdd">Intent parameter name (not required):</label>
-                <input type="text" name="paramnameAdd" id="paramnameAdd"><br>
-                <label for="paramvalueAdd">Intent parameter value (not required):</label>
-                <input type="text" name="paramvalueAdd" id="paramvalueAdd"><br>
-                <label for="execAdd">Path to script/program to execute after sending intent:</label>
-                <input type="text" name="execAdd" id="execAdd"><br>
-                <label for="execAdd">Arguments for program (seperated by ,)</label>
-                <input type="text" name="execAddArgs" id="execAddArgs" size="50"><br>
-            </form>
-                <button onclick="sendIntentAdd()">Add intent</button>
-            </p>
-            <hr>
-        </div>
-
-        <h2>
-            <span>+</span>
-            Edit a custom intent
-        </h2>
-        <div class="content">
-            <div id="editSelect"></div>
-            <div id="editIntentStatus"></div><br>
-                <button onclick="editFormCreate()">Start editing selected intent</button>
-            <div id="editIntentForm"></div>
-            <hr>
-        </div>
-
-        <h2>
-            <span>+</span>
-            Delete a custom intent
-        </h2>
-        <div class="content">
-            <div id="deleteSelect"></div>
-            <div id="deleteIntentStatus"></div><br>
-                <button onclick="deleteSelectedIntent()">Delete selected intent</button>
-            <hr>
-        </div>
+    <h2>
+      <span>+</span>
+      Add a custom intent
+    </h2>
+    <div class="content">
+      <p>It is recommended you read <a href="https://github.com/kercre123/wire-pod/blob/main/README.md" target="_blank">README.md</a></p>
+      <div id="addIntentStatus"></div>
+      <form id="intentAddForm">
+        <label for="nameAdd">Custom intent name:</label>
+        <input type="text" name="nameAdd" id="nameAdd"><br>
+        <label for="descriptionAdd">Custom intent description:</label>
+        <input type="text" name="descriptionAdd" id="descriptionAdd"><br>
+        <label for="utterancesAdd">Utterances that will trigger the intent (separated by ,):</label>
+        <input type="text" name="utterancesAdd" id="utterancesAdd"><br>
+        <div id="intentAddSelect"></div>
+        <label for="paramnameAdd">Intent parameter name (not required):</label>
+        <input type="text" name="paramnameAdd" id="paramnameAdd"><br>
+        <label for="paramvalueAdd">Intent parameter value (not required):</label>
+        <input type="text" name="paramvalueAdd" id="paramvalueAdd"><br>
+        <label for="execAdd">Path to script/program to execute after sending intent:</label>
+        <input type="text" name="execAdd" id="execAdd"><br>
+        <label for="execAdd">Arguments for program (seperated by ,)</label>
+        <input type="text" name="execAddArgs" id="execAddArgs" size="50"><br>
+      </form>
+      <div class="center">
+        <button onclick="sendIntentAdd()">Add intent</button>
+      </div>
+      <hr>
     </div>
 
-    <div id="section-bot-config" style="display:none">
-        <h2>
-            <span>+</span>
-            Add a bot configuration
-        </h2>
-        <div class="content">
-            <small>This will be deprecated soon, please start using <a href="/sdkapp">the app alternative</a> which uses actual jdocs</small>
-            <div id="botAddStatus"></div>
-            <form id="botAddForm">
-                <label for="esnAdd">Bot S/N (ex. 0060059b):</label>
-                <input type="text" name="esnAdd" id="esnAdd"><br>
-                <label for="locationAdd">Location:</label>
-                <input type="text" name="locationAdd" id="locationAdd"><br>
-                <label for="unitsAdd">Temperature Unit:</label>
-                <select name="unitsAdd" id="unitsAdd" form="botAddForm">
-                    <option value="C">Celsius</option>
-                    <option value="F">Fahrenheit</option>
-                </select><br>
-                <label for="firmwarePrefixAdd">Firmware:</label>
-                <select name="firmwarePrefixAdd" id="firmwarePrefixAdd" form="botAddForm">
-                    <option value="1.6">1.6 and above</option>
-                    <option value="1.5">1.0 - 1.5</option>
-                    <option value="0.11">0.14 and below</option>
-                </select>
-            </form>
-                <button onclick="sendBotAdd()">Add bot</button>
-            <hr>
-        </div>
+    <h2>
+      <span>+</span>
+      Edit a custom intent
+    </h2>
+    <div class="content">
+      <div id="editSelect"></div>
+      <div id="editIntentStatus"></div><br>
+      <div class="center">
+        <button onclick="editFormCreate()">Start editing selected intent</button>
+      </div>
+      <div id="editIntentForm"></div>
+      <hr>
+    </div>
 
-        <h2>
-            <span>+</span>
-            Edit a bot configuration
-        </h2>
-        <div class="content">
-            <div id="botEditSelect"></div>
-            <div id="botEditStatus"></div><br>
-                <button onclick="editBotFormCreate()">Start editing selected bot</button>
-            <div id="botEditForm"></div>
-            <hr>
-        </div>
+    <h2>
+      <span>+</span>
+      Delete a custom intent
+    </h2>
+    <div class="content">
+      <div id="deleteSelect"></div>
+      <div id="deleteIntentStatus"></div><br>
+      <div class="center">
+        <button onclick="deleteSelectedIntent()">Delete selected intent</button>
+      </div>
+      <hr>
+    </div>
+  </div>
 
-        <h2>
-            <span>+</span>
-            Delete a bot configuration
-        </h2>
-        <div class="content">
-            <div id="botDeleteSelect"></div>
-            <div id="botDeleteStatus"></div><br>
-                <button onclick="deleteSelectedBot()">Delete selected bot</button>
-            <hr>
+
+  <div id="section-bot-config" style="display:none">
+    <h2>
+      <span>+</span>
+      Add a bot configuration
+    </h2>
+    <div class="content">
+      <small>This will be deprecated soon, please start using <a href="/sdkapp">the app alternative</a> which uses actual jdocs</small>
+      <div id="botAddStatus"></div>
+      <form id="botAddForm">
+        <label for="esnAdd">Bot S/N (ex. 0060059b):</label>
+        <input type="text" name="esnAdd" id="esnAdd"><br>
+        <label for="locationAdd">Location:</label>
+        <input type="text" name="locationAdd" id="locationAdd"><br>
+        <label for="unitsAdd">Temperature Unit:</label>
+        <select name="unitsAdd" id="unitsAdd" form="botAddForm">
+          <option value="C">Celsius</option>
+          <option value="F">Fahrenheit</option>
+        </select><br>
+	<label for="firmwarePrefixAdd">Firmware:</label><br>
+        <select name="firmwarePrefixAdd" id="firmwarePrefixAdd" form="botAddForm">
+          <option value="1.6">1.6 and above</option>
+          <option value="1.5">1.0 - 1.5</option>
+          <option value="0.11">0.14 and below</option>
+        </select>
+        </form>
+        <div class="center">
+          <button onclick="sendBotAdd()">Add bot</button>
         </div>
+        <hr>
+      </div>
+
+      <h2>
+        <span>+</span>
+        Edit a bot configuration
+      </h2>
+      <div class="content">
+        <div id="botEditSelect"></div>
+        <div id="botEditStatus"></div><br>
+        <div class="center">
+          <button onclick="editBotFormCreate()">Start editing selected bot</button>
+        </div>
+        <div id="botEditForm"></div>
+        <hr>
+      </div>
+
+      <h2>
+        <span>+</span>
+        Delete a bot configuration
+      </h2>
+      <div class="content">
+        <div id="botDeleteSelect"></div>
+        <div id="botDeleteStatus"></div><br>
+        <div class="center">
+          <button onclick="deleteSelectedBot()">Delete selected bot</button>
+        </div>
+        <hr>
+      </div>
     </div>
 
     <div id="section-log" style="display: none;">
-        <h2>
-            Log
-        </h2>
-        <div class="content" id="botTranscriptedText"></div>
+      <h2>Log</h2>
+      <div class="content" id="botTranscriptedText"></div>
     </div>
-</div>
+  </div>
 </div>
 </body>
+
 <script src="./js/customIntents.js"></script>
 <script src="./sdkapp/js/main.js"></script>
 </html>

@@ -1,9 +1,20 @@
 @import url("wing.css");
 
 @font-face{ 
-	font-family: 'DroidSans';
-	src: url('DroidSans.woff') format('woff');
-	/*font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans*/
+  font-family: 'DroidSans';
+  src: url('DroidSans.woff') format('woff');
+  /*font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans*/
+}
+
+:root {
+  --bg-color: rgba(43,42,51,1);			/* gray #2B2A33 */
+  --bg-color-alt: rgba(196,196,196,1);		/* light gray #C4C4C4*/
+  --button-color: rgba(75,75,75,1);		/* dark gray #4B4B4B */
+  --button-color-alt: rgba(164,164,164,1);	/* light gray #A4A4A4 */
+  --fg-color: rgba(51,237,109,1);	        /* light green 00FF00 */
+  --fg-color-alt: rgba(51,237,109,.05);		/* light green 00FF00 */
+  --text-color: rgba(255,255,255,1);		/* white #FFFFFF */
+  --text-color-alt: rgba(34,34,34,1);		/* black #000000 */
 }
 
 .dropdown {
@@ -12,20 +23,19 @@
 }
 
 button:disabled {
-    background: #F5F5F5;
-    color : #C3C3C3;
+  background: var(--bg-color);
+  color : var(--bg-color-alt);
 }
 button {
-	width: 170px;
-	margin-left: 315px !important;
+  width: 170px;
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #000;
+  background-color: var(--bg-color);
   min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px var(--fg-color-alt);
   padding: 12px 16px;
   z-index: 1;
 }
@@ -35,18 +45,18 @@ button {
 }
 
 body {
-  background-color: black;
+  background-color: var(--bg-color);
   /*font-family: Arial, Helvetica, sans-serif;*/
   font-family: "DroidSans";
 }
 
 h1, h2, h3, h4, small, p, li, label {
-  color: white;
+  color: var(--text-color);
 }
 
 h1 {
-    text-align: center;
-    text-transform: uppercase;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 p, small {
@@ -57,96 +67,128 @@ p, small {
 }
 
 .wrap {
-overflow: hidden !important;
-white-space: nowrap !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
 }
 
 hr {
-    border: 0;
-    height: 1px;
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, var(--fg-color-alt), var(--fg-color), var(--fg-color-alt));
 }
 
 a {
-  color:aqua;
+  color:var(--fg-color);
 }
 a:hover {
-	text-decoration: none;
-	color: aqua;
+  text-decoration: none;
+  color: aqua;
 }
 
 ul {
-	list-style-type:none;
+  list-style-type:none;
 }
 
-ul, li { list-style-type: none;
-        list-style-position:inside;
-        margin:0;
-        padding:0; }
+ul, li {
+  list-style-type: none;
+  list-style-position:inside;
+  margin:0;
+  padding:0;
+}
 
 .tinput {
-	width: 100px !important;
-	background-color: #4B4B4B !important;
-	color: #ffffff !important;
+  width: 100px !important;
+  background-color: var(--button-color) !important;
+  color: var(--text-color) !important;
 }
 
 .tinputauth {
-	width: 499px !important;
-	background-color: #4B4B4B !important;
-	color: #ffffff !important;
+  width: 499px !important;
+  background-color: var(--button-color) !important;
+  color: var(--text-color) !important;
 }
 
+/* RADIO BUTTON ######################### */
+input[type='radio'] {
+  appearance: none;
+  top: 13.33333px;
+  right: 50%;
+  bottom: 0;
+  left: 0;
+  height: 40px;
+  width: 40px;
+  transition: all .2s ease;
+  background: var(--button-color);
+  border: none;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  z-index: 1000;
+  border-radius: 50%;
+  border: 1px solid var(--button-color-alt);
+}
+
+input[type='radio']:checked:after {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--fg-color);
+  content: '';
+  display: inline-block;
+}
+
+/* ###################################### */
 #username, #password {
-	width: 499px !important;
-	background-color: #4B4B4B !important;
-	color: #ffffff !important;
+  width: 499px !important;
+  background-color: var(--bg-color-alt) !important;
+  color: var(--text-color) !important;
 }
 
 #content {
-	width: 800px !important;
-    /*word-break:break-all !important;*/
-	/*word-wrap: break-all !important;*/
-    white-space:normal !important;
+  width: 800px !important;
+  /*word-break:break-all !important;*/
+  /*word-wrap: break-all !important;*/
+  white-space:normal !important;
 }
 #outer {
-	width: 100%;
-	display: flex;
-    justify-content: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .main-nav-parent {
-    /*border: 1px solid black;*/
-    margin: 1rem;
-    padding: 2rem 2rem;
-    text-align: center;
+  /*border: 1px solid black;*/
+  margin: 1rem;
+  padding: 2rem 2rem;
+  text-align: center;
 }
 
 .main-nav-child {
-    display: inline-block;
-    /*border: 1px solid white;*/
-    padding: 0rem 0rem 2rem 0rem;
-    vertical-align: top;
-    width: 85px;
+  display: inline-block;
+  /*border: 1px solid white;*/
+  padding: 0rem 0rem 2rem 0rem;
+  vertical-align: top;
+  width: 85px;
 }
 
 .main-nav-child a {
-    text-decoration: none;
-    font-size: 75%;
-    color: #c3c3c3;
+  text-decoration: none;
+  font-size: 75%;
+  color: var(--bg-color-alt);
 }
 
 .main-nav-child a:hover {
-    color: white;
+  color: var(--text-color);
 }
 
 .main-nav-child a i {
-    text-decoration: none;
-    font-size: 60px;
-    /*padding-left: 20px;
-    padding-right: 20px;*/
-    padding-bottom: 10px;
+  text-decoration: none;
+  font-size: 60px;
+  /*padding-left: 20px;
+  padding-right: 20px;*/
+  padding-bottom: 10px;
 }
 
 .main-nav-child a img {
-    width:50%;
+  width:50%;
 }
