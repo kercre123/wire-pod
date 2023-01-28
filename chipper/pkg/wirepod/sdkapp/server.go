@@ -530,11 +530,11 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			ctx,
 			&vectorpb.RequestEnrolledNamesRequest{})
 		if err != nil {
-			fmt.Fprintf(w, err.Error())
+			fmt.Fprint(w, err.Error())
 			return
 		}
 		bytes, _ := json.Marshal(resp.Faces)
-		fmt.Fprintf(w, string(bytes))
+		fmt.Fprint(w, string(bytes))
 		return
 	case r.URL.Path == "/api-sdk/rename_face":
 		id := r.FormValue("id")
@@ -550,7 +550,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 				NewName: newname,
 			})
 		if err != nil {
-			fmt.Fprintf(w, err.Error())
+			fmt.Fprint(w, err.Error())
 			return
 		}
 		fmt.Fprintf(w, "success")
@@ -565,7 +565,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 				FaceId: idInt32,
 			})
 		if err != nil {
-			fmt.Fprintf(w, err.Error())
+			fmt.Fprint(w, err.Error())
 			return
 		}
 		fmt.Fprintf(w, "success")
