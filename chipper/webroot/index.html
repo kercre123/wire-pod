@@ -14,10 +14,9 @@
 
     <div class="main-nav-parent">
       <div class="main-nav-child"><a href="setup.html"><i class="fa-solid fa-gear"></i><br/>Initial Setup</a></div>
-      <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Configure Bots<br/>via the SDK interface</a></div>
+      <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Configure Bots</a></div>
       <div class="main-nav-child"><a href="#" onclick="showIntents(); return false;"><i class="fa solid fa-microphone-lines"></i><br/>Custom Intents</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showBotConfig(); return false;"><i class="fa solid fa-robot"></i><br/>Bot Configuration</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showLog(); return false;"><i class="fa-solid fa-file-lines"></i><br/>Log</a></div>
+      <!--<div class="main-nav-child"><a href="#" onclick="showLog(); return false;"><i class="fa-solid fa-file-lines"></i><br/>Log</a></div> -->
     </div>
     <hr>
 
@@ -79,66 +78,6 @@
       <hr>
     </div>
   </div>
-
-
-  <div id="section-bot-config" style="display:none">
-    <h2>
-      <span>+</span>
-      Add a bot configuration
-    </h2>
-    <div class="content">
-      <small>This will be deprecated soon, please start using <a href="/sdkapp">the app alternative</a> which uses actual jdocs</small>
-      <div id="botAddStatus"></div>
-      <form id="botAddForm">
-        <label for="esnAdd">Bot S/N (ex. 0060059b):</label>
-        <input type="text" name="esnAdd" id="esnAdd"><br>
-        <label for="locationAdd">Location:</label>
-        <input type="text" name="locationAdd" id="locationAdd"><br>
-        <label for="unitsAdd">Temperature Unit:</label>
-        <select name="unitsAdd" id="unitsAdd" form="botAddForm">
-          <option value="C">Celsius</option>
-          <option value="F">Fahrenheit</option>
-        </select><br>
-	<label for="firmwarePrefixAdd">Firmware:</label><br>
-        <select name="firmwarePrefixAdd" id="firmwarePrefixAdd" form="botAddForm">
-          <option value="1.6">1.6 and above</option>
-          <option value="1.5">1.0 - 1.5</option>
-          <option value="0.11">0.14 and below</option>
-        </select>
-        </form>
-        <div class="center">
-          <button onclick="sendBotAdd()">Add bot</button>
-        </div>
-        <hr>
-      </div>
-
-      <h2>
-        <span>+</span>
-        Edit a bot configuration
-      </h2>
-      <div class="content">
-        <div id="botEditSelect"></div>
-        <div id="botEditStatus"></div><br>
-        <div class="center">
-          <button onclick="editBotFormCreate()">Start editing selected bot</button>
-        </div>
-        <div id="botEditForm"></div>
-        <hr>
-      </div>
-
-      <h2>
-        <span>+</span>
-        Delete a bot configuration
-      </h2>
-      <div class="content">
-        <div id="botDeleteSelect"></div>
-        <div id="botDeleteStatus"></div><br>
-        <div class="center">
-          <button onclick="deleteSelectedBot()">Delete selected bot</button>
-        </div>
-        <hr>
-      </div>
-    </div>
 
     <div id="section-log" style="display: none;">
       <h2>Log</h2>
