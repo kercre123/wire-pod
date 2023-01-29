@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Wire-Pod Initial Setup</title>
+  <title>Wire-Pod API Setup</title>
   <link rel="stylesheet" type="text/css" href="css/style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
@@ -10,14 +10,14 @@
 <body>
   <div id="outer">
     <div id="content" class="">
-    <h1>Wire-Pod Initial Setup</h1>
+    <h1>Wire-Pod API Setup</h1>
     <hr>
     <div class="main-nav-parent">
       <div class="main-nav-child"><a href="index.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
       <div class="main-nav-child"><a href="#" onclick="showWeather(); return false;"><i class="fa solid fa-cloud-sun" id="icon-Weather" name="icon"></i><br/>Weather</a></div>
       <div class="main-nav-child"><a href="#" onclick="showKG(); return false;"><i class="fa solid fa-diagram-project" id="icon-KG" name="icon"></i><br/>Knowledge Graph</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showSTT(); return false;"><i class="fa solid fa-language" id="icon-STT" name="icon"></i><br/>STT Language</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showRestart(); return false;"><i class="fa solid fa-arrow-rotate-right" id="icon-Restart" name="icon"></i><br/>Restart Wire-Pod</a></div>
+      <!--<div class="main-nav-child"><a href="#" onclick="showSTT(); return false;"><i class="fa solid fa-language" id="icon-STT" name="icon"></i><br/>STT Language</a></div> -->
+      <!--<div class="main-nav-child"><a href="#" onclick="showRestart(); return false;"><i class="fa solid fa-arrow-rotate-right" id="icon-Restart" name="icon"></i><br/>Restart Wire-Pod</a></div> -->
     </div>
     <hr>
 
@@ -61,9 +61,21 @@
               <option value="openai">OpenAI</option>
               <option value="houndify">Houndify</option>
             </select><br>
-            <span id="kgKeySpan" style="display:none">
-              <label for="kgKey">Knowledge Graph API Key:</label>
-              <input type="text" name="kgKey" id="kgKey"><br>
+            <span id="houndifyInput" style="display:none">
+              <small>To use Houndify, create an account at <a href=https://www.houndify.com/signup>houndify.com</a>, create a free domain, and enter the Client ID and Key here.</small><br>
+              <label for="houndID">Knowledge Graph Client ID:</label>
+              <input type="text" name="houndID" id="houndID"><br>
+              <label for="houndKey">Knowledge Graph Client Key:</label>
+              <input type="text" name="houndKey" id="houndKey"><br>
+            </span>
+            <span id="openAIInput" style="display:none">
+              <label for="openAIKey">Knowledge Graph API Key:</label>
+              <input type="text" name="openAIKey" id="openAIKey"><br>
+              <small>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</small><br>
+              <label for="intentyes">Yes</label>
+              <input type="radio" id="intentyes" name="intentgselect" value="yes"><br>
+              <label for="intentno">No</label>
+              <input type="radio" id="intentno" name="intentgselect" value="no">
             </span>
           </form>
 	  <div class="center">
@@ -124,6 +136,5 @@
 <script>
     updateWeatherAPI();
     updateKGAPI();
-    updateSTTLanguage();
 </script>
 </html>

@@ -387,7 +387,7 @@ function showLog() {
         xhr.onload = function() {
             logDiv.innerHTML = ""
             if (xhr.response == "") {
-                logP.innerHTML = "No logs yet, you must say a command to Vector."
+                logP.innerHTML = "No logs yet, you must say a command to Vector. (this updates automatically)"
             } else {
                 logP.innerHTML = xhr.response
             }
@@ -483,19 +483,41 @@ function updateWeatherAPI() {
 
 function checkKG() {
     if (document.getElementById("kgProvider").value=="") {
-        document.getElementById("kgKey").value = "";
-        document.getElementById("kgKeySpan").style.display = "none";
-    }
-    else {
-        document.getElementById("kgKeySpan").style.display = "block";
+        document.getElementById("houndifyInput").style.display = "none";
+        document.getElementById("openAIInput").style.display = "none";
+    } else if (document.getElementById("kgProvider").value=="houndify") {
+        document.getElementById("openAIInput").style.display = "none";
+        document.getElementById("houndifyInput").style.display = "block";
+    } else if (document.getElementById("kgProvider").value=="openai") {
+        document.getElementById("openAIInput").style.display = "block";
+        document.getElementById("houndifyInput").style.display = "none";
     }
 }
 
 function sendKGAPIKey(element) {
-    var form = document.getElementById("kgAPIAddForm");
-    var provider = document.getElementById("kgProvider").value;
+    var provider = document.getElementById("kgProvider").value
+    var key = ""
+    var id = ""
+    var intentgraph = ""
 
-    var data = "provider=" + provider + "&api_key=" + form.elements["kgKey"].value;
+    if (provider == "openai") {
+        key = document.getElementById("openAIKey").value
+        if (document.getElementById("intentyes").checked == true) {
+            intentgraph = "true"
+        } else {
+            intentgraph = "false"
+        }
+    } else if (provider == "houndify") {
+        key = document.getElementById("houndKey").value
+        id = document.getElementById("houndID").value
+        intentgraph = "false"
+    } else {
+        key = ""
+        id = ""
+        intentgraph = "false"
+    }
+
+    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph
     var result = document.getElementById('addKGProviderAPIStatus');
     const resultP = document.createElement('p');
     resultP.textContent =  "Saving...";
@@ -516,7 +538,17 @@ function updateKGAPI() {
         .then((response) => {
             obj = JSON.parse(response);
             document.getElementById("kgProvider").value = obj.kgProvider;
-            document.getElementById("kgKey").value = obj.kgApiKey;
+            if (obj.kgProvider == "openai") {
+                document.getElementById("openAIKey").value = obj.kgApiKey;
+                if (obj.kgIntentGraph == "true") {
+                    document.getElementById("intentyes").checked = true;
+                } else {
+                    document.getElementById("intentno").checked = true;
+                }
+            } else if (obj.kgProvider == "houndify") {
+                document.getElementById("houndKey").value = obj.kgApiKey;
+                document.getElementById("houndID").value = obj.kgApiID;
+            }
             checkKG();
         })
 }
@@ -538,15 +570,15 @@ function sendSTTLanguage() {
         })
 }
 
-function updateSTTLanguage() {
-    fetch("/api/get_stt_info")
-        .then(response => response.text())
-        .then((response) => {
-            obj = JSON.parse(response);
-            //document.getElementById("sttProvider").value = obj.sttProvider;
-            document.getElementById("sttLanguage").value = obj.sttLanguage;
-        })
-}
+// function updateSTTLanguage() {
+//     fetch("/api/get_stt_info")
+//         .then(response => response.text())
+//         .then((response) => {
+//             obj = JSON.parse(response);
+//             //document.getElementById("sttProvider").value = obj.sttProvider;
+//             document.getElementById("sttLanguage").value = obj.sttLanguage;
+//         })
+// }
 
 function sendRestart() {
     fetch("/api/reset")
