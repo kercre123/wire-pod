@@ -44,6 +44,10 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 			Action:    intentThing,
 		}
 	}
+	logger.LogMatch("Intent matched: " + intentThing + ", transcribed text: '" + speechText + "'")
+	if isParam {
+		logger.LogMatch("Parameters sent: " + fmt.Sprint(intentParams))
+	}
 	intent := pb.IntentResponse{
 		IsFinal:      true,
 		IntentResult: &intentResult,
