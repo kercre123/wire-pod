@@ -634,7 +634,7 @@ func BeginServer() {
 	http.Handle("/stream", camStream)
 	// in jdocspinger.go
 	http.HandleFunc("/ok:80", connCheck)
-	http.HandleFunc("/link-esn-and-target", connCheck)
+	http.HandleFunc("/ok", connCheck)
 	logger.Println("Starting SDK app")
 
 	fmt.Printf("Starting server at port 80 for connCheck\n")
