@@ -36,7 +36,12 @@
         -	Streaming is supported by their servers and I would like to implement this
 	    -   This would make requests a lot faster
 
+-   Dynamic config - IN PROGRESS
+    -   Rather than using environment variables for API configs, put the variables into a global, updatable struct. This can be exported to JSON
+    -   Will allow the changing of KG or weather provider without restarting wirepod, or even the voice processor itself
+
 -   Implement wire-pod status page
+    -   Status: logs work
     -   Should include:
         -   Bot serial numbers
         -   Saved bot targets (IP addresses)

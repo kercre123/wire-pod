@@ -21,14 +21,17 @@ type systemIntentResponseStruct struct {
 }
 
 func IntentPass(req interface{}, intentThing string, speechText string, intentParams map[string]string, isParam bool, justThisBotNum int) (interface{}, error) {
+	var esn string
 	var req1 *vtt.IntentRequest
 	var req2 *vtt.IntentGraphRequest
 	var isIntentGraph bool
 	if str, ok := req.(*vtt.IntentRequest); ok {
 		req1 = str
+		esn = req1.Device
 		isIntentGraph = false
 	} else if str, ok := req.(*vtt.IntentGraphRequest); ok {
 		req2 = str
+		esn = req2.Device
 		isIntentGraph = true
 	}
 	var intentResult pb.IntentResult
@@ -44,9 +47,9 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 			Action:    intentThing,
 		}
 	}
-	logger.LogMatch("Intent matched: " + intentThing + ", transcribed text: '" + speechText + "'")
+	logger.LogUI("Intent matched: " + intentThing + ", transcribed text: '" + speechText + "', device: " + esn)
 	if isParam {
-		logger.LogMatch("Parameters sent: " + fmt.Sprint(intentParams))
+		logger.LogUI("Parameters sent: " + fmt.Sprint(intentParams))
 	}
 	intent := pb.IntentResponse{
 		IsFinal:      true,
