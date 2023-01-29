@@ -349,12 +349,29 @@ function togglePlusMinusSymbols() {
 }
 togglePlusMinusSymbols();
 
+// Changes color of the clicked icon
+function updateColor(id) {
+
+  var body_styles = window.getComputedStyle(document.getElementsByTagName("body")[0]);
+  var fgColor = body_styles.getPropertyValue("--fg-color");
+  var bgColorAlt = body_styles.getPropertyValue("--bg-color-alt");
+
+  l_id = id.replace("section","icon");
+  let elements = document.getElementsByName("icon");
+  for (var i = 0; i < elements.length; i++) {
+      document.getElementById(elements[i].id).style.color = bgColorAlt;
+  }
+  document.getElementById(l_id).style.color = fgColor;
+}
+
+
 GetLog = false
 
 function showLog() {
     document.getElementById("section-intents").style.display = "none";
     document.getElementById("section-log").style.display = "block";
     document.getElementById("botTranscriptedText").style.display = "block";
+    updateColor("icon-Logs");
     GetLog = true
     logDiv = document.getElementById("botTranscriptedText")
     logP = document.createElement("p")
@@ -381,6 +398,7 @@ function showIntents() {
     GetLog = false
     document.getElementById("section-log").style.display = "none";
     document.getElementById("section-intents").style.display = "block";
+    updateColor("icon-Intents");
 }
 
 function showBotConfig() {
@@ -394,6 +412,7 @@ function showWeather() {
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "none";
     document.getElementById("section-kg").style.display = "none";
+    updateColor("icon-Weather");
 }
 
 function showKG() {
@@ -401,6 +420,7 @@ function showKG() {
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "none";
     document.getElementById("section-kg").style.display = "block";
+    updateColor("icon-KG");
 }
 
 function showSTT() {
@@ -408,6 +428,7 @@ function showSTT() {
     document.getElementById("section-kg").style.display = "none";
     document.getElementById("section-stt").style.display = "block";
     document.getElementById("section-restart").style.display = "none";
+    updateColor("icon-STT");
 }
 
 function showRestart() {
@@ -415,6 +436,7 @@ function showRestart() {
     document.getElementById("section-kg").style.display = "none";
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "block";
+    updateColor("icon-Restart");
 }
 
 function checkWeather() {
