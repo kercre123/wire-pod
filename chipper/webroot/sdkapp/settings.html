@@ -14,16 +14,16 @@
       <hr>
       <div class="main-nav-parent">
         <div class="main-nav-child"><a href="../index.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
-        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot<br/>via the SDK interface</a></div>
+        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot</a></div>
         <div class="main-nav-child"><a href="control.html"><i class="fa-solid fa-gamepad"></i><br/>Vector Control<br/>(Beta)</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i class="fa-solid fa-volume-high"></i><br/>Volume</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i class="fa-solid fa-eye"></i><br/>Eye Color</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-faces'); return false;"><i class="fa-solid fa-user"></i><br/>Face manager</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showFaceSection(); return false;"><i class="fa-solid fa-user"></i><br/>Face Manager</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running"></i><br/>Quick Actions</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-timer'); return false;"><i class="fa-solid fa-stopwatch"></i><br/>Timer</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas"></i><br/>Locale</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-time'); return false;"><i class="fa-solid fa-clock"></i><br/>Time Format</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-temp'); return false;"><i class="fa-solid fa-temperature-half"></i><br/>Temperature Format</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-temp'); return false;"><i class="fa-solid fa-temperature-half"></i><br/>Temperature Units</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-button'); return false;"><i class="fa-solid fa-circle-dot"></i><br/>Button Action</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-alexa'); return false;"><i class="fa-solid fa-house-signal"></i><br/>Alexa</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-location'); return false;"><i class="fa-solid fa-location-crosshairs"></i><br/>Set Location</a></div>
@@ -32,7 +32,7 @@
       <hr>
 
       <div id="section-volume" class="toggleable-section" style="display:none;">
-        <h2>Volume</h2>
+        <h2 class="center">Volume</h2>
         <div class="content">
           <div id="currentVolume" class="center"></div>
           <div class="center">
@@ -61,7 +61,7 @@
       </div>
 
       <div id="section-eyes" class="toggleable-section" style="display:none;">
-        <h2>Eye Color</h2>
+        <h2 class="center">Eye Color</h2>
         <div class="content">
           <div id="currentEyeColor" class="center"></div>
           <h4 class="center">Preset Eye Colors:</h4>
@@ -85,7 +85,7 @@
               <input type="radio" name="eye" id="Purple" value="Purple" onclick="sendForm('/api-sdk/eye_color?color=5')">Purple<br>
             </label>
             <label>
-              <input type="radio" name="eye" id="Other Green" value="Other Green" onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
+              <input type="radio" name="eye" id="Kickstarter Green" value="Other Green" onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
             </label>
           </div>          
 
@@ -99,22 +99,27 @@
       </div>
 
       <div id="section-faces" class="toggleable-section" style="display:none;">
-        <h2>Face Manager</h2>
+        <h2 class="center">Face Manager</h2>
         <div class="content">
           <p class="center">Choose the face you would like to modify.</p>
-          <select id="faceList" name="faceList"></select>
           <div class="center">
-            <button onclick="refreshFaceList()" type="submit">Refresh list</button>
+          <select id="faceList" name="faceList"></select>
+          </div>
+          <div class="center">
+            <button class="center" onclick="refreshFaceList()" type="submit">Refresh list</button>
+          </div>
+          <div class="center">
+          <div id="faceButtons">
             <button onclick="deleteFace()" type="submit">Delete</button>
             <button onclick="renameFace()" type="submit">Rename</button>
-	    <div id="faceResult"></div>
+          </div>
+          </div>
 	  </div>
 	  <hr>
         </div>
-      </div>
 
       <div id="section-actions" class="toggleable-section" style="display:none;">
-        <h2>Quick Actions</h2>
+        <h2 class="center">Quick Actions</h2>
         <div class="content">
           <div class="center">
 	    <button onclick="sendForm('/api-sdk/cloud_intent?intent=explore_start')" type="submit">Explore Start</button>
@@ -128,7 +133,7 @@
       </div>
 
       <div id="section-timer" class="toggleable-section" style="display:none;">
-        <h2>Timer</h2>
+        <h2 class="center">Timer</h2>
         <div class="content">
           <div class="center">
             <form method="POST" action="/api-sdk/set_timer" target="hiddenFrame">
@@ -141,7 +146,7 @@
       </div>
 
       <div id="section-locale" class="toggleable-section" style="display:none;">
-        <h2>Locale</h2>
+        <h2 class="center">Locale</h2>
         <div class="content">
           <div id="currentLocale" class="center"></div>
           <div class="center">
@@ -170,7 +175,7 @@
       </div>
 
       <div id="section-time" class="toggleable-section" style="display:none;">
-        <h2>Time Format</h2>
+        <h2 class="center">Time Format</h2>
         <div class="content">
           <div id="currentTimeSet" class="center"></div>
           <div class="center">
@@ -187,7 +192,7 @@
       </div>
 
       <div id="section-temp" class="toggleable-section" style="display:none;">
-        <h2>Temp Format</h2>
+        <h2 class="center">Temp Format</h2>
         <div class="content">
           <div id="currentTempFormat" class="center"></div>
           <div class="center">
@@ -204,7 +209,7 @@
       </div>
 
       <div id="section-button" class="toggleable-section" style="display:none;">
-        <h2>Button Action</h2>
+        <h2 class="center">Button Action</h2>
         <div class="content">
           <div id="currentButton" class="center"></div>
           <div class="center">
@@ -221,10 +226,9 @@
       </div>
 
       <div id="section-alexa" class="toggleable-section" style="display:none;">
-        <h2>Alexa</h2>
+        <h2 class="center">Alexa</h2>
         <div class="content">
           <div id="alexaStatus" class="center"></div>
-          <small class="center">After changing this setting, refresh this page for the above text to update.</small>
           <a class="center" target="_blank" rel="noopener noreferrer" href="https://amazon.com/code">https://amazon.com/code</a>
           <div class="center">
 	    <button onclick="sendForm('/api-sdk/alexa_sign_in')" type="submit">Signin Alexa</button>
@@ -235,7 +239,7 @@
       </div>
 
       <div id="section-location" class="toggleable-section" style="display:none;">
-        <h2>Set Location</h2>
+        <h2 class="center">Set Location</h2>
         <div class="content">
           <div id="currentLocation" class="center"></div>
           <small class="center">Example: San Francisco, California</small>
@@ -250,7 +254,7 @@
       </div>
 
       <div id="section-timezone" class="toggleable-section" style="display:none;">
-        <h2>Set Time Zone</h2>
+        <h2 class="center">Set Time Zone</h2>
         <div class="content">
           <div id="currentTimeZone" class="center"></div>
           <small class="center">Example: America/Chicago</small>

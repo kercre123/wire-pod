@@ -2,12 +2,11 @@ package wirepod_ttr
 
 import (
 	"encoding/json"
-	"os"
 	"strconv"
 	"strings"
 
-	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 )
 
 // stt
@@ -21,9 +20,10 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
-	if _, err := os.Stat("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json"); err == nil {
-		logger.Println("Found robot settings jdoc for " + botSerial + ", using location and units from that")
-		var jdoc jdocspb.Jdoc
+
+	// see if jdoc exists
+	botJdoc, jdocExists := vars.GetJdoc("vic:"+botSerial, "vic.RobotSettings")
+	if jdocExists {
 		type robotSettingsJson struct {
 			ButtonWakeword int  `json:"button_wakeword"`
 			Clock24Hour    bool `json:"clock_24_hour"`
@@ -40,46 +40,17 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 			TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
 			TimeZone         string `json:"time_zone"`
 		}
-		byteValue, err := os.ReadFile("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json")
-		if err != nil {
-			logger.Println(err)
-		}
 		var robotSettings robotSettingsJson
-		err = json.Unmarshal(byteValue, &jdoc)
+		err := json.Unmarshal([]byte(botJdoc.JsonDoc), &robotSettings)
 		if err != nil {
-			logger.Println("Deprecated jdoc found, set location in the sdk web app again to update")
-			json.Unmarshal(byteValue, &robotSettings)
-		} else {
-			json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
-		}
-		botLocation = robotSettings.DefaultLocation
-		if robotSettings.TempIsFahrenheit {
-			botUnits = "F"
-		} else {
-			botUnits = "C"
-		}
-	}
-	if _, err := os.Stat("./botConfig.json"); err == nil {
-		type botConfigJSON []struct {
-			ESN             string `json:"ESN"`
-			Location        string `json:"location"`
-			Units           string `json:"units"`
-			UsePlaySpecific bool   `json:"use_play_specific"`
-			IsEarlyOpus     bool   `json:"is_early_opus"`
-		}
-		byteValue, err := os.ReadFile("./botConfig.json")
-		if err != nil {
+			logger.Println("Error unmarshaling json in paramchecker")
 			logger.Println(err)
-		}
-		var botConfig botConfigJSON
-		json.Unmarshal(byteValue, &botConfig)
-		for _, bot := range botConfig {
-			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Println("Found bot config for " + bot.ESN)
-				botLocation = bot.Location
-				botUnits = bot.Units
-				botPlaySpecific = bot.UsePlaySpecific
-				botIsEarlyOpus = bot.IsEarlyOpus
+		} else {
+			botLocation = robotSettings.DefaultLocation
+			if robotSettings.TempIsFahrenheit {
+				botUnits = "F"
+			} else {
+				botUnits = "C"
 			}
 		}
 	}
@@ -324,9 +295,9 @@ func ParamCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
-	if _, err := os.Stat("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json"); err == nil {
-		logger.Println("Found robot settings jdoc for " + botSerial + ", using location and units from that")
-		var jdoc jdocspb.Jdoc
+	// see if jdoc exists
+	botJdoc, jdocExists := vars.GetJdoc("vic:"+botSerial, "vic.RobotSettings")
+	if jdocExists {
 		type robotSettingsJson struct {
 			ButtonWakeword int  `json:"button_wakeword"`
 			Clock24Hour    bool `json:"clock_24_hour"`
@@ -343,46 +314,17 @@ func ParamCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 			TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
 			TimeZone         string `json:"time_zone"`
 		}
-		byteValue, err := os.ReadFile("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json")
-		if err != nil {
-			logger.Println(err)
-		}
 		var robotSettings robotSettingsJson
-		err = json.Unmarshal(byteValue, &jdoc)
+		err := json.Unmarshal([]byte(botJdoc.JsonDoc), &robotSettings)
 		if err != nil {
-			logger.Println("Deprecated jdoc found, set location in the sdk web app again to update")
-			json.Unmarshal(byteValue, &robotSettings)
-		} else {
-			json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
-		}
-		botLocation = robotSettings.DefaultLocation
-		if robotSettings.TempIsFahrenheit {
-			botUnits = "F"
-		} else {
-			botUnits = "C"
-		}
-	}
-	if _, err := os.Stat("./botConfig.json"); err == nil {
-		type botConfigJSON []struct {
-			ESN             string `json:"ESN"`
-			Location        string `json:"location"`
-			Units           string `json:"units"`
-			UsePlaySpecific bool   `json:"use_play_specific"`
-			IsEarlyOpus     bool   `json:"is_early_opus"`
-		}
-		byteValue, err := os.ReadFile("./botConfig.json")
-		if err != nil {
+			logger.Println("Error unmarshaling json in paramchecker")
 			logger.Println(err)
-		}
-		var botConfig botConfigJSON
-		json.Unmarshal(byteValue, &botConfig)
-		for _, bot := range botConfig {
-			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Println("Found bot config for " + bot.ESN)
-				botLocation = bot.Location
-				botUnits = bot.Units
-				botPlaySpecific = bot.UsePlaySpecific
-				botIsEarlyOpus = bot.IsEarlyOpus
+		} else {
+			botLocation = robotSettings.DefaultLocation
+			if robotSettings.TempIsFahrenheit {
+				botUnits = "F"
+			} else {
+				botUnits = "C"
 			}
 		}
 	}
@@ -543,66 +485,6 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 	var intentParams map[string]string
 	var botLocation string = "San Francisco"
 	var botUnits string = "F"
-	if _, err := os.Stat("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json"); err == nil {
-		logger.Println("Found robot settings jdoc for " + botSerial + ", using location and units from that")
-		var jdoc jdocspb.Jdoc
-		type robotSettingsJson struct {
-			ButtonWakeword int  `json:"button_wakeword"`
-			Clock24Hour    bool `json:"clock_24_hour"`
-			CustomEyeColor struct {
-				Enabled    bool    `json:"enabled"`
-				Hue        float64 `json:"hue"`
-				Saturation float64 `json:"saturation"`
-			} `json:"custom_eye_color"`
-			DefaultLocation  string `json:"default_location"`
-			DistIsMetric     bool   `json:"dist_is_metric"`
-			EyeColor         int    `json:"eye_color"`
-			Locale           string `json:"locale"`
-			MasterVolume     int    `json:"master_volume"`
-			TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
-			TimeZone         string `json:"time_zone"`
-		}
-		byteValue, err := os.ReadFile("./jdocs/vic:" + botSerial + "-vic.RobotSettings.json")
-		if err != nil {
-			logger.Println(err)
-		}
-		var robotSettings robotSettingsJson
-		err = json.Unmarshal(byteValue, &jdoc)
-		if err != nil {
-			logger.Println("Deprecated jdoc found, set location in the sdk web app again to update")
-			json.Unmarshal(byteValue, &robotSettings)
-		} else {
-			json.Unmarshal([]byte(jdoc.JsonDoc), &robotSettings)
-		}
-		botLocation = robotSettings.DefaultLocation
-		if robotSettings.TempIsFahrenheit {
-			botUnits = "F"
-		} else {
-			botUnits = "C"
-		}
-	}
-	if _, err := os.Stat("./botConfig.json"); err == nil {
-		type botConfigJSON []struct {
-			ESN             string `json:"ESN"`
-			Location        string `json:"location"`
-			Units           string `json:"units"`
-			UsePlaySpecific bool   `json:"use_play_specific"`
-			IsEarlyOpus     bool   `json:"is_early_opus"`
-		}
-		byteValue, err := os.ReadFile("./botConfig.json")
-		if err != nil {
-			logger.Println(err)
-		}
-		var botConfig botConfigJSON
-		json.Unmarshal(byteValue, &botConfig)
-		for _, bot := range botConfig {
-			if strings.ToLower(bot.ESN) == botSerial {
-				logger.Println("Found bot config for " + bot.ESN)
-				botLocation = bot.Location
-				botUnits = bot.Units
-			}
-		}
-	}
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent

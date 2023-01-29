@@ -1,5 +1,7 @@
 var client = new HttpClient();
 
+showFaceButtons = false
+
 function refreshFaceList() {
 var x = document.getElementById("faceList");
 x.innerHTML = ""
@@ -8,13 +10,24 @@ fetch("/api-sdk/get_faces")
 .then ((response) => {
   if (response.includes("null")) {
     console.log("no faces exist.")
+    showFaceButtons = false
+    var option = document.createElement("option");
+    option.text = "No faces found. You must tell Vector your name."
+    option.value = "none"
+    x.add(option);
   } else {
   jsonResp = JSON.parse(response)
+  showFaceButtons = true
   for (var i = 0; i < jsonResp.length; i++){
     var option = document.createElement("option");
     option.text = jsonResp[i]["name"]
     option.value = jsonResp[i]["face_id"] + ":" + jsonResp[i]["name"]
     x.add(option);
+  }
+  if (showFaceButtons == true) {
+    document.getElementById("faceButtons").style.display = "block";
+  } else {
+    document.getElementById("faceButtons").style.display = "none";
   }
 }
 })
@@ -22,14 +35,30 @@ fetch("/api-sdk/get_faces")
 
 refreshFaceList()
 
+function showFaceSection() {
+  id = "section-faces"
+  var headings = document.getElementsByClassName("toggleable-section");
+  for (var i = 0; i < headings.length; i++) {
+      headings[i].style.display = "none";
+  }
+  document.getElementById(id).style.display = "block";
+  console.log(showFaceButtons)
+  if (showFaceButtons == true) {
+    document.getElementById("faceButtons").style.display = "block";
+  } else {
+    document.getElementById("faceButtons").style.display = "none";
+  }
+}
+
 function renameFace() {
   var x = document.getElementById("faceList");
   oldFaceName = x.value.split(":")[1]
   faceId = x.value.split(":")[0]
   newFaceName = window.prompt('Enter the new name here:');
-if(newFaceName = 'null') {
+  console.log(newFaceName)
+  if (newFaceName == '') {
     window.alert('Face name cannot be empty')
-} else {
+  } else {
     fetch("/api-sdk/rename_face?oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
       .then (function(){alert("Success!"); refreshFaceList()})
 }}

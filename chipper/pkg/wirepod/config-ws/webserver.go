@@ -2,11 +2,8 @@ package webserver
 
 import (
 	"bufio"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -15,21 +12,8 @@ import (
 	"strings"
 
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 )
-
-type intentsStruct []struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Utterances  []string `json:"utterances"`
-	Intent      string   `json:"intent"`
-	Params      struct {
-		ParamName  string `json:"paramname"`
-		ParamValue string `json:"paramvalue"`
-	} `json:"params"`
-	Exec           string   `json:"exec"`
-	ExecArgs       []string `json:"execargs"`
-	IsSystemIntent bool     `json:"issystem"`
-}
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
@@ -49,50 +33,25 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "missing required field (name, description, utterances, and intent are required)")
 			return
 		}
-		if _, err := os.Stat("./customIntents.json"); err == nil {
-			logger.Println("Found customIntents.json")
-			var customIntentJSON intentsStruct
-			customIntentJSONFile, _ := os.ReadFile("./customIntents.json")
-			json.Unmarshal(customIntentJSONFile, &customIntentJSON)
-			logger.Println("Number of custom intents (current): " + strconv.Itoa(len(customIntentJSON)))
-			customIntentJSON = append(customIntentJSON, struct {
-				Name        string   `json:"name"`
-				Description string   `json:"description"`
-				Utterances  []string `json:"utterances"`
-				Intent      string   `json:"intent"`
-				Params      struct {
-					ParamName  string `json:"paramname"`
-					ParamValue string `json:"paramvalue"`
-				} `json:"params"`
-				Exec           string   `json:"exec"`
-				ExecArgs       []string `json:"execargs"`
-				IsSystemIntent bool     `json:"issystem"`
-			}{Name: name, Description: description, Utterances: strings.Split(utterances, ","), Intent: intent, Params: struct {
+		vars.CustomIntentsExist = true
+		vars.CustomIntents = append(vars.CustomIntents, struct {
+			Name        string   `json:"name"`
+			Description string   `json:"description"`
+			Utterances  []string `json:"utterances"`
+			Intent      string   `json:"intent"`
+			Params      struct {
 				ParamName  string `json:"paramname"`
 				ParamValue string `json:"paramvalue"`
-			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ","), IsSystemIntent: false})
-			customIntentJSONFile, _ = json.Marshal(customIntentJSON)
-			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
-		} else {
-			logger.Println("Creating customIntents.json")
-			customIntentJSONFile, _ := json.Marshal([]struct {
-				Name        string   `json:"name"`
-				Description string   `json:"description"`
-				Utterances  []string `json:"utterances"`
-				Intent      string   `json:"intent"`
-				Params      struct {
-					ParamName  string `json:"paramname"`
-					ParamValue string `json:"paramvalue"`
-				} `json:"params"`
-				Exec           string   `json:"exec"`
-				ExecArgs       []string `json:"execargs"`
-				IsSystemIntent bool     `json:"issystem"`
-			}{{Name: name, Description: description, Utterances: strings.Split(utterances, ","), Intent: intent, Params: struct {
-				ParamName  string `json:"paramname"`
-				ParamValue string `json:"paramvalue"`
-			}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ","), IsSystemIntent: false}})
-			os.WriteFile("./customIntents.json", customIntentJSONFile, 0644)
-		}
+			} `json:"params"`
+			Exec           string   `json:"exec"`
+			ExecArgs       []string `json:"execargs"`
+			IsSystemIntent bool     `json:"issystem"`
+		}{Name: name, Description: description, Utterances: strings.Split(utterances, ","), Intent: intent, Params: struct {
+			ParamName  string `json:"paramname"`
+			ParamValue string `json:"paramvalue"`
+		}{ParamName: paramName, ParamValue: paramValue}, Exec: exec, ExecArgs: strings.Split(execArgs, ","), IsSystemIntent: false})
+		customIntentJSONFile, _ := json.Marshal(vars.CustomIntents)
+		os.WriteFile(vars.CustomIntentsPath, customIntentJSONFile, 0644)
 		fmt.Fprintf(w, "intent added successfully")
 		return
 	case r.URL.Path == "/api/edit_custom_intent":
@@ -113,61 +72,51 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "err: an entry must be edited")
 			return
 		}
-		if _, err := os.Stat("./customIntents.json"); err == nil {
-			// do nothing
-		} else {
+		if !vars.CustomIntentsExist {
 			fmt.Fprintf(w, "err: you must create an intent first")
 			return
 		}
-		var customIntentJSON intentsStruct
-		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
-		if err != nil {
-			logger.Println(err)
-		}
-		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
 		newNumber := newNumbera - 1
-		if newNumber > len(customIntentJSON) {
-			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(customIntentJSON))+" intents")
+		if newNumber > len(vars.CustomIntents) {
+			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(vars.CustomIntents))+" intents")
 			return
 		}
 		if name != "" {
-			customIntentJSON[newNumber].Name = name
+			vars.CustomIntents[newNumber].Name = name
 		}
 		if description != "" {
-			customIntentJSON[newNumber].Description = description
+			vars.CustomIntents[newNumber].Description = description
 		}
 		if utterances != "" {
-			customIntentJSON[newNumber].Utterances = strings.Split(utterances, ",")
+			vars.CustomIntents[newNumber].Utterances = strings.Split(utterances, ",")
 		}
 		if intent != "" {
-			customIntentJSON[newNumber].Intent = intent
+			vars.CustomIntents[newNumber].Intent = intent
 		}
 		if paramName != "" {
-			customIntentJSON[newNumber].Params.ParamName = paramName
+			vars.CustomIntents[newNumber].Params.ParamName = paramName
 		}
 		if paramValue != "" {
-			customIntentJSON[newNumber].Params.ParamValue = paramValue
+			vars.CustomIntents[newNumber].Params.ParamValue = paramValue
 		}
 		if exec != "" {
-			customIntentJSON[newNumber].Exec = exec
+			vars.CustomIntents[newNumber].Exec = exec
 		}
 		if execArgs != "" {
-			customIntentJSON[newNumber].ExecArgs = strings.Split(execArgs, ",")
+			vars.CustomIntents[newNumber].ExecArgs = strings.Split(execArgs, ",")
 		}
-		customIntentJSON[newNumber].IsSystemIntent = false
-		newCustomIntentJSONFile, _ := json.Marshal(customIntentJSON)
-		os.WriteFile("./customIntents.json", newCustomIntentJSONFile, 0644)
+		vars.CustomIntents[newNumber].IsSystemIntent = false
+		newCustomIntentJSONFile, _ := json.Marshal(vars.CustomIntents)
+		os.WriteFile(vars.CustomIntentsPath, newCustomIntentJSONFile, 0644)
 		fmt.Fprintf(w, "intent edited successfully")
 		return
 	case r.URL.Path == "/api/get_custom_intents_json":
-		if _, err := os.Stat("./customIntents.json"); err == nil {
-			// do nothing
-		} else {
-			fmt.Fprintf(w, "err: you must create an intent first")
+		if !vars.CustomIntentsExist {
+			fmt.Fprintf(w, "error: you must create an intent first")
 			return
 		}
-		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
+		customIntentJSONFile, err := os.ReadFile(vars.CustomIntentsPath)
 		if err != nil {
 			logger.Println(err)
 		}
@@ -176,239 +125,23 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/api/remove_custom_intent":
 		number := r.FormValue("number")
 		if number == "" {
-			fmt.Fprintf(w, "err: a number is required")
+			fmt.Fprintf(w, "error: a number is required")
 			return
 		}
-		if _, err := os.Stat("./customIntents.json"); err == nil {
-			// do nothing
-		} else {
-			fmt.Fprintf(w, "err: you must create an intent first")
+		if _, err := os.Stat(vars.CustomIntentsPath); err != nil {
+			fmt.Fprintf(w, "error: you must create an intent first")
 			return
 		}
-		var customIntentJSON intentsStruct
-		customIntentJSONFile, err := os.ReadFile("./customIntents.json")
-		if err != nil {
-			logger.Println(err)
-		}
-		json.Unmarshal(customIntentJSONFile, &customIntentJSON)
 		newNumbera, _ := strconv.Atoi(number)
 		newNumber := newNumbera - 1
-		if newNumber > len(customIntentJSON) {
-			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(customIntentJSON))+" intents")
+		if newNumber > len(vars.CustomIntents) {
+			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(vars.CustomIntents))+" intents")
 			return
 		}
-		customIntentJSON = append(customIntentJSON[:newNumber], customIntentJSON[newNumber+1:]...)
-		newCustomIntentJSONFile, _ := json.Marshal(customIntentJSON)
+		vars.CustomIntents = append(vars.CustomIntents[:newNumber], vars.CustomIntents[newNumber+1:]...)
+		newCustomIntentJSONFile, _ := json.Marshal(vars.CustomIntents)
 		os.WriteFile("./customIntents.json", newCustomIntentJSONFile, 0644)
 		fmt.Fprintf(w, "intent removed successfully")
-		return
-	case r.URL.Path == "/api/add_bot":
-		botESN := r.FormValue("esn")
-		botLocation := r.FormValue("location")
-		botUnits := r.FormValue("units")
-		botFirmwarePrefix := r.FormValue("firmwareprefix")
-		var is_early_opus bool
-		var use_play_specific bool
-		if botESN == "" || botLocation == "" || botUnits == "" || botFirmwarePrefix == "" {
-			fmt.Fprintf(w, "err: all fields are required")
-			return
-		}
-		firmwareSplit := strings.Split(botFirmwarePrefix, ".")
-		if len(firmwareSplit) != 2 {
-			fmt.Fprintf(w, "err: firmware prefix must be in the format: 1.5")
-			return
-		}
-		if botUnits != "F" && botUnits != "C" {
-			fmt.Fprintf(w, "err: units must be either F or C")
-			return
-		}
-		firmware1, _ := strconv.Atoi(firmwareSplit[0])
-		firmware2, err := strconv.Atoi(firmwareSplit[1])
-		if err != nil {
-			fmt.Fprintf(w, "err: firmware prefix must be in the format: 1.5")
-			return
-		}
-		if firmware1 >= 1 && firmware2 < 6 {
-			is_early_opus = false
-			use_play_specific = true
-		} else if firmware1 >= 1 && firmware2 >= 6 {
-			is_early_opus = false
-			use_play_specific = false
-		} else if firmware1 == 0 {
-			is_early_opus = true
-			use_play_specific = true
-		} else {
-			fmt.Fprintf(w, "err: firmware prefix must be in the format: 1.5")
-			return
-		}
-		type botConfigStruct []struct {
-			Esn             string `json:"esn"`
-			Location        string `json:"location"`
-			Units           string `json:"units"`
-			UsePlaySpecific bool   `json:"use_play_specific"`
-			IsEarlyOpus     bool   `json:"is_early_opus"`
-		}
-		var botConfig botConfigStruct
-		if _, err := os.Stat("./botConfig.json"); err == nil {
-			// read botConfig.json and append to it with the form information
-			botConfigFile, err := os.ReadFile("./botConfig.json")
-			if err != nil {
-				logger.Println(err)
-			}
-			json.Unmarshal(botConfigFile, &botConfig)
-			botConfig = append(botConfig, struct {
-				Esn             string `json:"esn"`
-				Location        string `json:"location"`
-				Units           string `json:"units"`
-				UsePlaySpecific bool   `json:"use_play_specific"`
-				IsEarlyOpus     bool   `json:"is_early_opus"`
-			}{Esn: botESN, Location: botLocation, Units: botUnits, UsePlaySpecific: use_play_specific, IsEarlyOpus: is_early_opus})
-			newBotConfigJSONFile, _ := json.Marshal(botConfig)
-			os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
-		} else {
-			botConfig = append(botConfig, struct {
-				Esn             string `json:"esn"`
-				Location        string `json:"location"`
-				Units           string `json:"units"`
-				UsePlaySpecific bool   `json:"use_play_specific"`
-				IsEarlyOpus     bool   `json:"is_early_opus"`
-			}{Esn: botESN, Location: botLocation, Units: botUnits, UsePlaySpecific: use_play_specific, IsEarlyOpus: is_early_opus})
-			newBotConfigJSONFile, _ := json.Marshal(botConfig)
-			os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
-		}
-		fmt.Fprintf(w, "bot added successfully")
-		return
-	case r.URL.Path == "/api/remove_bot":
-		number := r.FormValue("number")
-		if _, err := os.Stat("./botConfig.json"); err == nil {
-			// do nothing
-		} else {
-			fmt.Fprintf(w, "err: you must create a bot first")
-			return
-		}
-		type botConfigStruct []struct {
-			Esn             string `json:"esn"`
-			Location        string `json:"location"`
-			Units           string `json:"units"`
-			UsePlaySpecific bool   `json:"use_play_specific"`
-			IsEarlyOpus     bool   `json:"is_early_opus"`
-		}
-		var botConfigJSON botConfigStruct
-		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
-		if err != nil {
-			logger.Println(err)
-		}
-		json.Unmarshal(botConfigJSONFile, &botConfigJSON)
-		newNumbera, _ := strconv.Atoi(number)
-		newNumber := newNumbera - 1
-		if newNumber > len(botConfigJSON) {
-			fmt.Fprintf(w, "err: there are only "+strconv.Itoa(len(botConfigJSON))+" bots")
-			return
-		}
-		logger.Println(botConfigJSON[newNumber].Esn + " bot is being removed")
-		botConfigJSON = append(botConfigJSON[:newNumber], botConfigJSON[newNumber+1:]...)
-		newBotConfigJSONFile, _ := json.Marshal(botConfigJSON)
-		os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
-		fmt.Fprintf(w, "bot removed successfully")
-		return
-	case r.URL.Path == "/api/edit_bot":
-		number := r.FormValue("number")
-		botESN := r.FormValue("esn")
-		botLocation := r.FormValue("location")
-		botUnits := r.FormValue("units")
-		botFirmwarePrefix := r.FormValue("firmwareprefix")
-		if botESN == "" || botLocation == "" || botUnits == "" || botFirmwarePrefix == "" {
-			fmt.Fprintf(w, "err: all fields are required")
-			return
-		}
-		firmwareSplit := strings.Split(botFirmwarePrefix, ".")
-		if len(firmwareSplit) != 2 {
-			fmt.Fprintf(w, "err: firmware prefix must be in the format: 1.5")
-			return
-		}
-		if botUnits != "F" && botUnits != "C" {
-			fmt.Fprintf(w, "err: units must be either F or C")
-			return
-		}
-		var is_early_opus bool
-		var use_play_specific bool
-		firmware1, _ := strconv.Atoi(firmwareSplit[0])
-		firmware2, err := strconv.Atoi(firmwareSplit[1])
-		if err != nil {
-			fmt.Fprintf(w, "err: firmware prefix must be in the format: 1.5")
-			return
-		}
-		if firmware1 >= 1 && firmware2 < 6 {
-			is_early_opus = false
-			use_play_specific = true
-		} else if firmware1 >= 1 && firmware2 >= 6 {
-			is_early_opus = false
-			use_play_specific = false
-		} else if firmware1 == 0 {
-			is_early_opus = true
-			use_play_specific = true
-		} else {
-			fmt.Fprintf(w, "err: firmware prefix must be in the format: 1.5")
-			return
-		}
-		type botConfigStruct []struct {
-			Esn             string `json:"esn"`
-			Location        string `json:"location"`
-			Units           string `json:"units"`
-			UsePlaySpecific bool   `json:"use_play_specific"`
-			IsEarlyOpus     bool   `json:"is_early_opus"`
-		}
-		var botConfig botConfigStruct
-		if _, err := os.Stat("./botConfig.json"); err == nil {
-			// read botConfig.json and append to it with the form information
-			botConfigFile, err := os.ReadFile("./botConfig.json")
-			if err != nil {
-				logger.Println(err)
-			}
-			json.Unmarshal(botConfigFile, &botConfig)
-			newNumbera, _ := strconv.Atoi(number)
-			newNumber := newNumbera - 1
-			botConfig[newNumber].Esn = botESN
-			botConfig[newNumber].Location = botLocation
-			botConfig[newNumber].Units = botUnits
-			botConfig[newNumber].UsePlaySpecific = use_play_specific
-			botConfig[newNumber].IsEarlyOpus = is_early_opus
-			newBotConfigJSONFile, _ := json.Marshal(botConfig)
-			os.WriteFile("./botConfig.json", newBotConfigJSONFile, 0644)
-		} else {
-			fmt.Fprintln(w, "err: you must create a bot first")
-			return
-		}
-		fmt.Fprintf(w, "bot edited successfully")
-		return
-	case r.URL.Path == "/api/get_bot_json":
-		if _, err := os.Stat("./botConfig.json"); err == nil {
-			// do nothing
-		} else {
-			fmt.Fprintf(w, "err: you must add a bot first")
-			return
-		}
-		botConfigJSONFile, err := os.ReadFile("./botConfig.json")
-		if err != nil {
-			logger.Println(err)
-		}
-		fmt.Fprint(w, string(botConfigJSONFile))
-		return
-	case r.URL.Path == "/api/debug":
-		resp, err := http.Get("https://session-certs.token.global.anki-services.com/vic/00e20145")
-		if err != nil {
-			fmt.Println(err)
-		}
-		certBytes, _ := io.ReadAll(resp.Body)
-		block, _ := pem.Decode(certBytes)
-		certBytes = block.Bytes
-		cert, err := x509.ParseCertificate(certBytes)
-		if err != nil {
-			fmt.Println(err)
-		}
-		botName := cert.Issuer.CommonName
-		fmt.Println(botName)
-		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api/set_weather_api":
 		weatherProvider := r.FormValue("provider")
@@ -460,6 +193,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/api/set_kg_api":
 		kgProvider := r.FormValue("provider")
 		kgAPIKey := r.FormValue("api_key")
+		// for houndify
+		kgAPIID := r.FormValue("api_id")
 		// Patch source.sh
 		lines, err := readLines("source.sh")
 		var outlines []string
@@ -475,6 +210,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 					line = "export KNOWLEDGE_PROVIDER=" + kgProvider
 				} else if strings.HasPrefix(line, "export KNOWLEDGE_KEY") {
 					line = "export KNOWLEDGE_KEY=" + kgAPIKey
+				} else if strings.HasPrefix(line, "export KNOWLEDGE_ID") {
+					line = "export KNOWLEDGE_ID=" + kgAPIID
 				}
 				outlines = append(outlines, line)
 			}
@@ -540,6 +277,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "}")
 		return
 	case r.URL.Path == "/api/reset":
+		// im not sure if this works... this is only temporary until a way to restart just the voice processor is added
 		cmd := exec.Command("/bin/sh", "-c", "sudo systemctl restart wire-pod")
 		err := cmd.Run()
 		if err != nil {

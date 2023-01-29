@@ -15,6 +15,7 @@ import (
 	chipperserver "github.com/kercre123/chipper/pkg/servers/chipper"
 	jdocsserver "github.com/kercre123/chipper/pkg/servers/jdocs"
 	tokenserver "github.com/kercre123/chipper/pkg/servers/token"
+	"github.com/kercre123/chipper/pkg/vars"
 	wpweb "github.com/kercre123/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/chipper/pkg/wirepod/sdkapp"
@@ -71,6 +72,7 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProc
 
 	// begin wirepod stuff
 	p, err := wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
+	vars.Init()
 	go wpweb.StartWebServer()
 	wp.InitHoundify()
 	go sdkWeb.BeginServer()

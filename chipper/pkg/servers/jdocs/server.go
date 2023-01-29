@@ -2,13 +2,13 @@ package jdocsserver
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"strings"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/kercre123/chipper/pkg/logger"
 	tokenserver "github.com/kercre123/chipper/pkg/servers/token"
+	"github.com/kercre123/chipper/pkg/vars"
 	"google.golang.org/grpc/peer"
 )
 
@@ -20,47 +20,10 @@ type JdocServer struct {
 	jdocspb.UnimplementedJdocsServer
 }
 
-func ConvertToProperJdoc(filename string) {
-	jsonBytes, err := os.ReadFile(filename)
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-	var jdoc *jdocspb.Jdoc
-	jdoc.FmtVersion = 1
-	jdoc.DocVersion = 1
-	jdoc.JsonDoc = string(jsonBytes)
-	writeBytes, err := json.Marshal(jdoc)
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-	os.WriteFile(filename, writeBytes, 0644)
-}
-
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
 	logger.Println("Jdocs: Incoming WriteDoc request, Item to write: " + req.DocName + ", Robot ID: " + req.Thing)
-	filename := JdocsPath + strings.TrimSpace(req.Thing) + "-" + strings.TrimSpace(req.DocName) + ".json"
-	var latestVersion uint64 = 0
-
-	// decode already-existing json (if it exists)
-	jdocBytes, err := os.ReadFile(filename)
-	if err != nil {
-		jdoc := jdocspb.Jdoc{}
-		json.Unmarshal(jdocBytes, &jdoc)
-		latestVersion = jdoc.DocVersion
-	}
-
-	// encode to json
-	jdoc := jdocspb.Jdoc{}
-	jdoc.DocVersion = req.Doc.DocVersion
-	jdoc.FmtVersion = req.Doc.FmtVersion
-	jdoc.JsonDoc = req.Doc.JsonDoc
-	writeBytes, err := json.Marshal(jdoc)
-	if err != nil {
-		logger.Println(err)
-	}
-	os.WriteFile(filename, writeBytes, 0644)
+	latestVersion := vars.AddJdoc(req.Thing, req.DocName, *req.Doc)
+	vars.WriteJdocs()
 	return &jdocspb.WriteDocResp{
 		Status:           jdocspb.WriteDocResp_ACCEPTED,
 		LatestDocVersion: latestVersion,
@@ -76,22 +39,16 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	isAlreadyKnown := IsBotInInfo(esn)
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
-	deletingData := false
 	for _, pair := range tokenserver.SessionWriteStoreNames {
 		if ipAddr == strings.Split(pair[0], ":")[0] {
-			deletingData = true
-			// the bot being here means that userdata was cleared, so we will also (attempt to) remove the AppTokens json
-			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json")
-			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AccountSettings.json")
-			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.RobotLifetimeStats.json")
-			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.RobotSettings.json")
-			os.Remove(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.UserEntitlements.json")
+			vars.DeleteData(req.Thing)
 			break
 		}
 	}
-	if strings.Contains(req.Items[0].DocName, "vic.AppToken") {
+	if strings.Contains(req.Items[0].DocName, "vic.AppTokens") {
 		StoreBotInfo(ctx, req.Thing)
-		if _, err := os.Stat(JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"); err != nil || deletingData {
+		_, tokenExists := vars.GetJdoc(req.Thing, "vic.AppTokens")
+		if !tokenExists {
 			logger.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
 			matched := false
 			botGUID := ""
@@ -99,7 +56,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 				if strings.EqualFold(pair[0], ipAddr) {
 					err := tokenserver.WriteTokenHash(strings.ToLower(strings.TrimSpace(esn)), pair[2])
 					if err != nil {
-						logger.Println("Error writing token hash to vic.AppTokens.json")
+						logger.Println("Error writing token hash to vic.AppTokens")
 						logger.Println(err)
 					}
 					err = tokenserver.SetBotGUID(esn, pair[1], pair[2])
@@ -117,8 +74,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			for num, pair := range tokenserver.SessionWriteStoreNames {
 				if strings.EqualFold(ipAddr, strings.Split(pair[0], ":")[0]) {
 					sessionMatched = true
-					fullPath, _ := os.Getwd()
-					fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/" + pair[1] + "-" + esn + ".cert"
+					fullPath := vars.SDKIniPath + pair[1] + "-" + esn + ".cert"
 					logger.Println("Outputting session cert to " + fullPath)
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
 					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
@@ -138,16 +94,13 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 						WriteToIniSecondary(esn, guid, ipAddr)
 					}
 					// bot is not authenticated yet, do not write to botinfo json
-					filename := JdocsPath + strings.TrimSpace(req.Thing) + "-vic.AppTokens.json"
-					fileBytes, _ := os.ReadFile(filename)
+					tokenJdoc, _ := vars.GetJdoc(req.Thing, "vic.AppToken")
 					tokenserver.RemoveFromSecondStore(len(tokenserver.SecondaryTokenStore) - 1)
-					var jdoc jdocspb.Jdoc
-					json.Unmarshal(fileBytes, &jdoc)
 					return &jdocspb.ReadDocsResp{
 						Items: []*jdocspb.ReadDocsResp_Item{
 							{
 								Status: jdocspb.ReadDocsResp_CHANGED,
-								Doc:    &jdoc,
+								Doc:    &tokenJdoc,
 							},
 						},
 					}, nil
@@ -171,31 +124,17 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	}
 	var returnItems []*jdocspb.ReadDocsResp_Item
 	for _, item := range req.Items {
-		filename := JdocsPath + strings.TrimSpace(req.Thing) + "-" + strings.TrimSpace(item.DocName) + ".json"
-		jsonByte, err := os.ReadFile(filename)
-		if err != nil {
-			jdoc := jdocspb.Jdoc{}
-			jdoc.DocVersion = 0
-			jdoc.FmtVersion = 0
-			jdoc.ClientMetadata = "wirepod-error"
-			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_NOT_FOUND, Doc: &jdoc})
-			continue
+		gottenDoc, jdocExists := vars.GetJdoc(req.Thing, item.DocName)
+		if jdocExists {
+			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &gottenDoc})
+		} else {
+			var noJdoc jdocspb.Jdoc
+			noJdoc.DocVersion = 0
+			noJdoc.FmtVersion = 0
+			noJdoc.ClientMetadata = "wirepod-noexist"
+			noJdoc.JsonDoc = ""
+			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &noJdoc})
 		}
-		jdoc := jdocspb.Jdoc{}
-		err = json.Unmarshal(jsonByte, &jdoc)
-		if err != nil {
-			logger.Println(err)
-			jdoc := jdocspb.Jdoc{}
-			jdoc.DocVersion = 1
-			jdoc.FmtVersion = 1
-			jdoc.ClientMetadata = "wirepod-outdated-fmt"
-			jdoc.JsonDoc = string(jsonByte)
-			ConvertToProperJdoc(filename)
-			logger.Println("Deprecated jdoc format found, converting to proper jdoc")
-			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &jdoc})
-			continue
-		}
-		returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &jdoc})
 	}
 	return &jdocspb.ReadDocsResp{Items: returnItems}, nil
 }
