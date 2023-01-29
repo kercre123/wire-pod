@@ -349,17 +349,42 @@ function togglePlusMinusSymbols() {
 }
 togglePlusMinusSymbols();
 
+GetLog = false
+
 function showLog() {
     document.getElementById("section-intents").style.display = "none";
     document.getElementById("section-log").style.display = "block";
+    document.getElementById("botTranscriptedText").style.display = "block";
+    GetLog = true
+    logDiv = document.getElementById("botTranscriptedText")
+    logP = document.createElement("p")
+    setInterval(function() {
+        if (GetLog == false) {
+            return
+        }
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/get_logs");
+        xhr.send();
+        xhr.onload = function() {
+            logDiv.innerHTML = ""
+            if (xhr.response == "") {
+                logP.innerHTML = "No logs yet, you must say a command to Vector."
+            } else {
+                logP.innerHTML = xhr.response
+            }
+            logDiv.appendChild(logP)
+        }
+    }, 1000)
 }
 
 function showIntents() {
+    GetLog = false
     document.getElementById("section-log").style.display = "none";
     document.getElementById("section-intents").style.display = "block";
 }
 
 function showBotConfig() {
+    GetLog = false
     document.getElementById("section-log").style.display = "none";
     document.getElementById("section-intents").style.display = "none";
 }

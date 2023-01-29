@@ -285,6 +285,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 		return
+	case r.URL.Path == "/api/get_logs":
+		fmt.Fprintf(w, logger.LogList)
+		return
 	}
 }
 
