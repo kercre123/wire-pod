@@ -1,6 +1,6 @@
 var eventListenerAdded = false
 
-intentsJson = '["intent_greeting_hello", "intent_names_ask", "intent_imperative_eyecolor", "intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep", "intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear", "intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward", "intent_imperative_turnaround", "intent_imperative_turnleft", "intent_imperative_turnright", "intent_play_rollcube", "intent_play_popawheelie", "intent_play_fistbump", "intent_play_blackjack", "intent_imperative_affirmative", "intent_imperative_negative", "intent_photo_take_extend", "intent_imperative_praise", "intent_imperative_abuse", "intent_weather_extend", "intent_imperative_apologize", "intent_imperative_backup", "intent_imperative_volumedown", "intent_imperative_volumeup", "intent_imperative_lookatme", "intent_imperative_volumelevel_extend", "intent_imperative_shutup", "intent_names_username_extend", "intent_imperative_come", "intent_imperative_love", "intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend", "intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube", "intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend", "intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"]'
+intentsJson = '["intent_greeting_hello", "intent_names_ask", "intent_imperative_eyecolor", "intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep", "intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear", "intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward", "intent_imperative_turnaround", "intent_imperative_turnleft", "intent_imperative_turnright", "intent_play_rollcube", "intent_play_popawheelie", "intent_play_fistbump", "intent_play_blackjack", "intent_imperative_affirmative", "intent_imperative_negative", "intent_photo_take_extend", "intent_imperative_praise", "intent_imperative_abuse", "intent_weather_extend", "intent_imperative_apologize", "intent_imperative_backup", "intent_imperative_volumedown", "intent_imperatiuve_volumeup", "intent_imperative_lookatme", "intent_imperative_volumelevel_extend", "intent_imperative_shutup", "intent_names_username_extend", "intent_imperative_come", "intent_imperative_love", "intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend", "intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube", "intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend", "intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"]'
 
 function updateIntentSelection(element) {
 let xhr = new XMLHttpRequest();
@@ -351,18 +351,18 @@ togglePlusMinusSymbols();
 
 
 // Changes color of the clicked icon
-function updateColor(tab) {
+function updateColor(id) {
 
   var body_styles = window.getComputedStyle(document.getElementsByTagName("body")[0]);
   var fgColor = body_styles.getPropertyValue("--fg-color");
   var bgColorAlt = body_styles.getPropertyValue("--bg-color-alt");
-  console.log(fgColor);
 
+  l_id = id.replace("section","icon");
   let elements = document.getElementsByName("icon");
   for (var i = 0; i < elements.length; i++) {
       document.getElementById(elements[i].id).style.color = bgColorAlt;
   }
-  document.getElementById(tab).style.color = fgColor;
+  document.getElementById(l_id).style.color = fgColor;
 }
 
 
@@ -373,7 +373,7 @@ function showLog() {
     document.getElementById("section-intents").style.display = "none";
     document.getElementById("section-log").style.display = "block";
     document.getElementById("botTranscriptedText").style.display = "block";
-    updateColor("tabLogs");
+    updateColor("icon-Logs");
     GetLog = true
     logDiv = document.getElementById("botTranscriptedText")
     logP = document.createElement("p")
@@ -400,7 +400,7 @@ function showIntents() {
     GetLog = false
     document.getElementById("section-log").style.display = "none";
     document.getElementById("section-intents").style.display = "block";
-    updateColor("tabIntents");
+    updateColor("icon-Intents");
 }
 
 function showBotConfig() {
@@ -414,7 +414,7 @@ function showWeather() {
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "none";
     document.getElementById("section-kg").style.display = "none";
-    updateColor("tabWeather");
+    updateColor("icon-Weather");
 }
 
 function showKG() {
@@ -422,7 +422,7 @@ function showKG() {
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "none";
     document.getElementById("section-kg").style.display = "block";
-    updateColor("tabKG");
+    updateColor("icon-KG");
 }
 
 function showSTT() {
@@ -430,7 +430,7 @@ function showSTT() {
     document.getElementById("section-kg").style.display = "none";
     document.getElementById("section-stt").style.display = "block";
     document.getElementById("section-restart").style.display = "none";
-    updateColor("tabSTT");
+    updateColor("icon-STT");
 }
 
 function showRestart() {
@@ -438,7 +438,7 @@ function showRestart() {
     document.getElementById("section-kg").style.display = "none";
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "block";
-    updateColor("tabRestart");
+    updateColor("icon-Restart");
 }
 
 function checkWeather() {

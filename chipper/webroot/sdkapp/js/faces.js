@@ -35,21 +35,6 @@ fetch("/api-sdk/get_faces")
 
 refreshFaceList()
 
-function showFaceSection() {
-  id = "section-faces"
-  var headings = document.getElementsByClassName("toggleable-section");
-  for (var i = 0; i < headings.length; i++) {
-      headings[i].style.display = "none";
-  }
-  document.getElementById(id).style.display = "block";
-  console.log(showFaceButtons)
-  if (showFaceButtons == true) {
-    document.getElementById("faceButtons").style.display = "block";
-  } else {
-    document.getElementById("faceButtons").style.display = "none";
-  }
-}
-
 function renameFace() {
   var x = document.getElementById("faceList");
   oldFaceName = x.value.split(":")[1]
