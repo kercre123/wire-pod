@@ -16,18 +16,18 @@
         <div class="main-nav-child"><a href="../index.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
         <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot</a></div>
         <div class="main-nav-child"><a href="control.html"><i class="fa-solid fa-gamepad"></i><br/>Vector Control<br/>(Beta)</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i class="fa-solid fa-volume-high"></i><br/>Volume</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i class="fa-solid fa-eye"></i><br/>Eye Color</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showFaceSection(); return false;"><i class="fa-solid fa-user"></i><br/>Face Manager</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running"></i><br/>Quick Actions</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-timer'); return false;"><i class="fa-solid fa-stopwatch"></i><br/>Timer</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas"></i><br/>Locale</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-time'); return false;"><i class="fa-solid fa-clock"></i><br/>Time Format</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-temp'); return false;"><i class="fa-solid fa-temperature-half"></i><br/>Temperature Units</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-button'); return false;"><i class="fa-solid fa-circle-dot"></i><br/>Button Action</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-alexa'); return false;"><i class="fa-solid fa-house-signal"></i><br/>Alexa</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-location'); return false;"><i class="fa-solid fa-location-crosshairs"></i><br/>Set Location</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-timezone'); return false;"><i class="fa-solid fa-hourglass"></i><br/>Set Time Zone</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i class="fa-solid fa-volume-high" id="icon-volume" name="icon"></i><br/>Volume</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i class="fa-solid fa-eye" id="icon-eyes" name="icon"></i><br/>Eye Color</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-face'); return false;"><i class="fa-solid fa-user" id="icon-face" name="icon"></i><br/>Face Manager</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running" id="icon-actions" name="icon"></i><br/>Quick Actions</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-timer'); return false;"><i class="fa-solid fa-stopwatch" id="icon-timer" name="icon"></i><br/>Timer</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas" id="icon-locale" name="icon"></i><br/>Locale</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-time'); return false;"><i class="fa-solid fa-clock" id="icon-time" name="icon"></i><br/>Time Format</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-temp'); return false;"><i class="fa-solid fa-temperature-half" id="icon-temp" name="icon"></i><br/>Temperature Units</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-button'); return false;"><i class="fa-solid fa-circle-dot" id="icon-button" name="icon"></i><br/>Button Action</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-alexa'); return false;"><i class="fa-solid fa-house-signal" id="icon-alexa" name="icon"></i><br/>Alexa</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-location'); return false;"><i class="fa-solid fa-location-crosshairs" id="icon-location" name="icon"></i><br/>Set Location</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-timezone'); return false;"><i class="fa-solid fa-hourglass" id="icon-timezone" name="icon"></i><br/>Set Time Zone</a></div>
       </div>
       <hr>
 
@@ -98,7 +98,7 @@
         </div>
       </div>
 
-      <div id="section-faces" class="toggleable-section" style="display:none;">
+      <div id="section-face" class="toggleable-section" style="display:none;">
         <h2 class="center">Face Manager</h2>
         <div class="content">
           <p class="center">Choose the face you would like to modify.</p>
