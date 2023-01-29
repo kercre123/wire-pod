@@ -161,7 +161,7 @@
 	},
 	{	
 		"name": "intent_global_stop_extend", 
-		"keyphrases" : ["up the timer", "stop timer", "stop clock", "stop be", "stopped t", "stopped be", "stopped at", "stop the" ]
+		"keyphrases" : ["up the timer", "stop timer", "cancel the", "cancel timer", "stop clock", "stop be", "stopped t", "stopped be", "stopped at", "stop the" ]
 	},
 	{	
 		"name": "intent_clock_settimer_extend",
