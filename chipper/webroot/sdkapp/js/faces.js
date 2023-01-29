@@ -10,6 +10,11 @@ fetch("/api-sdk/get_faces")
 .then ((response) => {
   if (response.includes("null")) {
     console.log("no faces exist.")
+    showFaceButtons = false
+    var option = document.createElement("option");
+    option.text = "No faces found. You must tell Vector your name."
+    option.value = "none"
+    x.add(option);
   } else {
   jsonResp = JSON.parse(response)
   showFaceButtons = true
@@ -18,6 +23,11 @@ fetch("/api-sdk/get_faces")
     option.text = jsonResp[i]["name"]
     option.value = jsonResp[i]["face_id"] + ":" + jsonResp[i]["name"]
     x.add(option);
+  }
+  if (showFaceButtons == true) {
+    document.getElementById("faceButtons").style.display = "block";
+  } else {
+    document.getElementById("faceButtons").style.display = "none";
   }
 }
 })
@@ -32,7 +42,8 @@ function showFaceSection() {
       headings[i].style.display = "none";
   }
   document.getElementById(id).style.display = "block";
-  if (showFaceSection == true) {
+  console.log(showFaceButtons)
+  if (showFaceButtons == true) {
     document.getElementById("faceButtons").style.display = "block";
   } else {
     document.getElementById("faceButtons").style.display = "none";
@@ -44,9 +55,10 @@ function renameFace() {
   oldFaceName = x.value.split(":")[1]
   faceId = x.value.split(":")[0]
   newFaceName = window.prompt('Enter the new name here:');
-if(newFaceName = 'null') {
+  console.log(newFaceName)
+  if (newFaceName == '') {
     window.alert('Face name cannot be empty')
-} else {
+  } else {
     fetch("/api-sdk/rename_face?oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
       .then (function(){alert("Success!"); refreshFaceList()})
 }}
