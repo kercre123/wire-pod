@@ -351,20 +351,17 @@ togglePlusMinusSymbols();
 
 function showLog() {
     document.getElementById("section-intents").style.display = "none";
-    document.getElementById("section-bot-config").style.display = "none";
     document.getElementById("section-log").style.display = "block";
 }
 
 function showIntents() {
     document.getElementById("section-log").style.display = "none";
-    document.getElementById("section-bot-config").style.display = "none";
     document.getElementById("section-intents").style.display = "block";
 }
 
 function showBotConfig() {
     document.getElementById("section-log").style.display = "none";
     document.getElementById("section-intents").style.display = "none";
-    document.getElementById("section-bot-config").style.display = "block";
 }
 
 function showWeather() {
