@@ -74,7 +74,6 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProc
 	p, err := wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	vars.Init()
 	go wpweb.StartWebServer()
-	wp.InitHoundify()
 	go sdkWeb.BeginServer()
 	if err != nil {
 		logger.Println(err)

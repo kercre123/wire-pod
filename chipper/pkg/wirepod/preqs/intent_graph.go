@@ -46,12 +46,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 	if !successMatched {
 		logger.Println("No intent was matched.")
 		if os.Getenv("KNOWLEDGE_INTENT_GRAPH") == "true" && len([]rune(transcribedText)) >= 8 {
-			apiResponse, err := openaiRequest(transcribedText)
-			if err != nil {
-				sr.BotNum = sr.BotNum - 1
-				ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false, speechReq.BotNum)
-				return nil, nil
-			}
+			apiResponse := openaiRequest(transcribedText)
 			sr.BotNum = sr.BotNum - 1
 			response := &pb.IntentGraphResponse{
 				Session:      req.Session,

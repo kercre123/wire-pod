@@ -1,13 +1,11 @@
 package webserver
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 
@@ -146,46 +144,27 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/api/set_weather_api":
 		weatherProvider := r.FormValue("provider")
 		weatherAPIKey := r.FormValue("api_key")
-		// Patch source.sh
-		lines, err := readLines("source.sh")
-		if err == nil {
-			var outlines []string
-			for _, line := range lines {
-				if strings.HasPrefix(line, "export WEATHERAPI_ENABLED") {
-					if weatherProvider == "" {
-						line = "export WEATHERAPI_ENABLED=false"
-					} else {
-						line = "export WEATHERAPI_ENABLED=true"
-					}
-				} else if strings.HasPrefix(line, "export WEATHERAPI_PROVIDER") {
-					line = "export WEATHERAPI_PROVIDER=" + weatherProvider
-				} else if strings.HasPrefix(line, "export WEATHERAPI_KEY") {
-					line = "export WEATHERAPI_KEY=" + weatherAPIKey
-				}
-				outlines = append(outlines, line)
-			}
-			writeLines(outlines, "source.sh")
-			fmt.Fprintf(w, "Changes saved. Restart needed.")
+		if weatherProvider == "" {
+			vars.APIConfig.Weather.Enable = false
+		} else {
+			vars.APIConfig.Weather.Enable = true
+			vars.APIConfig.Weather.Key = weatherAPIKey
+			vars.APIConfig.Weather.Provider = weatherProvider
 		}
+		vars.WriteConfigToDisk()
+		fmt.Fprintf(w, "Changes successfully applied.")
 		return
 	case r.URL.Path == "/api/get_weather_api":
-		weatherEnabled := 0
+		weatherEnabled := false
 		weatherProvider := ""
 		weatherAPIKey := ""
-		lines, err := readLines("source.sh")
-		if err == nil {
-			for _, line := range lines {
-				if strings.HasPrefix(line, "export WEATHERAPI_ENABLED=true") {
-					weatherEnabled = 1
-				} else if strings.HasPrefix(line, "export WEATHERAPI_PROVIDER=") {
-					weatherProvider = strings.SplitAfter(line, "export WEATHERAPI_PROVIDER=")[1]
-				} else if strings.HasPrefix(line, "export WEATHERAPI_KEY=") {
-					weatherAPIKey = strings.SplitAfter(line, "export WEATHERAPI_KEY=")[1]
-				}
-			}
+		if vars.APIConfig.Weather.Enable {
+			weatherEnabled = true
+			weatherProvider = vars.APIConfig.Weather.Provider
+			weatherAPIKey = vars.APIConfig.Weather.Key
 		}
 		fmt.Fprintf(w, "{ ")
-		fmt.Fprintf(w, "  \"weatherEnabled\": %d,", weatherEnabled)
+		fmt.Fprintf(w, "  \"weatherEnabled\": %t,", weatherEnabled)
 		fmt.Fprintf(w, "  \"weatherProvider\": \"%s\",", weatherProvider)
 		fmt.Fprintf(w, "  \"weatherApiKey\": \"%s\"", weatherAPIKey)
 		fmt.Fprintf(w, "}")
@@ -195,133 +174,93 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgAPIKey := r.FormValue("api_key")
 		// for houndify
 		kgAPIID := r.FormValue("api_id")
-		// Patch source.sh
-		lines, err := readLines("source.sh")
-		var outlines []string
-		if err == nil {
-			for _, line := range lines {
-				if strings.HasPrefix(line, "export KNOWLEDGE_ENABLED") {
-					if kgProvider == "" {
-						line = "export KNOWLEDGE_ENABLED=false"
-					} else {
-						line = "export KNOWLEDGE_ENABLED=true"
-					}
-				} else if strings.HasPrefix(line, "export KNOWLEDGE_PROVIDER") {
-					line = "export KNOWLEDGE_PROVIDER=" + kgProvider
-				} else if strings.HasPrefix(line, "export KNOWLEDGE_KEY") {
-					line = "export KNOWLEDGE_KEY=" + kgAPIKey
-				} else if strings.HasPrefix(line, "export KNOWLEDGE_ID") {
-					line = "export KNOWLEDGE_ID=" + kgAPIID
-				}
-				outlines = append(outlines, line)
-			}
-			writeLines(outlines, "source.sh")
-			fmt.Fprintf(w, "Changes saved. Restart needed.")
+		kgIntent := r.FormValue("intent_graph")
+
+		if kgProvider == "" {
+			vars.APIConfig.Knowledge.Enable = false
+		} else {
+			vars.APIConfig.Knowledge.Enable = true
+			vars.APIConfig.Knowledge.Provider = kgProvider
+			vars.APIConfig.Knowledge.Key = kgAPIKey
+			vars.APIConfig.Knowledge.ID = kgAPIID
 		}
+		if kgProvider == "openai" && kgIntent == "true" {
+			vars.APIConfig.Knowledge.IntentGraph = true
+		}
+		vars.WriteConfigToDisk()
+		fmt.Fprintf(w, "Changes successfully applied.")
 		return
 	case r.URL.Path == "/api/get_kg_api":
-		kgEnabled := 0
+		kgEnabled := false
 		kgProvider := ""
 		kgAPIKey := ""
-		lines, err := readLines("source.sh")
-		if err == nil {
-			for _, line := range lines {
-				if strings.HasPrefix(line, "export KNOWLEDGE_ENABLED=true") {
-					kgEnabled = 1
-				} else if strings.HasPrefix(line, "export KNOWLEDGE_PROVIDER=") {
-					kgProvider = strings.SplitAfter(line, "export KNOWLEDGE_PROVIDER=")[1]
-				} else if strings.HasPrefix(line, "export KNOWLEDGE_KEY=") {
-					kgAPIKey = strings.SplitAfter(line, "export KNOWLEDGE_KEY=")[1]
-				}
-			}
+		kgAPIID := ""
+		kgIntent := false
+		if vars.APIConfig.Knowledge.Enable {
+			kgEnabled = true
+			kgProvider = vars.APIConfig.Knowledge.Provider
+			kgAPIKey = vars.APIConfig.Knowledge.Key
+			kgAPIID = vars.APIConfig.Knowledge.ID
+			kgIntent = vars.APIConfig.Knowledge.IntentGraph
 		}
 		fmt.Fprintf(w, "{ ")
-		fmt.Fprintf(w, "  \"kgEnabled\": %d,", kgEnabled)
+		fmt.Fprintf(w, "  \"kgEnabled\": %t,", kgEnabled)
 		fmt.Fprintf(w, "  \"kgProvider\": \"%s\",", kgProvider)
-		fmt.Fprintf(w, "  \"kgApiKey\": \"%s\"", kgAPIKey)
+		fmt.Fprintf(w, "  \"kgApiKey\": \"%s\",", kgAPIKey)
+		fmt.Fprintf(w, "  \"kgApiID\": \"%s\",", kgAPIID)
+		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\"", kgIntent)
 		fmt.Fprintf(w, "}")
 		return
-	case r.URL.Path == "/api/set_stt_info":
-		language := r.FormValue("language")
+	// language should be done at a lower level, as it requires the download of a model
+	// case r.URL.Path == "/api/set_stt_info":
+	// 	language := r.FormValue("language")
 
-		// Patch source.sh
-		lines, err := readLines("source.sh")
-		var outlines []string
-		if err == nil {
-			for _, line := range lines {
-				if strings.HasPrefix(line, "export STT_LANGUAGE") {
-					line = "export STT_LANGUAGE=" + language
-				}
-				outlines = append(outlines, line)
-			}
-			writeLines(outlines, "source.sh")
-			fmt.Fprintf(w, "Changes saved. Restart needed.")
-		}
-		return
-	case r.URL.Path == "/api/get_stt_info":
-		sttLanguage := ""
-		sttProvider := ""
-		lines, err := readLines("source.sh")
-		if err == nil {
-			for _, line := range lines {
-				if strings.HasPrefix(line, "export STT_SERVICE=") {
-					sttProvider = strings.SplitAfter(line, "export STT_SERVICE=")[1]
-				} else if strings.HasPrefix(line, "export STT_LANGUAGE=") {
-					sttLanguage = strings.SplitAfter(line, "export STT_LANGUAGE=")[1]
-				}
-			}
-		}
-		fmt.Fprintf(w, "{ ")
-		fmt.Fprintf(w, "  \"sttProvider\": \"%s\",", sttProvider)
-		fmt.Fprintf(w, "  \"sttLanguage\": \"%s\"", sttLanguage)
-		fmt.Fprintf(w, "}")
-		return
-	case r.URL.Path == "/api/reset":
-		// im not sure if this works... this is only temporary until a way to restart just the voice processor is added
-		cmd := exec.Command("/bin/sh", "-c", "sudo systemctl restart wire-pod")
-		err := cmd.Run()
-		if err != nil {
-			fmt.Fprintf(w, "%s", err.Error())
-			log.Fatal(err)
-		}
-		return
+	// 	// Patch source.sh
+	// 	lines, err := readLines("source.sh")
+	// 	var outlines []string
+	// 	if err == nil {
+	// 		for _, line := range lines {
+	// 			if strings.HasPrefix(line, "export STT_LANGUAGE") {
+	// 				line = "export STT_LANGUAGE=" + language
+	// 			}
+	// 			outlines = append(outlines, line)
+	// 		}
+	// 		writeLines(outlines, "source.sh")
+	// 		fmt.Fprintf(w, "Changes saved. Restart needed.")
+	// 	}
+	// 	return
+	// case r.URL.Path == "/api/get_stt_info":
+	// 	sttLanguage := ""
+	// 	sttProvider := ""
+	// 	lines, err := readLines("source.sh")
+	// 	if err == nil {
+	// 		for _, line := range lines {
+	// 			if strings.HasPrefix(line, "export STT_SERVICE=") {
+	// 				sttProvider = strings.SplitAfter(line, "export STT_SERVICE=")[1]
+	// 			} else if strings.HasPrefix(line, "export STT_LANGUAGE=") {
+	// 				sttLanguage = strings.SplitAfter(line, "export STT_LANGUAGE=")[1]
+	// 			}
+	// 		}
+	// 	}
+	// 	fmt.Fprintf(w, "{ ")
+	// 	fmt.Fprintf(w, "  \"sttProvider\": \"%s\",", sttProvider)
+	// 	fmt.Fprintf(w, "  \"sttLanguage\": \"%s\"", sttLanguage)
+	// 	fmt.Fprintf(w, "}")
+	// 	return
+	// resets not needed anymore!
+	// case r.URL.Path == "/api/reset":
+	// 	// im not sure if this works... this is only temporary until a way to restart just the voice processor is added
+	// 	cmd := exec.Command("/bin/sh", "-c", "sudo systemctl restart wire-pod")
+	// 	err := cmd.Run()
+	// 	if err != nil {
+	// 		fmt.Fprintf(w, "%s", err.Error())
+	// 		log.Fatal(err)
+	// 	}
+	// 	return
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
 		return
 	}
-}
-
-// readLines reads a whole file into memory
-// and returns a slice of its lines.
-func readLines(path string) ([]string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines, scanner.Err()
-}
-
-// writeLines writes the lines to the given file.
-func writeLines(lines []string, path string) error {
-	file, err := os.Create(path)
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-	defer file.Close()
-
-	w := bufio.NewWriter(file)
-	for _, line := range lines {
-		fmt.Fprintln(w, line)
-	}
-	return w.Flush()
 }
 
 func StartWebServer() {
