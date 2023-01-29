@@ -153,7 +153,7 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "not found", http.StatusNotFound)
 		return
-	case r.URL.Path == "/ok:80":
+	case strings.Contains(r.URL.Path, "/ok"):
 		if PingerEnabled {
 			//	logger.Println("connCheck request from " + r.RemoteAddr)
 			robotTarget := strings.Split(r.RemoteAddr, ":")[0] + ":443"
