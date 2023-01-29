@@ -35,6 +35,7 @@ fetch("/api-sdk/get_faces")
 
 refreshFaceList()
 
+/*
 function showFaceSection() {
   id = "section-faces"
   var headings = document.getElementsByClassName("toggleable-section");
@@ -49,6 +50,7 @@ function showFaceSection() {
     document.getElementById("faceButtons").style.display = "none";
   }
 }
+*/
 
 function renameFace() {
   var x = document.getElementById("faceList");
