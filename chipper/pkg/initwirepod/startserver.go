@@ -87,6 +87,7 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProc
 		logger.Println(err)
 		os.Exit(1)
 	}
+
 	listener, err := tls.Listen("tcp", ":"+os.Getenv("DDL_RPC_PORT"), &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		CipherSuites: nil,
@@ -100,7 +101,31 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProc
 	httpListener := m.Match(cmux.HTTP1Fast())
 	go grpcServe(grpcListener, p)
 	go httpServe(httpListener)
+	var m2 cmux.CMux
+
+	if os.Getenv("DDL_RPC_PORT") == "443" && os.Getenv("NO8084") != "true" {
+		logger.Println("Starting server at ports 443 and 8084 for 2.0.1 compatibility")
+		listener2, err := tls.Listen("tcp", ":8084", &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			CipherSuites: nil,
+		})
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		m2 = cmux.New(listener2)
+		grpcListener := m2.Match(cmux.HTTP2())
+		httpListener := m2.Match(cmux.HTTP1Fast())
+		go grpcServe(grpcListener, p)
+		go httpServe(httpListener)
+	}
+
 	fmt.Println("\033[33m\033[1mwire-pod started successfully!\033[0m")
 
-	m.Serve()
+	if os.Getenv("DDL_RPC_PORT") == "443" && os.Getenv("NO8084") != "true" {
+		go m.Serve()
+		m2.Serve()
+	} else {
+		m.Serve()
+	}
 }
