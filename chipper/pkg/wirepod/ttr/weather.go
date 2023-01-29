@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 )
 
 /* TODO:
@@ -149,17 +150,17 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 	var speakable_location_string string
 	var temperature string
 	var temperature_unit string
-	weatherAPIEnabled := os.Getenv("WEATHERAPI_ENABLED")
-	weatherAPIKey := os.Getenv("WEATHERAPI_KEY")
-	weatherAPIUnit := os.Getenv("WEATHERAPI_UNIT")
-	weatherAPIProvider := os.Getenv("WEATHERAPI_PROVIDER")
-	if weatherAPIEnabled == "true" && weatherAPIKey != "" {
+	weatherAPIEnabled := vars.APIConfig.Weather.Enable
+	weatherAPIKey := vars.APIConfig.Weather.Key
+	weatherAPIUnit := vars.APIConfig.Weather.Unit
+	weatherAPIProvider := vars.APIConfig.Weather.Provider
+	if weatherAPIEnabled && weatherAPIKey != "" {
 		weatherEnabled = true
-		logger.Println("Weather API Enabled")
+		logger.Println("Weather API enabled")
 	} else {
 		weatherEnabled = false
 		logger.Println("Weather API not enabled, using placeholder")
-		if weatherAPIEnabled == "true" && weatherAPIKey == "" {
+		if weatherAPIEnabled && weatherAPIKey == "" {
 			logger.Println("Weather API enabled, but Weather API key not set")
 		}
 	}

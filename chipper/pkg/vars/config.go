@@ -29,6 +29,12 @@ type apiConfig struct {
 	} `json:"knowledge"`
 }
 
+func WriteConfigToDisk() {
+	logger.Println("Configuration changed, writing to disk")
+	writeBytes, _ := json.Marshal(APIConfig)
+	os.WriteFile(ApiConfigPath, writeBytes, 0644)
+}
+
 func CreateConfigFromEnv() {
 	// if no config exists, create it
 	if os.Getenv("WEATHERAPI_ENABLED") == "true" {
