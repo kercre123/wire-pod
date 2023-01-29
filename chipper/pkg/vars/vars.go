@@ -84,6 +84,9 @@ func Init() {
 	}
 	logger.Println("SDK info path: " + SDKIniPath)
 
+	// load api config (config.go)
+	ReadConfig()
+
 	// load jdocs. if there are any in the old format, convert
 	jdocsDir, err := os.ReadDir("./jdocs")
 	oldJdocsExisted := false
