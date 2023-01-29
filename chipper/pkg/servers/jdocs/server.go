@@ -83,6 +83,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					break
 				}
 			}
+			logger.LogUI("New bot being associated with wire-pod. ESN: " + esn + ", IP: " + ipAddr)
 			if !matched {
 				if !isAlreadyKnown {
 					logger.Println("Bot was not known to wire-pod, creating token and hash (in ReadDocs)")
