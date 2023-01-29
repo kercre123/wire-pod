@@ -8,9 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/chipper/pkg/logger"
 	jdocsserver "github.com/kercre123/chipper/pkg/servers/jdocs"
+	"github.com/kercre123/chipper/pkg/vars"
 )
 
 // the big workaround
@@ -79,9 +81,12 @@ func pingJdocs(target string) {
 	}
 	logger.Println("Successfully got jdocs from " + serial)
 	// write to file
-	writeBytes, _ := json.Marshal(resp.NamedJdocs[0].Doc)
-	os.WriteFile("./jdocs/vic:"+serial+"-vic.RobotSettings.json", writeBytes, 0644)
-	return
+	var jdoc jdocspb.Jdoc
+	jdoc.DocVersion = resp.NamedJdocs[0].Doc.DocVersion
+	jdoc.FmtVersion = resp.NamedJdocs[0].Doc.FmtVersion
+	jdoc.ClientMetadata = resp.NamedJdocs[0].Doc.ClientMetadata
+	jdoc.JsonDoc = resp.NamedJdocs[0].Doc.JsonDoc
+	vars.AddJdoc("vic:"+serial, "vic.RobotSettings", jdoc)
 }
 
 var jdocsTargets []string
