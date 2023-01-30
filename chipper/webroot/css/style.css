@@ -11,8 +11,8 @@
   --bg-color-alt: rgba(196,196,196,1);		/* light gray #C4C4C4*/
   --button-color: rgba(75,75,75,1);		/* dark gray #4B4B4B */
   --button-color-alt: rgba(164,164,164,1);	/* light gray #A4A4A4 */
-  --fg-color: rgba(51,237,109,1);	        /* light green 00FF00 */
-  --fg-color-alt: rgba(51,237,109,.05);		/* light green 00FF00 */
+  --fg-color: rgba(51,237,109,1);	        /* light green 33ED6D */
+  --fg-color-alt: rgba(51,237,109,.05);		/* light green 33ED6D */
   --text-color: rgba(255,255,255,1);		/* white #FFFFFF */
   --text-color-alt: rgba(34,34,34,1);		/* black #000000 */
 }
@@ -82,7 +82,7 @@ a {
 }
 a:hover {
   text-decoration: none;
-  color: aqua;
+  color: var(--fg-color);
 }
 
 ul {
