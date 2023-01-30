@@ -21,70 +21,73 @@
     <hr>
 
     <div id="section-intents" style="display:none">
-    <h2>
-      <span>+</span>
-      Add a custom intent
-    </h2>
-    <div class="content">
-      <p>It is recommended you read <a href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#web-interface" target="_blank">the wiki</a></p>
-      <div id="addIntentStatus"></div>
-      <form id="intentAddForm">
-        <label for="nameAdd">Custom intent name:</label>
-        <input type="text" name="nameAdd" id="nameAdd"><br>
-        <label for="descriptionAdd">Custom intent description:</label>
-        <input type="text" name="descriptionAdd" id="descriptionAdd"><br>
-        <label for="utterancesAdd">Utterances that will trigger the intent (separated by ,):</label>
-        <input type="text" name="utterancesAdd" id="utterancesAdd"><br>
-        <div id="intentAddSelect"></div>
-        <label for="paramnameAdd">Intent parameter name (not required):</label>
-        <input type="text" name="paramnameAdd" id="paramnameAdd"><br>
-        <label for="paramvalueAdd">Intent parameter value (not required):</label>
-        <input type="text" name="paramvalueAdd" id="paramvalueAdd"><br>
-        <label for="execAdd">Path to script/program to execute after sending intent:</label>
-        <input type="text" name="execAdd" id="execAdd"><br>
-        <label for="execAdd">Arguments for program (seperated by ,)</label>
-        <input type="text" name="execAddArgs" id="execAddArgs" size="50"><br>
-      </form>
-      <div class="center">
-        <button onclick="sendIntentAdd()">Add intent</button>
+      <h2 id="foldable">
+        <span>+</span>
+        Add a custom intent
+      </h2>
+      <div class="content">
+        <p>It is recommended you read <a href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#web-interface" target="_blank">the wiki</a></p>
+        <div id="addIntentStatus"></div>
+        <form id="intentAddForm">
+          <label for="nameAdd">Custom intent name:</label>
+          <input type="text" name="nameAdd" id="nameAdd"><br>
+          <label for="descriptionAdd">Custom intent description:</label>
+          <input type="text" name="descriptionAdd" id="descriptionAdd"><br>
+          <label for="utterancesAdd">Utterances that will trigger the intent (separated by ,):</label>
+          <input type="text" name="utterancesAdd" id="utterancesAdd"><br>
+          <div id="intentAddSelect"></div>
+          <label for="paramnameAdd">Intent parameter name (not required):</label>
+          <input type="text" name="paramnameAdd" id="paramnameAdd"><br>
+          <label for="paramvalueAdd">Intent parameter value (not required):</label>
+          <input type="text" name="paramvalueAdd" id="paramvalueAdd"><br>
+          <label for="execAdd">Path to script/program to execute after sending intent:</label>
+          <input type="text" name="execAdd" id="execAdd"><br>
+          <label for="execAdd">Arguments for program (seperated by ,)</label>
+          <input type="text" name="execAddArgs" id="execAddArgs" size="50"><br>
+        </form>
+        <div class="center">
+          <button onclick="sendIntentAdd()">Add intent</button>
+        </div>
+        <hr>
       </div>
-      <hr>
-    </div>
 
-    <h2>
-      <span>+</span>
-      Edit a custom intent
-    </h2>
-    <div class="content">
-      <div id="editSelect"></div>
-      <div id="editIntentStatus"></div><br>
-      <div class="center">
-        <button onclick="editFormCreate()">Start editing selected intent</button>
+      <h2 id="foldable">
+        <span>+</span>
+        Edit a custom intent
+      </h2>
+      <div class="content">
+        <div id="editSelect"></div>
+        <div id="editIntentStatus"></div><br>
+        <div class="center">
+          <button onclick="editFormCreate()">Start editing selected intent</button>
+        </div>
+        <div id="editIntentForm"></div>
+        <hr>
       </div>
-      <div id="editIntentForm"></div>
-      <hr>
-    </div>
 
-    <h2>
-      <span>+</span>
-      Delete a custom intent
-    </h2>
-    <div class="content">
-      <div id="deleteSelect"></div>
-      <div id="deleteIntentStatus"></div><br>
-      <div class="center">
-        <button onclick="deleteSelectedIntent()">Delete selected intent</button>
+      <h2 id="foldable">
+        <span>+</span>
+        Delete a custom intent
+      </h2>
+      <div class="content">
+        <div id="deleteSelect"></div>
+        <div id="deleteIntentStatus"></div><br>
+        <div class="center">
+          <button onclick="deleteSelectedIntent()">Delete selected intent</button>
+        </div>
+        <hr>
       </div>
-      <hr>
     </div>
-  </div>
 
     <div id="section-log" style="display: none;">
       <h2>Log</h2>
-      <div style="white-space: pre" class="content" id="botTranscriptedText"></div>
+      <textarea id="botTranscriptedTextArea" rows="4" cols="50">
+         loading log...
+      </textarea>
+      <hr>
     </div>
+    
   </div>
-</div>
 </body>
 
 <script src="./js/customIntents.js"></script>
