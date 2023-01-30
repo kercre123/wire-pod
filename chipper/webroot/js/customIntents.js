@@ -3,76 +3,73 @@ var eventListenerAdded = false
 intentsJson = '["intent_greeting_hello", "intent_names_ask", "intent_imperative_eyecolor", "intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep", "intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear", "intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward", "intent_imperative_turnaround", "intent_imperative_turnleft", "intent_imperative_turnright", "intent_play_rollcube", "intent_play_popawheelie", "intent_play_fistbump", "intent_play_blackjack", "intent_imperative_affirmative", "intent_imperative_negative", "intent_photo_take_extend", "intent_imperative_praise", "intent_imperative_abuse", "intent_weather_extend", "intent_imperative_apologize", "intent_imperative_backup", "intent_imperative_volumedown", "intent_imperative_volumeup", "intent_imperative_lookatme", "intent_imperative_volumelevel_extend", "intent_imperative_shutup", "intent_names_username_extend", "intent_imperative_come", "intent_imperative_love", "intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend", "intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube", "intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend", "intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"]'
 
 function updateIntentSelection(element) {
-let xhr = new XMLHttpRequest();
-xhr.open("GET", "/api/get_custom_intents_json");
-xhr.setRequestHeader("Content-Type", "application/json");
-xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
-xhr.responseType = 'json';
-xhr.send();
-xhr.onload = function() {
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", "/api/get_custom_intents_json");
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+  xhr.responseType = 'json';
+  xhr.send();
+  xhr.onload = function() {
     document.getElementById("editIntentStatus").innerHTML = "";
     document.getElementById("deleteIntentStatus").innerHTML = "";
-  var listResponse = xhr.response
-  var listNum = 0;
-  if (listResponse != null) {
-    listNum = Object.keys(listResponse).length
-  }
-  if (listResponse != null && listNum != 0) {
-    
-  console.log(listNum)
-  var select = document.createElement("select");
-  document.getElementById(element).innerHTML = ""
-  select.name = element + "intents";
-  select.id = element + "intents"
-  for (const name in listResponse)
-  {
-    if (false==listResponse[name]["issystem"]) {
-        console.log(listResponse[name]["name"])
-        var option = document.createElement("option");
-        option.value = listResponse[name]["name"];
-        option.text = listResponse[name]["name"]
-        select.appendChild(option);
+    var listResponse = xhr.response
+    var listNum = 0;
+    if (listResponse != null) {
+      listNum = Object.keys(listResponse).length
     }
-  }
-  var label = document.createElement("label");
-  label.innerHTML = "Choose the intent: "
-  label.htmlFor = element + "intents";
-  document.getElementById(element).appendChild(label).appendChild(select);
-} else {
-    console.log("No intents founda")
-    var error1 = document.createElement("p");
-    var error2 = document.createElement("p");
-    error1.innerHTML = "No intents found, you must add one first"
-    error2.innerHTML = "No intents found, you must add one first"
-    document.getElementById("editIntentForm").innerHTML = "";
-    document.getElementById("editIntentStatus").innerHTML = "";
-    document.getElementById("deleteIntentStatus").innerHTML = "";
-    document.getElementById("editSelect").innerHTML = "";
-    document.getElementById("deleteSelect").innerHTML = "";
-    document.getElementById("deleteIntentStatus").appendChild(error1);
-    document.getElementById("editIntentStatus").appendChild(error2);
-}
-};
+    if (listResponse != null && listNum != 0) {
+      //console.log(listNum)
+      var select = document.createElement("select");
+      document.getElementById(element).innerHTML = ""
+      select.name = element + "intents";
+      select.id = element + "intents"
+      for (const name in listResponse) {
+        if (false==listResponse[name]["issystem"]) {
+          console.log(listResponse[name]["name"])
+          var option = document.createElement("option");
+          option.value = listResponse[name]["name"];
+          option.text = listResponse[name]["name"]
+          select.appendChild(option);
+        }
+      }
+      var label = document.createElement("label");
+      label.innerHTML = "Choose the intent: "
+      label.htmlFor = element + "intents";
+      document.getElementById(element).appendChild(label).appendChild(select);
+    } else {
+      console.log("No intents founda")
+      var error1 = document.createElement("p");
+      var error2 = document.createElement("p");
+      error1.innerHTML = "No intents found, you must add one first"
+      error2.innerHTML = "No intents found, you must add one first"
+      document.getElementById("editIntentForm").innerHTML = "";
+      document.getElementById("editIntentStatus").innerHTML = "";
+      document.getElementById("deleteIntentStatus").innerHTML = "";
+      document.getElementById("editSelect").innerHTML = "";
+      document.getElementById("deleteSelect").innerHTML = "";
+      document.getElementById("deleteIntentStatus").appendChild(error1);
+      document.getElementById("editIntentStatus").appendChild(error2);
+    }
+  };
 }
 
 // function that creates select from intentsJson
 function createIntentSelect(element) {
-    var select = document.createElement("select");
-    document.getElementById(element).innerHTML = ""
-    select.name = element + "intents";
-    select.id = element + "intents"
-    var intents = JSON.parse(intentsJson)
-    for (const name in intents)
-    {
-        var option = document.createElement("option");
-        option.value = intents[name];
-        option.text = intents[name]
-        select.appendChild(option);
-    }
-    var label = document.createElement("label");
-    label.innerHTML = "Intent to send to robot after script executed:"
-    label.htmlFor = element + "intents";
-    document.getElementById(element).appendChild(label).appendChild(select);
+  var select = document.createElement("select");
+  document.getElementById(element).innerHTML = ""
+  select.name = element + "intents";
+  select.id = element + "intents"
+  var intents = JSON.parse(intentsJson)
+  for (const name in intents) {
+    var option = document.createElement("option");
+    option.value = intents[name];
+    option.text = intents[name]
+    select.appendChild(option);
+  }
+  var label = document.createElement("label");
+  label.innerHTML = "Intent to send to robot after script executed:"
+  label.htmlFor = element + "intents";
+  document.getElementById(element).appendChild(label).appendChild(select);
 }
 
 // get intent from editSelect element and create a form in div#editIntentForm to edit it
@@ -105,7 +102,8 @@ function editFormCreate() {
             description.type = "text";
             description.name = "description";
             description.id = "description";
-            // create label for description
+            
+	    // create label for description
             var descriptionLabel = document.createElement("label");
             descriptionLabel.innerHTML = "Description: "
             descriptionLabel.htmlFor = "description";
@@ -220,30 +218,30 @@ function editFormCreate() {
 // create editIntent function that sends post to /api/edit_custom_intent, get index of intent to edit
 // form data should include the intent number, name, description, utterances, intent, paramname, paramvalue, exec
 function editIntent(intentNumber) {
-    console.log(intentNumber)
-        var formData = new FormData();
-        formData.append("number", intentNumber+1);
-        formData.append("name", document.getElementById("name").value);
-        formData.append("description", document.getElementById("description").value);
-        formData.append("utterances", document.getElementById("utterances").value);
-        formData.append("intent", document.getElementById("intent").value);
-        formData.append("paramname", document.getElementById("paramname").value);
-        formData.append("paramvalue", document.getElementById("paramvalue").value);
-        formData.append("exec", document.getElementById("exec").value);
-        formData.append("execargs", document.getElementById("execargs").value);
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/edit_custom_intent");
-        xhr.send(formData);
-        xhr.onload = function() {
-            var response = xhr.response;
-            console.log(response);
-                console.log("Intent edited")
-                var success = document.createElement("p");
-                success.innerHTML = "Intent edited"
-                document.getElementById("editIntentStatus").innerHTML = "";
-                document.getElementById("editIntentStatus").appendChild(success);
-        }
-    
+  console.log(intentNumber)
+  
+  var formData = new FormData();
+  formData.append("number", intentNumber+1);
+  formData.append("name", document.getElementById("name").value);
+  formData.append("description", document.getElementById("description").value);
+  formData.append("utterances", document.getElementById("utterances").value);
+  formData.append("intent", document.getElementById("intent").value);
+  formData.append("paramname", document.getElementById("paramname").value);
+  formData.append("paramvalue", document.getElementById("paramvalue").value);
+  formData.append("exec", document.getElementById("exec").value);
+  formData.append("execargs", document.getElementById("execargs").value);
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/edit_custom_intent");
+  xhr.send(formData);
+  xhr.onload = function() {
+    var response = xhr.response;
+    console.log(response);
+    console.log("Intent edited")
+    var success = document.createElement("p");
+    success.innerHTML = "Intent edited"
+    document.getElementById("editIntentStatus").innerHTML = "";
+    document.getElementById("editIntentStatus").appendChild(success);
+  }   
 }
 
 updateIntentSelection("editSelect")
@@ -251,74 +249,73 @@ updateIntentSelection("deleteSelect")
 createIntentSelect("intentAddSelect")
 
 var HttpClient = function() {
-    this.get = function(aUrl, aCallback) {
-        var anHttpRequest = new XMLHttpRequest();
-        anHttpRequest.onreadystatechange = function() { 
-            if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
-                aCallback(anHttpRequest.responseText);
-        }
-
-        anHttpRequest.open( "GET", aUrl, true );            
-        anHttpRequest.send( null );
+  this.get = function(aUrl, aCallback) {
+  var anHttpRequest = new XMLHttpRequest();
+  anHttpRequest.onreadystatechange = function() { 
+    if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+      aCallback(anHttpRequest.responseText);
     }
+    anHttpRequest.open( "GET", aUrl, true );            
+    anHttpRequest.send( null );
+  }
 }
 
 function deleteSelectedIntent() {
-    var intentNumber = document.getElementById("deleteSelectintents").selectedIndex;
-    var formData = new FormData();
-    formData.append("number", intentNumber+1);
-    console.log(intentNumber+1)
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/remove_custom_intent");
-    xhr.send(formData);
-    xhr.onload = function() {
-        var response = xhr.response;
-        console.log(response);
-        console.log("Intent deleted")
-        var success = document.createElement("p");
-        success.innerHTML = "Intent deleted"
-        document.getElementById("deleteIntentStatus").innerHTML = "";
-        document.getElementById("deleteIntentStatus").appendChild(success);
-        updateIntentSelection("editSelect")
-        updateIntentSelection("deleteSelect")
-    }
+  var intentNumber = document.getElementById("deleteSelectintents").selectedIndex;
+  var formData = new FormData();
+  formData.append("number", intentNumber+1);
+  console.log(intentNumber+1)
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/remove_custom_intent");
+  xhr.send(formData);
+  xhr.onload = function() {
+    var response = xhr.response;
+    console.log(response);
+    console.log("Intent deleted")
+    var success = document.createElement("p");
+    success.innerHTML = "Intent deleted"
+    document.getElementById("deleteIntentStatus").innerHTML = "";
+    document.getElementById("deleteIntentStatus").appendChild(success);
+    updateIntentSelection("editSelect")
+    updateIntentSelection("deleteSelect")
+  }
 }
 
 function sendIntentAdd() {
-    const form = document.getElementById('intentAddForm');
-    var data = "name=" + form.elements['nameAdd'].value + "&description=" + form.elements['descriptionAdd'].value + "&utterances=" + form.elements['utterancesAdd'].value + "&intent=" + form.elements['intentAddSelectintents'].value + "&paramname=" + form.elements['paramnameAdd'].value + "&paramvalue=" + form.elements['paramvalueAdd'].value + "&exec=" + form.elements['execAdd'].value + "&execargs=" + form.elements['execAddArgs'].value;
-    var client = new HttpClient();
-    var result = document.getElementById('addIntentStatus');
-    const resultP = document.createElement('p');
-    resultP.textContent =  "Adding...";
+  const form = document.getElementById('intentAddForm');
+  var data = "name=" + form.elements['nameAdd'].value + "&description=" + form.elements['descriptionAdd'].value + "&utterances=" + form.elements['utterancesAdd'].value + "&intent=" + form.elements['intentAddSelectintents'].value + "&paramname=" + form.elements['paramnameAdd'].value + "&paramvalue=" + form.elements['paramvalueAdd'].value + "&exec=" + form.elements['execAdd'].value + "&execargs=" + form.elements['execAddArgs'].value;
+  var client = new HttpClient();
+  var result = document.getElementById('addIntentStatus');
+  const resultP = document.createElement('p');
+  resultP.textContent =  "Adding...";
+  result.innerHTML = '';
+  result.appendChild(resultP);
+  fetch("/api/add_custom_intent?" + data)
+  .then(response => response.text())
+  .then((response) => {
+    resultP.innerHTML = response
     result.innerHTML = '';
     result.appendChild(resultP);
-    fetch("/api/add_custom_intent?" + data)
-    .then(response => response.text())
-    .then((response) => {
-        resultP.innerHTML = response
-        result.innerHTML = '';
-        result.appendChild(resultP);
-        updateIntentSelection("editSelect")
-        updateIntentSelection("deleteSelect")
-    })
+    updateIntentSelection("editSelect")
+    updateIntentSelection("deleteSelect")
+  })
 }
 
 function sendLinkForm() {
-    var data = "esn=" + document.getElementById("link_esn").value + "&target=" + document.getElementById("link_ip").value
-    console.log(data)
-    fetch("/link-esn-and-target?" + data)
-    .then(response => response.text())
-    .then((response) => {
-        if (response.includes("success")) {
-            alert("Bot successfully linked! You may now set your bot up via https://keriganc.com/vector-epod-setup")
-        } else {
-            alert(response)
-        }
-    })
+  var data = "esn=" + document.getElementById("link_esn").value + "&target=" + document.getElementById("link_ip").value
+  console.log(data)
+  fetch("/link-esn-and-target?" + data)
+  .then(response => response.text())
+  .then((response) => {
+    if (response.includes("success")) {
+      alert("Bot successfully linked! You may now set your bot up via https://keriganc.com/vector-epod-setup")
+    } else {
+      alert(response)
+    }
+  })
 }
 
-// ##############################################
+// Toggle Headllines and +
 function toggleContent(element) {
   if (element.style.display === "block") {
     element.style.display = "none";
@@ -327,7 +324,7 @@ function toggleContent(element) {
   }
 }
 
-var headings = document.getElementsByTagName("h2");
+var headings = document.querySelectorAll("h2[id='foldable']");
 for (var i = 0; i < headings.length; i++) {
   headings[i].addEventListener("click", function() {
     toggleContent(this.nextElementSibling);
@@ -335,7 +332,7 @@ for (var i = 0; i < headings.length; i++) {
 }
 
 function togglePlusMinusSymbols() {
-  var h2Elements = document.getElementsByTagName("h2");
+  var h2Elements = document.querySelectorAll("h2[id='foldable']");
   for (var i = 0; i < h2Elements.length; i++) {
     h2Elements[i].addEventListener("click", function() {
       var plusMinusElement = this.firstElementChild;
@@ -352,13 +349,13 @@ togglePlusMinusSymbols();
 // Changes color of the clicked icon
 function updateColor(id) {
 
-  var body_styles = window.getComputedStyle(document.getElementsByTagName("body")[0]);
-  var fgColor = body_styles.getPropertyValue("--fg-color");
-  var bgColorAlt = body_styles.getPropertyValue("--bg-color-alt");
+  let body_styles = window.getComputedStyle(document.getElementsByTagName("body")[0]);
+  let fgColor = body_styles.getPropertyValue("--fg-color");
+  let bgColorAlt = body_styles.getPropertyValue("--bg-color-alt");
 
   l_id = id.replace("section","icon");
   let elements = document.getElementsByName("icon");
-  for (var i = 0; i < elements.length; i++) {
+  for (let i = 0; i < elements.length; i++) {
       document.getElementById(elements[i].id).style.color = bgColorAlt;
   }
   document.getElementById(l_id).style.color = fgColor;
@@ -370,10 +367,10 @@ GetLog = false
 function showLog() {
     document.getElementById("section-intents").style.display = "none";
     document.getElementById("section-log").style.display = "block";
-    document.getElementById("botTranscriptedText").style.display = "block";
     updateColor("icon-Logs");
+
     GetLog = true
-    logDiv = document.getElementById("botTranscriptedText")
+    logDivArea = document.getElementById("botTranscriptedTextArea")
     logP = document.createElement("p")
     setInterval(function() {
         if (GetLog == false) {
@@ -383,13 +380,13 @@ function showLog() {
         xhr.open("GET", "/api/get_logs");
         xhr.send();
         xhr.onload = function() {
-            logDiv.innerHTML = ""
+            logDivArea.innerHTML = ""
             if (xhr.response == "") {
                 logP.innerHTML = "No logs yet, you must say a command to Vector. (this updates automatically)"
             } else {
                 logP.innerHTML = xhr.response
             }
-            logDiv.appendChild(logP)
+	    logDivArea.value = logP.innerHTML; 
         }
     }, 1000)
 }
