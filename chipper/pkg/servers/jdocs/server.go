@@ -75,6 +75,10 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 				if strings.EqualFold(ipAddr, strings.Split(pair[0], ":")[0]) {
 					sessionMatched = true
 					fullPath := vars.SDKIniPath + pair[1] + "-" + esn + ".cert"
+					if _, err := os.Stat(vars.SDKIniPath); err != nil {
+						logger.Println("Creating " + vars.SDKIniPath + " directory")
+						os.Mkdir(vars.SDKIniPath, 0755)
+					}
 					logger.Println("Outputting session cert to " + fullPath)
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
 					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)

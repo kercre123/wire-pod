@@ -35,11 +35,10 @@ func IsBotInInfo(esn string) bool {
 // Should only be used for primary auth
 // IP should just be "xxx.xxx.xxx.xxx", no port
 func WriteToIniPrimary(botName, esn, guid, ip string) {
-	fullPath, _ := os.Getwd()
-	fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/"
-	userIniData, err := ini.Load(fullPath + "sdk_config.ini")
+	userIniData, err := ini.Load(vars.SDKIniPath + "sdk_config.ini")
 	if err != nil {
-		os.Mkdir(fullPath, 0755)
+		logger.Println("Creating " + vars.SDKIniPath + " directory")
+		os.Mkdir(vars.SDKIniPath, 0755)
 		userIniData = ini.Empty()
 	}
 	matched := false
@@ -47,7 +46,7 @@ func WriteToIniPrimary(botName, esn, guid, ip string) {
 		if strings.EqualFold(section.Name(), esn) {
 			matched = true
 			logger.Println("WriteToIniPrimary: bot already in INI matched, setting info")
-			section.Key("cert").SetValue(fullPath + botName + "-" + esn + ".cert")
+			section.Key("cert").SetValue(vars.SDKIniPath + botName + "-" + esn + ".cert")
 			section.Key("name").SetValue(botName)
 			section.Key("ip").SetValue(ip)
 			section.Key("guid").SetValue(guid)
@@ -59,13 +58,12 @@ func WriteToIniPrimary(botName, esn, guid, ip string) {
 		if err != nil {
 			logger.Println(err)
 		}
-		logger.Println("Getting session cert from Anki server")
-		newSection.NewKey("cert", fullPath+botName+"-"+esn+".cert")
+		newSection.NewKey("cert", vars.SDKIniPath+botName+"-"+esn+".cert")
 		newSection.NewKey("ip", ip)
 		newSection.NewKey("name", botName)
 		newSection.NewKey("guid", guid)
 	}
-	userIniData.SaveTo(fullPath + "sdk_config.ini")
+	userIniData.SaveTo(vars.SDKIniPath + "sdk_config.ini")
 	logger.Println("WriteToIniPrimary: successfully wrote INI")
 }
 
@@ -75,11 +73,10 @@ func WriteToIniSecondary(esn, guid, ip string) {
 	certPath := ""
 	botName := ""
 	certExists := false
-	fullPath, _ := os.Getwd()
-	fullPath = strings.TrimSuffix(fullPath, "/wire-pod/chipper") + "/.anki_vector/"
-	userIniData, err := ini.Load(fullPath + "sdk_config.ini")
+	userIniData, err := ini.Load(vars.SDKIniPath + "sdk_config.ini")
 	if err != nil {
-		os.Mkdir(fullPath, 0755)
+		logger.Println("Creating " + vars.SDKIniPath + " directory")
+		os.Mkdir(vars.SDKIniPath, 0755)
 		userIniData = ini.Empty()
 	}
 	// see if cert already exists, get name from that if it does
@@ -89,7 +86,7 @@ func WriteToIniSecondary(esn, guid, ip string) {
 			logger.Println("WriteToIniSecondary: Name found from ESN in INI, setting info")
 			botNameKey, _ := section.GetKey("name")
 			botName = botNameKey.String()
-			certPath = fullPath + botName + "-" + esn + ".cert"
+			certPath = vars.SDKIniPath + botName + "-" + esn + ".cert"
 			certExists = true
 			// set information
 			section.Key("guid").SetValue(guid)
@@ -109,7 +106,7 @@ func WriteToIniSecondary(esn, guid, ip string) {
 			logger.Println(err)
 		}
 		botName = cert.Issuer.CommonName
-		certPath = fullPath + botName + "-" + esn + ".cert"
+		certPath = vars.SDKIniPath + botName + "-" + esn + ".cert"
 		out, err := os.Create(certPath)
 		if err == nil {
 			out.Write(certBytesOrig)
@@ -130,7 +127,7 @@ func WriteToIniSecondary(esn, guid, ip string) {
 		newSection.NewKey("guid", guid)
 	}
 	logger.Println("WriteToIniSecondary complete")
-	userIniData.SaveTo("../../.anki_vector/sdk_config.ini")
+	userIniData.SaveTo(vars.SDKIniPath + "sdk_config.ini")
 }
 
 func StoreBotInfo(ctx context.Context, thing string) {
