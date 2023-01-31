@@ -22,3 +22,4 @@
 /chipper/jdocs/*.json
 /chipper/nvm
 /chipper/apiConfig.json
+/chipper/session-certs/00*

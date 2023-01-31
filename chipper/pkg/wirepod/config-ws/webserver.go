@@ -263,11 +263,31 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func certHandler(w http.ResponseWriter, r *http.Request) {
+	switch {
+	case strings.Contains(r.URL.Path, "/session-certs/"):
+		split := strings.Split(r.URL.Path, "/")
+		if len(split) < 3 {
+			fmt.Fprint(w, "error: must request a cert by esn (ex. /session-certs/00e20145)")
+			return
+		}
+		esn := split[2]
+		fileBytes, err := os.ReadFile("./session-certs/" + esn)
+		if err != nil {
+			fmt.Fprint(w, "error: cert does not exist")
+			return
+		}
+		w.Write(fileBytes)
+		return
+	}
+}
+
 func StartWebServer() {
 	var webPort string
 	http.HandleFunc("/api/", apiHandler)
-	fileServer := http.FileServer(http.Dir("./webroot"))
-	http.Handle("/", fileServer)
+	http.HandleFunc("/session-certs/", certHandler)
+	webRoot := http.FileServer(http.Dir("./webroot"))
+	http.Handle("/", webRoot)
 	if os.Getenv("WEBSERVER_PORT") != "" {
 		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
 			webPort = os.Getenv("WEBSERVER_PORT")
