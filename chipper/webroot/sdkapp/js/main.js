@@ -20,6 +20,71 @@ function revealSdkActions() {
   x.style.display = "block";
 }
 
+const stimChart = document.getElementById('stimChart');
+let myChart = new Chart(stimChart, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Stimulation Data',
+            data: [],
+            //backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            backgroundColor: 'rgba(51, 237, 109, 1)',
+            borderColor: 'rgba(51, 237, 109, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+      plugins:{
+        legend: {
+         display: false
+        }
+       },
+        scales: {
+            y: {
+                    beginAtZero: true,
+                    min: 0.0,
+                    max: 1.0
+                }
+        }
+    }
+});
+
+function stimHandler() {
+  // array to store data
+let stimData = [];
+
+// get the data every half a second
+interval = setInterval(() => {
+  if (stimRunning == false) {
+    sendForm("/api-sdk/stop_event_stream")
+    clearInterval(interval)
+  }
+    fetch('/api-sdk/get_stim_status?serial=' + esn)
+        .then(response => response.json())
+        .then(data => {
+            // add the data to the array
+            stimData.push(data);
+            
+            // if the array has more than 12 datapoints, remove the first one
+            if (stimData.length > 12) {
+                stimData.shift();
+            }
+            
+            // update the chart with the new data
+            myChart.data.labels = [];
+            myChart.data.datasets[0].data = [];
+            //var time = new Date().toLocaleTimeString([], {hour12: false});
+            stimData.forEach(datapoint => {
+                myChart.data.labels.push(" ");
+                myChart.data.datasets[0].data.push(datapoint);
+            });
+            
+            myChart.update();
+        });
+}, 500)
+}
+
 function showSection(id) {
   var headings = document.getElementsByClassName("toggleable-section");
   for (var i = 0; i < headings.length; i++) {
@@ -32,21 +97,7 @@ function showSection(id) {
     logP = document.createElement("p")
     stimRunning = true
     sendForm("/api-sdk/begin_event_stream")
-    interval = setInterval(function() {
-      if (stimRunning == false) {
-          sendForm("/api-sdk/stop_event_stream")
-          clearInterval(interval)
-          return
-      }
-      let xhr = new XMLHttpRequest();
-      xhr.open("GET", "/api-sdk/get_stim_status?serial=" + esn);
-      xhr.send();
-      xhr.onload = function() {
-              logDiv.innerHTML = ""
-              logP.innerHTML = xhr.response + "/1.00000000"
-              logDiv.appendChild(logP)
-      }
-  }, 1000)
+    stimHandler()
   
   } else {
     stimRunning = false
@@ -66,7 +117,7 @@ function sendForm(formURL) {
     xhr.onload = function() { 
       getCurrentSettings()
     };
-}
+} 
 
 function goToControlPage() {
     window.location.href = './control.html?serial=' + esn
