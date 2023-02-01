@@ -14,19 +14,13 @@
       <h1 class="center">Vector control (beta)</h1>
       <hr>
       <div class="main-nav-parent">
-        <div class="main-nav-child"><a href="/sdkapp/settings.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
-      </div>
-      <hr>
-
-      <div class="center">
-        <button onclick="sdkInit()" type="submit">Initiate connection</button>
-        <button onclick="sdkUnInit()" type="submit">End connection</button>
+        <div class="main-nav-child"><a href="#" onclick="goBackToSettings()""><i class="fa-solid fa-reply"></i><br/>Back</a></div>
       </div>
       <hr>
 
       <div id=sdkActions>
         <h2 class="center">Camera Feed</h2>
-        <div class="center" id="camStream"><img src="/stream" width=100%></div>
+        <div class="center" id="camStream"></div>
 	<div class="center">
           <button onclick="showCamStream()">Begin Camera Stream</button>
           <button onclick="stopCamStream()">Stop Camera Stream</button>

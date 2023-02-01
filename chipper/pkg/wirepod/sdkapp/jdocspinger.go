@@ -1,14 +1,18 @@
 package sdkapp
 
 import (
-	"encoding/json"
+	"context"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
+	"github.com/digital-dream-labs/hugh/grpc/client"
+	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/chipper/pkg/logger"
 	jdocsserver "github.com/kercre123/chipper/pkg/servers/jdocs"
@@ -26,25 +30,18 @@ import (
 var PingerEnabled bool = true
 
 func pingJdocs(target string) {
+	ctx := context.Background()
 	target = strings.Split(target, ":")[0]
 	var serial string
-	jsonBytes, err := os.ReadFile(jdocsserver.InfoPath)
-	if err != nil {
-		logger.Println("Error opening " + jdocsserver.InfoPath + ", this bot likely hasn't been authed")
-		logger.Println("Error pinging jdocs")
-		return
-	}
-	var robotSDKInfo RobotInfoStore
-	json.Unmarshal(jsonBytes, &robotSDKInfo)
 	matched := false
-	for _, robot := range robotSDKInfo.Robots {
+	for _, robot := range vars.BotInfo.Robots {
 		if strings.TrimSpace(strings.ToLower(robot.IPAddress)) == strings.TrimSpace(strings.ToLower(target)) {
 			matched = true
 			serial = robot.Esn
 		}
 	}
 	if !matched {
-		logger.Println("vector-go-sdk error: serial did not match any bot in bot json")
+		logger.Println("jdocs pinger error: serial did not match any bot in bot json")
 		logger.Println("Error pinging jdocs")
 		return
 	}
@@ -53,8 +50,6 @@ func pingJdocs(target string) {
 		logger.Println(err)
 		return
 	}
-	sdkAddress = robotTmp.Cfg.Target
-	robotGUID = robotTmp.Cfg.Token
 	_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 	if err != nil {
 		robotTmp, err = NewWP(serial, true)
@@ -63,8 +58,6 @@ func pingJdocs(target string) {
 			logger.Println("Error pinging jdocs")
 			return
 		}
-		sdkAddress = robotTmp.Cfg.Target
-		robotGUID = robotTmp.Cfg.Token
 		_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 		if err != nil {
 			logger.Println("Error pinging jdocs, likely unauthenticated")
@@ -125,6 +118,47 @@ func startJdocsTimer(target string) {
 			}
 		}()
 	}
+}
+
+func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
+	target := ""
+	guid := ""
+	if serial == "" {
+		log.Fatal("please use the -serial argument and set it to your robots serial number")
+		return nil, fmt.Errorf("Configuration options missing")
+	}
+	wirepodPath := os.Getenv("WIREPOD_HOME")
+	if len(wirepodPath) == 0 {
+		wirepodPath = "."
+	}
+	matched := false
+	for _, robot := range vars.BotInfo.Robots {
+		if strings.EqualFold(serial, robot.Esn) {
+			matched = true
+			target = robot.IPAddress + ":443"
+			guid = robot.GUID
+			break
+		}
+	}
+	if !matched {
+		log.Println("vector-go-sdk error: serial did not match any bot in bot json")
+		return nil, errors.New("vector-go-sdk error: serial did not match any bot in bot json")
+	}
+	c, err := client.New(
+		client.WithTarget(target),
+		client.WithInsecureSkipVerify(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.Connect(); err != nil {
+		return nil, err
+	}
+	return vector.New(
+		vector.WithTarget(target),
+		vector.WithSerialNo(serial),
+		vector.WithToken(guid),
+	)
 }
 
 func jdocsPingTimer(target string) bool {
