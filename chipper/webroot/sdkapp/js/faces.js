@@ -1,11 +1,14 @@
 var client = new HttpClient();
 
+var urlParams = new URLSearchParams(window.location.search);
+esn = urlParams.get('serial');
+
 showFaceButtons = false
 
 function refreshFaceList() {
 var x = document.getElementById("faceList");
 x.innerHTML = ""
-fetch("/api-sdk/get_faces")
+fetch("/api-sdk/get_faces?serial=" + esn)
 .then(response => response.text())
 .then ((response) => {
   if (response.includes("null")) {
@@ -61,13 +64,13 @@ function renameFace() {
   if (newFaceName == '') {
     window.alert('Face name cannot be empty')
   } else {
-    fetch("/api-sdk/rename_face?oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
+    fetch("/api-sdk/rename_face?serial=" + esn + "&oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
       .then (function(){alert("Success!"); refreshFaceList()})
 }}
 
 function deleteFace() {
   var x = document.getElementById("faceList");
   faceId = x.value.split(":")[0]
-  fetch("/api-sdk/delete_face?id=" + faceId)
+  fetch("/api-sdk/delete_face?serial=" + esn + "&id=" + faceId)
     .then (function(){alert("Success!"); refreshFaceList()})
 }

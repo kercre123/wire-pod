@@ -1,10 +1,9 @@
 var x = document.getElementById("sdkActions");
 var keysKey = document.getElementById("keysKey");
-keysKey.style.display = "none"
 var useKeyboardControl = false
-x.style.display = "none";
 var camStream = document.getElementById("camStream")
-camStream.style.display = "none"
+var urlParams = new URLSearchParams(window.location.search);
+esn = urlParams.get('serial');
 
 
 // wheels
@@ -38,36 +37,39 @@ function toggleKeyboard() {
     }
 }
 
-function sdkInit() {
-    sendForm('/api-sdk/initSDK')
-    var x = document.getElementById("sdkActions");
-    x.style.display = "block";
+function goBackToSettings() {
+    window.location.href = './settings.html?serial=' + esn
 }
 
 function sdkUnInit() {
     sendForm('/api-sdk/release_behavior_control')
     sendForm('/api-sdk/stop_cam_stream')
     var x = document.getElementById("sdkActions");
-    x.style.display = "none";
 }
 
-function sendForm(formURL) {
+  function sendForm(formURL) {
     let xhr = new XMLHttpRequest();
+      if (formURL.includes("?")) {
+        formURL = formURL + "&serial=" + esn
+      } else {
+        formURL = formURL + "?serial=" + esn
+      }
       xhr.open("POST", formURL);
       xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr.send();
-      return
   }
 
 let keysPressed = {};
 
 function showCamStream() {
-    camStream.style.display = "block"
     sendForm('/api-sdk/begin_cam_stream')
+    var stream = document.createElement("img");
+    stream.src = "/cam-stream?serial=" + esn;
+    document.getElementById("camStream").appendChild(stream)
 }
 
 function stopCamStream() {
-    camStream.style.display = "none"
+    camStream.innerHTML = ""
     sendForm('/api-sdk/stop_cam_stream')
 }
 
