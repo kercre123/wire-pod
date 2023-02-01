@@ -372,8 +372,9 @@ function showLog() {
     GetLog = true
     logDivArea = document.getElementById("botTranscriptedTextArea")
     logP = document.createElement("p")
-    setInterval(function() {
+    interval = setInterval(function() {
         if (GetLog == false) {
+            clearInterval(interval)
             return
         }
         let xhr = new XMLHttpRequest();
