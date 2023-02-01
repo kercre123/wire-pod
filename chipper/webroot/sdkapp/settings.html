@@ -15,12 +15,12 @@
       <div class="main-nav-parent">
         <div class="main-nav-child"><a href="../index.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
         <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot</a></div>
-        <div class="main-nav-child"><a href="control.html"><i class="fa-solid fa-gamepad"></i><br/>Vector Control<br/>(Beta)</a></div>
+        <div class="main-nav-child"><a href="#" onclick="goToControlPage()"><i class="fa-solid fa-gamepad"></i><br/>Vector Control<br/>(Beta)</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i class="fa-solid fa-volume-high" id="icon-volume" name="icon"></i><br/>Volume</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i class="fa-solid fa-eye" id="icon-eyes" name="icon"></i><br/>Eye Color</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-face'); return false;"><i class="fa-solid fa-user" id="icon-face" name="icon"></i><br/>Face Manager</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running" id="icon-actions" name="icon"></i><br/>Quick Actions</a></div>
-        <div class="main-nav-child"><a href="#" onclick="showSection('section-timer'); return false;"><i class="fa-solid fa-stopwatch" id="icon-timer" name="icon"></i><br/>Timer</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-stim'); return false;"><i class="fa-solid fa-face-laugh-beam" id="icon-stim" name="icon"></i><br/>Stimulation</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas" id="icon-locale" name="icon"></i><br/>Locale</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-time'); return false;"><i class="fa-solid fa-clock" id="icon-time" name="icon"></i><br/>Time Format</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-temp'); return false;"><i class="fa-solid fa-temperature-half" id="icon-temp" name="icon"></i><br/>Temperature Units</a></div>
@@ -82,7 +82,7 @@
             <input type="radio" name="eye" id="Purple" value="Purple" onclick="sendForm('/api-sdk/eye_color?color=5')">Purple<br>
           </label>
           <label>
-            <input type="radio" name="eye" id="Kickstarter Green" value="Other Green" onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
+            <input type="radio" name="eye" id="Other Green" value="Other Green" onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
           </label>
         </div>          
 
@@ -124,13 +124,10 @@
 	  <hr>
       </div>
 
-      <div id="section-timer" class="toggleable-section" style="display:none;">
-        <h2 class="center">Timer</h2>
+      <div id="section-stim" class="toggleable-section" style="display:none;">
+        <h2 class="center">Stimulation</h2>
         <div class="center">
-          <form method="POST" action="/api-sdk/set_timer" target="hiddenFrame">
-            <input class="tinput" name="secs" type="text" placeholder="Put seconds here">
-            <input type="submit">
-          </form>
+          <div id="stimStatus"></div>
         </div>
 	<hr>
       </div>
@@ -223,10 +220,10 @@
         <div id="currentLocation" class="center"></div>
         <small class="center">Example: San Francisco, California</small>
         <div class="center">
-          <form method="POST" action="/api-sdk/location" target="hiddenFrame">
-            <input class="tinput" name="location" type="text" placeholder="Put location here">
-            <input class="settingsExtra" type="submit">
-          </form>
+          <input class="tinput" id="locationInput" name="locationInput" type="text" placeholder="Put location here">
+          </div>
+          <div class="center">
+          <button onclick="sendLocation()">Submit Location</button>
         </div>
 	<hr>
       </div>
@@ -236,10 +233,10 @@
         <div id="currentTimeZone" class="center"></div>
         <small class="center">Example: America/Chicago</small>
         <div class="center">
-          <form method="POST" action="/api-sdk/timezone" target="hiddenFrame">
-            <input class="tinput" name="timezone" type="text" placeholder="Put time zone here">
-            <input class="settingsExtra" type="submit">
-          </form>
+            <input class="tinput" id="tzInput" name="tzInput" type="text" placeholder="Put time zone here">
+            </div>
+            <div class="center">
+            <button onclick="sendTimeZone()">Submit Time Zone</button>
         </div>
 	<hr>
       </div>
