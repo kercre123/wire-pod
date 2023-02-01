@@ -7,7 +7,10 @@ var colorPicker = new iro.ColorPicker("#picker", {
   ]
 });
 
-escapepodEnabled = ""
+var stimRunning = false
+
+var urlParams = new URLSearchParams(window.location.search);
+esn = urlParams.get('serial');
 
 var client = new HttpClient();
 getCurrentSettings()
@@ -17,24 +20,87 @@ function revealSdkActions() {
   x.style.display = "block";
 }
 
-document.querySelectorAll('.settingsExtra').forEach(item => {
-  item.addEventListener('click', event => {
-    setTimeout(function(){getCurrentSettings()}, 1700)
-  })
-})
+function showSection(id) {
+  var headings = document.getElementsByClassName("toggleable-section");
+  for (var i = 0; i < headings.length; i++) {
+      headings[i].style.display = "none";
+  }
+  document.getElementById(id).style.display = "block";
+  updateColor(id);
+  if (id == "section-stim") {
+    logDiv = document.getElementById("stimStatus")
+    logP = document.createElement("p")
+    stimRunning = true
+    sendForm("/api-sdk/begin_event_stream")
+    interval = setInterval(function() {
+      if (stimRunning == false) {
+          sendForm("/api-sdk/stop_event_stream")
+          clearInterval(interval)
+          return
+      }
+      let xhr = new XMLHttpRequest();
+      xhr.open("GET", "/api-sdk/get_stim_status?serial=" + esn);
+      xhr.send();
+      xhr.onload = function() {
+              logDiv.innerHTML = ""
+              logP.innerHTML = xhr.response + "/1.00000000"
+              logDiv.appendChild(logP)
+      }
+  }, 1000)
+  
+  } else {
+    stimRunning = false
+  }
+}
 
 function sendForm(formURL) {
   let xhr = new XMLHttpRequest();
-  if (`${escapepodEnabled}` == "true") {
-    alert("This function does not work because Escape Pod is being used.");
-  } else {
+    if (formURL.includes("?")) {
+      formURL = formURL + "&serial=" + esn
+    } else {
+      formURL = formURL + "?serial=" + esn
+    }
     xhr.open("POST", formURL);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send();
     xhr.onload = function() { 
       getCurrentSettings()
     };
+}
+
+function goToControlPage() {
+    window.location.href = './control.html?serial=' + esn
+}
+
+function sendLocation() {
+  locationInput = document.getElementById("locationInput").value
+  console.log(locationInput)
+  if (locationInput == "") {
+    alert("Location cannot be blank.")
+    return
   }
+  let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api-sdk/location?serial=" + esn + "&location=" + locationInput);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+    xhr.onload = function() { 
+      getCurrentSettings()
+    };
+}
+
+function sendTimeZone() {
+  timezone = document.getElementById("tzInput").value
+  if (timezone == "") {
+    alert("Time zone cannot be blank.")
+    return
+  }
+  let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api-sdk/timezone?serial=" + esn + "&timezone=" + timezone);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+    xhr.onload = function() { 
+      getCurrentSettings()
+    };
 }
 
 function sendCustomColor() {
@@ -46,7 +112,7 @@ function sendCustomColor() {
   var sendSat = sendSat.toFixed(3)
   let data = "hue=" + sendHue + "&" + "sat=" + sendSat
   let xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api-sdk/custom_eye_color");
+  xhr.open("POST", "/api-sdk/custom_eye_color?serial=" + esn);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send(data);
   xhr.onload = function() { 
@@ -56,7 +122,7 @@ function sendCustomColor() {
 
 function getCurrentSettings() {
   let xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api-sdk/get_sdk_settings");
+  xhr.open("POST", "/api-sdk/get_sdk_settings?serial=" + esn);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
   xhr.responseType = 'json';
@@ -160,7 +226,9 @@ function getCurrentSettings() {
 
     var s2 = document.getElementById('currentEyeColor');
     const s2P = document.createElement('p');
-    document.getElementById(eyeColorT).checked = true;
+    if (eyeColorT != "none" && eyeColorT != "Custom") {
+      document.getElementById(eyeColorT).checked = true;
+    }
     
     var s3 = document.getElementById('currentLocale');
     const s3P = document.createElement('p');
@@ -181,12 +249,14 @@ function getCurrentSettings() {
     var s10 = document.getElementById('currentLocation');
     const s10P = document.createElement('p');
     s10P.textContent = "Current Location Setting: " + `${location}`
+    document.getElementById('locationInput').placeholder = `${location}`
     s10.innerHTML = ''
     s10.appendChild(s10P);
     
     var s11 = document.getElementById('currentTimeZone');
     const s11P = document.createElement('p');
     s11P.textContent = "Current Time Zone Setting: " + `${timezone}`
+    document.getElementById('tzInput').placeholder = `${timezone}`
     s11.innerHTML = ''
     s11.appendChild(s11P);
   };
