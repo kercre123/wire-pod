@@ -26,7 +26,7 @@ let myChart = new Chart(stimChart, {
     data: {
         labels: [],
         datasets: [{
-            label: 'Stimulation Data',
+            label: 'Stimulation',
             data: [],
             //backgroundColor: 'rgba(255, 99, 132, 0.2)',
             backgroundColor: 'rgba(51, 237, 109, 1)',
@@ -117,7 +117,57 @@ function sendForm(formURL) {
     xhr.onload = function() { 
       getCurrentSettings()
     };
-} 
+}
+
+function getPhotos() {
+  var divCount = 0
+    photoSection = document.getElementById("photoSection")
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api-sdk/get_image_ids?serial=" + esn);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send();
+    xhr.onload = function() {
+        photoSection.innerHTML = ""
+        if (xhr.response == "null") {
+          var noPhotos = document.createElement("p")
+          noPhotos.innerHTML = "No photos found. Tell Vector to take a photo, then refresh the list."
+          photoSection.appendChild(noPhotos)
+          return
+        }
+        imageIds = JSON.parse(xhr.response)
+        for (var i = 0; i < imageIds.length; i++){
+          imgId = imageIds[i]
+          var thumb = document.createElement("div")
+          var thumbLink = document.createElement("a")
+          var thumbPic = document.createElement("img")
+          var thumbDelete = document.createElement("button")
+          thumbPic.src = "/api-sdk/get_image_thumb?serial=" + esn + "&id=" + imgId
+          //thumb.classList = "center"
+          thumbLink.classList = "center"
+          thumbDelete.classList = "center"
+          thumbLink.href = "/api-sdk/get_image?serial=" + esn + "&id=" + imgId
+          thumbLink.appendChild(thumbPic)
+          thumbDelete.onclick = function(){deletePhoto(imgId)}
+          thumbDelete.innerHTML = "Delete"
+          thumb.appendChild(thumbLink)
+          thumb.appendChild(thumbDelete)
+          photoSection.appendChild(thumb)
+        }
+    };
+}
+
+function deletePhoto(id) {
+  if(confirm("Are you sure?")){
+    // run code here
+  let xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api-sdk/delete_image?serial=" + esn + "&id=" + id);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send();
+  xhr.onload = function() {
+    getPhotos()
+  };
+}
+}
 
 function goToControlPage() {
     window.location.href = './control.html?serial=' + esn
@@ -125,7 +175,6 @@ function goToControlPage() {
 
 function sendLocation() {
   locationInput = document.getElementById("locationInput").value
-  console.log(locationInput)
   if (locationInput == "") {
     alert("Location cannot be blank.")
     return

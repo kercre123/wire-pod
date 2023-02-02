@@ -21,6 +21,7 @@
         <div class="main-nav-child"><a href="#" onclick="showSection('section-face'); return false;"><i class="fa-solid fa-user" id="icon-face" name="icon"></i><br/>Face Manager</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running" id="icon-actions" name="icon"></i><br/>Quick Actions</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-stim'); return false;"><i class="fa-solid fa-face-laugh-beam" id="icon-stim" name="icon"></i><br/>Stimulation</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-photos'); getPhotos(); return false;"><i class="fa-solid fa-images" id="icon-photos" name="icon"></i><br/>Photos</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas" id="icon-locale" name="icon"></i><br/>Locale</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-time'); return false;"><i class="fa-solid fa-clock" id="icon-time" name="icon"></i><br/>Time Format</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-temp'); return false;"><i class="fa-solid fa-temperature-half" id="icon-temp" name="icon"></i><br/>Temperature Units</a></div>
@@ -128,6 +129,17 @@
         <h2 class="center">Stimulation</h2>
         <div class="center">
           <canvas id="stimChart"></canvas>
+        </div>
+	<hr>
+      </div>
+
+      <div id="section-photos" class="toggleable-section" style="display:none;">
+        <h2 class="center">Photos</h2>
+        <div class="center">
+          <button onclick="getPhotos()" type="submit">Refresh List</button>
+        </div>
+        <div class="center">
+          <div id="photoSection"></div>
         </div>
 	<hr>
       </div>

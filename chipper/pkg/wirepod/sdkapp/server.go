@@ -317,6 +317,72 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		robots[robotIndex].CamStreaming = false
 		fmt.Fprint(w, "done")
 		return
+	case r.URL.Path == "/api-sdk/get_image_ids":
+		var photoIds []uint32
+		resp, _ := robot.Conn.PhotosInfo(
+			ctx,
+			&vectorpb.PhotosInfoRequest{},
+		)
+		for _, photo := range resp.PhotoInfos {
+			photoIds = append(photoIds, photo.PhotoId)
+		}
+		writeBytes, _ := json.Marshal(photoIds)
+		w.Write(writeBytes)
+		return
+	case r.URL.Path == "/api-sdk/get_image":
+		id, err := strconv.Atoi(r.FormValue("id"))
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		resp, err := robot.Conn.Photo(
+			ctx,
+			&vectorpb.PhotoRequest{
+				PhotoId: uint32(id),
+			},
+		)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		w.Write(resp.Image)
+		return
+	case r.URL.Path == "/api-sdk/get_image_thumb":
+		id, err := strconv.Atoi(r.FormValue("id"))
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		resp, err := robot.Conn.Thumbnail(
+			ctx,
+			&vectorpb.ThumbnailRequest{
+				PhotoId: uint32(id),
+			},
+		)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		w.Write(resp.Image)
+		return
+	case r.URL.Path == "/api-sdk/delete_image":
+		id, err := strconv.Atoi(r.FormValue("id"))
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		_, err = robot.Conn.DeletePhoto(
+			ctx,
+			&vectorpb.DeletePhotoRequest{
+				PhotoId: uint32(id),
+			},
+		)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, "done")
+		return
 	}
 }
 
