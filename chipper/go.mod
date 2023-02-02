@@ -22,14 +22,12 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/soheilhy/cmux v0.1.5
 	gopkg.in/ini.v1 v1.67.0
-	hz.tools/mjpeg v0.0.3
 )
 
 require (
 	github.com/PerformLine/go-stockutil v1.9.3 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/alphacep/vosk-api v0.3.45 // indirect
 	github.com/bregydoc/gtranslate v0.0.0-20200913051839-1bd07f6c1fc5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
