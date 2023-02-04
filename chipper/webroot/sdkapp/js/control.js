@@ -38,6 +38,8 @@ function toggleKeyboard() {
 }
 
 function goBackToSettings() {
+    sendForm('/api-sdk/release_behavior_control')
+    sendForm('/api-sdk/stop_cam_stream')
     window.location.href = './settings.html?serial=' + esn
 }
 
@@ -61,16 +63,23 @@ function sdkUnInit() {
 
 let keysPressed = {};
 
+var stream = document.createElement("img");
+
 function showCamStream() {
-    sendForm('/api-sdk/begin_cam_stream')
-    var stream = document.createElement("img");
+    //sendForm('/api-sdk/begin_cam_stream')
     stream.src = "/cam-stream?serial=" + esn;
     document.getElementById("camStream").appendChild(stream)
 }
 
 function stopCamStream() {
-    camStream.innerHTML = ""
+    stream.src = ""
+    document.getElementById("camStream").removeChild(stream)
     sendForm('/api-sdk/stop_cam_stream')
+}
+
+function sayText() {
+    sayText = document.getElementById("textSay").value
+    sendForm("/api-sdk/say_text?text=" + sayText)
 }
 
 keysPressed["w"] = false

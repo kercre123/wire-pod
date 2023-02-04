@@ -50,10 +50,10 @@
       <hr>
       <h2 class="center">Say Text</h2>
       <div class="center">
-        <form method="POST" action="/api-sdk/say_text" target="hiddenFrame">
-          <input class="tinput" name="text" type="text" placeholder="Put text here">
-          <input class="settingsExtra" type="submit">
-        </form>
+        <div class="center">
+          <input class="tinput" name="textSay" id="textSay" type="text" placeholder="Put text here">
+        </div>
+          <button onclick="sayText()" type="submit">Submit</button>
       </div>
     </div>
   </div>
