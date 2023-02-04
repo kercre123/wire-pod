@@ -7,7 +7,6 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -148,7 +147,9 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		robot.Conn.SayText(
 			ctx,
 			&vectorpb.SayTextRequest{
-				Text: r.FormValue("text"),
+				DurationScalar: 1,
+				UseVectorVoice: true,
+				Text:           r.FormValue("text"),
 			},
 		)
 		fmt.Fprintf(w, "success")
@@ -310,7 +311,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "error: must start event stream")
 		return
 	case r.URL.Path == "/api-sdk/begin_cam_stream":
-		robots[robotIndex].CamStreaming = true
+		//robots[robotIndex].CamStreaming = true
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/stop_cam_stream":
@@ -383,6 +384,9 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprint(w, "done")
 		return
+	case r.URL.Path == "/api-sdk/print_robot_info":
+		fmt.Fprint(w, robot)
+		return
 	}
 }
 
@@ -392,6 +396,16 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "error: "+err.Error())
 		return
 	}
+	if robots[robotIndex].CamStreaming {
+		robots[robotIndex].CamStreaming = false
+		time.Sleep(time.Second / 2)
+	}
+	robotObj.Vector.Conn.EnableImageStreaming(
+		robotObj.Ctx,
+		&vectorpb.EnableImageStreamingRequest{
+			Enable: true,
+		},
+	)
 	var client vectorpb.ExternalInterface_CameraFeedClient
 	client, err = robotObj.Vector.Conn.CameraFeed(
 		robotObj.Ctx,
@@ -401,17 +415,19 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "error: "+err.Error())
 		return
 	}
-	i := image.NewGray(image.Rectangle{
-		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: 640, Y: 360},
-	})
 	w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=--boundary")
 	multi := io.MultiWriter(w)
+	robots[robotIndex].CamStreaming = true
 	for {
 		select {
 		case <-r.Context().Done():
-			logger.Println("Stopping MJPEG stream for " + robotObj.ESN + " because client stopped requesting")
-			client.CloseSend()
+			robotObj.Vector.Conn.EnableImageStreaming(
+				robotObj.Ctx,
+				&vectorpb.EnableImageStreamingRequest{
+					Enable: false,
+				},
+			)
+			robots[robotIndex].CamStreaming = false
 			return
 		default:
 			if robots[robotIndex].CamStreaming {
@@ -423,13 +439,13 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 					jpeg.Encode(multi, img, nil)
 				}
 			} else {
-				// if not streaming, generate random noise
-				for j := range i.Pix {
-					i.Pix[j] = uint8(rand.Uint32())
-				}
-				fmt.Fprintf(multi, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
-				jpeg.Encode(multi, i, nil)
-				time.Sleep(time.Second)
+				robotObj.Vector.Conn.EnableImageStreaming(
+					robotObj.Ctx,
+					&vectorpb.EnableImageStreamingRequest{
+						Enable: false,
+					},
+				)
+				return
 			}
 		}
 	}
@@ -449,7 +465,6 @@ func BeginServer() {
 	// camstream
 	http.HandleFunc("/cam-stream", camStreamHandler)
 	logger.Println("Starting SDK app")
-
 	fmt.Printf("Starting server at port 80 for connCheck\n")
 	if err := http.ListenAndServe(":80", nil); err != nil {
 		logger.Println("A process is already using port 80 - connCheck functionality will not work")
