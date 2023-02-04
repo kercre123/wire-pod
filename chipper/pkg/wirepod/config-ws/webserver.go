@@ -14,6 +14,7 @@ import (
 )
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch {
 	default:
 		http.Error(w, "not found", http.StatusNotFound)
@@ -278,7 +279,7 @@ func StartWebServer() {
 	} else {
 		webPort = "8080"
 	}
-	fmt.Printf("Starting webserver at port " + webPort + " (http://localhost:" + webPort + ")\n")
+	fmt.Printf("Starting vectorxws at port " + webPort + " (http://localhost:" + webPort + ")\n")
 	if err := http.ListenAndServe(":"+webPort, nil); err != nil {
 		log.Fatal(err)
 	}
