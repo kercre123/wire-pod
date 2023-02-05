@@ -17,6 +17,7 @@ const (
 	BotConfigsPath    string = "./botConfig.json"
 	BotInfoPath       string = "./jdocs/botSdkInfo.json"
 	PodName           string = "wire-pod"
+	VoskModelPath     string = "../vosk/models/"
 )
 
 // /home/name/.anki_vector/
@@ -25,6 +26,8 @@ var BotJdocs []botjdoc
 var BotInfo RobotInfoStore
 var CustomIntents IntentsStruct
 var CustomIntentsExist bool = false
+var DownloadedVoskModels []string
+var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE"}
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
@@ -87,6 +90,11 @@ func Init() {
 	// load api config (config.go)
 	ReadConfig()
 
+	// check models folder, add all models to DownloadedVoskModels
+	if APIConfig.STT.Service == "vosk" {
+		GetDownloadedVoskModels()
+	}
+
 	// load jdocs. if there are any in the old format, convert
 	jdocsDir, err := os.ReadDir("./jdocs")
 	oldJdocsExisted := false
@@ -144,6 +152,17 @@ func Init() {
 		}
 	}
 	LoadCustomIntents()
+}
+
+func GetDownloadedVoskModels() {
+	array, err := os.ReadDir("../vosk/models/")
+	if err != nil {
+		logger.Println(err)
+		return
+	}
+	for _, dir := range array {
+		DownloadedVoskModels = append(DownloadedVoskModels, dir.Name())
+	}
 }
 
 func LoadCustomIntents() {

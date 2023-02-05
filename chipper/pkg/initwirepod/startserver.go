@@ -71,9 +71,10 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProc
 	logger.Init()
 
 	// begin wirepod stuff
-	p, err := wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	vars.Init()
+	p, err := wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	go wpweb.StartWebServer()
+	wpweb.SttInitFunc = sttInitFunc
 	go sdkWeb.BeginServer()
 	if err != nil {
 		logger.Println(err)
