@@ -16,6 +16,7 @@
       <div class="main-nav-child"><a href="setup.html"><i class="fa-solid fa-gear"></i><br/>API Setup</a></div>
       <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Configure Bots</a></div>
       <div class="main-nav-child"><a href="#" onclick="showIntents(); return false;"><i class="fa solid fa-microphone-lines" id="icon-Intents" name="icon"></i><br/>Custom Intents</a></div>
+      <div class="main-nav-child"><a href="#" onclick="showLanguage(); return false;"><i class="fa-solid fa-language" id="icon-Language" name="icon"></i><br/>Set Language</a></div>
       <div class="main-nav-child"><a href="#" onclick="showLog(); return false;"><i class="fa-solid fa-file-lines" id="icon-Logs" name="icon"></i><br/>Log</a></div>
     </div>
     <hr>
@@ -84,6 +85,26 @@
       <textarea id="botTranscriptedTextArea" rows="4" cols="50">
          loading log...
       </textarea>
+      <hr>
+    </div>
+
+    <div id="section-language" style="display: none;">
+      <h2>STT Language</h2>
+      <div class="center" id="languageStatus"></div>
+      <div id="languageSelectionDiv">
+        <div class="center">
+         <select name="languageSelection" id="languageSelection">
+            <option value="en-US">English (US)</option>
+            <option value="it-IT">Italian (IT)</option>
+            <option value="es-ES">Spanish (ES)</option>
+            <option value="fr-FR">French (FR)</option>
+            <option value="de-DE">German (DE)</option>
+          </select>
+          </div>
+          <div class="center">
+          <button onclick="setSTTLanguage()" type="submit">Set Language</button>
+          </div>
+      </div>
       <hr>
     </div>
     

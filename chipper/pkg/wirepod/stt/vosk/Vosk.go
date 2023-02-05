@@ -3,20 +3,25 @@ package wirepod_vosk
 import (
 	"encoding/json"
 	"log"
-	"os"
 	"strconv"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
 
 var Name string = "vosk"
 
 var model *vosk.VoskModel
+var modelLoaded bool
 
 func Init() error {
-	sttLanguage := os.Getenv("STT_LANGUAGE")
+	if modelLoaded {
+		logger.Println("A model was already loaded, freeing")
+		model.Free()
+	}
+	sttLanguage := vars.APIConfig.STT.Language
 	if len(sttLanguage) == 0 {
 		sttLanguage = "en-US"
 	}
@@ -28,6 +33,7 @@ func Init() error {
 		return err
 	}
 	model = aModel
+	modelLoaded = true
 	logger.Println("VOSK model opened")
 	return nil
 }
