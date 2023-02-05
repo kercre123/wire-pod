@@ -27,6 +27,10 @@ type apiConfig struct {
 		ID          string `json:"id"`
 		IntentGraph bool   `json:"intentgraph"`
 	} `json:"knowledge"`
+	STT struct {
+		Service  string `json:"provider"`
+		Language string `json:"language"`
+	}
 }
 
 func WriteConfigToDisk() {
@@ -59,6 +63,15 @@ func CreateConfigFromEnv() {
 	os.WriteFile(ApiConfigPath, writeBytes, 0644)
 }
 
+func WriteSTT() {
+	// was not part of the original code, so this is its own function
+	// launched if stt not found in config
+	APIConfig.STT.Service = os.Getenv("STT_SERVICE")
+	if os.Getenv("STT_SERVICE") == "vosk" {
+		APIConfig.STT.Language = os.Getenv("STT_LANGUAGE")
+	}
+}
+
 func ReadConfig() {
 	if _, err := os.Stat(ApiConfigPath); err != nil {
 		CreateConfigFromEnv()
@@ -80,6 +93,11 @@ func ReadConfig() {
 			logger.Println("Failed to unmarshal API config JSON")
 			logger.Println(err)
 			return
+		}
+		if APIConfig.STT.Service != os.Getenv("STT_SERVICE") {
+			WriteSTT()
+			writeBytes, _ := json.Marshal(APIConfig)
+			os.WriteFile(ApiConfigPath, writeBytes, 0644)
 		}
 		logger.Println("API config successfully read")
 	}

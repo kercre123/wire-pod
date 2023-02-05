@@ -12,7 +12,6 @@ import (
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/vtt"
-	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
 
 type systemIntentResponseStruct struct {
@@ -120,7 +119,7 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 						} else if arg == "!intentName" {
 							arg = c.Name
 						} else if arg == "!locale" {
-							arg = sr.SttLanguage
+							arg = vars.APIConfig.STT.Language
 						}
 						args = append(args, arg)
 					}
