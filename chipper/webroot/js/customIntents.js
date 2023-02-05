@@ -366,6 +366,7 @@ GetLog = false
 
 function showLog() {
     document.getElementById("section-intents").style.display = "none";
+    document.getElementById("section-language").style.display = "none";
     document.getElementById("section-log").style.display = "block";
     updateColor("icon-Logs");
 
@@ -392,17 +393,36 @@ function showLog() {
     }, 1000)
 }
 
+function showLanguage() {
+  document.getElementById("section-intents").style.display = "none";
+  document.getElementById("section-language").style.display = "block";
+  document.getElementById("section-log").style.display = "none";
+  document.getElementById("languageSelectionDiv").style.display = "none"
+  updateColor("icon-Language");
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/get_stt_info");
+    xhr.send();
+    xhr.onload = function() {
+        parsed = JSON.parse(xhr.response)
+        if (parsed["sttProvider"] != "vosk") {
+          error = document.createElement("p")
+          error.innerHTML = "To set the STT language, the provider must be Vosk. The current one is '" + parsed["sttProvider"] + "'."
+          document.getElementById("languageStatus").appendChild(error)
+          document.getElementById("languageSelectionDiv").style.display = "none"
+        } else {
+          document.getElementById("languageSelectionDiv").style.display = "block"
+          console.log(parsed["sttLanguage"])
+          document.getElementById("languageSelection").value = parsed["sttLanguage"]
+        }
+    }
+}
+
 function showIntents() {
     GetLog = false
     document.getElementById("section-log").style.display = "none";
+    document.getElementById("section-language").style.display = "none";
     document.getElementById("section-intents").style.display = "block";
     updateColor("icon-Intents");
-}
-
-function showBotConfig() {
-    GetLog = false
-    document.getElementById("section-log").style.display = "none";
-    document.getElementById("section-intents").style.display = "none";
 }
 
 function showWeather() {
@@ -549,12 +569,13 @@ function updateKGAPI() {
         })
 }
 
-function sendSTTLanguage() {
-    var language = document.getElementById("sttLanguage").value;
+function setSTTLanguage() {
+    var language = document.getElementById("languageSelection").value;
     var data = "language=" + language;
-    var result = document.getElementById('addSTTStatus');
-    const resultP = document.createElement('p');
-    resultP.textContent =  "Saving...";
+    document.getElementById("languageSelectionDiv").style.display = "none"
+    var result = document.getElementById('languageStatus');
+    var resultP = document.createElement('p');
+    resultP.textContent =  "Setting...";
     result.innerHTML = '';
     result.appendChild(resultP);
     fetch("/api/set_stt_info?" + data)
@@ -562,8 +583,53 @@ function sendSTTLanguage() {
         .then((response) => {
             resultP.innerHTML = response
             result.innerHTML = '';
+            if (response.includes("success")) {
+              resultP.innerHTML = "Language switched successfully."
+              document.getElementById("languageSelectionDiv").style.display = "block"
+            } else if (response.includes("downloading")) {
+              resultP.innerHTML = "Downloading model..."
+              result.appendChild(resultP);
+              updateSTTLanguageDownload()
+              return
+            } else if (response.includes("error")) {
+              document.getElementById("languageSelectionDiv").style.display = "block"
+              resultP.innerHTML = response
+            }
             result.appendChild(resultP);
         })
+}
+
+function updateSTTLanguageDownload() {
+  var resultP = document.createElement('p');
+  var result = document.getElementById('languageStatus');
+  interval = setInterval(function(){
+    fetch("/api/get_download_status")
+      .then(response => response.text())
+      .then((response => {
+        statusText = response
+        if (response.includes("success")) {
+          statusText = "Language switched successfully."
+          resultP.textContent = statusText
+          result.innerHTML = '';
+          result.appendChild(resultP);
+          document.getElementById("languageSelectionDiv").style.display = "block"
+          clearInterval(interval)
+          return
+        } else if (response.includes("error")) {
+          resultP.textContent = statusText
+          result.innerHTML = '';
+          result.appendChild(resultP);
+          document.getElementById("languageSelectionDiv").style.display = "block"
+          clearInterval(interval)
+          return
+        } else if (response.includes("not downloading")) {
+          statusText = "Initiating download..."
+        }
+        resultP.textContent = statusText
+        result.innerHTML = '';
+        result.appendChild(resultP);
+      }))
+  }, 500)
 }
 
 // function updateSTTLanguage() {

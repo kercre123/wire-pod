@@ -11,9 +11,14 @@ import (
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
+	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
 )
 
+var SttInitFunc func() error
+
 func apiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	switch {
 	default:
 		http.Error(w, "not found", http.StatusNotFound)
@@ -211,52 +216,57 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\"", kgIntent)
 		fmt.Fprintf(w, "}")
 		return
-	// language should be done at a lower level, as it requires the download of a model
-	// case r.URL.Path == "/api/set_stt_info":
-	// 	language := r.FormValue("language")
-
-	// 	// Patch source.sh
-	// 	lines, err := readLines("source.sh")
-	// 	var outlines []string
-	// 	if err == nil {
-	// 		for _, line := range lines {
-	// 			if strings.HasPrefix(line, "export STT_LANGUAGE") {
-	// 				line = "export STT_LANGUAGE=" + language
-	// 			}
-	// 			outlines = append(outlines, line)
-	// 		}
-	// 		writeLines(outlines, "source.sh")
-	// 		fmt.Fprintf(w, "Changes saved. Restart needed.")
-	// 	}
-	// 	return
-	// case r.URL.Path == "/api/get_stt_info":
-	// 	sttLanguage := ""
-	// 	sttProvider := ""
-	// 	lines, err := readLines("source.sh")
-	// 	if err == nil {
-	// 		for _, line := range lines {
-	// 			if strings.HasPrefix(line, "export STT_SERVICE=") {
-	// 				sttProvider = strings.SplitAfter(line, "export STT_SERVICE=")[1]
-	// 			} else if strings.HasPrefix(line, "export STT_LANGUAGE=") {
-	// 				sttLanguage = strings.SplitAfter(line, "export STT_LANGUAGE=")[1]
-	// 			}
-	// 		}
-	// 	}
-	// 	fmt.Fprintf(w, "{ ")
-	// 	fmt.Fprintf(w, "  \"sttProvider\": \"%s\",", sttProvider)
-	// 	fmt.Fprintf(w, "  \"sttLanguage\": \"%s\"", sttLanguage)
-	// 	fmt.Fprintf(w, "}")
-	// 	return
-	// resets not needed anymore!
-	// case r.URL.Path == "/api/reset":
-	// 	// im not sure if this works... this is only temporary until a way to restart just the voice processor is added
-	// 	cmd := exec.Command("/bin/sh", "-c", "sudo systemctl restart wire-pod")
-	// 	err := cmd.Run()
-	// 	if err != nil {
-	// 		fmt.Fprintf(w, "%s", err.Error())
-	// 		log.Fatal(err)
-	// 	}
-	// 	return
+	case r.URL.Path == "/api/set_stt_info":
+		language := r.FormValue("language")
+		if vars.APIConfig.STT.Service != "vosk" {
+			fmt.Fprint(w, "error: service must be vosk")
+			return
+		}
+		// check if language is valid
+		matched := false
+		for _, lang := range vars.ValidVoskModels {
+			if lang == language {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			fmt.Fprint(w, "error: language not valid")
+			return
+		}
+		// check if language is downloaded already
+		matched = false
+		for _, lang := range vars.DownloadedVoskModels {
+			if lang == language {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			go DownloadVoskModel(language)
+			fmt.Fprint(w, "downloading language model")
+		} else {
+			vars.APIConfig.STT.Language = language
+			vars.WriteConfigToDisk()
+			processreqs.ReloadVosk()
+			logger.Println("Reloaded voice processor successfully")
+			fmt.Fprint(w, "language switched successfully")
+		}
+		return
+	case r.URL.Path == "/api/get_download_status":
+		fmt.Fprint(w, DownloadStatus)
+		if DownloadStatus == "success" || strings.Contains(DownloadStatus, "error") {
+			DownloadStatus = "not downloading"
+		}
+		return
+	case r.URL.Path == "/api/get_stt_info":
+		sttLanguage := vars.APIConfig.STT.Language
+		sttProvider := vars.APIConfig.STT.Service
+		fmt.Fprintf(w, "{ ")
+		fmt.Fprintf(w, "  \"sttProvider\": \"%s\",", sttProvider)
+		fmt.Fprintf(w, "  \"sttLanguage\": \"%s\"", sttLanguage)
+		fmt.Fprintf(w, "}")
+		return
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
 		return
@@ -280,6 +290,37 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(fileBytes)
 		return
 	}
+}
+
+func DownloadVoskModel(language string) {
+	filename := "vosk-model-small-"
+	if language == "en-US" {
+		filename = filename + "en-us-0.15.zip"
+	} else if language == "it-IT" {
+		filename = filename + "it-0.22.zip"
+	} else if language == "es-ES" {
+		filename = filename + "es-0.42.zip"
+	} else if language == "fr-FR" {
+		filename = filename + "fr-0.22.zip"
+	} else if language == "de-DE" {
+		filename = filename + "de-0.15.zip"
+	} else {
+		logger.Println("Language not valid? " + language)
+		return
+	}
+	url := "https://alphacephei.com/vosk/models/" + filename
+	filepath := os.TempDir() + "/" + filename
+	destpath := "../vosk/models/" + language + "/"
+	DownloadFile(url, filepath)
+	UnzipFile(filepath, destpath)
+	os.Rename(destpath+strings.TrimSuffix(filename, ".zip"), destpath+"model")
+	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
+	DownloadStatus = "Reloading voice processor"
+	vars.APIConfig.STT.Language = language
+	vars.WriteConfigToDisk()
+	processreqs.ReloadVosk()
+	logger.Println("Reloaded voice processor successfully")
+	DownloadStatus = "success"
 }
 
 func StartWebServer() {

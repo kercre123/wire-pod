@@ -3,7 +3,6 @@ package speechrequest
 import (
 	"encoding/binary"
 	"errors"
-	"os"
 	"strconv"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
@@ -19,7 +18,6 @@ import (
 var BotNum = 0
 
 // need a good place for everywhere to be able to see this without causing import cycle
-var SttLanguage = "en-US"
 
 type SpeechRequest struct {
 	Device         string
@@ -37,13 +35,6 @@ type SpeechRequest struct {
 	IsOpus         bool
 	OpusStream     opus.OggStream
 	BotNum         int
-}
-
-func InitLanguage() {
-	SttLanguage = os.Getenv("STT_LANGUAGE")
-	if len(SttLanguage) == 0 {
-		SttLanguage = "en-US"
-	}
 }
 
 func BytesToSamples(buf []byte) []int16 {
