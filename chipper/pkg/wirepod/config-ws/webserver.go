@@ -11,6 +11,7 @@ import (
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
+	"github.com/kercre123/chipper/pkg/wirepod/botsetup"
 	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
 )
 
@@ -325,6 +326,7 @@ func DownloadVoskModel(language string) {
 
 func StartWebServer() {
 	var webPort string
+	botsetup.RegisterBLEAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
 	webRoot := http.FileServer(http.Dir("./webroot"))
