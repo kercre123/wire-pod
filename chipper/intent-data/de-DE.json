@@ -1,7 +1,7 @@
 [
   {
     "name" : "intent_names_username_extend",
-    "keyphrases": ["Mein Name ist", "Ich bin", "hier ist" "Ich heiße"]
+    "keyphrases": ["Mein Name ist", "Ich bin", "hier ist", "Ich heiße"]
   },
   {
     "name": "intent_weather_extend",
@@ -53,7 +53,7 @@
   },
   {
     "name": "intent_amazon_signin",
-    "Keyphrasen": ["Enter Alexa", "Registriere dich bei Alexa", "Active Alexa", "Schalte Alexa ein", "aktiviere Alexa",]
+    "Keyphrasen": ["Enter Alexa", "Registriere dich bei Alexa", "Active Alexa", "Schalte Alexa ein", "aktiviere Alexa"]
   },
   {
     "name": "intent_amazon_signin",

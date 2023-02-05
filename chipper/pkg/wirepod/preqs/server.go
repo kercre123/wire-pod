@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 	ttr "github.com/kercre123/chipper/pkg/wirepod/ttr"
 )
@@ -23,6 +24,8 @@ type JsonIntent struct {
 
 var sttLanguage string = "en-US"
 
+var sttInitFunc func() error
+
 // speech-to-text
 var sttHandler func(sr.SpeechRequest) (string, error)
 
@@ -34,15 +37,26 @@ var isSti bool = false
 var matchListList [][]string
 var intentsList = []string{}
 
-func loadIntents(language string) ([][]string, []string, error) {
-	jsonFile, err := os.ReadFile("./intent-data/" + language + ".json")
+func ReloadVosk() {
+	if vars.APIConfig.STT.Service == "vosk" {
+		sttInitFunc()
+		matchListList, intentsList, _ = loadIntents()
+	}
+}
+
+func loadIntents() ([][]string, []string, error) {
+	jsonFile, err := os.ReadFile("./intent-data/" + vars.APIConfig.STT.Language + ".json")
 
 	var matches [][]string
 	var intents []string
 
 	if err == nil {
 		var jsonIntents []JsonIntent
-		json.Unmarshal(jsonFile, &jsonIntents)
+		err = json.Unmarshal(jsonFile, &jsonIntents)
+		if err != nil {
+			logger.Println("Failed to load intents:")
+			logger.Println(err)
+		}
 
 		for _, element := range jsonIntents {
 			//logger.Println("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
@@ -58,13 +72,13 @@ func loadIntents(language string) ([][]string, []string, error) {
 func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (*Server, error) {
 
 	// Decide the TTS language
-	sr.InitLanguage()
-	sttLanguage = sr.SttLanguage
+	sttLanguage = vars.APIConfig.STT.Language
 	logger.Println("Initiating " + voiceProcessor + " voice processor with language " + sttLanguage)
 	err := InitFunc()
 	if err != nil {
 		return nil, err
 	}
+	sttInitFunc = InitFunc
 
 	// SttHandler can either be `func(sr.SpeechRequest) (string, error)` or `func (sr.SpeechRequest) (string, map[string]string, error)`
 	// second one exists to accomodate Rhino
@@ -81,7 +95,7 @@ func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (
 
 	// Initiating the chosen voice processor and load intents from json
 	VoiceProcessor = voiceProcessor
-	matchListList, intentsList, err = loadIntents(sttLanguage)
+	matchListList, intentsList, err = loadIntents()
 
 	// Load plugins
 	ttr.LoadPlugins()
