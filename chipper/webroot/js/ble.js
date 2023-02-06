@@ -55,6 +55,11 @@ var Scanning = false
 var IsScanning = false
 
 function ScanRobots(returning) {
+    disconnectButtonDiv = document.getElementById("disconnectButton")
+    disconnectButton = document.createElement("button")
+    disconnectButton.onclick = function(){Disconnect()}
+    disconnectButton.innerHTML = "Disconnect"
+    disconnectButtonDiv.appendChild(disconnectButton)
     Scanning = true
     authEl.innerHTML = ""
     statusDiv = document.createElement("div")
@@ -155,6 +160,20 @@ function ConnectRobotBuffer(id) {
     }
 }
 
+function Disconnect() {
+    disconnectButtonDiv = document.getElementById("disconnectButton")
+    disconnectButtonDiv.innerHTML = ""
+    authEl.innerHTML = ""
+    statusP.innerHTML = "Disconnecting..."
+    authEl.appendChild(statusP)
+    fetch("/api-ble/disconnect")
+    .then((response) => {
+    setTimeout(function(){
+        checkBLECapability();
+    }, 2000)
+})
+}
+
 function ConnectRobot(id) {
     fetch("/api-ble/connect?id=" + id)
     .then(response => response.text())
@@ -242,10 +261,12 @@ function ScanWifi() {
             scanAgain.innerHTML = "Scan Again"
             scanAgain.onclick = function(){ScanWifi()}
             authEl.appendChild(scanAgain)
+            authEl.appendChild(document.createElement("br"))
             // add network buttons
             var networks = JSON.parse(this.responseText);
             for (var i = 0; i < networks.length; i++) {
               var ssid = networks[i].ssid;
+              if (ssid != "") {
               var authtype = networks[i].authtype;
               var btn = document.createElement("button");
               btn.innerHTML = ssid;
@@ -255,6 +276,7 @@ function ScanWifi() {
                 };
               })(ssid, authtype);
               authEl.appendChild(btn);
+            }
             }
           }
         };
@@ -303,7 +325,7 @@ function ConnectWifi(ssid, authtype) {
             authEl.innerHTML = ""
             button = document.createElement("button")
             button.innerHTML = "Click to authenticate"
-            button.onclick = function(){WifiCheck()}
+            button.onclick = function(){DoAuth()}
             authEl.appendChild(button)
         }
     })
