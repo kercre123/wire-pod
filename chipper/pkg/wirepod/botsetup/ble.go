@@ -19,6 +19,11 @@ type VectorsBle struct {
 	Address string `json:"address"`
 }
 
+type WifiNetwork struct {
+	SSID     string `json:"ssid"`
+	AuthType int    `json:"authtype"`
+}
+
 var BleClient *ble.VectorBLE
 var BleInited bool
 
@@ -57,7 +62,7 @@ func SendPin(pin string, client *ble.VectorBLE) error {
 }
 
 func AuthRobot(client *ble.VectorBLE) (bool, error) {
-	resp, err := client.Auth("dontneedakey")
+	resp, err := client.Auth("2vMhFgktH3Jrbemm2WHkfGN")
 	if err != nil {
 		return false, err
 	}
@@ -67,6 +72,10 @@ func AuthRobot(client *ble.VectorBLE) (bool, error) {
 func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.URL.Path == "/api-ble/init":
+		if BleInited {
+			fmt.Fprint(w, "success (ble already initiated, disconnect to reinit)")
+			return
+		}
 		var err error
 		BleClient, err = InitBle()
 		if err != nil {
@@ -117,41 +126,75 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(err.Error(), "EOF") {
 				logger.Println("Wrong BLE pin was entered (sendpin error = eof), reinitializing BLE client")
 				BleClient.Close()
-				time.Sleep(time.Second / 3)
+				time.Sleep(time.Second / 2)
 				BleClient, err = InitBle()
 				if err != nil {
 					fmt.Fprint(w, "error reinitializing ble: "+err.Error())
 					return
 				}
-				fmt.Fprint(w, "incorrect pin or other unexplained error")
+				fmt.Fprint(w, "incorrect pin")
 			}
 			return
 		}
 		fmt.Fprint(w, "success")
 		return
-	case r.URL.Path == "/api-ble/get_firmware":
-		if !BleInited {
-			fmt.Fprint(w, "error: init ble first")
-			return
-		}
+	case r.URL.Path == "/api-ble/get_wifi_status":
 		resp, err := BleClient.GetStatus()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		fmt.Fprint(w, resp.Version)
+		fmt.Fprint(w, resp.WifiState)
 		return
-	case r.URL.Path == "/api-ble/auth":
-		if !BleInited {
-			fmt.Fprint(w, "error: init ble first")
-			return
-		}
-		success, err := AuthRobot(BleClient)
+	case r.URL.Path == "/api-ble/scan_wifi":
+		var returnNetworks []WifiNetwork
+		resp, err := BleClient.WifiScan()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		fmt.Fprint(w, success)
+		for _, network := range resp.Networks {
+			var returnNetwork WifiNetwork
+			returnNetwork.SSID = network.WifiSSID
+			returnNetwork.AuthType = network.AuthType
+			returnNetworks = append(returnNetworks, returnNetwork)
+		}
+		returnJson, _ := json.Marshal(returnNetworks)
+		w.Write(returnJson)
+		return
+	case r.URL.Path == "/api-ble/connect_wifi":
+		if r.FormValue("ssid") == "" || r.FormValue("password") == "" {
+			fmt.Fprint(w, "error: ssid or password empty")
+			return
+		}
+		authType, err := strconv.Atoi(r.FormValue("authType"))
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+		}
+		resp, err := BleClient.WifiConnect(r.FormValue("ssid"), r.FormValue("password"), 15, authType)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, resp.Result)
+	case r.URL.Path == "/api-ble/do_auth":
+		if !BleInited {
+			fmt.Fprint(w, "error: init ble first")
+			return
+		}
+		resp, err := AuthRobot(BleClient)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		if resp {
+			BleClient.SDKProxy(&ble.SDKProxyRequest{
+				URLPath: "/v1/send_onboarding_input",
+				Body:    `{"onboarding_mark_complete_and_exit": {}}`,
+			},
+			)
+		}
+		fmt.Fprint(w, resp)
 		return
 	case r.URL.Path == "/api-ble/disconnect":
 		err := BleClient.Close()

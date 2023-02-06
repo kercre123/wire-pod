@@ -14,8 +14,9 @@
 
     <div class="main-nav-parent">
       <div class="main-nav-child"><a href="setup.html"><i class="fa-solid fa-gear"></i><br/>API Setup</a></div>
-      <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Configure Bots</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showIntents(); return false;"><i class="fa solid fa-microphone-lines" id="icon-Intents" name="icon"></i><br/>Custom Intents</a></div>
+      <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Bot Settings</a></div>
+      <div class="main-nav-child"><a href="#" onclick="showBotAuth(); return false;"><i class="fa-solid fa-robot" id="icon-BotAuth" name="auth"></i><br/>Bot Setup</a></div>
+      <div class="main-nav-child"><a href="#" onclick="showIntents(); return false;"><i class="fa-solid fa-microphone-lines" id="icon-Intents" name="icon"></i><br/>Custom Intents</a></div>
       <div class="main-nav-child"><a href="#" onclick="showLanguage(); return false;"><i class="fa-solid fa-language" id="icon-Language" name="icon"></i><br/>Set Language</a></div>
       <div class="main-nav-child"><a href="#" onclick="showLog(); return false;"><i class="fa-solid fa-file-lines" id="icon-Logs" name="icon"></i><br/>Log</a></div>
     </div>
@@ -80,6 +81,14 @@
       </div>
     </div>
 
+    <div id="section-botauth" style="display: none;">
+      <h2>Bot Authentication</h2>
+      <div id="center">
+        <div id="botAuth"></div>
+      </div>
+      <hr>
+    </div>
+
     <div id="section-log" style="display: none;">
       <h2>Log</h2>
       <textarea id="botTranscriptedTextArea" rows="4" cols="50">
@@ -112,5 +121,6 @@
 </body>
 
 <script src="./js/customIntents.js"></script>
+<script src="./js/ble.js"></script>
 <script src="./sdkapp/js/main.js"></script>
 </html>
