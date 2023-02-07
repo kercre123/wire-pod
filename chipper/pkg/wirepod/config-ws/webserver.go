@@ -327,6 +327,7 @@ func DownloadVoskModel(language string) {
 func StartWebServer() {
 	var webPort string
 	botsetup.RegisterBLEAPI()
+	botsetup.RegisterSSHAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
 	webRoot := http.FileServer(http.Dir("./webroot"))

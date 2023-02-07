@@ -59,6 +59,7 @@ func CreateConfigFromEnv() {
 	} else {
 		APIConfig.Knowledge.Enable = false
 	}
+	WriteSTT()
 	writeBytes, _ := json.Marshal(APIConfig)
 	os.WriteFile(ApiConfigPath, writeBytes, 0644)
 }
