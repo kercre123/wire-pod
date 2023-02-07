@@ -361,13 +361,13 @@ function updateColor(id) {
   document.getElementById(l_id).style.color = fgColor;
 }
 
-
 GetLog = false
 
 function showLog() {
     document.getElementById("section-intents").style.display = "none";
     document.getElementById("section-language").style.display = "none";
     document.getElementById("section-log").style.display = "block";
+    document.getElementById("section-botauth").style.display = "none";
     updateColor("icon-Logs");
 
     GetLog = true
@@ -394,9 +394,11 @@ function showLog() {
 }
 
 function showLanguage() {
+  GetLog = false
   document.getElementById("section-intents").style.display = "none";
   document.getElementById("section-language").style.display = "block";
   document.getElementById("section-log").style.display = "none";
+  document.getElementById("section-botauth").style.display = "none";
   document.getElementById("languageSelectionDiv").style.display = "none"
   updateColor("icon-Language");
     let xhr = new XMLHttpRequest();
@@ -421,6 +423,7 @@ function showIntents() {
     GetLog = false
     document.getElementById("section-log").style.display = "none";
     document.getElementById("section-language").style.display = "none";
+    document.getElementById("section-botauth").style.display = "none";
     document.getElementById("section-intents").style.display = "block";
     updateColor("icon-Intents");
 }
