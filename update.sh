@@ -1,5 +1,28 @@
 #!/bin/bash
 
+# ensure all required packages are installed
+if [[ -f /usr/bin/apt ]]; then
+    TARGET="debian"
+    echo "Debian-based Linux confirmed."
+elif [[ -f /usr/bin/pacman ]]; then
+    TARGET="arch"
+    echo "Arch Linux confirmed."
+elif [[ -f /usr/bin/dnf ]]; then
+    TARGET="fedora"
+    echo "Fedora/openSUSE detected."
+fi
+
+if [[ ${TARGET} == "debian" ]]; then
+    sudo apt update -y
+    sudo apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev
+elif [[ ${TARGET} == "arch" ]]; then
+    sudo pacman -Sy --noconfirm
+    sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium
+elif [[ ${TARGET} == "fedora" ]]; then
+    sudo dnf update
+    sudo dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
+fi
+
 if [[ ! -d ./chipper ]]; then
   echo "This must be run in the wire-pod/ directory."
   exit 1

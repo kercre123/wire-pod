@@ -120,7 +120,6 @@ function sendForm(formURL) {
 }
 
 function getPhotos() {
-  var divCount = 0
     photoSection = document.getElementById("photoSection")
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/api-sdk/get_image_ids?serial=" + esn);
