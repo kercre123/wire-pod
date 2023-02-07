@@ -2,6 +2,7 @@ package botsetup
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -28,8 +29,21 @@ var BleClient *ble.VectorBLE
 var BleInited bool
 
 func InitBle() (*ble.VectorBLE, error) {
-	client, err := ble.New()
-	return client, err
+	done := make(chan bool)
+	var client *ble.VectorBLE
+	var err error
+
+	go func() {
+		client, err = ble.New()
+		done <- true
+	}()
+
+	select {
+	case <-done:
+		return client, err
+	case <-time.After(5 * time.Second):
+		return nil, errors.New("took more than 5 seconds to create client")
+	}
 }
 
 func ScanForVectors(client *ble.VectorBLE) ([]VectorsBle, error) {
