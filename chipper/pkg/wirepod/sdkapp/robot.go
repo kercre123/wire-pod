@@ -3,6 +3,7 @@ package sdkapp
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 )
 
 var robots []Robot
+var timerStopIndexes []int
 var inhibitCreation bool
 
 type Robot struct {
@@ -25,6 +27,7 @@ type Robot struct {
 	EventStreamClient vectorpb.ExternalInterface_EventStreamClient
 	EventsStreaming   bool
 	StimState         float32
+	ConnTimer         int32
 	Ctx               context.Context
 }
 
@@ -98,6 +101,9 @@ func newRobot(serial string) (Robot, int, error) {
 	robots = append(robots, RobotObj)
 	robotIndex := len(robots) - 1
 
+	// begin inactivity timer
+	go connTimer(robotIndex)
+
 	inhibitCreation = false
 	return RobotObj, robotIndex, nil
 }
@@ -118,15 +124,50 @@ func getRobot(serial string) (Robot, int, error) {
 	return newRobot(serial)
 }
 
-// func removeRobot(serial string) {
-// 	var newRobots []Robot
-// 	for _, robot := range robots {
-// 		if !strings.EqualFold(serial, robot.ESN) {
-// 			newRobots = append(newRobots, robot)
-// 		} else {
-// 			robot.CamStreamClient.CloseSend()
-// 			robot.EventStreamClient.CloseSend()
-// 		}
-// 	}
-// 	robots = newRobots
-// }
+// if connection is inactive for more than 5 minutes, remove robot
+// run this as a goroutine
+func connTimer(ind int) {
+	robots[ind].ConnTimer = 0
+	for {
+		time.Sleep(time.Second)
+		// check if timer needs to be stopped
+		for _, num := range timerStopIndexes {
+			if num == ind {
+				logger.Println("Conn timer for robot index " + strconv.Itoa(ind) + " stopping")
+				var newIndexes []int
+				for _, num := range timerStopIndexes {
+					if num != ind {
+						newIndexes = append(newIndexes, num)
+					}
+				}
+				timerStopIndexes = newIndexes
+				return
+			}
+		}
+		if robots[ind].ConnTimer >= 300 {
+			logger.Println("Closing SDK connection for " + robots[ind].ESN + ", source: connTimer")
+			removeRobot(robots[ind].ESN)
+			return
+		}
+		robots[ind].ConnTimer = robots[ind].ConnTimer + 1
+	}
+}
+
+func removeRobot(serial string) {
+	inhibitCreation = true
+	var newRobots []Robot
+	for ind, robot := range robots {
+		if !strings.EqualFold(serial, robot.ESN) {
+			newRobots = append(newRobots, robot)
+		} else {
+			if robot.CamStreaming {
+				robot.CamStreaming = false
+				timerStopIndexes = append(timerStopIndexes, ind)
+				// give it time to stop the camera stream
+				time.Sleep(time.Second / 2)
+			}
+		}
+	}
+	robots = newRobots
+	inhibitCreation = false
+}
