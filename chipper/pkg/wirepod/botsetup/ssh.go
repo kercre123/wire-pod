@@ -2,11 +2,12 @@ package botsetup
 
 import (
 	"context"
-	"encoding/pem"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	scp "github.com/bramvdbogaerde/go-scp"
 	"github.com/kercre123/chipper/pkg/logger"
@@ -17,12 +18,13 @@ import (
 const SetupScriptPath = "../vector-cloud/pod-bot-install.sh"
 
 // path to copy to
-const BotSetupPath = "/data/"
+const BotSetupPath = "/data/pod-bot-install.sh"
 
 var SetupSSHStatus string = "not running"
 var SettingUp bool = false
 
 func doErr(err error) error {
+	logger.Println(err)
 	SettingUp = false
 	SetupSSHStatus = "not running (last error: " + err.Error() + ")"
 	return err
@@ -37,14 +39,16 @@ func runCmd(client *ssh.Client, cmd string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	logger.Println(string(output))
 	return string(output), nil
 }
 
 func SetupBotViaSSH(ip string, key []byte) error {
 	if !SettingUp {
+		logger.Println("Setting up " + ip + " via SSH")
 		SetupSSHStatus = "Setting up SSH connection..."
-		sshCert, _ := pem.Decode(key)
-		signer, err := ssh.ParsePrivateKey(sshCert.Bytes)
+		logger.Println(string(key))
+		signer, err := ssh.ParsePrivateKey(key)
 		if err != nil {
 			doErr(err)
 		}
@@ -53,24 +57,30 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			Auth: []ssh.AuthMethod{
 				ssh.PublicKeys(signer),
 			},
-			Timeout: 5,
+			HostKeyCallback:   ssh.InsecureIgnoreHostKey(),
+			HostKeyAlgorithms: []string{"ssh-rsa"},
+			Timeout:           time.Second * 5,
 		}
 		client, err := ssh.Dial("tcp", ip+":22", config)
 		if err != nil {
 			return doErr(err)
 		}
 		SetupSSHStatus = "Checking if device is a Vector..."
-		output, err := runCmd(client, "/bin/bash uname -a")
+		logger.Println("check")
+		output, err := runCmd(client, "uname -a")
 		if err != nil {
 			return doErr(err)
 		}
+		logger.Println(output)
 		if !strings.Contains(output, "Vector") {
 			return doErr(fmt.Errorf("the remote device is not a vector"))
 		}
-		SetupSSHStatus = "Running initial commands before transfers..."
+		SetupSSHStatus = "Running initial commands before transfers (screen will go blank, this is normal)..."
 		_, err = runCmd(client, "mount -o rw,remount / && mount -o rw,remount,exec /data && systemctl stop anki-robot.target && mv /anki/data/assets/cozmo_resources/config/server_config.json /anki/data/assets/cozmo_resources/config/server_config.json.bak")
 		if err != nil {
-			return doErr(err)
+			if !strings.Contains(err.Error(), "Process exited with status 1") {
+				return doErr(err)
+			}
 		}
 		SetupSSHStatus = "Transferring bot setup script and certs..."
 		scpClient, err := scp.NewClientBySSH(client)
@@ -81,18 +91,24 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err)
 		}
-		err = scpClient.CopyFile(context.Background(), script, "/data/", "0755")
+		err = scpClient.CopyFile(context.Background(), script, "/data/pod-bot-install.sh", "0755")
 		if err != nil {
 			return doErr(err)
 		}
+		scpClient.Session.Close()
 		serverConfig, err := os.Open("../certs/server_config.json")
 		if err != nil {
 			return doErr(err)
 		}
-		err = scpClient.CopyFile(context.Background(), serverConfig, "/anki/data/assets/cozmo_resources/config/", "0755")
+		scpClient, err = scp.NewClientBySSH(client)
 		if err != nil {
 			return doErr(err)
 		}
+		err = scpClient.CopyFile(context.Background(), serverConfig, "/anki/data/assets/cozmo_resources/config/server_config.json", "0755")
+		if err != nil {
+			return doErr(err)
+		}
+		scpClient.Session.Close()
 		certPath := "../certs/cert.crt"
 		if _, err := os.Stat("./useepod"); err == nil {
 			certPath = "./epod/ep.crt"
@@ -101,16 +117,24 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err)
 		}
+		scpClient, err = scp.NewClientBySSH(client)
+		if err != nil {
+			return doErr(err)
+		}
 		err = scpClient.CopyFile(context.Background(), cert, "/anki/etc/wirepod-cert.crt", "0755")
 		if err != nil {
 			return doErr(err)
 		}
-		SetupSSHStatus = "Running final commands (this may take a while)..."
-		output, err = runCmd(client, "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/wirepod-cert.crt /anki/etc/wirepod-cert.crt /data/pod-bot-install.sh && /data/pod-bot-install.sh")
+		scpClient.Session.Close()
+		_, err = runCmd(client, "cp /anki/etc/wirepod-cert.crt /data/data/wirepod-cert.crt")
 		if err != nil {
 			return doErr(err)
 		}
-		logger.Println(string(output))
+		SetupSSHStatus = "Running final commands (this may take a while)..."
+		_, err = runCmd(client, "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/wirepod-cert.crt /anki/etc/wirepod-cert.crt /data/pod-bot-install.sh && /data/pod-bot-install.sh")
+		if err != nil {
+			return doErr(err)
+		}
 		client.Close()
 		SetupSSHStatus = "done"
 	} else {
@@ -132,8 +156,11 @@ func SSHSetup(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: must provide ssh key ("+err.Error()+")")
 			return
 		}
-		var keyBytes []byte
-		key.Read(keyBytes)
+		keyBytes, _ := io.ReadAll(key)
+		if len(keyBytes) < 5 {
+			fmt.Fprint(w, "error: must provide ssh key ("+err.Error()+")")
+			return
+		}
 		go SetupBotViaSSH(ip, keyBytes)
 		fmt.Fprint(w, "running")
 		return
@@ -147,5 +174,5 @@ func SSHSetup(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterSSHAPI() {
-	http.HandleFunc("/api-ssh", SSHSetup)
+	http.HandleFunc("/api-ssh/", SSHSetup)
 }

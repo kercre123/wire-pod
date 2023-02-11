@@ -24,9 +24,12 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
 	robot := robotObj.Vector
 	ctx := robotObj.Ctx
-	if err != nil && r.URL.Path != "/api-sdk/get_sdk_info" {
-		fmt.Fprint(w, "error: "+err.Error())
-		return
+	if r.URL.Path != "/api-sdk/get_sdk_info" {
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		robots[robotIndex].ConnTimer = 0
 	}
 	switch {
 	default:
@@ -386,6 +389,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api-sdk/print_robot_info":
 		fmt.Fprint(w, robot)
+		return
+	case r.URL.Path == "/api-sdk/disconnect":
+		removeRobot(robotObj.ESN)
+		fmt.Fprint(w, "done")
 		return
 	}
 }
