@@ -109,6 +109,19 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(err)
 		}
 		scpClient.Session.Close()
+		cloud, err := os.Open("../vector-cloud/build/vic-cloud")
+		if err != nil {
+			return doErr(err)
+		}
+		scpClient, err = scp.NewClientBySSH(client)
+		if err != nil {
+			return doErr(err)
+		}
+		err = scpClient.CopyFile(context.Background(), cloud, "/anki/bin/vic-cloud", "0755")
+		if err != nil {
+			return doErr(err)
+		}
+		scpClient.Session.Close()
 		certPath := "../certs/cert.crt"
 		if _, err := os.Stat("./useepod"); err == nil {
 			certPath = "./epod/ep.crt"
