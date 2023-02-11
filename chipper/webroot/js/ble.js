@@ -344,5 +344,11 @@ function DoAuth() {
         authP.innerHTML = "Authentication complete!"
         authEl.appendChild(authP)
         fetch("/api-ble/disconnect")
+        disconnectButtonDiv = document.getElementById("disconnectButton")
+        disconnectButtonDiv.innerHTML = ""
+        disconnectButton = document.createElement("button")
+        disconnectButton.onclick = function(){checkBLECapability()}
+        disconnectButton.innerHTML = "Back to setup"
+        disconnectButtonDiv.appendChild(disconnectButton)
     })
 }
