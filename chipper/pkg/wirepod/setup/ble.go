@@ -1,16 +1,20 @@
 package botsetup
 
 import (
+	"archive/tar"
+	"compress/bzip2"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/digital-dream-labs/vector-bluetooth/ble"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vector-bluetooth/ble"
 )
 
 // need JSONable type
@@ -140,7 +144,7 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(err.Error(), "EOF") {
 				logger.Println("Wrong BLE pin was entered (sendpin error = eof), reinitializing BLE client")
 				BleClient.Close()
-				time.Sleep(time.Second / 2)
+				time.Sleep(time.Second)
 				BleClient, err = InitBle()
 				if err != nil {
 					fmt.Fprint(w, "error reinitializing ble: "+err.Error())
@@ -159,6 +163,70 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fmt.Fprint(w, resp.WifiState)
+		return
+	case r.URL.Path == "/api-ble/get_firmware_version":
+		resp, err := BleClient.GetStatus()
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, resp.Version)
+		return
+	case r.URL.Path == "/api-ble/get_ip_address":
+		resp, err := BleClient.WifiIP()
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, resp.IPv4)
+		return
+	case r.URL.Path == "/api-ble/start_ota":
+		otaUrl := r.FormValue("url")
+		if strings.Contains(otaUrl, "https://") {
+			fmt.Fprint(w, "error: ota URL must be http")
+			return
+		}
+		resp, err := BleClient.OTAStart(otaUrl)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, resp.Status)
+		return
+	case r.URL.Path == "/api-ble/get_ota_status":
+		r := <-BleClient.Statuschan
+		logger.Println(r)
+		// get percent
+		percent := r.OTAStatus.PacketNumber / r.OTAStatus.PacketTotal * 100
+		roundedPercent := float64(percent)
+		fmt.Fprint(w, fmt.Sprint(roundedPercent)+"%")
+		return
+	case r.URL.Path == "/api-ble/get_ssh_key":
+		resp, err := BleClient.DownloadLogs()
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		zip, err := os.Open(resp.Filename)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		tarFile := bzip2.NewReader(zip)
+		tarReader := tar.NewReader(tarFile)
+		for {
+			header, err := tarReader.Next()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				fmt.Fprint(w, "error: "+err.Error())
+				return
+			}
+			name := header.FileInfo().Name()
+			logger.Println(name)
+		}
+		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-ble/scan_wifi":
 		var returnNetworks []WifiNetwork
