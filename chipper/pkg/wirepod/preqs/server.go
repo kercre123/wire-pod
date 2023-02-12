@@ -45,6 +45,7 @@ func ReloadVosk() {
 }
 
 func loadIntents() ([][]string, []string, error) {
+	sttLanguage = vars.APIConfig.STT.Language
 	jsonFile, err := os.ReadFile("./intent-data/" + vars.APIConfig.STT.Language + ".json")
 
 	var matches [][]string
@@ -62,7 +63,7 @@ func loadIntents() ([][]string, []string, error) {
 			intents = append(intents, element.Name)
 			matches = append(matches, element.Keyphrases)
 		}
-		logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + sttLanguage + ")")
+		logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + vars.APIConfig.STT.Language + ")")
 	}
 	return matches, intents, err
 }
