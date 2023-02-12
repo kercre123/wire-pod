@@ -11,8 +11,8 @@ import (
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
-	"github.com/kercre123/chipper/pkg/wirepod/botsetup"
 	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
+	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 )
 
 var SttInitFunc func() error
@@ -270,6 +270,13 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
+		return
+	case r.URL.Path == "/api/generate_certs":
+		err := botsetup.CreateCertCombo()
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+		}
+		fmt.Fprint(w, "done")
 		return
 	}
 }

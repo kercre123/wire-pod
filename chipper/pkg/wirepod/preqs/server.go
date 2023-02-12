@@ -54,8 +54,7 @@ func loadIntents() ([][]string, []string, error) {
 		var jsonIntents []JsonIntent
 		err = json.Unmarshal(jsonFile, &jsonIntents)
 		if err != nil {
-			logger.Println("Failed to load intents:")
-			logger.Println(err)
+			logger.Println("Failed to load intents: " + err.Error())
 		}
 
 		for _, element := range jsonIntents {
@@ -63,7 +62,7 @@ func loadIntents() ([][]string, []string, error) {
 			intents = append(intents, element.Name)
 			matches = append(matches, element.Keyphrases)
 		}
-		logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches")
+		logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + sttLanguage + ")")
 	}
 	return matches, intents, err
 }

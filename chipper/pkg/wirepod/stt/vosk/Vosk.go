@@ -17,6 +17,7 @@ var model *vosk.VoskModel
 var modelLoaded bool
 
 func Init() error {
+	vosk.SetLogLevel(-1)
 	if modelLoaded {
 		logger.Println("A model was already loaded, freeing")
 		model.Free()
@@ -26,15 +27,16 @@ func Init() error {
 		sttLanguage = "en-US"
 	}
 	// Open model
-	logger.Println("Opening VOSK model")
-	aModel, err := vosk.NewModel("../vosk/models/" + sttLanguage + "/model")
+	modelPath := "../vosk/models/" + sttLanguage + "/model"
+	logger.Println("Opening VOSK model (" + modelPath + ")")
+	aModel, err := vosk.NewModel(modelPath)
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 	model = aModel
 	modelLoaded = true
-	logger.Println("VOSK model opened")
+	logger.Println("VOSK initiated successfully")
 	return nil
 }
 

@@ -2,6 +2,7 @@ package vars
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -146,10 +147,11 @@ func Init() {
 	botBytes, err := os.ReadFile(BotInfoPath)
 	if err == nil {
 		json.Unmarshal(botBytes, &BotInfo)
-		logger.Println("Loaded bot info file, known bots:")
+		var botList []string
 		for _, robot := range BotInfo.Robots {
-			logger.Println(robot.Esn)
+			botList = append(botList, robot.Esn)
 		}
+		logger.Println("Loaded bot info file, known bots: " + fmt.Sprint(botList))
 	}
 	LoadCustomIntents()
 }

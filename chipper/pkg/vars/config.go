@@ -3,11 +3,12 @@ package vars
 import (
 	"encoding/json"
 	"os"
+	"strings"
 
 	"github.com/kercre123/chipper/pkg/logger"
 )
 
-// there should be a way to create a JSON configuration for wire-pod, rather than using env vars
+// a way to create a JSON configuration for wire-pod, rather than the use of env vars
 
 const ApiConfigPath = "./apiConfig.json"
 
@@ -30,7 +31,12 @@ type apiConfig struct {
 	STT struct {
 		Service  string `json:"provider"`
 		Language string `json:"language"`
-	}
+	} `json:"STT"`
+	Server struct {
+		// false for ip, true for escape pod
+		EPConfig bool   `json:"epconfig"`
+		Port     string `json:"port"`
+	} `json:"server"`
 }
 
 func WriteConfigToDisk() {
@@ -60,6 +66,7 @@ func CreateConfigFromEnv() {
 		APIConfig.Knowledge.Enable = false
 	}
 	WriteSTT()
+	WriteServer()
 	writeBytes, _ := json.Marshal(APIConfig)
 	os.WriteFile(ApiConfigPath, writeBytes, 0644)
 }
@@ -70,6 +77,21 @@ func WriteSTT() {
 	APIConfig.STT.Service = os.Getenv("STT_SERVICE")
 	if os.Getenv("STT_SERVICE") == "vosk" {
 		APIConfig.STT.Language = os.Getenv("STT_LANGUAGE")
+	}
+}
+
+func WriteServer() {
+	// was not part of the original code, so this is its own function
+	// launched if server not found in config
+
+	// check to see if DDL_RPC_TLS_CERTIFICATE matches ./epod/ep.crt
+	epodCertFile, _ := os.ReadFile("./epod/ep.crt")
+	if strings.EqualFold(string(epodCertFile), os.Getenv("DDL_RPC_TLS_CERTIFICATE")) {
+		APIConfig.Server.EPConfig = true
+		APIConfig.Server.Port = "443"
+	} else {
+		APIConfig.Server.EPConfig = false
+		APIConfig.Server.Port = os.Getenv("DDL_RPC_PORT")
 	}
 }
 
@@ -97,9 +119,12 @@ func ReadConfig() {
 		}
 		if APIConfig.STT.Service != os.Getenv("STT_SERVICE") {
 			WriteSTT()
-			writeBytes, _ := json.Marshal(APIConfig)
-			os.WriteFile(ApiConfigPath, writeBytes, 0644)
 		}
+		if APIConfig.Server.Port != os.Getenv("DDL_RPC_PORT") {
+			WriteServer()
+		}
+		writeBytes, _ := json.Marshal(APIConfig)
+		os.WriteFile(ApiConfigPath, writeBytes, 0644)
 		logger.Println("API config successfully read")
 	}
 }
