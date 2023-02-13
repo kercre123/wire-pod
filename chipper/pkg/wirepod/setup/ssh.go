@@ -38,7 +38,6 @@ func runCmd(client *ssh.Client, cmd string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	logger.Println(string(output))
 	return string(output), nil
 }
 
@@ -68,7 +67,6 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err)
 		}
-		logger.Println(output)
 		if !strings.Contains(output, "Vector") {
 			return doErr(fmt.Errorf("the remote device is not a vector"))
 		}

@@ -248,6 +248,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "downloading language model")
 		} else {
 			vars.APIConfig.STT.Language = language
+			vars.APIConfig.PastInitialSetup = true
 			vars.WriteConfigToDisk()
 			processreqs.ReloadVosk()
 			logger.Println("Reloaded voice processor successfully")
@@ -320,6 +321,7 @@ func DownloadVoskModel(language string) {
 		logger.Println("Language not valid? " + language)
 		return
 	}
+	os.MkdirAll("../vosk", 0755)
 	url := "https://alphacephei.com/vosk/models/" + filename
 	filepath := os.TempDir() + "/" + filename
 	destpath := "../vosk/models/" + language + "/"
@@ -329,6 +331,7 @@ func DownloadVoskModel(language string) {
 	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
 	DownloadStatus = "Reloading voice processor"
 	vars.APIConfig.STT.Language = language
+	vars.APIConfig.PastInitialSetup = true
 	vars.WriteConfigToDisk()
 	processreqs.ReloadVosk()
 	logger.Println("Reloaded voice processor successfully")

@@ -96,6 +96,7 @@ func CreateCertCombo() error {
 	})
 
 	// export certificates
+	os.MkdirAll("../certs", 0644)
 	logger.Println("Outputting certificate to " + CertPath)
 	err = os.WriteFile(CertPath, certPEM.Bytes(), 0644)
 	if err != nil {

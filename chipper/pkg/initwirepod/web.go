@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 )
@@ -28,14 +29,15 @@ func ChipperHTTPApi(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: port is invalid")
 			return
 		}
+		vars.APIConfig.Server.EPConfig = false
+		vars.APIConfig.Server.Port = port
 		err = botsetup.CreateCertCombo()
 		botsetup.CreateServerConfig()
 		if err != nil {
+			logger.Println(err)
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		vars.APIConfig.Server.EPConfig = false
-		vars.APIConfig.Server.Port = port
 		vars.APIConfig.PastInitialSetup = true
 		vars.WriteConfigToDisk()
 		RestartServer()
