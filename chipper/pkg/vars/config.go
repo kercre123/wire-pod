@@ -37,6 +37,8 @@ type apiConfig struct {
 		EPConfig bool   `json:"epconfig"`
 		Port     string `json:"port"`
 	} `json:"server"`
+	HasReadFromEnv   bool `json:"hasreadfromenv"`
+	PastInitialSetup bool `json:"pastinitialsetup"`
 }
 
 func WriteConfigToDisk() {
@@ -67,6 +69,7 @@ func CreateConfigFromEnv() {
 	}
 	WriteSTT()
 	WriteServer()
+	APIConfig.HasReadFromEnv = true
 	writeBytes, _ := json.Marshal(APIConfig)
 	os.WriteFile(ApiConfigPath, writeBytes, 0644)
 }
@@ -117,11 +120,16 @@ func ReadConfig() {
 			logger.Println(err)
 			return
 		}
+		// stt service is the only thing controlled by shell
 		if APIConfig.STT.Service != os.Getenv("STT_SERVICE") {
 			WriteSTT()
 		}
-		if APIConfig.Server.Port != os.Getenv("DDL_RPC_PORT") {
-			WriteServer()
+		if !APIConfig.HasReadFromEnv {
+			if APIConfig.Server.Port != os.Getenv("DDL_RPC_PORT") {
+				WriteServer()
+				APIConfig.HasReadFromEnv = true
+				APIConfig.PastInitialSetup = true
+			}
 		}
 		writeBytes, _ := json.Marshal(APIConfig)
 		os.WriteFile(ApiConfigPath, writeBytes, 0644)

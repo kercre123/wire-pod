@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"log"
 	"math/big"
@@ -14,13 +15,24 @@ import (
 	"time"
 
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 )
 
 const (
 	OutboundIPTester = "8.8.8.8:80"
 	CertPath         = "../certs/cert.crt"
 	KeyPath          = "../certs/cert.key"
+	ServerConfigPath = "../certs/server_config.json"
 )
+
+type ClientServerConfig struct {
+	Jdocs    string `json:"jdocs"`
+	Token    string `json:"tms"`
+	Chipper  string `json:"chipper"`
+	Check    string `json:"check"`
+	Logfiles string `json:"logfiles"`
+	Appkey   string `json:"appkey"`
+}
 
 func GetOutboundIP() net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
@@ -48,7 +60,7 @@ func CreateCertCombo() error {
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 	}
-	caPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	caPrivKey, err := rsa.GenerateKey(rand.Reader, 1028)
 	if err != nil {
 		return err
 	}
@@ -64,7 +76,7 @@ func CreateCertCombo() error {
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 	}
-	certPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	certPrivKey, err := rsa.GenerateKey(rand.Reader, 1028)
 	if err != nil {
 		return err
 	}
@@ -96,4 +108,30 @@ func CreateCertCombo() error {
 	}
 
 	return nil
+}
+
+// outputs a server config to ../certs/server_config.json
+func CreateServerConfig() {
+	var config ClientServerConfig
+	//{"jdocs": "escapepod.local:443", "tms": "escapepod.local:443", "chipper": "escapepod.local:443", "check": "escapepod.local/ok:80", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}
+	if vars.APIConfig.Server.EPConfig {
+		config.Jdocs = "escapepod.local:443"
+		config.Token = "escapepod.local:443"
+		config.Chipper = "escapepod.local:443"
+		config.Check = "escapepod.local/ok"
+		config.Logfiles = "s3://anki-device-logs-prod/victor"
+		config.Appkey = "oDoa0quieSeir6goowai7f"
+	} else {
+		ip := GetOutboundIP()
+		ipString := ip.String()
+		url := ipString + ":" + vars.APIConfig.Server.Port
+		config.Jdocs = url
+		config.Token = url
+		config.Chipper = url
+		config.Check = ipString + "/ok"
+		config.Logfiles = "s3://anki-device-logs-prod/victor"
+		config.Appkey = "oDoa0quieSeir6goowai7f"
+	}
+	writeBytes, _ := json.Marshal(config)
+	os.WriteFile(ServerConfigPath, writeBytes, 0644)
 }

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo
 
 UNAME=$(uname -a)
@@ -118,127 +120,8 @@ function getPackages() {
     echo
 }
 
-function buildCloud() {
-    echo
-    echo "Installing docker"
-    if [[ ${TARGET} == "debian" ]]; then
-        apt update -y
-        apt install -y docker.io
-    elif [[ ${TARGET} == "arch" ]]; then
-        pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm docker
-    fi
-    systemctl start docker
-    echo
-    cd vector-cloud
-    ./build.sh
-    cd ..
-    echo
-    echo "./vector-cloud/build/vic-cloud built!"
-    echo
-}
-
-function buildChipper() {
-    echo
-    cd chipper
-    echo
-    cd ..
-}
-
-function getLanguage() {
-    if [[ ${sttService} == "vosk" ]]; then
-        origDir=$(pwd)
-        echo
-        echo "Which STT language would you like to use?"
-        echo "1: English (US)"
-        echo "2: Italian (IT)"
-        echo "3: Spanish (ES)"
-        echo "4: French (FR)"
-        echo "5: German (DE)"
-        echo
-        read -p "Enter a number (1): " languageNum
-        if [[ ! -n ${languageNum} ]]; then
-            languageNum="en-US"
-            if [[ ! -d vosk/models/en-US ]]; then
-                cd ${origDir}
-                echo "Downloading English (US) model"
-                mkdir -p vosk/models/en-US
-                cd vosk/models/en-US
-                wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
-                unzip vosk-model-small-en-us-0.15.zip
-                mv vosk-model-small-en-us-0.15 model
-                rm vosk-model-small-en-us-0.15.zip
-            fi
-        elif [[ ${languageNum} == "1" ]]; then
-            languageNum="en-US"
-            if [[ ! -d vosk/models/en-US ]]; then
-                cd ${origDir}
-                echo "Downloading English (US) model"
-                mkdir -p vosk/models/en-US
-                cd vosk/models/en-US
-                wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
-                unzip vosk-model-small-en-us-0.15.zip
-                mv vosk-model-small-en-us-0.15 model
-                rm vosk-model-small-en-us-0.15.zip
-            fi
-        elif [[ ${languageNum} == "2" ]]; then
-            languageNum="it-IT"
-            if [[ ! -d vosk/models/it-IT ]]; then
-                cd ${origDir}
-                echo "Downloading Italian (IT) model"
-                mkdir -p vosk/models/it-IT
-                cd vosk/models/it-IT
-                wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip
-                unzip vosk-model-small-it-0.22.zip
-                mv vosk-model-small-it-0.22 model
-                rm vosk-model-small-it-0.22.zip
-            fi
-        elif [[ ${languageNum} == "3" ]]; then
-            languageNum="es-ES"
-            if [[ ! -d vosk/models/es-ES ]]; then
-                cd ${origDir}
-                echo "Downloading Spanish (ES) model"
-                mkdir -p vosk/models/es-ES
-                cd vosk/models/es-ES
-                wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip
-                unzip vosk-model-small-es-0.42.zip
-                mv vosk-model-small-es-0.42 model
-                rm vosk-model-small-es-0.42.zip
-            fi
-        elif [[ ${languageNum} == "4" ]]; then
-            languageNum="fr-FR"
-            if [[ ! -d vosk/models/fr-FR ]]; then
-                cd ${origDir}
-                echo "Downloading French (FR) model"
-                mkdir -p vosk/models/fr-FR
-                cd vosk/models/fr-FR
-                wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip
-                unzip vosk-model-small-fr-0.22.zip
-                mv vosk-model-small-fr-0.22 model
-                rm vosk-model-small-fr-0.22.zip
-            fi
-        elif [[ ${languageNum} == "5" ]]; then
-            languageNum="de-DE"
-            if [[ ! -d vosk/models/de-DE ]]; then
-                cd ${origDir}
-                echo "Downloading German (DE) model"
-                mkdir -p vosk/models/de-DE
-                cd vosk/models/de-DE
-                wget -q --show-progress --no-check-certificate https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip
-                unzip vosk-model-small-de-0.15.zip
-                mv vosk-model-small-de-0.15 model
-                rm vosk-model-small-de-0.15.zip
-            fi
-        else
-            echo
-            echo "Choose a valid number, or just press enter to use the default number."
-            getLanguage
-        fi
-        cd ${origDir}
-    fi
-}
-
 function getSTT() {
+    echo "export DEBUG_LOGGING=true" > ./chipper/source.sh
     rm -f ./chipper/pico.key
     function sttServicePrompt() {
         if [[ ${TARGET} == "darwin" ]]; then
@@ -267,7 +150,12 @@ function getSTT() {
         fi
         fi
     }
-    sttServicePrompt
+    if [[ "$STT" == "vosk" ]]; then
+        echo "Vosk config"
+        sttService="vosk"
+    else
+        sttServicePrompt
+    fi
     if [[ ${sttService} == "leopard" ]]; then
         function picoApiPrompt() {
             echo
@@ -281,9 +169,11 @@ function getSTT() {
             fi
         }
         picoApiPrompt
-        echo ${picoKey} > ./chipper/pico.key
+        echo "export STT_SERVICE=leopard" >> ./chipper/source.sh
+        echo "export PICOVOICE_APIKEY=${picoKey}" > ./chipper/pico.key
     elif [[ ${sttService} == "vosk" ]]; then
-        origDir=$(pwd)
+        echo "export STT_SERVICE=vosk" >> ./chipper/source.sh
+        origDir="$(pwd)"
         if [[ ! -f ./vosk/completed ]]; then
             echo "Getting VOSK assets"
             rm -fr /root/.vosk
@@ -313,6 +203,7 @@ function getSTT() {
             cd ${origDir}
         fi
     else
+    echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then
             echo "Getting STT assets"
             if [[ -d /root/.coqui ]]; then
@@ -339,9 +230,9 @@ function getSTT() {
                 rm -f ./native_client.tflite.linux.armv7.tar.xz
             fi
             cd ${origDir}/chipper
-            export CGO_LDFLAGS="-L$HOME/.coqui/"
-            export CGO_CXXFLAGS="-I$HOME/.coqui/"
-            export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
+            export CGO_LDFLAGS="-L/root/.coqui/"
+            export CGO_CXXFLAGS="-I/root/.coqui/"
+            export LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH"
             /usr/local/go/bin/go get -u github.com/asticode/go-asticoqui/...
             /usr/local/go/bin/go get github.com/asticode/go-asticoqui
             /usr/local/go/bin/go install github.com/asticode/go-asticoqui
@@ -491,304 +382,6 @@ function generateCerts() {
             touch chipper/useepod
         fi
     fi
-}
-
-function makeSource() {
-    if [[ -f ./chipper/source.sh ]]; then
-        echo "Found an existing source.sh, exporting"
-        cd chipper
-        source source.sh
-        cd ..
-        SOURCEEXPORTED="true"
-    fi
-    if [[ ! -f ./certs/address ]] && [[ ! -f ./chipper/useepod ]]; then
-        echo "You need to generate certs first!"
-        exit 0
-    fi
-    cd chipper
-    if [[ ! -f ./useepod ]]; then
-        read -p "What port would you like to use? (443): " portPrompt
-        if [[ -n ${portPrompt} ]]; then
-            port=${portPrompt}
-        else
-            port="443"
-        fi
-        if netstat -pln | grep :${port}; then
-            echo
-            netstat -pln | grep :${port}
-            echo
-            echo "Something may be using port ${port}. Make sure that port is free before you start chipper."
-        fi
-    else
-        echo
-        echo "Using port 443 for chipper because escapepod.local is being used."
-        port="443"
-        echo
-    fi
-    read -p "What port would you like to use for the HTTP webserver used for custom intents, bot configuration, etc? (8080): " webportPrompt
-    if [[ -n ${webportPrompt} ]]; then
-        webport=${webportPrompt}
-    else
-        webport="8080"
-    fi
-    echo
-    function weatherPrompt() {
-        echo "Would you like to setup weather commands? This involves creating a free account at one of the weather providers' websites and putting in your API key."
-        echo "Otherwise, placeholder values will be used."
-        echo
-        echo "1: Yes, and I want to use weatherapi.com"
-        echo "2: Yes, and I want to use openweathermap.org (with forecast support)"
-        echo "3: No"
-        if [[ ${SOURCEEXPORTED} == "true" ]]; then
-            echo "4: Do not change weather configuration"
-        fi
-        read -p "Enter a number (3): " yn
-        case $yn in
-            "1") weatherSetup="true" weatherProvider="weatherapi.com" ;;
-            "2") weatherSetup="true" weatherProvider="openweathermap.org" ;;
-            "3") weatherSetup="false" ;;
-            "4") weatherSetup="true" noChangeWeather="true" ;;
-            "") weatherSetup="false" ;;
-            *)
-                echo "Please answer with 1 or 2."
-                weatherPrompt
-                ;;
-        esac
-    }
-    weatherPrompt
-    if [[ ${weatherSetup} == "true" ]]; then
-        if [[ ! ${noChangeWeather} == "true" ]]; then
-            function weatherKeyPrompt() {
-                echo
-                echo "Create an account at https://$weatherProvider and enter the API key it gives you."
-                echo "If you have changed your mind, enter Q to continue without weather commands."
-                echo
-                read -p "Enter your API key: " weatherAPI
-                if [[ ! -n ${weatherAPI} ]]; then
-                    echo "You must enter an API key. If you have changed your mind, you may also enter Q to continue without weather commands."
-                    weatherKeyPrompt
-                fi
-                if [[ ${weatherAPI} == "Q" ]]; then
-                    weatherSetup="false"
-                fi
-            }
-            weatherKeyPrompt
-            function weatherUnitPrompt() {
-                echo "What temperature unit would you like to use?"
-                echo
-                echo "1: Fahrenheit"
-                echo "2: Celsius"
-                read -p "Enter a number (1): " yn
-                case $yn in
-                    "1") weatherUnit="F" ;;
-                    "2") weatherUnit="C" ;;
-                    "") weatherUnit="F" ;;
-                    *)
-                        echo "Please answer with 1 or 2."
-                        weatherUnitPrompt
-                        ;;
-                esac
-            }
-            weatherUnitPrompt
-        else
-            if [[ $WEATHERAPI_ENABLED == "true" ]]; then
-                weatherUnit="$WEATHERAPI_UNIT"
-                weatherProvider="$WEATHERAPI_PROVIDER"
-                weatherAPI="$WEATHERAPI_KEY"
-            else
-                weatherSetup="false"
-            fi
-        fi
-    fi
-    function knowledgePrompt() {
-        echo
-        echo "Would you like to setup knowledge graph (I have a question) commands?"
-        echo "Houndify: Same service the official server uses. You must create a free account at https://www.houndify.com/signup and putting in your Client Key and Client ID."
-        echo "OpenAI: May not provide accurate results, but may be faster and more interesting. You must create a free account at https://beta.openai.com/signup and enter an API key. You only have a trial."
-        echo "This is not required, and if you choose 3 then placeholder values will be used. And if you change your mind later, just run ./setup.sh again with the 6th option."
-        echo
-        echo "1: Yes, with Houndify"
-        echo "2: Yes, with OpenAI"
-        echo "3: No"
-        if [[ ${SOURCEEXPORTED} == "true" ]]; then
-            echo "4: Do not change knowledgegraph configuration"
-        fi
-        read -p "Enter a number (3): " yn
-        case $yn in
-            "1") knowledgeSetup="true" knowledgeProvider="houndify" ;;
-            "2") knowledgeSetup="true" knowledgeProvider="openai" ;;
-            "3") knowledgeSetup="false" ;;
-            "4") knowledgeSetup="true" noChangeKnowledge="true" ;;
-            "") knowledgeSetup="false" ;;
-            *)
-                echo "Please answer with 1 or 2."
-                knowledgePrompt
-                ;;
-        esac
-    }
-    knowledgePrompt
-    if [[ ${knowledgeSetup} == "true" ]]; then
-        if [[ ! ${noChangeKnowledge} == "true" ]]; then
-            function houndifyIDPrompt() {
-				knowledgeIntent="false"
-                echo
-                echo "Create an account at https://www.houndify.com/signup and enter the Client ID (not Key) it gives you."
-                echo "If you have changed your mind, enter Q to continue without knowledge graph commands."
-                echo
-                read -p "Enter your Client ID: " knowledgeID
-                if [[ ! -n ${knowledgeID} ]]; then
-                    echo "You must enter a Houndify Client ID. If you have changed your mind, you may also enter Q to continue without knowledgegraph commands."
-                    houndifyIDPrompt
-                fi
-                if [[ ${knowledgeID} == "Q" ]]; then
-                    knowledgeSetup="false"
-                fi
-            }
-            function openAIPrompt() {
-                echo
-                echo "Create an account at https://beta.openai.com/signup, generate an API key, and enter it here."
-                echo "If you have changed your mind, enter Q to continue without knowledge graph commands."
-                if [[ $SOURCEEXPORTED == "true" ]] && ! [[ $KNOWLEDGE_KEY == "" ]]; then
-                    echo "Press enter to use the key you entered the last time you set this up."
-                fi
-                echo
-                read -p "Enter your API key: " knowledgeKey
-                if [[ ! -n ${knowledgeKey} ]]; then
-                    if [[ $KNOWLEDGE_KEY == "" ]]; then
-                        echo "You must enter an OpenAI API key. If you have changed your mind, you may also enter Q to continue without knowledgegraph commands."
-                        openAIPrompt
-                    else
-                        knowledgeKey="$KNOWLEDGE_KEY"
-                    fi
-                fi
-                if [[ ${knowledgeKey} == "Q" ]]; then
-                    knowledgeSetup="false"
-                fi
-                echo
-                echo "Would you like to use the intent graph feature? This is a feature which was introduced by DDL in firmware 1.8. If the speech does not match an intent, it will feed the information to OpenAI and the bot will respond with that response instead."
-                echo
-                echo "1: Yes"
-                echo "2: No"
-                echo
-                read -p "Enter a number (1): " yn
-                case $yn in
-                    "1") knowledgeIntent="true" ;;
-                    "2") knowledgeIntent="false" ;;
-                    "") knowledgeIntent="true" ;;
-                    *) knowledgeIntent="true" ;;
-                esac
-				echo
-            }
-            function houndifyKeyPrompt() {
-                echo
-                echo "Now enter the Houndify Client Key (not ID)."
-                echo
-                read -p "Enter your Client Key: " knowledgeKey
-                if [[ ! -n ${knowledgeKey} ]]; then
-                    echo "You must enter a Houndify Client Key."
-                    houndifyKeyPrompt
-                fi
-                if [[ ${knowledgeKey} == "Q" ]]; then
-                    knowledgeSetup="false"
-                fi
-            }
-            if [[ ${knowledgeProvider} == "houndify" ]]; then
-                houndifyIDPrompt
-            else
-                openAIPrompt
-            fi
-            if [[ ${knowledgeSetup} == "true" ]] && [[ ${knowledgeProvider} == "houndify" ]]; then
-                houndifyKeyPrompt
-            fi
-        else
-            if [[ "$KNOWLEDGE_ENABLED" == "true" ]]; then
-                knowledgeKey="$KNOWLEDGE_KEY"
-                knowledgeID="$KNOWLEDGE_ID"
-                knowledgeProvider="$KNOWLEDGE_PROVIDER"
-                knowledgeIntent="$KNOWLEDGE_INTENT_GRAPH"
-            else
-                if [[ "$HOUNDIFY_ENABLED" == "true" ]]; then
-                    knowledgeKey="$HOUNDIFY_CLIENT_KEY"
-                    knowledgeID="$HOUNDIFY_CLIENT_ID"
-                    knowledgeProvider="houndify"
-                else
-                    knowledgeSetup="false"
-                fi
-            fi
-        fi
-    fi
-    echo "export DDL_RPC_PORT=${port}" >source.sh
-    if [[ ! -f ./useepod ]]; then
-        echo 'export DDL_RPC_TLS_CERTIFICATE=$(cat ../certs/cert.crt)' >>source.sh
-        echo 'export DDL_RPC_TLS_KEY=$(cat ../certs/cert.key)' >>source.sh
-    else
-        echo 'export DDL_RPC_TLS_CERTIFICATE=$(cat ./epod/ep.crt)' >>source.sh
-        echo 'export DDL_RPC_TLS_KEY=$(cat ./epod/ep.key)' >>source.sh
-    fi
-    echo "export DDL_RPC_CLIENT_AUTHENTICATION=NoClientCert" >>source.sh
-    if [[ ${weatherSetup} == "true" ]]; then
-        echo "export WEATHERAPI_ENABLED=true" >>source.sh
-        echo "export WEATHERAPI_PROVIDER=$weatherProvider" >>source.sh
-        echo "export WEATHERAPI_KEY=${weatherAPI}" >>source.sh
-        echo "export WEATHERAPI_UNIT=${weatherUnit}" >>source.sh
-    else
-        echo "export WEATHERAPI_ENABLED=false" >>source.sh
-    fi
-    if [[ ${knowledgeSetup} == "true" ]]; then
-        echo "export KNOWLEDGE_ENABLED=true" >>source.sh
-        echo "export KNOWLEDGE_INTENT_GRAPH=${knowledgeIntent}" >> source.sh
-        if [[ ${knowledgeProvider} == "houndify" ]]; then
-            echo "export KNOWLEDGE_PROVIDER=houndify" >> source.sh
-            echo "export KNOWLEDGE_KEY=${knowledgeKey}" >>source.sh
-            echo "export KNOWLEDGE_ID=${knowledgeID}" >>source.sh
-        else
-            echo "export KNOWLEDGE_PROVIDER=openai" >> source.sh
-            echo "export KNOWLEDGE_KEY=${knowledgeKey}" >> source.sh
-        fi
-    else
-        echo "export KNOWLEDGE_ENABLED=false" >>source.sh
-    fi
-    echo "export WEBSERVER_PORT=${webport}" >>source.sh
-    if [[ -f ./pico.key ]]; then
-        picoKey=$(cat ./pico.key)
-        echo "export STT_SERVICE=leopard" >>source.sh
-        echo "export PICOVOICE_APIKEY=${picoKey}" >> source.sh
-    elif [[ ${sttService} == "vosk" ]]; then
-        echo "export STT_SERVICE=vosk" >>source.sh
-        echo "export STT_LANGUAGE=${languageNum}" >>source.sh
-    else
-        echo "export STT_SERVICE=coqui" >>source.sh
-    fi
-    echo "export DEBUG_LOGGING=true" >>source.sh
-    echo "export WIREPOD_EX_TMP_PATH=/tmp" >>source.sh
-    echo "export WIREPOD_EX_DATA_PATH=./data" >>source.sh
-    echo "export WIREPOD_EX_NVM_PATH=./nvm" >>source.sh
-    cd ..
-    echo
-    echo "Created source.sh file!"
-    echo
-    if [[ ! -f ./chipper/useepod ]]; then
-        cd certs
-        echo "Creating server_config.json for robot"
-        echo '{"jdocs": "REPLACEME", "tms": "REPLACEME", "chipper": "REPLACEME", "check": "REPLACECONN/ok:80", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
-        address=$(cat address)
-        if [[ ${TARGET} == "darwin" ]]; then
-            perl -i -pe"s/REPLACEME/${address}:${port}/g" server_config.json
-            perl -i -pe"s/REPLACECONN/${address}/g" server_config.json
-        else
-            sed -i "s/REPLACEME/${address}:${port}/g" server_config.json
-            sed -i "s/REPLACECONN/${address}/g" server_config.json
-        fi
-        cd ..
-    else
-        mkdir -p certs
-        cd certs
-        echo "Creating server_config.json for robot"
-        echo '{"jdocs": "escapepod.local:443", "tms": "escapepod.local:443", "chipper": "escapepod.local:443", "check": "escapepod.local/ok:80", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}' >server_config.json
-        cd ..
-    fi
-    echo "Created!"
-    echo
 }
 
 function scpToBot() {
@@ -952,75 +545,12 @@ function disableSystemd() {
     echo "wire-pod.service has been removed and disabled."
 }
 
-function firstPrompt() {
-    read -p "Enter a number (1): " yn
-    case $yn in
-        "1")
-            echo
-            getPackages
-            getSTT
-            getLanguage
-            generateCerts
-            buildChipper
-            makeSource
-            echo -e "\033[33m\033[1mEverything is set up! wire-pod is ready to start!\033[0m"
-            echo
-            if [[ -f ./chipper/useepod ]]; then
-                echo "You chose to use escapepod.local, so you do not need to run any SCP commands for a prod bot to use this. You just need to put on an official escape pod OTA. The instructions can be found in the root of this repo."
-                echo
-            fi
-            ;;
-        "2")
-            echo
-            getPackages
-            buildCloud
-            ;;
-        "3")
-            echo
-            getPackages
-            buildChipper
-            ;;
-        "4")
-            echo
-            rm -f ./stt/completed
-            getSTT
-            getLanguage
-            ;;
-        "5")
-            echo
-            getPackages
-            generateCerts
-            ;;
-        "6")
-            echo
-            makeSource
-            ;;
-        "")
-            echo
-            getPackages
-            getSTT
-            getLanguage
-            generateCerts
-            buildChipper
-            makeSource
-            echo -e "\033[33m\033[1mEverything is set up! wire-pod is ready to start!\033[0m"
-            # echo "Everything is done! To copy everything needed to your bot, run this script like this:"
-            # echo "Usage: sudo ./setup.sh scp <vector's ip> <path/to/ssh-key>"
-            # echo "Example: sudo ./setup.sh scp 192.168.1.150 /home/wire/id_rsa_Vector-R2D2"
-            # echo
-            # echo "If your Vector is on Wire's custom software or you have an old dev build, you can run this command without an SSH key:"
-            # echo "Example: sudo ./setup.sh scp 192.168.1.150"
-            echo
-            # if [[ -f ./chipper/useepod ]]; then
-            # 	echo "You chose to use escapepod.local, so you do not need to run any SCP commands for a prod bot to use this. You just need to put on an official escape pod OTA. The instructions can be found in the root of this repo."
-            # 	echo
-            # fi
-            ;;
-        *)
-            echo "Please answer with 1, 2, 3, 4, 5, 6, or just press enter with no input for 1."
-            firstPrompt
-            ;;
-    esac
+function defaultLaunch() {
+    echo
+    getPackages
+    getSTT
+    echo
+    echo "wire-pod has been set up successfully!"
 }
 
 if [[ $1 == "scp" ]]; then
@@ -1047,13 +577,13 @@ if [[ $1 == "-f" ]] && [[ $2 == "scp" ]]; then
     exit 0
 fi
 
-echo "What would you like to do?"
-echo "1: Full Setup (recommended) (builds chipper, gets STT stuff, generates certs, creates source.sh file, and creates server_config.json for your bot"
-echo "2: Just build vic-cloud"
-echo "3: Just build chipper"
-echo "4: Just get STT assets"
-echo "5: Just generate certs"
-echo "6: Create wire-pod config file (change/add API keys)"
-echo "(NOTE: You can just press enter without entering a number to select the default, recommended option)"
-echo
-firstPrompt
+# echo "What would you like to do?"
+# echo "1: Full Setup (recommended) (builds chipper, gets STT stuff, generates certs, creates source.sh file, and creates server_config.json for your bot"
+# echo "2: Just build vic-cloud"
+# echo "3: Just build chipper"
+# echo "4: Just get STT assets"
+# echo "5: Just generate certs"
+# echo "6: Create wire-pod config file (change/add API keys)"
+# echo "(NOTE: You can just press enter without entering a number to select the default, recommended option)"
+# echo
+defaultLaunch
