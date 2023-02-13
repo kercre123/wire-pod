@@ -26,6 +26,15 @@ import (
 	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
 )
 
+var serverOne cmux.CMux
+var serverTwo cmux.CMux
+var listenerOne net.Listener
+var listenerTwo net.Listener
+var voiceProcessor *wp.Server
+
+// grpcServer *grpc.Servervar
+var chipperServing bool = false
+
 func serveOk(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "ok")
 }
@@ -67,28 +76,68 @@ func grpcServe(l net.Listener, p *wp.Server) error {
 	return srv.Transport().Serve(l)
 }
 
-func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) {
+func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) error {
 	logger.Init()
 
 	// begin wirepod stuff
 	vars.Init()
-	p, err := wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
-	go wpweb.StartWebServer()
+	var err error
+	voiceProcessor, err = wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	wpweb.SttInitFunc = sttInitFunc
 	go sdkWeb.BeginServer()
+	http.HandleFunc("/api-chipper/", ChipperHTTPApi)
 	if err != nil {
-		logger.Println(err)
-		os.Exit(1)
+		return err
+	}
+	return nil
+}
+
+func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) {
+	err := BeginWirepodSpecific(sttInitFunc, sttHandlerFunc, voiceProcessorName)
+	if err != nil {
+		logger.Println("Wire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.")
+	} else {
+		go StartChipper()
+	}
+	// main thread is configuration ws
+	wpweb.StartWebServer()
+}
+
+func RestartServer() {
+	if chipperServing {
+		serverOne.Close()
+		serverTwo.Close()
+		listenerOne.Close()
+		listenerTwo.Close()
+	}
+	go StartChipper()
+}
+
+func StartChipper() {
+	// load certs
+	var certPub []byte
+	var certPriv []byte
+	if vars.APIConfig.Server.EPConfig {
+		certPub, _ = os.ReadFile("./epod/ep.crt")
+		certPriv, _ = os.ReadFile("./epod/ep.key")
+	} else {
+		var err error
+		certPub, _ = os.ReadFile("../certs/cert.crt")
+		certPriv, err = os.ReadFile("../certs/cert.key")
+		if err != nil {
+			logger.Println("wire-pod is not setup.")
+			return
+		}
 	}
 
 	logger.Println("Initiating TLS listener, cmux, gRPC handler, and REST handler")
-	cert, err := tls.X509KeyPair([]byte(os.Getenv("DDL_RPC_TLS_CERTIFICATE")), []byte(os.Getenv("DDL_RPC_TLS_KEY")))
+	cert, err := tls.X509KeyPair(certPub, certPriv)
 	if err != nil {
 		logger.Println(err)
 		os.Exit(1)
 	}
-
-	listener, err := tls.Listen("tcp", ":"+os.Getenv("DDL_RPC_PORT"), &tls.Config{
+	logger.Println("Starting chipper server at port " + vars.APIConfig.Server.Port)
+	listenerOne, err = tls.Listen("tcp", ":"+vars.APIConfig.Server.Port, &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		CipherSuites: nil,
 	})
@@ -96,16 +145,15 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProc
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	m := cmux.New(listener)
-	grpcListener := m.Match(cmux.HTTP2())
-	httpListener := m.Match(cmux.HTTP1Fast())
-	go grpcServe(grpcListener, p)
-	go httpServe(httpListener)
-	var m2 cmux.CMux
+	serverOne = cmux.New(listenerOne)
+	grpcListenerOne := serverOne.Match(cmux.HTTP2())
+	httpListenerOne := serverOne.Match(cmux.HTTP1Fast())
+	go grpcServe(grpcListenerOne, voiceProcessor)
+	go httpServe(httpListenerOne)
 
-	if os.Getenv("DDL_RPC_PORT") == "443" && os.Getenv("NO8084") != "true" {
-		logger.Println("Starting server at ports 443 and 8084 for 2.0.1 compatibility")
-		listener2, err := tls.Listen("tcp", ":8084", &tls.Config{
+	if vars.APIConfig.Server.EPConfig && os.Getenv("NO8084") != "true" {
+		logger.Println("Starting chipper server at port 8084 for 2.0.1 compatibility")
+		listenerTwo, err = tls.Listen("tcp", ":8084", &tls.Config{
 			Certificates: []tls.Certificate{cert},
 			CipherSuites: nil,
 		})
@@ -113,19 +161,24 @@ func StartServer(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProc
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		m2 = cmux.New(listener2)
-		grpcListener := m2.Match(cmux.HTTP2())
-		httpListener := m2.Match(cmux.HTTP1Fast())
-		go grpcServe(grpcListener, p)
-		go httpServe(httpListener)
+		serverTwo = cmux.New(listenerTwo)
+		grpcListenerTwo := serverTwo.Match(cmux.HTTP2())
+		httpListenerTwo := serverTwo.Match(cmux.HTTP1Fast())
+		go grpcServe(grpcListenerTwo, voiceProcessor)
+		go httpServe(httpListenerTwo)
 	}
 
 	fmt.Println("\033[33m\033[1mwire-pod started successfully!\033[0m")
 
-	if os.Getenv("DDL_RPC_PORT") == "443" && os.Getenv("NO8084") != "true" {
-		go m.Serve()
-		m2.Serve()
+	chipperServing = true
+	if vars.APIConfig.Server.EPConfig && os.Getenv("NO8084") != "true" {
+		go serverOne.Serve()
+		serverTwo.Serve()
+		logger.Println("Stopping chipper server")
+		chipperServing = false
 	} else {
-		m.Serve()
+		serverOne.Serve()
+		logger.Println("Stopping chipper server")
+		chipperServing = false
 	}
 }

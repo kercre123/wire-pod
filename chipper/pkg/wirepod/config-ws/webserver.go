@@ -11,8 +11,8 @@ import (
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
-	"github.com/kercre123/chipper/pkg/wirepod/botsetup"
 	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
+	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 )
 
 var SttInitFunc func() error
@@ -248,6 +248,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "downloading language model")
 		} else {
 			vars.APIConfig.STT.Language = language
+			vars.APIConfig.PastInitialSetup = true
 			vars.WriteConfigToDisk()
 			processreqs.ReloadVosk()
 			logger.Println("Reloaded voice processor successfully")
@@ -268,8 +269,19 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"sttLanguage\": \"%s\"", sttLanguage)
 		fmt.Fprintf(w, "}")
 		return
+	case r.URL.Path == "/api/get_config":
+		writeBytes, _ := json.Marshal(vars.APIConfig)
+		w.Write(writeBytes)
+		return
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
+		return
+	case r.URL.Path == "/api/generate_certs":
+		err := botsetup.CreateCertCombo()
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+		}
+		fmt.Fprint(w, "done")
 		return
 	}
 }
@@ -309,6 +321,7 @@ func DownloadVoskModel(language string) {
 		logger.Println("Language not valid? " + language)
 		return
 	}
+	os.MkdirAll("../vosk", 0755)
 	url := "https://alphacephei.com/vosk/models/" + filename
 	filepath := os.TempDir() + "/" + filename
 	destpath := "../vosk/models/" + language + "/"
@@ -318,6 +331,7 @@ func DownloadVoskModel(language string) {
 	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
 	DownloadStatus = "Reloading voice processor"
 	vars.APIConfig.STT.Language = language
+	vars.APIConfig.PastInitialSetup = true
 	vars.WriteConfigToDisk()
 	processreqs.ReloadVosk()
 	logger.Println("Reloaded voice processor successfully")
