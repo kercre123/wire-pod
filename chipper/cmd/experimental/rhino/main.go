@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	initwirepod.StartServer(stt.Init, stt.STT, stt.Name)
+	initwirepod.StartFromProgramInit(stt.Init, stt.STT, stt.Name)
 }
