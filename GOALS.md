@@ -1,5 +1,9 @@
 # Roadmap
 
+-   Implement everything in Go - in progress
+    -   Setting up bots via SSH and BLE should have a Go implementation
+    -   Initial setup should also be done in Go. Certificates, ports, and model downloads configurable via web interface
+
 -   Tokens which are unique, do expire, and do refresh - DONE - 12/22/22
     -   Retain backwards compatibility
         -   Global GUID code still in there
@@ -36,7 +40,7 @@
         -	Streaming is supported by their servers and I would like to implement this
 	    -   This would make requests a lot faster
 
--   Dynamic config - IN PROGRESS
+-   Dynamic config - COMPLETE
     -   Rather than using environment variables for API configs, put the variables into a global, updatable struct. This can be exported to JSON
     -   Will allow the changing of KG or weather provider without restarting wirepod, or even the voice processor itself
 

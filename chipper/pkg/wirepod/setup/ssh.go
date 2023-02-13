@@ -21,11 +21,10 @@ const SetupScriptPath = "../vector-cloud/pod-bot-install.sh"
 const BotSetupPath = "/data/pod-bot-install.sh"
 
 var SetupSSHStatus string = "not running"
-var SettingUp bool = false
+var SSHSettingUp bool = false
 
 func doErr(err error) error {
-	logger.Println(err)
-	SettingUp = false
+	SSHSettingUp = false
 	SetupSSHStatus = "not running (last error: " + err.Error() + ")"
 	return err
 }
@@ -39,15 +38,13 @@ func runCmd(client *ssh.Client, cmd string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	logger.Println(string(output))
 	return string(output), nil
 }
 
 func SetupBotViaSSH(ip string, key []byte) error {
-	if !SettingUp {
+	if !SSHSettingUp {
 		logger.Println("Setting up " + ip + " via SSH")
 		SetupSSHStatus = "Setting up SSH connection..."
-		logger.Println(string(key))
 		signer, err := ssh.ParsePrivateKey(key)
 		if err != nil {
 			doErr(err)
@@ -66,12 +63,10 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(err)
 		}
 		SetupSSHStatus = "Checking if device is a Vector..."
-		logger.Println("check")
 		output, err := runCmd(client, "uname -a")
 		if err != nil {
 			return doErr(err)
 		}
-		logger.Println(output)
 		if !strings.Contains(output, "Vector") {
 			return doErr(fmt.Errorf("the remote device is not a vector"))
 		}
@@ -113,6 +108,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err)
 		}
+		SetupSSHStatus = "Transferring new vic-cloud..."
 		scpClient, err = scp.NewClientBySSH(client)
 		if err != nil {
 			return doErr(err)
@@ -143,7 +139,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err)
 		}
-		SetupSSHStatus = "Running final commands (this may take a while)..."
+		SetupSSHStatus = "Generating new robot certificate (this may take a while)..."
 		_, err = runCmd(client, "chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json /anki/bin/vic-cloud /data/data/wirepod-cert.crt /anki/etc/wirepod-cert.crt /data/pod-bot-install.sh && /data/pod-bot-install.sh")
 		if err != nil {
 			return doErr(err)

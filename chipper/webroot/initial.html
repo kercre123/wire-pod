@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wire-Pod Initial Setup</title>
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div id="outer">
+    <div id="content" class="">
+    <h1>Wire-Pod Setup</h1>
+    <hr>
+    <p>Welcome to wire-pod! This is the final step of setup. Configure these options to your liking, then click the "Submit Settings" button at the bottom to finish setting up wire-pod.</p>
+    <hr>
+    <div id="setup-status"></div>
+    <div id="config-options" style="display: block;">
+    <div id="section-conn" style="display: block;">
+      <h2>Connection Option</h2>
+      <div class="center" id="connStatus"></div>
+         <select onchange="checkConn()" name="connSelection" id="connSelection">
+            <option value="ep">Escape Pod (recommended for regular, production robots)</option>
+            <option value="ip">IP address (recommended for OSKR/dev-unlocked robots)</option>
+          </select>
+          <div class="center" id="portViz" style="display: none;">
+            <label for="portInput">Input custom port here (default is 443)</label>
+            <input type="text" id="portInput" name="portInput" placeholder="443">
+          </div>
+      <hr>
+    </div>
+
+    <div id="section-language" style="display: none;">
+      <h2>STT Language</h2>
+      <div class="center" id="languageStatus"></div>
+      <div id="languageSelectionDiv">
+         <select name="languageSelection" id="languageSelection">
+            <option value="en-US">English (US)</option>
+            <option value="it-IT">Italian (IT)</option>
+            <option value="es-ES">Spanish (ES)</option>
+            <option value="fr-FR">French (FR)</option>
+            <option value="de-DE">German (DE)</option>
+          </select>
+      </div>
+      <hr>
+    </div>
+
+    <div id="section-weather" style="display:block">
+      <h3>Weather API</h3>
+      <div>
+        <p>Select the weather provider you would like to use, then enter the required information.</p>
+        <small>
+          <ul>
+            <li>OpenWeatherMap: free, has forecast and localization support. To use, create an account at <a href="https://openweathermap.org">openweathermap.org</a>, create an API key, and enter it here.</li>
+            <li>WeatherAPI: requires payment, but is faster and is better at figuring out location. To use, create an account at <a href="https://weatherapi.com">weatherapi.com</a>, and enter your API key here.</li>
+          </ul>
+        </small>
+          <div id="addWeatherProviderAPI"></div>
+          <form id="weatherAPIAddForm">
+            <label for="weatherProvider">Weather API Provider:</label>
+            <select name="weatherProvider" id="weatherProvider" form="weatherAPIAddForm" onchange="checkWeather()">
+              <option value="" selected>None</option>
+              <option value="openweathermap.org">OpenWeatherMap</option>
+              <option value="weatherapi.com">WeatherAPI</option>
+            </select><br>
+            <span id="apiKeySpan" style="display:none">
+              <label for="apiKey">Weather API Key:</label>
+              <input type="text" name="apiKey" id="apiKey"><br>
+            </span>
+          </form>
+        <div id="addWeatherProviderAPIStatus"></div>
+        <hr>
+      </div>
+    </div>
+
+    <div id="section-kg" style="display:block">
+      <h3>Knowledge Graph Setup</h3>
+      <div>
+        <p>Select the Knowledge Graph provider you want to use.</p>
+        <small>
+          <ul>
+            <li>Houndify: What the official servers use, provides most accurate information</li>
+            <li>OpenAI: More tailored and entertaining answers, may require small fee, allows you to use Intent Graph feature</li>
+          </ul>
+        </small>
+          <div id="addKGProviderAPI"></div>
+          <form id="kgAPIAddForm">
+            <label for="kgProvider">Knowledge Graph API Provider:</label>
+            <select name="kgProvider" id="kgProvider" form="kgAPIAddForm" onchange="checkKG()">
+              <option value="" selected>None</option>
+              <option value="openai">OpenAI</option>
+              <option value="houndify">Houndify</option>
+            </select><br>
+            <span id="houndifyInput" style="display:none">
+              <small>To use Houndify, create an account at <a href="https://www.houndify.com/signup">houndify.com</a>, create a free domain, and enter the Client ID and Key here.</small><br>
+              <label for="houndID">Knowledge Graph Client ID:</label>
+              <input type="text" name="houndID" id="houndID"><br>
+              <label for="houndKey">Knowledge Graph Client Key:</label>
+              <input type="text" name="houndKey" id="houndKey"><br>
+            </span>
+            <span id="openAIInput" style="display:none">
+              <small>To use OpenAI, create an account at <a href="https://beta.openai.com/signup">https://beta.openai.com/signup</a>, create an API key, and enter it here.</small>
+              <label for="openAIKey">Knowledge Graph API Key:</label>
+              <input type="text" name="openAIKey" id="openAIKey"><br>
+              <small>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</small><br>
+              <label for="intentyes">Yes</label>
+              <input type="radio" id="intentyes" name="intentgselect" value="yes"><br>
+              <label for="intentno">No</label>
+              <input type="radio" id="intentno" name="intentgselect" value="no">
+            </span>
+          </form>
+        <div id="addKGProviderAPIStatus"></div>
+        <hr>
+      </div>
+    </div>
+    <div class="center">
+      <button onclick="sendSetupInfo()" type="submit">Submit Settings</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+</body>
+<script src="./js/main.js"></script>
+<script src="./js/initial.js"></script>
+<script src="./sdkapp/js/main.js"></script>
+<script>
+    checkLanguage();
+    updateWeatherAPI();
+    updateKGAPI();
+</script>
+</html>
