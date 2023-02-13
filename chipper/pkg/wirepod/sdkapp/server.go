@@ -16,6 +16,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
+	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 )
 
 const serverFiles string = "./webroot/sdkapp"
@@ -391,7 +392,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, robot)
 		return
 	case r.URL.Path == "/api-sdk/disconnect":
-		removeRobot(robotObj.ESN)
+		removeRobot(robotObj.ESN, "server")
 		fmt.Fprint(w, "done")
 		return
 	}
@@ -473,6 +474,19 @@ func BeginServer() {
 	http.HandleFunc("/cam-stream", camStreamHandler)
 	logger.Println("Starting SDK app")
 	fmt.Printf("Starting server at port 80 for connCheck\n")
+	ipAddr := botsetup.GetOutboundIP().String()
+	var webPort string
+	if os.Getenv("WEBSERVER_PORT") != "" {
+		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
+			webPort = os.Getenv("WEBSERVER_PORT")
+		} else {
+			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
+			webPort = "8080"
+		}
+	} else {
+		webPort = "8080"
+	}
+	logger.Println("Configuration page: http://" + ipAddr + ":" + webPort)
 	if err := http.ListenAndServe(":80", nil); err != nil {
 		logger.Println("A process is already using port 80 - connCheck functionality will not work")
 	}
