@@ -146,23 +146,25 @@ func connTimer(ind int) {
 		}
 		if robots[ind].ConnTimer >= 300 {
 			logger.Println("Closing SDK connection for " + robots[ind].ESN + ", source: connTimer")
-			removeRobot(robots[ind].ESN)
+			removeRobot(robots[ind].ESN, "connTimer")
 			return
 		}
 		robots[ind].ConnTimer = robots[ind].ConnTimer + 1
 	}
 }
 
-func removeRobot(serial string) {
+func removeRobot(serial, source string) {
 	inhibitCreation = true
 	var newRobots []Robot
 	for ind, robot := range robots {
 		if !strings.EqualFold(serial, robot.ESN) {
 			newRobots = append(newRobots, robot)
 		} else {
+			if source == "server" {
+				timerStopIndexes = append(timerStopIndexes, ind)
+			}
 			if robot.CamStreaming {
 				robot.CamStreaming = false
-				timerStopIndexes = append(timerStopIndexes, ind)
 				// give it time to stop the camera stream
 				time.Sleep(time.Second / 2)
 			}
