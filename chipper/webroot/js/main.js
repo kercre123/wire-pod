@@ -53,6 +53,19 @@ function updateIntentSelection(element) {
   };
 }
 
+function checkInited() {
+  fetch("/api/get_config")
+  .then(response => response.text())
+  .then((response) => {
+      parsed = JSON.parse(response)
+      console.log(parsed)
+      console.log(parsed["pastinitialsetup"])
+      if (parsed["pastinitialsetup"] == false) {
+        window.location.href = "/initial.html"
+      }
+  })
+}
+
 // function that creates select from intentsJson
 function createIntentSelect(element) {
   var select = document.createElement("select");
@@ -395,11 +408,11 @@ function showLog() {
 
 function showLanguage() {
   GetLog = false
-  document.getElementById("section-intents").style.display = "none";
+  document.getElementById("section-weather").style.display = "none";
+  document.getElementById("section-stt").style.display = "none";
+  document.getElementById("section-restart").style.display = "none";
+  document.getElementById("section-kg").style.display = "none";
   document.getElementById("section-language").style.display = "block";
-  document.getElementById("section-log").style.display = "none";
-  document.getElementById("section-botauth").style.display = "none";
-  document.getElementById("languageSelectionDiv").style.display = "none"
   updateColor("icon-Language");
     let xhr = new XMLHttpRequest();
     xhr.open("GET", "/api/get_stt_info");
@@ -432,6 +445,7 @@ function showWeather() {
     document.getElementById("section-weather").style.display = "block";
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "none";
+    document.getElementById("section-language").style.display = "none";
     document.getElementById("section-kg").style.display = "none";
     updateColor("icon-Weather");
 }
@@ -440,6 +454,7 @@ function showKG() {
     document.getElementById("section-weather").style.display = "none";
     document.getElementById("section-stt").style.display = "none";
     document.getElementById("section-restart").style.display = "none";
+    document.getElementById("section-language").style.display = "none";
     document.getElementById("section-kg").style.display = "block";
     updateColor("icon-KG");
 }
@@ -470,7 +485,7 @@ function checkWeather() {
     }
 }
 
-function sendWeatherAPIKey(element) {
+function sendWeatherAPIKey() {
     var form = document.getElementById("weatherAPIAddForm");
     var provider = document.getElementById("weatherProvider").value;
 
@@ -513,7 +528,7 @@ function checkKG() {
     }
 }
 
-function sendKGAPIKey(element) {
+function sendKGAPIKey() {
     var provider = document.getElementById("kgProvider").value
     var key = ""
     var id = ""

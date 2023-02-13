@@ -268,6 +268,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"sttLanguage\": \"%s\"", sttLanguage)
 		fmt.Fprintf(w, "}")
 		return
+	case r.URL.Path == "/api/get_config":
+		writeBytes, _ := json.Marshal(vars.APIConfig)
+		w.Write(writeBytes)
+		return
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
 		return
