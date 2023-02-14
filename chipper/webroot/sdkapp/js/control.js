@@ -78,8 +78,8 @@ function stopCamStream() {
 }
 
 function sayText() {
-    sayText = document.getElementById("textSay").value
-    sendForm("/api-sdk/say_text?text=" + sayText)
+    sayTextValue = document.getElementById("textSay").value
+    sendForm("/api-sdk/say_text?text=" + sayTextValue)
 }
 
 keysPressed["w"] = false
