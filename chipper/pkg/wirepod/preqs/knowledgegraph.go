@@ -157,8 +157,6 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 	if err := req.Stream.Send(&kg); err != nil {
 		return nil, err
 	}
-	return &vtt.KnowledgeGraphResponse{
-		Intent: &kg,
-	}, nil
+	return nil, nil
 
 }
