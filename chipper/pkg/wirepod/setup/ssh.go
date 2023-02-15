@@ -11,6 +11,7 @@ import (
 
 	scp "github.com/bramvdbogaerde/go-scp"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -45,6 +46,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 	if !SSHSettingUp {
 		logger.Println("Setting up " + ip + " via SSH")
 		SetupSSHStatus = "Setting up SSH connection..."
+		CreateServerConfig()
 		signer, err := ssh.ParsePrivateKey(key)
 		if err != nil {
 			doErr(err)
@@ -119,7 +121,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		}
 		scpClient.Session.Close()
 		certPath := "../certs/cert.crt"
-		if _, err := os.Stat("./useepod"); err == nil {
+		if vars.APIConfig.Server.EPConfig {
 			certPath = "./epod/ep.crt"
 		}
 		cert, err := os.Open(certPath)

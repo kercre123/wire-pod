@@ -113,6 +113,7 @@ func CreateCertCombo() error {
 
 // outputs a server config to ../certs/server_config.json
 func CreateServerConfig() {
+	os.MkdirAll("../certs", 0644)
 	var config ClientServerConfig
 	//{"jdocs": "escapepod.local:443", "tms": "escapepod.local:443", "chipper": "escapepod.local:443", "check": "escapepod.local/ok:80", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}
 	if vars.APIConfig.Server.EPConfig {

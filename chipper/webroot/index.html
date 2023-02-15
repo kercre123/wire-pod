@@ -88,8 +88,18 @@
       <div class="center">
         <div id="botAuth"></div>
       </div>
+      <hr>
       <div class="center">
-        <div id="oskrSetup"></div>
+        <h3>Set up OSKR/dev bot</h3>
+        <div id="oskrSetupProgress"></div>
+        <div id="oskrSetup">
+          <small>If you have an OSKR/dev-unlocked bot; enter the bot's IP address and upload the bot's SSH key here, then click "Set up bot". After that, use the above instructions to continue setup. If you have a production bot, don't do this.</small></br>
+          <input type="type" id="sshIp" name="sshIp" placeholder="Bot IP address">
+          <input type="file" id="sshKeyFile" name="sshKeyFile">
+        <div class="center">
+          <button onclick="doSSHSetup()">Set up bot</button>
+        </div>
+        </div>
       </div>
       <hr>
     </div>
@@ -127,6 +137,7 @@
 
 <script src="./js/main.js"></script>
 <script src="./js/ble.js"></script>
+<script src="./js/ssh.js"></script>
 <script src="./sdkapp/js/main.js"></script>
 <script>
   checkInited();
