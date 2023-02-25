@@ -163,10 +163,14 @@ func removeRobot(serial, source string) {
 			if source == "server" {
 				timerStopIndexes = append(timerStopIndexes, ind)
 			}
-			if robot.CamStreaming {
-				robot.CamStreaming = false
+			if robots[ind].CamStreaming {
+				robots[ind].CamStreaming = false
 				// give it time to stop the camera stream
-				time.Sleep(time.Second / 2)
+				time.Sleep(time.Second * 2)
+			}
+			if robots[ind].EventsStreaming {
+				robots[ind].EventsStreaming = false
+				time.Sleep(time.Second * 2)
 			}
 		}
 	}
