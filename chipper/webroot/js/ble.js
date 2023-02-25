@@ -331,6 +331,15 @@ function ConnectWifi(ssid, authtype) {
     })
 }
 
+function CheckFirmware() {
+    fetch("/api-ble/get_firmware")
+    .then(response => response.text())
+    .then((response) => {
+        let splitFirmware = response.split("-")
+        console.log(splitFirmware)
+    })
+}
+
 function DoAuth() {
     authEl.innerHTML = ""
     authP = document.createElement("p")

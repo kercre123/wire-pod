@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/digital-dream-labs/vector-bluetooth/ble"
 	"github.com/kercre123/chipper/pkg/logger"
-	"github.com/kercre123/chipper/pkg/vector-bluetooth/ble"
 )
 
 // need JSONable type
@@ -30,15 +30,42 @@ type WifiNetwork struct {
 }
 
 var BleClient *ble.VectorBLE
+var BleStatusChan chan ble.StatusChannel
 var BleInited bool
+var OtaStatus string
+
+func doOTAStatus() {
+	for {
+		r := <-BleStatusChan
+		if r.OTAStatus.Error != "" {
+			OtaStatus = "Error downloading OTA: " + r.OTAStatus.Error
+			return
+		}
+		if r.OTAStatus.PacketNumber == 0 || r.OTAStatus.PacketTotal == 0 {
+			OtaStatus = "OTA download progress: 0%"
+		} else {
+			percent := r.OTAStatus.PacketNumber / r.OTAStatus.PacketTotal * 100
+			OtaStatus = "OTA download progress: " + fmt.Sprint(float64(percent)) + "%"
+			if float64(percent) == 100 || float64(percent) == 99 {
+				OtaStatus = "OTA download is complete!"
+				return
+			}
+		}
+	}
+}
 
 func InitBle() (*ble.VectorBLE, error) {
+	BleStatusChan = nil
+	BleStatusChan = make(chan ble.StatusChannel)
 	done := make(chan bool)
 	var client *ble.VectorBLE
 	var err error
 
 	go func() {
-		client, err = ble.New()
+		client, err = ble.New(
+			ble.WithStatusChan(BleStatusChan),
+			ble.WithLogDirectory(os.TempDir()),
+		)
 		done <- true
 	}()
 
@@ -165,12 +192,17 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, resp.WifiState)
 		return
 	case r.URL.Path == "/api-ble/get_firmware_version":
+		//v1.8.1.6051-453e582_os1.8.1.6051ep-1536e0d-202202282217
+		//v0.9.0-12efb91_os0.9.0-3e8307e-201806191226
 		resp, err := BleClient.GetStatus()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		fmt.Fprint(w, resp.Version)
+		// split version to just get ankiversion
+		splitOsAndRev := strings.Split(resp.Version, "_os")
+		splitOs := strings.Split(splitOsAndRev[1], "-")[0]
+		fmt.Fprint(w, splitOs)
 		return
 	case r.URL.Path == "/api-ble/get_ip_address":
 		resp, err := BleClient.WifiIP()
@@ -186,20 +218,39 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: ota URL must be http")
 			return
 		}
-		resp, err := BleClient.OTAStart(otaUrl)
+		go doOTAStatus()
+		done := make(chan bool)
+		var resp *ble.OTAStartResponse
+		var err error
+
+		go func() {
+			resp, err = BleClient.OTAStart(otaUrl)
+			done <- true
+		}()
+
+		select {
+		case <-done:
+			fmt.Println("done")
+			if err != nil {
+				fmt.Fprint(w, "error: "+err.Error())
+				return
+			}
+			fmt.Fprint(w, resp.Status)
+			return
+		case <-time.After(15 * time.Second):
+			fmt.Fprint(w, "likely success")
+			return
+		}
+	case r.URL.Path == "/api-ble/get_ota_status":
+		fmt.Fprint(w, OtaStatus)
+		return
+	case r.URL.Path == "/api-ble/stop_ota":
+		resp, err := BleClient.OTACancel()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		fmt.Fprint(w, resp.Status)
-		return
-	case r.URL.Path == "/api-ble/get_ota_status":
-		r := <-BleClient.Statuschan
-		logger.Println(r)
-		// get percent
-		percent := r.OTAStatus.PacketNumber / r.OTAStatus.PacketTotal * 100
-		roundedPercent := float64(percent)
-		fmt.Fprint(w, fmt.Sprint(roundedPercent)+"%")
+		fmt.Fprint(w, "success: "+string(resp))
 		return
 	case r.URL.Path == "/api-ble/get_ssh_key":
 		resp, err := BleClient.DownloadLogs()
