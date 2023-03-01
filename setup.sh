@@ -487,9 +487,13 @@ function setupSystemd() {
     source ./chipper/source.sh
     echo "[Unit]" >wire-pod.service
     echo "Description=Wire Escape Pod (coqui)" >>wire-pod.service
+    echo "StartLimitIntervalSec=500" >>wire-pod.service
+    echo "StartLimitBurst=5" >>wire-pod.service
     echo >>wire-pod.service
     echo "[Service]" >>wire-pod.service
     echo "Type=simple" >>wire-pod.service
+    echo "Restart=on-failure" >>wire-pod.service
+    echo "RestartSec=5s" >>wire-pod.service
     echo "WorkingDirectory=$(readlink -f ./chipper)" >>wire-pod.service
     echo "ExecStart=$(readlink -f ./chipper/start.sh)" >>wire-pod.service
     echo >>wire-pod.service
