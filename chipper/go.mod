@@ -26,6 +26,7 @@ require (
 )
 
 require (
+	github.com/alphacep/vosk-api v0.3.45 // indirect
 	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8 // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
 	github.com/jamesruan/sodium v0.0.0-20181216154042-9620b83ffeae // indirect

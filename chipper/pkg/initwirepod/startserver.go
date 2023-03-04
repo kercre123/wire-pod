@@ -105,6 +105,14 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	wpweb.StartWebServer()
 }
 
+func CheckHostname() {
+	hostname, _ := os.Hostname()
+	if hostname != "escapepod" && vars.APIConfig.Server.EPConfig {
+		logger.Println("\033[31m\033[1mWARNING: You have chosen the Escape Pod config, but the system hostname is not 'escapepod'. This means your robot will not be able to communicate with wire-pod unless you have a custom network configuration.")
+		logger.Println("Actual reported hostname: " + hostname + "\033[0m")
+	}
+}
+
 func RestartServer() {
 	if chipperServing {
 		serverOne.Close()
@@ -116,6 +124,7 @@ func RestartServer() {
 }
 
 func StartChipper() {
+	CheckHostname()
 	// load certs
 	var certPub []byte
 	var certPriv []byte
