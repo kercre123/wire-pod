@@ -192,6 +192,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if kgProvider == "openai" && kgIntent == "true" {
 			vars.APIConfig.Knowledge.IntentGraph = true
+			vars.APIConfig.Knowledge.RobotName = r.FormValue("robot_name")
 		}
 		vars.WriteConfigToDisk()
 		fmt.Fprintf(w, "Changes successfully applied.")
@@ -202,19 +203,22 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgAPIKey := ""
 		kgAPIID := ""
 		kgIntent := false
+		kgRobotName := ""
 		if vars.APIConfig.Knowledge.Enable {
 			kgEnabled = true
 			kgProvider = vars.APIConfig.Knowledge.Provider
 			kgAPIKey = vars.APIConfig.Knowledge.Key
 			kgAPIID = vars.APIConfig.Knowledge.ID
 			kgIntent = vars.APIConfig.Knowledge.IntentGraph
+			kgRobotName = vars.APIConfig.Knowledge.RobotName
 		}
 		fmt.Fprintf(w, "{ ")
 		fmt.Fprintf(w, "  \"kgEnabled\": %t,", kgEnabled)
 		fmt.Fprintf(w, "  \"kgProvider\": \"%s\",", kgProvider)
 		fmt.Fprintf(w, "  \"kgApiKey\": \"%s\",", kgAPIKey)
 		fmt.Fprintf(w, "  \"kgApiID\": \"%s\",", kgAPIID)
-		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\"", kgIntent)
+		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\",", kgIntent)
+		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\"", kgRobotName)
 		fmt.Fprintf(w, "}")
 		return
 	case r.URL.Path == "/api/set_stt_info":
