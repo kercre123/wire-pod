@@ -40,7 +40,7 @@ function sendSetupInfo() {
               initWeatherAPIKey()
             } else if (response.includes("downloading")) {
               updateSetupStatus("Downloading language model...")
-              interval = setInterval(function(){
+              inte = setInterval(function(){
                 fetch("/api/get_download_status")
                   .then(response => response.text())
                   .then((response => {
@@ -48,16 +48,17 @@ function sendSetupInfo() {
                     if (response.includes("success")) {
                       updateSetupStatus("Language set successfully.")
                       initWeatherAPIKey()
-                      clearInterval(interval)
+                      clearInterval(inte)
                     } else if (response.includes("error")) {
-                        updateSetupStatus(response)
                         document.getElementById("config-options").style.display = "block"
-                        return
                     } else if (response.includes("not downloading")) {
-                      updateSetupStatus("Initiating language model download...")
+                      statusText = "Initiating language model download..."
                     }
+                    updateSetupStatus(statusText)
                   }))
               }, 500)
+            } else if (response.includes("vosk")) {
+                initWeatherAPIKey()
             } else if (response.includes("error")) {
               updateSetupStatus(response)
               document.getElementById("config-options").style.display = "block"
@@ -148,8 +149,8 @@ function setConn() {
                 document.getElementById("config-options").style.display = "block"
                 return
             } else {
-                updateSetupStatus("Setup is complete! Wire-pod is started. Redirecting to main page...")
-                setTimeout(function(){window.location.href = "/";}, 1000)
+                updateSetupStatus("Setup is complete! Wire-pod has started. Redirecting to main page...")
+                setTimeout(function(){window.location.href = "/";}, 3000)
             }
         })
 }

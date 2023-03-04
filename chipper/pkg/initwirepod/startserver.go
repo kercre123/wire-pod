@@ -96,6 +96,8 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	err := BeginWirepodSpecific(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	if err != nil {
 		logger.Println("Wire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.")
+	} else if !vars.APIConfig.PastInitialSetup {
+		logger.Println("Wire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.")
 	} else {
 		go StartChipper()
 	}
