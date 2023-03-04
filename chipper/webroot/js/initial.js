@@ -92,11 +92,13 @@ function initKGAPIKey() {
     var key = ""
     var id = ""
     var intentgraph = ""
+    var robotName = ""
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
         if (document.getElementById("intentyes").checked == true) {
             intentgraph = "true"
+            robotName = document.getElementById("openAIRobotName").value
         } else {
             intentgraph = "false"
         }
@@ -110,7 +112,7 @@ function initKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph
+    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName
     fetch("/api/set_kg_api?" + data)
         .then(response => response.text())
         .then((response) => {

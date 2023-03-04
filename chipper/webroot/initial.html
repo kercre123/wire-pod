@@ -99,14 +99,19 @@
               <input type="text" name="houndKey" id="houndKey"><br>
             </span>
             <span id="openAIInput" style="display:none">
-              <small>To use OpenAI, create an account at <a href="https://beta.openai.com/signup">https://beta.openai.com/signup</a>, create an API key, and enter it here.</small>
+              <small>To use OpenAI, create an account at <a href="https://beta.openai.com/signup">https://beta.openai.com/signup</a>, create an API key, and enter it here.</small><br>
               <label for="openAIKey">Knowledge Graph API Key:</label>
               <input type="text" name="openAIKey" id="openAIKey"><br>
               <small>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</small><br>
               <label for="intentyes">Yes</label>
-              <input type="radio" id="intentyes" name="intentgselect" value="yes"><br>
+              <input type="radio" id="intentyes" name="intentgselect" value="yes" onclick="checkKG()"><br>
               <label for="intentno">No</label>
-              <input type="radio" id="intentno" name="intentgselect" value="no">
+              <input type="radio" id="intentno" name="intentgselect" value="no" onclick="checkKG()">
+              <span id="openAIRobotNameInput" style="display:none">
+                <br>
+                <label for="openAIRobotName">Robot name:</label>
+                <input type="text" name="openAIRobotName" id="openAIRobotName" placeholder="Anki Vector">
+              </span>
             </span>
           </form>
         <div id="addKGProviderAPIStatus"></div>

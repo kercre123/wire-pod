@@ -519,12 +519,20 @@ function checkKG() {
     if (document.getElementById("kgProvider").value=="") {
         document.getElementById("houndifyInput").style.display = "none";
         document.getElementById("openAIInput").style.display = "none";
+        document.getElementById("openAIRobotNameInput").style.display = "none";
     } else if (document.getElementById("kgProvider").value=="houndify") {
+        document.getElementById("openAIRobotNameInput").style.display = "none";  
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "block";
     } else if (document.getElementById("kgProvider").value=="openai") {
         document.getElementById("openAIInput").style.display = "block";
         document.getElementById("houndifyInput").style.display = "none";
+
+        if (document.getElementById("intentyes").checked == true) {
+            document.getElementById("openAIRobotNameInput").style.display = "block";
+        } else {
+            document.getElementById("openAIRobotNameInput").style.display = "none";
+        }
     }
 }
 
@@ -533,11 +541,13 @@ function sendKGAPIKey() {
     var key = ""
     var id = ""
     var intentgraph = ""
+    var robotName = ""
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
         if (document.getElementById("intentyes").checked == true) {
             intentgraph = "true"
+            robotName = document.getElementById("openAIRobotName").value
         } else {
             intentgraph = "false"
         }
@@ -551,7 +561,7 @@ function sendKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph
+    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName
     var result = document.getElementById('addKGProviderAPIStatus');
     const resultP = document.createElement('p');
     resultP.textContent =  "Saving...";
@@ -576,6 +586,7 @@ function updateKGAPI() {
                 document.getElementById("openAIKey").value = obj.kgApiKey;
                 if (obj.kgIntentGraph == "true") {
                     document.getElementById("intentyes").checked = true;
+                    document.getElementById("openAIRobotName").value = obj.kgRobotName;
                 } else {
                     document.getElementById("intentno").checked = true;
                 }
