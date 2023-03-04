@@ -44,6 +44,12 @@ elif [[ ${STT_SERVICE} == "houndify" ]]; then
         else
           /usr/local/go/bin/go run cmd/experimental/houndify/main.go
         fi
+elif [[ ${STT_SERVICE} == "whisper" ]]; then
+        if [[ -f ./chipper ]]; then
+          ./chipper
+        else
+          /usr/local/go/bin/go run cmd/experimental/whisper/main.go
+        fi
 elif [[ ${STT_SERVICE} == "vosk" ]]; then
 	if [[ -f ./chipper ]]; then
 		export CGO_ENABLED=1 

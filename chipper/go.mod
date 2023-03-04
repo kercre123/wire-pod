@@ -18,6 +18,7 @@ require (
 	github.com/Picovoice/rhino/binding/go/v2 v2.1.5
 	github.com/alphacep/vosk-api/go v0.3.45
 	github.com/fforchino/vector-go-sdk v0.0.0-20221216080054-dfe1a258d335
+	github.com/go-audio/audio v1.0.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/soheilhy/cmux v0.1.5
@@ -26,6 +27,7 @@ require (
 
 require (
 	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8 // indirect
+	github.com/go-audio/riff v1.0.0 // indirect
 	github.com/jamesruan/sodium v0.0.0-20181216154042-9620b83ffeae // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -37,15 +39,14 @@ require (
 	github.com/PerformLine/go-stockutil v1.9.3 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/alphacep/vosk-api v0.3.45 // indirect
 	github.com/bramvdbogaerde/go-scp v1.2.1
 	github.com/bregydoc/gtranslate v0.0.0-20200913051839-1bd07f6c1fc5 // indirect
-	github.com/cryptix/wav v0.0.0-20180415113528-8bdace674401 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/digital-dream-labs/vector-bluetooth v0.0.0-20210604051118-1c511122d877
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/go-audio/wav v1.1.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grd/ogg v0.0.0-20130623210630-0dae53159b70 // indirect
@@ -62,6 +63,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
+	github.com/orcaman/writerseeker v0.0.0-20200621085525-1d3f536ff85e
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/robertkrimen/otto v0.2.1 // indirect

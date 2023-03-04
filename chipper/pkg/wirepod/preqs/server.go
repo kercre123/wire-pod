@@ -72,7 +72,10 @@ func loadIntents() ([][]string, []string, error) {
 func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (*Server, error) {
 
 	// Decide the TTS language
-	sttLanguage = vars.APIConfig.STT.Language
+	if voiceProcessor != "vosk" {
+		vars.APIConfig.STT.Language = "en-US"
+	}
+	matchListList, intentsList, _ = loadIntents()
 	logger.Println("Initiating " + voiceProcessor + " voice processor with language " + sttLanguage)
 	err := InitFunc()
 	if err != nil {
@@ -95,7 +98,6 @@ func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (
 
 	// Initiating the chosen voice processor and load intents from json
 	VoiceProcessor = voiceProcessor
-	matchListList, intentsList, err = loadIntents()
 
 	// Load plugins
 	ttr.LoadPlugins()
