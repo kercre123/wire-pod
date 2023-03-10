@@ -45,8 +45,8 @@ elif [[ "${UNAME}" == *"aarch64"* ]]; then
     echo "aarch64 architecture confirmed."
 elif [[ "${UNAME}" == *"armv7l"* ]]; then
     ARCH="armv7l"
-    echo "armv7l WARN: The Coqui and VOSK bindings are broken for this platform at the moment, so please choose Picovoice when the script asks."
-    exit 1
+    echo "armv7l (32-bit) WARN: The Coqui and VOSK bindings are broken for this platform at the moment, so please choose Picovoice when the script asks. wire-pod is designed for 64-bit systems."
+    STT=""
 else
     echo "Your CPU architecture not supported. This script currently supports x86_64, aarch64, and armv7l."
     exit 1
