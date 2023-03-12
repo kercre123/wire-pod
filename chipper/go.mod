@@ -29,7 +29,7 @@ require (
 	github.com/alphacep/vosk-api v0.3.45 // indirect
 	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8 // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
-	github.com/jamesruan/sodium v0.0.0-20181216154042-9620b83ffeae // indirect
+	github.com/jamesruan/sodium v1.0.14 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
