@@ -141,7 +141,7 @@
 	},
 	{	
 		"name": "intent_greeting_hello", 
-		"keyphrases" : ["oi", "como vai", "como vai você", "beleza", "tudo bem" ]
+		"keyphrases" : ["oi", "como vai", "como vai você", "beleza", "tudo bem"]
 	},
 	{	
 		"name": "intent_imperative_come", 
