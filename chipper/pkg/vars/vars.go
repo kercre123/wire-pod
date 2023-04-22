@@ -28,7 +28,7 @@ var BotInfo RobotInfoStore
 var CustomIntents IntentsStruct
 var CustomIntentsExist bool = false
 var DownloadedVoskModels []string
-var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE"}
+var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE","pt-BR"}
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
