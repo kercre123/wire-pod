@@ -323,9 +323,7 @@ func DownloadVoskModel(language string) {
 		filename = filename + "de-0.15.zip"
 	} else if language == "pt-BR" {
 		filename = filename + "pt-0.3.zip"
-	} 
-	
-	else {
+	} else {
 		logger.Println("Language not valid? " + language)
 		return
 	}
@@ -345,6 +343,7 @@ func DownloadVoskModel(language string) {
 	logger.Println("Reloaded voice processor successfully")
 	DownloadStatus = "success"
 }
+
 
 func StartWebServer() {
 	var webPort string
