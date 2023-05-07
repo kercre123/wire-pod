@@ -170,6 +170,7 @@ function getSTT() {
         }
         picoApiPrompt
         echo "export STT_SERVICE=leopard" >> ./chipper/source.sh
+	echo "export PICOVOICE_APIKEY=${picoKey}" >> ./chipper/source.sh
         echo "export PICOVOICE_APIKEY=${picoKey}" > ./chipper/pico.key
     elif [[ ${sttService} == "vosk" ]]; then
         echo "export STT_SERVICE=vosk" >> ./chipper/source.sh
