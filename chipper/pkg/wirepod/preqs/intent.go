@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/vtt"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 	ttr "github.com/kercre123/chipper/pkg/wirepod/ttr"
@@ -22,7 +23,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, speechReq.BotNum)
 			return nil, nil
 		}
-		successMatched = ttr.ProcessTextAll(req, transcribedText, matchListList, intentsList, speechReq.IsOpus, speechReq.BotNum)
+		successMatched = ttr.ProcessTextAll(req, transcribedText, vars.MatchListList, vars.IntentsList, speechReq.IsOpus, speechReq.BotNum)
 	} else {
 		intent, slots, err := stiHandler(speechReq)
 		if err != nil {

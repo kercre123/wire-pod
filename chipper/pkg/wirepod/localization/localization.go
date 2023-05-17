@@ -1,6 +1,8 @@
-package wirepod_ttr
+package localization
 
 import "github.com/kercre123/chipper/pkg/vars"
+
+var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR"}
 
 const STR_WEATHER_IN = "str_weather_in"
 const STR_WEATHER_FORECAST = "str_weather_forecast"
@@ -77,7 +79,7 @@ var texts = map[string][]string{
 	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für "},
 }
 
-func getText(key string) string {
+func GetText(key string) string {
 	var data = texts[key]
 	if data != nil {
 		if vars.APIConfig.STT.Language == "it-IT" {
@@ -91,4 +93,11 @@ func getText(key string) string {
 		}
 	}
 	return data[0]
+}
+
+func ReloadVosk() {
+	if vars.APIConfig.STT.Service == "vosk" {
+		vars.SttInitFunc()
+		vars.MatchListList, vars.IntentsList, _ = vars.LoadIntents()
+	}
 }
