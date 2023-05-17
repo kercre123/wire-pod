@@ -498,7 +498,7 @@ func BeginServer() {
 	} else {
 		webPort = "8080"
 	}
-	logger.Println("Configuration page: http://" + ipAddr + ":" + webPort)
+	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + webPort + "\033[0m")
 	if err := http.ListenAndServe(":80", nil); err != nil {
 		logger.Println("A process is already using port 80 - connCheck functionality will not work")
 	}
