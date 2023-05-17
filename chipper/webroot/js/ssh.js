@@ -46,7 +46,11 @@ function updateSSHSetup() {
           document.getElementById("oskrSetup").style.display = "block"
           clearInterval(interval)
         } else if (response.includes("error")) {
-          updateSSHStatus(response)
+          resp = response
+          if (response.includes("no route to host")) {
+            resp = "Wire-pod was unable to connect to the robot. Make sure the robot is running OSKR/dev software and that it is on the same network as this wire-pod instance. Also double-check the IP."
+          }
+          updateSSHStatus(resp)
             clearInterval(interval)
             document.getElementById("oskrSetup").style.display = "block"
             return
