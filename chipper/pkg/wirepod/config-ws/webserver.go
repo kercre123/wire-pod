@@ -11,6 +11,7 @@ import (
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
+	"github.com/kercre123/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 )
@@ -229,7 +230,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// check if language is valid
 		matched := false
-		for _, lang := range vars.ValidVoskModels {
+		for _, lang := range localization.ValidVoskModels {
 			if lang == language {
 				matched = true
 				break
@@ -248,7 +249,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !matched {
-			go DownloadVoskModel(language)
+			go localization.DownloadVoskModel(language)
 			fmt.Fprint(w, "downloading language model")
 		} else {
 			vars.APIConfig.STT.Language = language
@@ -260,9 +261,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	case r.URL.Path == "/api/get_download_status":
-		fmt.Fprint(w, DownloadStatus)
-		if DownloadStatus == "success" || strings.Contains(DownloadStatus, "error") {
-			DownloadStatus = "not downloading"
+		fmt.Fprint(w, localization.DownloadStatus)
+		if localization.DownloadStatus == "success" || strings.Contains(localization.DownloadStatus, "error") {
+			localization.DownloadStatus = "not downloading"
 		}
 		return
 	case r.URL.Path == "/api/get_stt_info":
@@ -308,42 +309,6 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
-func DownloadVoskModel(language string) {
-	filename := "vosk-model-small-"
-	if language == "en-US" {
-		filename = filename + "en-us-0.15.zip"
-	} else if language == "it-IT" {
-		filename = filename + "it-0.22.zip"
-	} else if language == "es-ES" {
-		filename = filename + "es-0.42.zip"
-	} else if language == "fr-FR" {
-		filename = filename + "fr-0.22.zip"
-	} else if language == "de-DE" {
-		filename = filename + "de-0.15.zip"
-	} else if language == "pt-BR" {
-		filename = filename + "pt-0.3.zip"
-	} else {
-		logger.Println("Language not valid? " + language)
-		return
-	}
-	os.MkdirAll("../vosk", 0755)
-	url := "https://alphacephei.com/vosk/models/" + filename
-	filepath := os.TempDir() + "/" + filename
-	destpath := "../vosk/models/" + language + "/"
-	DownloadFile(url, filepath)
-	UnzipFile(filepath, destpath)
-	os.Rename(destpath+strings.TrimSuffix(filename, ".zip"), destpath+"model")
-	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
-	DownloadStatus = "Reloading voice processor"
-	vars.APIConfig.STT.Language = language
-	vars.APIConfig.PastInitialSetup = true
-	vars.WriteConfigToDisk()
-	processreqs.ReloadVosk()
-	logger.Println("Reloaded voice processor successfully")
-	DownloadStatus = "success"
-}
-
 
 func StartWebServer() {
 	var webPort string
