@@ -18,19 +18,36 @@ function showBotAuth() {
 }
 
 function checkBLECapability() {
-    fetch("/api-ble/init")
-        .then(response => response.text())
-        .then((response) => {
-            if (response.includes("success")) {
-                BeginBLESetup()
-            } else if (response.includes("error")) {
-                statusP.innerHTML = "Error initializing bluetooth on the device running wire-pod. Use the following site on any machine with Bluetooth for setup:"
-                authEl.innerHTML = ""
-                authEl.appendChild(statusP)
-                authEl.appendChild(document.createElement("br"))
-                authEl.appendChild(externalSetup)
-            }
-        })
+    // fetch("/api-ble/init")
+    //     .then(response => response.text())
+    //     .then((response) => {
+    //         if (response.includes("success")) {
+    //             BeginBLESetup()
+    //         } else if (response.includes("error")) {
+    //             statusP.innerHTML = "Error initializing bluetooth on the device running wire-pod. Use the following site on any machine with Bluetooth for setup:"
+    //             authEl.innerHTML = ""
+    //             authEl.appendChild(statusP)
+    //             authEl.appendChild(document.createElement("br"))
+    //             authEl.appendChild(externalSetup)
+    //         }
+    //     })
+    authEl.innerHTML = ""
+    m1 = document.createElement("p")
+    m2 = document.createElement("a")
+    m3 = document.createElement("small")
+    m1.innerHTML = "Head to the following site on any device with Bluetooth support to set up your Vector."
+    m2.text = "https://keriganc.com/vector-wirepod-setup"
+    m2.href = "https://keriganc.com/vector-wirepod-setup"
+    m2.target = "_blank"
+    m3.innerHTML = "Note: if you have an OSKR/dev-unlocked robot, follow the instructions in the section below this one BEFORE using the web setup."
+    m1.class = "center"
+    m2.class = "center"
+    m3.class = "center"
+    authEl.appendChild(m1)
+    //authEl.appendChild(document.createElement("br"))
+    authEl.appendChild(m2)
+    authEl.appendChild(document.createElement("br"))
+    authEl.appendChild(m3)
 }
 
 function BeginBLESetup() {
