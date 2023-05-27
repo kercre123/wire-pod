@@ -2,7 +2,7 @@ package localization
 
 import "github.com/kercre123/chipper/pkg/vars"
 
-var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL"}
+var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL", "zh-CN"}
 
 const STR_WEATHER_IN = "str_weather_in"
 const STR_WEATHER_FORECAST = "str_weather_forecast"
@@ -43,40 +43,40 @@ const STR_FOR = "str_for"
 
 var texts = map[string][]string{
 	//  key                 			en-US   it-IT   es-ES    fr-FR    de-DE    pl-PL
-	STR_WEATHER_IN:                     {" in ", " a ", " en ", " en ", " in ", " w "},
-	STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "wettervorhersage", "prognoza"},
-	STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "mañana", "demain", "morgen", "jutro"},
-	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am tag nach morgen", "pojutrze"},
-	STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "heute abend", "dziś wieczorem"},
-	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "heute nachmittag", "popołudniu"},
-	STR_EYE_COLOR_PURPLE:               {"purple", "lilla", "violeta", "violet", "violett", "fioletowy"},
-	STR_EYE_COLOR_BLUE:                 {"blue", "blu", "azul", "bleu", "blau", "niebieski"},
-	STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir", "szafir"},
-	STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb", "żółty"},
-	STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün", "morski"},
-	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarina", "acquamarina", "akwamaryn"},
-	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony"},
-	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy"},
-	STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie"},
-	STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja"},
-	STR_VOLUME_LOW:                     {"low", "basso", "bajo", "bas", "niedrig", "niski"},
-	STR_VOLUME_QUIET:                   {"quiet", "poco rumoroso", "tranquilo", "silencieux", "ruhig", "cichy"},
-	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen-doux", "mittelschwer", "średnio niski"},
-	STR_VOLUME_MEDIUM:                  {"medium", "medio", "medio", "moyen", "mittel", "średni"},
-	STR_VOLUME_NORMAL:                  {"normal", "normale", "normal", "normal", "normal", "normalny"},
-	STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "régulier", "regulär", "zwyczajny"},
-	STR_VOLUME_MEDIUM_HIGH:             {"medium high", "medio alto", "medio-alto", "moyen-élevé", "mittelhoch", "średno wysoki"},
-	STR_VOLUME_HIGH:                    {"high", "alto", "alto", "élevé", "hoch", "wysoki"},
-	STR_VOLUME_LOUD:                    {"loud", "rumoroso", "fuerte", "fort", "laut", "głośny"},
-	STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "", "stumm", "wyciszony"},
-	STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts", "nic"},
-	STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still", "cichy"},
-	STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus", "wyłączony"},
-	STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "null", "zero"},
-	STR_NAME_IS:                        {" is ", " è ", " es ", " est ", " ist ", " to "},
-	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się "},
-	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię"},
-	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla "},
+	STR_WEATHER_IN:                     {" in ", " a ", " en ", " en ", " in ", " w ", " 的 "},
+	STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "wettervorhersage", "prognoza", "预报"},
+	STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "mañana", "demain", "morgen", "jutro", "明天"},
+	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am tag nach morgen", "pojutrze", "后天"},
+	STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "heute abend", "dziś wieczorem", "今晚"},
+	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "heute nachmittag", "popołudniu", "下午"},
+	STR_EYE_COLOR_PURPLE:               {"purple", "lilla", "violeta", "violet", "violett", "fioletowy", "紫色"},
+	STR_EYE_COLOR_BLUE:                 {"blue", "blu", "azul", "bleu", "blau", "niebieski", "蓝色"},
+	STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir", "szafir", "天蓝"},
+	STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb", "żółty", "黄色"},
+	STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün", "morski", "浅绿"},
+	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarina", "acquamarina", "akwamaryn", "蓝绿"},
+	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony", "绿色"},
+	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy", "橙色"},
+	STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie", "我"},
+	STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja", "自己"},
+	STR_VOLUME_LOW:                     {"low", "basso", "bajo", "bas", "niedrig", "niski", "低"},
+	STR_VOLUME_QUIET:                   {"quiet", "poco rumoroso", "tranquilo", "silencieux", "ruhig", "cichy", "安静"},
+	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen-doux", "mittelschwer", "średnio niski", "中低"},
+	STR_VOLUME_MEDIUM:                  {"medium", "medio", "medio", "moyen", "mittel", "średni", "中档"},
+	STR_VOLUME_NORMAL:                  {"normal", "normale", "normal", "normal", "normal", "normalny", "正常"},
+	STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "régulier", "regulär", "zwyczajny", "标准"},
+	STR_VOLUME_MEDIUM_HIGH:             {"medium high", "medio alto", "medio-alto", "moyen-élevé", "mittelhoch", "średno wysoki", "中高"},
+	STR_VOLUME_HIGH:                    {"high", "alto", "alto", "élevé", "hoch", "wysoki", "高档"},
+	STR_VOLUME_LOUD:                    {"loud", "rumoroso", "fuerte", "fort", "laut", "głośny", "高"},
+	STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "", "stumm", "wyciszony", "静音"},
+	STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts", "nic", "无声"},
+	STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still", "cichy", "悄声"},
+	STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus", "wyłączony", "关闭"},
+	STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "null", "zero", "零"},
+	STR_NAME_IS:                        {" is ", " è ", " es ", " est ", " ist ", " to ", "到"},
+	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się ", "的"},
+	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię", "名字"},
+	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla ", "给"},
 }
 
 func GetText(key string) string {
@@ -92,6 +92,8 @@ func GetText(key string) string {
 			return data[4]
 		} else if vars.APIConfig.STT.Language == "pl-PL" {
 			return data[5]
+		} else if vars.APIConfig.STT.Language == "zh-CN" {
+			return data[6]			
 		}
 	}
 	return data[0]
