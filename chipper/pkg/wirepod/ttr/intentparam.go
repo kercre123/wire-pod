@@ -7,6 +7,7 @@ import (
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
+	lcztn "github.com/kercre123/chipper/pkg/wirepod/localization"
 )
 
 // stt
@@ -103,7 +104,7 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, getText(STR_ME)) || strings.Contains(speechText, getText(STR_SELF)) {
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_ME)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_SELF)) {
 			intentParam = "entity_photo_selfie"
 			intentParamValue = "photo_selfie"
 		} else {
@@ -115,17 +116,17 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 		isParam = true
 		newIntent = "intent_imperative_eyecolor_specific_extend"
 		intentParam = "eye_color"
-		if strings.Contains(speechText, getText(STR_EYE_COLOR_PURPLE)) {
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_PURPLE)) {
 			intentParamValue = "COLOR_PURPLE"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_BLUE)) || strings.Contains(speechText, getText(STR_EYE_COLOR_SAPPHIRE)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_BLUE)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_SAPPHIRE)) {
 			intentParamValue = "COLOR_BLUE"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_YELLOW)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_YELLOW)) {
 			intentParamValue = "COLOR_YELLOW"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_TEAL)) || strings.Contains(speechText, getText(STR_EYE_COLOR_TEAL2)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_TEAL)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_TEAL2)) {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_GREEN)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_GREEN)) {
 			intentParamValue = "COLOR_GREEN"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_ORANGE)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_ORANGE)) {
 			intentParamValue = "COLOR_ORANGE"
 		} else {
 			newIntent = intent
@@ -141,22 +142,22 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, getText(STR_VOLUME_MEDIUM_LOW)) {
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MEDIUM_LOW)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_2"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_LOW)) || strings.Contains(speechText, getText(STR_VOLUME_QUIET)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_LOW)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_QUIET)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_MEDIUM_HIGH)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MEDIUM_HIGH)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_4"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_MEDIUM)) || strings.Contains(speechText, getText(STR_VOLUME_NORMAL)) || strings.Contains(speechText, getText(STR_VOLUME_REGULAR)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MEDIUM)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_NORMAL)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_REGULAR)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_3"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_HIGH)) || strings.Contains(speechText, getText(STR_VOLUME_LOUD)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_HIGH)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_LOUD)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_5"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_MUTE)) || strings.Contains(speechText, getText(STR_VOLUME_NOTHING)) || strings.Contains(speechText, getText(STR_VOLUME_SILENT)) || strings.Contains(speechText, getText(STR_VOLUME_OFF)) || strings.Contains(speechText, getText(STR_VOLUME_ZERO)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MUTE)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_NOTHING)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_SILENT)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_OFF)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_ZERO)) {
 			// there is no VOLUME_0 :(
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
@@ -170,12 +171,12 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 		var nameSplitter string = ""
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, getText(STR_NAME_IS)) {
-			nameSplitter = getText(STR_NAME_IS)
-		} else if strings.Contains(speechText, getText(STR_NAME_IS2)) {
-			nameSplitter = getText(STR_NAME_IS2)
-		} else if strings.Contains(speechText, getText(STR_NAME_IS3)) {
-			nameSplitter = getText(STR_NAME_IS3)
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_NAME_IS)) {
+			nameSplitter = lcztn.GetText(lcztn.STR_NAME_IS)
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_NAME_IS2)) {
+			nameSplitter = lcztn.GetText(lcztn.STR_NAME_IS2)
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_NAME_IS3)) {
+			nameSplitter = lcztn.GetText(lcztn.STR_NAME_IS3)
 		}
 		if nameSplitter != "" {
 			splitPhrase := strings.SplitAfter(speechText, nameSplitter)
@@ -216,8 +217,8 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 		isParam = true
 		newIntent = intent
 		intentParam = "given_name"
-		if strings.Contains(speechText, getText(STR_FOR)) {
-			splitPhrase := strings.SplitAfter(speechText, getText(STR_FOR))
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_FOR)) {
+			splitPhrase := strings.SplitAfter(speechText, lcztn.GetText(lcztn.STR_FOR))
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])
@@ -236,8 +237,8 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 		isParam = true
 		newIntent = intent
 		intentParam = "given_name"
-		if strings.Contains(speechText, getText(STR_FOR)) {
-			splitPhrase := strings.SplitAfter(speechText, getText(STR_FOR))
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_FOR)) {
+			splitPhrase := strings.SplitAfter(speechText, lcztn.GetText(lcztn.STR_FOR))
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])
@@ -488,7 +489,7 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 	if strings.Contains(intent, "intent_photo_take_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, getText(STR_ME)) || strings.Contains(speechText, getText(STR_SELF)) {
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_ME)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_SELF)) {
 			intentParam = "entity_photo_selfie"
 			intentParamValue = "photo_selfie"
 		} else {
@@ -501,17 +502,17 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		isParam = true
 		newIntent = "intent_imperative_eyecolor_specific_extend"
 		intentParam = "eye_color"
-		if strings.Contains(speechText, getText(STR_EYE_COLOR_PURPLE)) {
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_PURPLE)) {
 			intentParamValue = "COLOR_PURPLE"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_BLUE)) || strings.Contains(speechText, getText(STR_EYE_COLOR_SAPPHIRE)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_BLUE)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_SAPPHIRE)) {
 			intentParamValue = "COLOR_BLUE"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_YELLOW)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_YELLOW)) {
 			intentParamValue = "COLOR_YELLOW"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_TEAL)) || strings.Contains(speechText, getText(STR_EYE_COLOR_TEAL2)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_TEAL)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_TEAL2)) {
 			intentParamValue = "COLOR_TEAL"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_GREEN)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_GREEN)) {
 			intentParamValue = "COLOR_GREEN"
-		} else if strings.Contains(speechText, getText(STR_EYE_COLOR_ORANGE)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_EYE_COLOR_ORANGE)) {
 			intentParamValue = "COLOR_ORANGE"
 		} else {
 			newIntent = intent
@@ -527,22 +528,22 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
 		newIntent = intent
-		if strings.Contains(speechText, getText(STR_VOLUME_MEDIUM_LOW)) {
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MEDIUM_LOW)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_2"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_LOW)) || strings.Contains(speechText, getText(STR_VOLUME_QUIET)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_LOW)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_QUIET)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_MEDIUM_HIGH)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MEDIUM_HIGH)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_4"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_MEDIUM)) || strings.Contains(speechText, getText(STR_VOLUME_NORMAL)) || strings.Contains(speechText, getText(STR_VOLUME_REGULAR)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MEDIUM)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_NORMAL)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_REGULAR)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_3"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_HIGH)) || strings.Contains(speechText, getText(STR_VOLUME_LOUD)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_HIGH)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_LOUD)) {
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_5"
-		} else if strings.Contains(speechText, getText(STR_VOLUME_MUTE)) || strings.Contains(speechText, getText(STR_VOLUME_NOTHING)) || strings.Contains(speechText, getText(STR_VOLUME_SILENT)) || strings.Contains(speechText, getText(STR_VOLUME_OFF)) || strings.Contains(speechText, getText(STR_VOLUME_ZERO)) {
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_MUTE)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_NOTHING)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_SILENT)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_OFF)) || strings.Contains(speechText, lcztn.GetText(lcztn.STR_VOLUME_ZERO)) {
 			// there is no VOLUME_0 :(
 			intentParam = "volume_level"
 			intentParamValue = "VOLUME_1"
@@ -556,12 +557,12 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		var nameSplitter string = ""
 		isParam = true
 		newIntent = "intent_names_username"
-		if strings.Contains(speechText, getText(STR_NAME_IS)) {
-			nameSplitter = getText(STR_NAME_IS)
-		} else if strings.Contains(speechText, getText(STR_NAME_IS2)) {
-			nameSplitter = getText(STR_NAME_IS2)
-		} else if strings.Contains(speechText, getText(STR_NAME_IS3)) {
-			nameSplitter = getText(STR_NAME_IS3)
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_NAME_IS)) {
+			nameSplitter = lcztn.GetText(lcztn.STR_NAME_IS)
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_NAME_IS2)) {
+			nameSplitter = lcztn.GetText(lcztn.STR_NAME_IS2)
+		} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_NAME_IS3)) {
+			nameSplitter = lcztn.GetText(lcztn.STR_NAME_IS3)
 		}
 		if nameSplitter != "" {
 			splitPhrase := strings.SplitAfter(speechText, nameSplitter)
@@ -602,8 +603,8 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		isParam = true
 		newIntent = "intent_message_playmessage"
 		intentParam = "given_name"
-		if strings.Contains(speechText, getText(STR_FOR)) {
-			splitPhrase := strings.SplitAfter(speechText, getText(STR_FOR))
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_FOR)) {
+			splitPhrase := strings.SplitAfter(speechText, lcztn.GetText(lcztn.STR_FOR))
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])
@@ -622,8 +623,8 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		isParam = true
 		newIntent = "intent_message_recordmessage"
 		intentParam = "given_name"
-		if strings.Contains(speechText, getText(STR_FOR)) {
-			splitPhrase := strings.SplitAfter(speechText, getText(STR_FOR))
+		if strings.Contains(speechText, lcztn.GetText(lcztn.STR_FOR)) {
+			splitPhrase := strings.SplitAfter(speechText, lcztn.GetText(lcztn.STR_FOR))
 			given_name = strings.TrimSpace(splitPhrase[1])
 			if len(splitPhrase) == 3 {
 				given_name = given_name + " " + strings.TrimSpace(splitPhrase[2])
