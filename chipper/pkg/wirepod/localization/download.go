@@ -1,4 +1,4 @@
-package webserver
+package localization
 
 /**
  * @website http://albulescu.ro
@@ -20,9 +20,47 @@ import (
 	"time"
 
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 )
 
 var DownloadStatus string = "not downloading"
+
+func DownloadVoskModel(language string) {
+	filename := "vosk-model-small-"
+	if language == "en-US" {
+		filename = filename + "en-us-0.15.zip"
+	} else if language == "it-IT" {
+		filename = filename + "it-0.22.zip"
+	} else if language == "es-ES" {
+		filename = filename + "es-0.42.zip"
+	} else if language == "fr-FR" {
+		filename = filename + "fr-0.22.zip"
+	} else if language == "de-DE" {
+		filename = filename + "de-0.15.zip"
+	} else if language == "pt-BR" {
+		filename = filename + "pt-0.3.zip"
+	} else if language == "pl-PL" {
+		filename = filename + "pl-0.22.zip"
+	} else {
+		logger.Println("Language not valid? " + language)
+		return
+	}
+	os.MkdirAll("../vosk", 0755)
+	url := "https://alphacephei.com/vosk/models/" + filename
+	filepath := os.TempDir() + "/" + filename
+	destpath := "../vosk/models/" + language + "/"
+	DownloadFile(url, filepath)
+	UnzipFile(filepath, destpath)
+	os.Rename(destpath+strings.TrimSuffix(filename, ".zip"), destpath+"model")
+	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
+	DownloadStatus = "Reloading voice processor"
+	vars.APIConfig.STT.Language = language
+	vars.APIConfig.PastInitialSetup = true
+	vars.WriteConfigToDisk()
+	ReloadVosk()
+	logger.Println("Reloaded voice processor successfully")
+	DownloadStatus = "success"
+}
 
 func PrintDownloadPercent(done chan int64, path string, total int64) {
 	var stop bool = false
