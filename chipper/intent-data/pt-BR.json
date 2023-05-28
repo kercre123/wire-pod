@@ -1,0 +1,218 @@
+[
+	{
+		"name" : "intent_names_username_extend", 
+		"keyphrases": ["nome é", "me chamo"]
+	},
+	{	
+		"name": "intent_weather_extend", 
+		"keyphrases" : ["previsão", "temperatura", "quantos graus", "enquanto os graus"]
+	},
+	{	
+		"name": "intent_names_ask", 
+		"keyphrases" : ["quem sou eu", "qual o meu nome", "qual meu nome", "sou eu", "meu nome"]
+	},
+	{	
+		"name": "intent_imperative_eyecolor",
+		"keyphrases" : ["cor dos olhos", "trocar cor", "mudar cor","trocar cor dos olhos"]
+	},
+	{	
+		"name": "intent_character_age", 
+		"keyphrases" : ["idade", "qual sua idade", "quantos anos", "quantos anos você tem"]
+	},
+	{	
+		"name": "intent_explore_start", 
+		"keyphrases" : ["vai dar uma volta", "dá uma volta", "vai passear", "dá uma volta", "explorar" ]
+	},
+	{	
+		"name": "intent_system_charger", 
+		"keyphrases" : ["vai carregar", "vai pra casa", "encontra sua casa", "encontre sua casa" ]
+	},
+		{	
+		"name": "intent_system_sleep",
+		"keyphrases" : ["dormir", "vai dormi" ]
+	},
+	{	
+		"name": "intent_greeting_goodmorning", 
+		"keyphrases" : ["bom dia", "pom dia", "bom tia", "boa tarde", "poa tarde" ]
+	},
+		{	
+		"name": "intent_greeting_goodnight", 
+		"keyphrases" : ["boa noite", "poa noite" ]
+	},
+		{	
+		"name": "intent_greeting_goodbye", 
+		"keyphrases" : ["tchau", "adeus", "até mais", "até logo", "até amanhã" ]
+	},
+	{	
+		"name": "intent_seasonal_happynewyear",
+		"keyphrases" : ["soltar fogos", "ano novo", "feliz ano", "feliz anivérsario" ]
+	},
+	{	
+		"name": "intent_seasonal_happyholidays", 
+		"keyphrases" : ["férias", "feriado", "folga", "natal", "feliz natal" ]
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["ativar alexa", "logar alexa", "colocar alexa" ]
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["desativar alexa", "parar alexa", "tirar alexa"]
+	},
+	{	
+		"name": "intent_imperative_forward",
+		"keyphrases" : ["pra frente", "vai pra frente", "reto", "vai reto"]
+	},
+	{	
+		"name": "intent_imperative_turnaround", 
+		"keyphrases" : ["virar", "vire", "de a volta" ]
+	},
+	{	
+		"name": "intent_imperative_turnleft", 
+		"keyphrases" : ["vai para esquerda", "esquerda", "vira para esquerda", "lado direito" ]
+	},
+	{	
+		"name": "intent_imperative_turnright", 
+		"keyphrases" : ["vai para direita", "direita", "vira para direita", "lado direito"]
+	},
+	{	
+		"name": "intent_play_rollcube",
+		"keyphrases" : ["rola o cubo", "rola seu cubo", "gira seu cubo", "gira o cubo", "girar cubo" ]
+	},
+	{	
+		"name": "intent_play_popawheelie", 
+		"keyphrases" : ["pop a w", "polwhele", "olwen", "i wieland", "do a wheel", "doorstone", "thibetan", "powell", "welst", "a wheel", "willie", "a really", "o' billy" ]
+	},
+	{	
+		"name": "intent_play_fistbump", 
+		"keyphrases" : ["bate aqui", "bate", "soquinho", "comprimenta", "comprementa" ]
+	},
+		{	
+		"name": "intent_play_blackjack", 
+		"keyphrases" : ["black", "cards", "game" ]
+	},
+		{	
+		"name": "intent_imperative_affirmative",
+		"keyphrases" : ["sim", "correto", "com certeza" ]
+	},
+	{	
+		"name": "intent_imperative_negative", 
+		"keyphrases" : ["não" ]
+	},
+	{	
+		"name": "intent_photo_take_extend", 
+		"keyphrases" : ["tirar foto", "foto", "Selfie", "tira uma foto"]
+	},
+	{	
+		"name": "intent_imperative_praise", 
+		"keyphrases" : ["bom", "incrível", "bom garoto", "legal" ]
+	},
+	{	
+		"name": "intent_imperative_abuse",
+		"keyphrases" : ["mal", "mau","horrivel", "feio" ]
+	},
+	{	
+		"name": "intent_imperative_apologize", 
+		"keyphrases" : ["desculpa", "perdão", "sinto muito", "me desculpe", "me perdoe" ]
+	},
+	{	
+		"name": "intent_imperative_backup", 
+		"keyphrases" : ["back" ]
+	},
+	{	
+		"name": "intent_imperative_volumedown",
+		"keyphrases" : ["abaixar volume", "baixar volume", "fala baixo"]
+	},
+	{	
+		"name": "intent_imperative_volumeup", 
+		"keyphrases" : ["aumentar volume", "aumentar", "mais alto"]
+	},
+	{	
+		"name": "intent_imperative_lookatme", 
+		"keyphrases" : ["olha", "mim", "olha aqui"]
+	},
+	{	
+		"name": "intent_imperative_volumelevel_extend",
+		"keyphrases" : ["all you", "volume", "loudness" ]
+	},
+	{	
+		"name": "intent_imperative_shutup", 
+		"keyphrases" : ["calado", "cala a boca", "fica queito"]
+	},
+	{	
+		"name": "intent_greeting_hello", 
+		"keyphrases" : ["oi", "como vai", "como vai você", "beleza", "tudo bem"]
+	},
+	{	
+		"name": "intent_imperative_come", 
+		"keyphrases" : ["vem", "vem aqui", "vem cá", "vem pra cá" ]
+	},
+	{	
+		"name": "intent_imperative_love",
+		"keyphrases" : ["amo", "amor", "te amo", "fofinho"]
+	},
+	{	
+		"name": "intent_knowledge_promptquestion", 
+		"keyphrases" : ["pergunta", "questão", "tenho uma pergunta","eu tenho uma pergunta" ]
+	},
+	{	
+		"name": "intent_clock_checktimer", 
+		"keyphrases" : ["check timer", "check the timer", "check the time her", "check time her", "check time her", "check time of her", "checked the timer", "checked the time her", "checked the time of her" ]
+	},
+	{	
+		"name": "intent_global_stop_extend", 
+		"keyphrases" : ["up the timer", "stop timer", "cancel the", "cancel timer", "stop clock", "stop be", "stopped t", "stopped be", "stopped at", "stop the" ]
+	},
+	{	
+		"name": "intent_clock_settimer_extend",
+		"keyphrases" : ["cronômetro", "contar", "conta"]
+	},
+	{	
+		"name": "intent_clock_time", 
+		"keyphrases" : ["que horas são", "que hora é", "que oração", "oração"]
+	},
+	{	
+		"name": "intent_imperative_quiet", 
+		"keyphrases" : ["quieto", "para", "queto" ]
+	},
+	{	
+		"name": "intent_imperative_dance", 
+		"keyphrases" : ["dance", "dançando", "dança" ]
+	},
+	{	
+		"name": "intent_play_pickupcube",
+		"keyphrases" : ["pega","tras pra mim", "pega o cubo"]
+	},
+	{	
+		"name": "intent_imperative_fetchcube", 
+		"keyphrases" : ["pega seu cubo", "pega o cubo" ]
+	},
+	{	
+		"name": "intent_imperative_findcube", 
+		"keyphrases" : ["seu cubo", "encontra seu cubo" ]
+	},
+	{	
+		"name": "intent_play_anytrick", 
+		"keyphrases" : ["faz algo legal", "faz um truque" ]
+	},
+	{	
+		"name": "intent_message_recordmessage_extend",
+		"keyphrases" : ["gravar" ]
+	},
+	{	
+		"name": "intent_message_playmessage_extend", 
+		"keyphrases" : ["tocar mensagem", "repetir mensagem"]
+	},
+		{	
+		"name": "intent_blackjack_hit", 
+		"keyphrases" : ["rite", "hite", "riti", "hiti"]
+	},
+	{	
+		"name": "intent_blackjack_stand", 
+		"keyphrases" : ["fica", "fica parado" ]
+	},
+	{	
+		"name": "intent_play_keepaway",
+		"keyphrases": ["afaste", "vai pra lá", "fica longe" ]
+	}
+]

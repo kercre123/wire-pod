@@ -14,6 +14,7 @@ import (
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
+	lcztn "github.com/kercre123/chipper/pkg/wirepod/localization"
 )
 
 /* TODO:
@@ -353,8 +354,8 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 	var apiLocation string
 	var speechLocation string
 	var hoursFromNow int
-	if strings.Contains(speechText, getText(STR_WEATHER_IN)) {
-		splitPhrase := strings.SplitAfter(speechText, getText(STR_WEATHER_IN))
+	if strings.Contains(speechText, lcztn.GetText(lcztn.STR_WEATHER_IN)) {
+		splitPhrase := strings.SplitAfter(speechText, lcztn.GetText(lcztn.STR_WEATHER_IN))
 		speechLocation = strings.TrimSpace(splitPhrase[1])
 		if len(splitPhrase) == 3 {
 			speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2])
@@ -377,18 +378,18 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 	}
 	hoursFromNow = 0
 	hours, _, _ := time.Now().Clock()
-	if strings.Contains(speechText, getText(STR_WEATHER_THIS_AFTERNOON)) {
+	if strings.Contains(speechText, lcztn.GetText(lcztn.STR_WEATHER_THIS_AFTERNOON)) {
 		if hours < 14 {
 			hoursFromNow = 14 - hours
 		}
-	} else if strings.Contains(speechText, getText(STR_WEATHER_TONIGHT)) {
+	} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_WEATHER_TONIGHT)) {
 		if hours < 20 {
 			hoursFromNow = 20 - hours
 		}
-	} else if strings.Contains(speechText, getText(STR_WEATHER_THE_DAY_AFTER_TOMORROW)) {
+	} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_WEATHER_THE_DAY_AFTER_TOMORROW)) {
 		hoursFromNow = 24 - hours + 24 + 9
-	} else if strings.Contains(speechText, getText(STR_WEATHER_FORECAST)) ||
-		strings.Contains(speechText, getText(STR_WEATHER_TOMORROW)) {
+	} else if strings.Contains(speechText, lcztn.GetText(lcztn.STR_WEATHER_FORECAST)) ||
+		strings.Contains(speechText, lcztn.GetText(lcztn.STR_WEATHER_TOMORROW)) {
 		hoursFromNow = 24 - hours + 9
 	}
 	logger.Println("Looking for forecast " + strconv.Itoa(hoursFromNow) + " hours from now...")
