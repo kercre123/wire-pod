@@ -25,7 +25,7 @@
 	},
 	{	
 		"name": "intent_system_charger", 
-		"keyphrases" : ["vai carregar", "vai pra casa", "encontra sua casa", "encontre sua casa" ]
+		"keyphrases" : ["vai carregar", "vai pra casa", "encontra sua casa", "encontre sua casa", "para casa" ]
 	},
 		{	
 		"name": "intent_system_sleep",
@@ -85,7 +85,7 @@
 	},
 	{	
 		"name": "intent_play_fistbump", 
-		"keyphrases" : ["bate aqui", "bate", "soquinho", "comprimenta", "comprementa" ]
+		"keyphrases" : ["bate aqui", "baixe aqui", "bate", "soquinho", "comprimenta", "comprementa" ]
 	},
 		{	
 		"name": "intent_play_blackjack", 
@@ -109,7 +109,7 @@
 	},
 	{	
 		"name": "intent_imperative_abuse",
-		"keyphrases" : ["mal", "mau","horrivel", "feio" ]
+		"keyphrases" : ["mal", "mau","horrivel", "feio","veio" ]
 	},
 	{	
 		"name": "intent_imperative_apologize", 
@@ -153,7 +153,7 @@
 	},
 	{	
 		"name": "intent_knowledge_promptquestion", 
-		"keyphrases" : ["pergunta", "questão", "tenho uma pergunta","eu tenho uma pergunta" ]
+		"keyphrases" : ["pergunta", "questão", "tenho uma pergunta","eu tenho uma pergunta", "uma pergunta" ]
 	},
 	{	
 		"name": "intent_clock_checktimer", 
