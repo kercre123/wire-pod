@@ -1,0 +1,218 @@
+[
+	{
+		"name" : "intent_names_username_extend", 
+		"keyphrases": ["名字" ]
+	},
+	{	
+		"name": "intent_weather_extend", 
+		"keyphrases" : ["天气", "天气预报", "明天天气", "今天天气" ]
+	},
+	{	
+		"name": "intent_names_ask", 
+		"keyphrases" : ["我的名字", "我是" ]
+	},
+	{	
+		"name": "intent_imperative_eyecolor",
+		"keyphrases" : ["眼睛 颜色", "颜色" ]
+	},
+	{	
+		"name": "intent_character_age", 
+		"keyphrases" : ["多大", "你多大" ]
+	},
+	{	
+		"name": "intent_explore_start", 
+		"keyphrases" : ["逛", "随便" ]
+	},
+	{	
+		"name": "intent_system_charger", 
+		"keyphrases" : ["回家", "充电" ]
+	},
+		{	
+		"name": "intent_system_sleep",
+		"keyphrases" : ["睡觉", "去 睡觉", "睡吧" ]
+	},
+	{	
+		"name": "intent_greeting_goodmorning", 
+		"keyphrases" : ["早上 好", "早安", "中午 好", "下午 好", "你好" ]
+	},
+		{	
+		"name": "intent_greeting_goodnight", 
+		"keyphrases" : ["晚安" ]
+	},
+		{	
+		"name": "intent_greeting_goodbye", 
+		"keyphrases" : ["再见", "回见" ]
+	},
+	{	
+		"name": "intent_seasonal_happynewyear",
+		"keyphrases" : ["新年好", "烟花", "庆祝" ]
+	},
+	{	
+		"name": "intent_seasonal_happyholidays", 
+		"keyphrases" : ["快乐", "假日", "节日" ]
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["to alex", "up alexa" ]
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["out alexa" ]
+	},
+	{	
+		"name": "intent_imperative_forward",
+		"keyphrases" : ["向前", "往前" ]
+	},
+	{	
+		"name": "intent_imperative_turnaround", 
+		"keyphrases" : ["转身", "转过", "回身" ]
+	},
+	{	
+		"name": "intent_imperative_turnleft", 
+		"keyphrases" : ["往左", "左转" ]
+	},
+	{	
+		"name": "intent_imperative_turnright", 
+		"keyphrases" : ["往右", "右转" ]
+	},
+	{	
+		"name": "intent_play_rollcube",
+		"keyphrases" : ["玩魔方" ]
+	},
+	{	
+		"name": "intent_play_popawheelie", 
+		"keyphrases" : ["举手" ]
+	},
+	{	
+		"name": "intent_play_fistbump", 
+		"keyphrases" : ["碰拳", "击掌" ]
+	},
+		{	
+		"name": "intent_play_blackjack", 
+		"keyphrases" : ["玩牌" ]
+	},
+		{	
+		"name": "intent_imperative_affirmative",
+		"keyphrases" : ["是", "当然", "正确", "对" ]
+	},
+	{	
+		"name": "intent_imperative_negative", 
+		"keyphrases" : ["不", "错" ]
+	},
+	{	
+		"name": "intent_photo_take_extend", 
+		"keyphrases" : ["拍照" ]
+	},
+	{	
+		"name": "intent_imperative_praise", 
+		"keyphrases" : ["真棒", "聪明" ]
+	},
+	{	
+		"name": "intent_imperative_abuse",
+		"keyphrases" : ["笨", "傻" ]
+	},
+	{	
+		"name": "intent_imperative_apologize", 
+		"keyphrases" : ["对不起", "抱歉" ]
+	},
+	{	
+		"name": "intent_imperative_backup", 
+		"keyphrases" : ["过来", "回来" ]
+	},
+	{	
+		"name": "intent_imperative_volumedown",
+		"keyphrases" : ["声音 小", "小声" ]
+	},
+	{	
+		"name": "intent_imperative_volumeup", 
+		"keyphrases" : ["声音 大", "大声" ]
+	},
+	{	
+		"name": "intent_imperative_lookatme", 
+		"keyphrases" : ["看我", "看着我" ]
+	},
+	{	
+		"name": "intent_imperative_volumelevel_extend",
+		"keyphrases" : ["音量" ]
+	},
+	{	
+		"name": "intent_imperative_shutup", 
+		"keyphrases" : ["闭嘴" ]
+	},
+	{	
+		"name": "intent_greeting_hello", 
+		"keyphrases" : ["你好", "您好" ]
+	},
+	{	
+		"name": "intent_imperative_come", 
+		"keyphrases" : ["过来" ]
+	},
+	{	
+		"name": "intent_imperative_love",
+		"keyphrases" : ["喜欢", "爱" ]
+	},
+	{	
+		"name": "intent_knowledge_promptquestion", 
+		"keyphrases" : ["问题", "回答" ]
+	},
+	{	
+		"name": "intent_clock_checktimer", 
+		"keyphrases" : ["检查 闹钟", "查看 闹钟" ]
+	},
+	{	
+		"name": "intent_global_stop_extend", 
+		"keyphrases" : ["取消 闹钟", "关闭 闹钟" ]
+	},
+	{	
+		"name": "intent_clock_settimer_extend",
+		"keyphrases" : ["设置 闹钟", "设 闹钟" ]
+	},
+	{	
+		"name": "intent_clock_time", 
+		"keyphrases" : ["时间", "几点" ]
+	},
+	{	
+		"name": "intent_imperative_quiet", 
+		"keyphrases" : ["安静", "休息" ]
+	},
+	{	
+		"name": "intent_imperative_dance", 
+		"keyphrases" : ["跳舞", "跳个舞" ]
+	},
+	{	
+		"name": "intent_play_pickupcube",
+		"keyphrases" : ["拿 魔方", "魔方 给我" ]
+	},
+	{	
+		"name": "intent_imperative_fetchcube", 
+		"keyphrases" : ["取 魔方" ]
+	},
+	{	
+		"name": "intent_imperative_findcube", 
+		"keyphrases" : ["找 魔方" ]
+	},
+	{	
+		"name": "intent_play_anytrick", 
+		"keyphrases" : ["技能" ]
+	},
+	{	
+		"name": "intent_message_recordmessage_extend",
+		"keyphrases" : ["记录" ]
+	},
+	{	
+		"name": "intent_message_playmessage_extend", 
+		"keyphrases" : ["播放 消息" ]
+	},
+		{	
+		"name": "intent_blackjack_hit", 
+		"keyphrases" : ["打"]
+	},
+	{	
+		"name": "intent_blackjack_stand", 
+		"keyphrases" : ["站" ]
+	},
+	{	
+		"name": "intent_play_keepaway",
+		"keyphrases": ["滚开", "远" ]
+	}
+]
