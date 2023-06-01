@@ -41,7 +41,7 @@ func (c *stsCredentialsCache) expired() bool {
 }
 
 // Currently STS tokens are only refreshed on demand since they are rarely
-// used. The only current use (uploading of logger files) is not time critical.
+// used. The only current use (uploading of log files) is not time critical.
 // In the future we may implement a pro-active refreshing mechanism (similar
 // to the one in refresher.go).
 func (c *stsCredentialsCache) getStsCredentials(accessor Accessor) (*credentials.Credentials, error) {

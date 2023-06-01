@@ -110,10 +110,10 @@ func (strm *Streamer) responseRoutine() {
 			log.Println("Intent response ->", fmt.Sprintf("%T", resp))
 		}
 		switch r := resp.(type) {
-		case *chipper.IntentResult:
-			sendIntentResponse(r, strm.receiver)
+		case *chipper.IntentGraphResponse:
+			sendIntentGraphResponse(r, strm.receiver)
 		case *chipper.KnowledgeGraphResponse:
-			sendKGResponse(r, strm.receiver)
+			sendKGResponse(r, strm.receiver, false)
 		case *chipper.ConnectionCheckResponse:
 			sendConnectionCheckResponse(r, strm.receiver, strm.opts.checkOpts)
 		default:
@@ -153,7 +153,7 @@ func sendIntentResponse(resp *chipper.IntentResult, receiver Receiver) {
 	receiver.OnIntent(&cloud.IntentResult{Intent: resp.Action, Parameters: buf.String(), Metadata: metadata})
 }
 
-func sendKGResponse(resp *chipper.KnowledgeGraphResponse, receiver Receiver) {
+func sendKGResponse(resp *chipper.KnowledgeGraphResponse, receiver Receiver, bypass bool) {
 	var buf bytes.Buffer
 	params := map[string]string{
 		"answer":      resp.SpokenText,
@@ -169,11 +169,26 @@ func sendKGResponse(resp *chipper.KnowledgeGraphResponse, receiver Receiver) {
 		receiver.OnError(cloud.ErrorType_Json, err)
 		return
 	}
+
+	// Bypass if its an intent graph response
+	intentName := "intent_knowledge_response_extend"
+	if bypass {
+		intentName = "intent_knowledge_response_extend_bypass"
+	}
+
 	receiver.OnIntent(&cloud.IntentResult{
-		Intent:     "intent_knowledge_response_extend",
+		Intent:     intentName,
 		Parameters: buf.String(),
 		Metadata:   "",
 	})
+}
+
+func sendIntentGraphResponse(resp *chipper.IntentGraphResponse, receiver Receiver) {
+	if chipper.IsIntent(*resp) {
+		sendIntentResponse(chipper.ConvertToIntentResp(resp), receiver)
+	} else {
+		sendKGResponse(chipper.ConvertToKnowledgeGraphResp(resp), receiver, true)
+	}
 }
 
 func sendConnectionCheckResponse(resp *chipper.ConnectionCheckResponse, receiver Receiver, opts *chipper.ConnectOpts) {

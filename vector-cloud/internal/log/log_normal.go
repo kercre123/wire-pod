@@ -1,4 +1,5 @@
-// THIS IS DISABLED PLUSbuild !vicos
+//go:build vicos
+// +build vicos
 
 package log
 
