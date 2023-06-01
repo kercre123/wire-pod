@@ -15,16 +15,17 @@ var platformOpts []chipper.ConnOpt
 type ConnectFunc func(context.Context) (Conn, *CloudError)
 
 type options struct {
-	tokener      token.Accessor
-	requireToken bool
-	mode         cloud.StreamType
-	connOpts     []chipper.ConnOpt
-	intentOpts   *chipper.IntentOpts
-	kgOpts       *chipper.KGOpts
-	checkOpts    *chipper.ConnectOpts
-	streamOpts   *chipper.StreamOpts
-	url          string
-	connectFn    ConnectFunc
+	tokener         token.Accessor
+	requireToken    bool
+	mode            cloud.StreamType
+	connOpts        []chipper.ConnOpt
+	intentOpts      *chipper.IntentOpts
+	kgOpts          *chipper.KGOpts
+	intentGraphOpts *chipper.IntentGraphOpts
+	checkOpts       *chipper.ConnectOpts
+	streamOpts      *chipper.StreamOpts
+	url             string
+	connectFn       ConnectFunc
 }
 
 type Option func(o *options)
@@ -48,6 +49,14 @@ func WithKnowledgeGraphOptions(opts chipper.KGOpts) Option {
 	return func(o *options) {
 		o.mode = cloud.StreamType_KnowledgeGraph
 		o.kgOpts = &opts
+		o.streamOpts = &opts.StreamOpts
+	}
+}
+
+func WithIntentGraphOptions(opts chipper.IntentGraphOpts, mode cloud.StreamType) Option {
+	return func(o *options) {
+		o.mode = mode
+		o.intentGraphOpts = &opts
 		o.streamOpts = &opts.StreamOpts
 	}
 }

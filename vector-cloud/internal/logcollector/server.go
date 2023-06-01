@@ -18,7 +18,7 @@ func runServer(ctx context.Context, opts *options) {
 
 	serv, err := ipc.NewUnixgramServer(ipc.GetSocketPath(socketName))
 	if err != nil {
-		log.Println("Error creating logger collector server:", err)
+		log.Println("Error creating log collector server:", err)
 		return
 	}
 
@@ -43,20 +43,20 @@ func (c *client) handleConn(ctx context.Context) {
 		}
 		var msg cloud.LogCollectorRequest
 		if err := msg.Unpack(bytes.NewBuffer(buf)); err != nil {
-			log.Println("Could not unpack logger collector request:", err)
+			log.Println("Could not unpack log collector request:", err)
 			continue
 		}
 
 		resp, err := c.handleRequest(ctx, &msg)
 		if err != nil {
-			log.Println("Error handling logger collector request:", err)
+			log.Println("Error handling log collector request:", err)
 		}
 		if resp != nil {
 			var buf bytes.Buffer
 			if err := resp.Pack(&buf); err != nil {
-				log.Println("Error packing logger collector response:", err)
+				log.Println("Error packing log collector response:", err)
 			} else if n, err := c.Write(buf.Bytes()); n != buf.Len() || err != nil {
-				log.Println("Error sending logger collector response:", fmt.Sprintf("%d/%d,", n, buf.Len()), err)
+				log.Println("Error sending log collector response:", fmt.Sprintf("%d/%d,", n, buf.Len()), err)
 			}
 		}
 	}
@@ -73,7 +73,7 @@ func (c *client) handleRequest(ctx context.Context, msg *cloud.LogCollectorReque
 	return cladHandler.handleRequest(ctx, msg)
 }
 
-// Run starts the logger collector service
+// Run starts the log collector service
 func Run(ctx context.Context, optionValues ...Option) {
 	var opts options
 	for _, o := range optionValues {

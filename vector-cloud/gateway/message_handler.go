@@ -3158,7 +3158,7 @@ func (service *rpcService) UploadDebugLogs(ctx context.Context, in *extint.Uploa
 
 	url, err := loguploader.UploadDebugLogs()
 	if err != nil {
-		logger.Println("MessageHandler.UploadDebugLogs.Error: " + err.Error())
+		log.Println("MessageHandler.UploadDebugLogs.Error: " + err.Error())
 		return nil, grpc.Errorf(codes.Internal, err.Error())
 	}
 	response := &extint.UploadDebugLogsResponse{
