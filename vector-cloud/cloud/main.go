@@ -44,11 +44,11 @@ func getSocketWithRetry(name string, client string) ipc.Conn {
 }
 
 func getHTTPClient() *http.Client {
+	// Create a HTTP client with given CA cert pool so we can use https on device
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs:            rootcerts.ServerCertPool(),
-				InsecureSkipVerify: true,
+				RootCAs: rootcerts.ServerCertPool(),
 			},
 		},
 	}
@@ -75,6 +75,7 @@ func testReader(serv ipc.Server, send voice.MsgSender) {
 }
 
 func main() {
+
 	var pool = rootcerts.ServerCertPool()
 	// load custom cert
 	// /anki/etc/wirepod-cert.crt
@@ -113,7 +114,8 @@ func main() {
 			log.Println("Failed to load custom certs")
 		}
 	}
-	log.Println("Starting up vic-cloud")
+
+	log.Println("Starting up")
 
 	robot.InstallCrashReporter(log.Tag)
 

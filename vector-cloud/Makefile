@@ -6,10 +6,9 @@ docker-builder:
 all: vic-cloud vic-gateway
 
 go_deps:
-	echo `/usr/local/go/bin/go version` && cd $(PWD) && /usr/local/go/bin/go mod download
+	echo `go version` && cd $(PWD) && go mod download
 
 vic-cloud: go_deps
-	mkdir -p build
 	docker container run  \
 	-v "$(PWD)":/go/src/digital-dream-labs/vector-cloud \
 	-v $(GOPATH)/pkg/mod:/go/pkg/mod \

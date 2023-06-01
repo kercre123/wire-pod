@@ -3,7 +3,6 @@ package token
 import (
 	"context"
 	"io/ioutil"
-	"log"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/robot"
 	"github.com/digital-dream-labs/vector-cloud/internal/token/identity"
@@ -42,10 +41,6 @@ func (c *conn) associatePrimary(session string) (*pb.TokenBundle, error) {
 	}
 	req.SessionCertificate = cert
 	response, err := c.client.AssociatePrimaryUser(context.Background(), &req)
-	log.Println("PRINTING DEBUG")
-	log.Println(response)
-	log.Println(response.Data)
-	log.Println("PRINTING DEBUG")
 	if err != nil {
 		return nil, err
 	}

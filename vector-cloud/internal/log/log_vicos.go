@@ -1,4 +1,5 @@
-// +build vicosBROKEN
+//go:build !vicos
+// +build !vicos
 
 package log
 

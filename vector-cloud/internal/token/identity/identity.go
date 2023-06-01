@@ -182,9 +182,6 @@ func logUserID(token *TokenInfo) {
 	if token == nil {
 		return
 	}
-	if user := token.UserId; user != "" {
-		log.Das("profile_id.start", (&log.DasFields{}).SetStrings(user))
-	}
 }
 
 type tokWrapper struct {

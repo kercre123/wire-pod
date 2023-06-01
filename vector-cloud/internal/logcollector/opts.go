@@ -27,7 +27,7 @@ type options struct {
 type Option func(o *options)
 
 // WithServer specifies that an IPC server should be started so other processes
-// can use logger collection
+// can use log collection
 func WithServer() Option {
 	return func(o *options) {
 		o.server = true
