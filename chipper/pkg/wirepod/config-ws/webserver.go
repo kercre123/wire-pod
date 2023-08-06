@@ -312,7 +312,6 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 
 func StartWebServer() {
 	var webPort string
-	botsetup.RegisterBLEAPI()
 	botsetup.RegisterSSHAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
