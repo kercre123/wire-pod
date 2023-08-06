@@ -555,7 +555,7 @@ function defaultLaunch() {
     getPackages
     getSTT
     echo
-    echo "wire-pod has been set up successfully!"
+    echo "wire-pod is ready to run! You are ready to move to the next step and run sudo ./chipper/start.sh"
 }
 
 if [[ $1 == "scp" ]]; then
