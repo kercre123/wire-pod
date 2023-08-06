@@ -25,16 +25,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0
 )
 
-require (
-	github.com/alphacep/vosk-api v0.3.45 // indirect
-	github.com/currantlabs/ble v0.0.0-20171229162446-c1d21c164cf8 // indirect
-	github.com/go-audio/riff v1.0.0 // indirect
-	github.com/jamesruan/sodium v1.0.14 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
-	github.com/mgutz/logxi v0.0.0-20161027140823-aebf8a7d67ab // indirect
-)
+require github.com/go-audio/riff v1.0.0 // indirect
 
 require (
 	github.com/PerformLine/go-stockutil v1.9.3 // indirect
@@ -43,7 +34,6 @@ require (
 	github.com/bramvdbogaerde/go-scp v1.2.1
 	github.com/bregydoc/gtranslate v0.0.0-20200913051839-1bd07f6c1fc5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/digital-dream-labs/vector-bluetooth v0.0.0-20210604051118-1c511122d877
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
