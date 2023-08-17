@@ -4,7 +4,11 @@
 
 It allows voice commands to work with any Vector 1.0 or 2.0 for no fee, including regular production robots.
 
-## Documentation
+## Installation
+
+The installation guide exists on the wiki: [Installation guide](https://github.com/kercre123/wire-pod/wiki/Installation)
+
+## Wiki
 
 Check out the [wiki](https://github.com/kercre123/wire-pod/wiki) for more information on what wire-pod is, a guide on how to install wire-pod, troubleshooting, how to develop for it, and for some generally helpful tips.
 
