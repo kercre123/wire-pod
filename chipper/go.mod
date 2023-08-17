@@ -25,7 +25,10 @@ require (
 	gopkg.in/ini.v1 v1.67.0
 )
 
-require github.com/go-audio/riff v1.0.0 // indirect
+require (
+	github.com/alphacep/vosk-api v0.3.45 // indirect
+	github.com/go-audio/riff v1.0.0 // indirect
+)
 
 require (
 	github.com/PerformLine/go-stockutil v1.9.3 // indirect
