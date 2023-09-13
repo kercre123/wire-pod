@@ -5,10 +5,12 @@ set -e
 echo
 
 UNAME=$(uname -a)
+ROOT="/root"
 
 if [[ ${UNAME} == *"Darwin"* ]]; then
-    if [[ -f /usr/local/Homebrew/bin/brew ]]; then
+    if [[ -f /usr/local/Homebrew/bin/brew ]] || [[ -f /opt/Homebrew/bin/brew ]]; then
         TARGET="darwin"
+        ROOT="$HOME"
         echo "macOS confirmed."
         if [[ ! -f /usr/local/go/bin/go ]]; then
             echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
@@ -40,7 +42,7 @@ fi
 if [[ "${UNAME}" == *"x86_64"* ]]; then
     ARCH="x86_64"
     echo "amd64 architecture confirmed."
-elif [[ "${UNAME}" == *"aarch64"* ]]; then
+elif [[ "${UNAME}" == *"aarch64"* ]] || [[ "${UNAME}" == *"arm64"* ]]; then
     ARCH="aarch64"
     echo "aarch64 architecture confirmed."
 elif [[ "${UNAME}" == *"armv7l"* ]]; then
@@ -91,7 +93,8 @@ function getPackages() {
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
     elif [[ ${TARGET} == "darwin" ]]; then
-        echo "macOS target, assuming packages already installed (opus opusfile pkg-config)"
+        sudo -u $SUDO_USER brew update
+        sudo -u $SUDO_USER brew install wget pkg-config opus opusfile 
     fi
     touch ./vector-cloud/packagesGotten
     echo
@@ -124,10 +127,6 @@ function getSTT() {
     echo "export DEBUG_LOGGING=true" > ./chipper/source.sh
     rm -f ./chipper/pico.key
     function sttServicePrompt() {
-        if [[ ${TARGET} == "darwin" ]]; then
-            sttService="leopard"
-            echo "Using Picovoice Leopard because that is the only speech-to-text service supported for macOS."
-        else
         echo
         echo "Which speech-to-text service would you like to use?"
         echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
@@ -138,7 +137,12 @@ function getSTT() {
         if [[ ! -n ${sttServiceNum} ]]; then
             sttService="vosk"
         elif [[ ${sttServiceNum} == "1" ]]; then
+            if [[ ${TARGET} == "darwin" ]]; then
+                echo "Coqui is not supported for macOS. Please select another option."
+                sttServicePrompt
+            else
             sttService="coqui"
+            fi
         elif [[ ${sttServiceNum} == "2" ]]; then
             sttService="leopard"
         elif [[ ${sttServiceNum} == "3" ]]; then
@@ -147,7 +151,6 @@ function getSTT() {
             echo
             echo "Choose a valid number, or just press enter to use the default number."
             sttServicePrompt
-        fi
         fi
     }
     if [[ "$STT" == "vosk" ]]; then
@@ -177,30 +180,43 @@ function getSTT() {
         origDir="$(pwd)"
         if [[ ! -f ./vosk/completed ]]; then
             echo "Getting VOSK assets"
-            rm -fr /root/.vosk
-            mkdir /root/.vosk
-            cd /root/.vosk
-            if [[ ${ARCH} == "x86_64" ]]; then
-                VOSK_DIR="vosk-linux-x86_64-0.3.45"
+            rm -fr ${ROOT}/.vosk
+            mkdir ${ROOT}/.vosk
+            cd ${ROOT}/.vosk
+            VOSK_VER="0.3.45"
+            if [[ ${TARGET} == "darwin" ]]; then
+                VOSK_VER="0.3.42"
+                VOSK_DIR="vosk-osx-${VOSK_VER}"
+            elif [[ ${ARCH} == "x86_64" ]]; then
+                VOSK_DIR="vosk-linux-x86_64-${VOSK_VER}"
             elif [[ ${ARCH} == "aarch64" ]]; then
-                VOSK_DIR="vosk-linux-aarch64-0.3.45"
+                VOSK_DIR="vosk-linux-aarch64-${VOSK_VER}"
             elif [[ ${ARCH} == "armv7l" ]]; then
-                VOSK_DIR="vosk-linux-armv7l-0.3.45"
+                VOSK_DIR="vosk-linux-armv7l-${VOSK_VER}"
             fi
             VOSK_ARCHIVE="$VOSK_DIR.zip"
-            wget -q --show-progress --no-check-certificate "https://github.com/alphacep/vosk-api/releases/download/v0.3.45/$VOSK_ARCHIVE"
+            wget -q --show-progress --no-check-certificate "https://github.com/alphacep/vosk-api/releases/download/v${VOSK_VER}/${VOSK_ARCHIVE}"
             unzip "$VOSK_ARCHIVE"
             mv "$VOSK_DIR" libvosk
             rm -fr "$VOSK_ARCHIVE"
 
             cd ${origDir}/chipper
             export CGO_ENABLED=1
-            export CGO_CFLAGS="-I/root/.vosk/libvosk"
-            export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
-            export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
+            export CGO_CFLAGS="-I${ROOT}/.vosk/libvosk"
+            export CGO_LDFLAGS="-L ${ROOT}/.vosk/libvosk -lvosk -ldl -lpthread"
+            export LD_LIBRARY_PATH="${ROOT}/.vosk/libvosk:$LD_LIBRARY_PATH"
             /usr/local/go/bin/go get -u github.com/alphacep/vosk-api/go/...
             /usr/local/go/bin/go get github.com/alphacep/vosk-api
             /usr/local/go/bin/go install github.com/alphacep/vosk-api/go
+
+            if [[ ${TARGET} == "darwin" ]]; then # this is kinda hacky but required for now because there is no macos build for v0.3.45
+                cd ${ROOT}/go/pkg/mod/github.com/alphacep
+                cp ${ROOT}/.vosk/libvosk/vosk_api.h ./vosk-api@v0.3.45/src/
+                cp -R ./vosk-api@v0.3.45/src ./vosk-api/
+                mkdir /usr/local/lib
+                cp ${ROOT}/.vosk/libvosk/libvosk.dylib /usr/local/lib/
+            fi
+
             cd ${origDir}
         fi
     else
