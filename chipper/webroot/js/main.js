@@ -18,7 +18,7 @@ function updateIntentSelection(element) {
       listNum = Object.keys(listResponse).length
     }
     if (listResponse != null && listNum != 0) {
-      //console.log(listNum)
+      console.log(listNum)
       var select = document.createElement("select");
       document.getElementById(element).innerHTML = ""
       select.name = element + "intents";
@@ -36,6 +36,14 @@ function updateIntentSelection(element) {
       label.innerHTML = "Choose the intent: "
       label.htmlFor = element + "intents";
       document.getElementById(element).appendChild(label).appendChild(select);
+
+      select.addEventListener("change", function() {
+         if (select.value) {
+            hideEditIntents();
+	 }
+      });
+
+
     } else {
       console.log("No intents founda")
       var error1 = document.createElement("p");
@@ -102,35 +110,46 @@ function editFormCreate() {
             var form = document.createElement("form");
             form.id = "editIntentForm";
             form.name = "editIntentForm";
+
+            var editIntentFrame = document.createElement("div");
+	    editIntentFrame.id = "editIntentFrame";
+	    editIntentFrame.name = "editIntentFrame";
+
+	    // name
             var name = document.createElement("input");
             name.type = "text";
             name.name = "name";
             name.id = "name";
-            // create label for name
+	    // create label for name
             var nameLabel = document.createElement("label");
-            nameLabel.innerHTML = "Name: "
+            nameLabel.innerHTML = "Name: <br>"
             nameLabel.htmlFor = "name";
             name.value = intentResponse["name"];
-            var description = document.createElement("input");
+
+	    // description
+	    var description = document.createElement("input");
             description.type = "text";
             description.name = "description";
             description.id = "description";
-            
 	    // create label for description
             var descriptionLabel = document.createElement("label");
-            descriptionLabel.innerHTML = "Description: "
+            descriptionLabel.innerHTML = "Description: <br>"
             descriptionLabel.htmlFor = "description";
             description.value = intentResponse["description"];
-            var utterances = document.createElement("input");
+            
+	    // utterances
+	    var utterances = document.createElement("input");
             utterances.type = "text";
             utterances.name = "utterances";
             utterances.id = "utterances";
-            // create label for utterances
+	    // create label for utterances
             var utterancesLabel = document.createElement("label");
-            utterancesLabel.innerHTML = "Utterances: "
+            utterancesLabel.innerHTML = "Utterances: <br>"
             utterancesLabel.htmlFor = "utterances";
             utterances.value = intentResponse["utterances"];
-            var intent = document.createElement("select");
+            
+	    // intent
+	    var intent = document.createElement("select");
             var intents = JSON.parse(intentsJson)
             for (const name in intents)
             {
@@ -144,47 +163,55 @@ function editFormCreate() {
             intent.id = "intent";
             // create label for intent
             var intentLabel = document.createElement("label");
-            intentLabel.innerHTML = "Intent: "
+            intentLabel.innerHTML = "Intent: <br>"
             intentLabel.htmlFor = "intent";
             intent.value = intentResponse["intent"];
-            var paramname = document.createElement("input");
+            
+	    // paramname
+	    var paramname = document.createElement("input");
             paramname.type = "text";
             paramname.name = "paramname";
             paramname.id = "paramname";
-            // create label for paramname
+	    // create label for paramname
             var paramnameLabel = document.createElement("label");
-            paramnameLabel.innerHTML = "Param Name: "
+            paramnameLabel.innerHTML = "Param Name: <br>"
             paramnameLabel.htmlFor = "paramname";
             paramname.value = intentResponse["params"]["paramname"];
-            var paramvalue = document.createElement("input");
+            
+	    // paramvalue
+	    var paramvalue = document.createElement("input");
             paramvalue.type = "text";
             paramvalue.name = "paramvalue";
             paramvalue.id = "paramvalue";
-            // create label for paramvalue
+	    // create label for paramvalue
             var paramvalueLabel = document.createElement("label");
-            paramvalueLabel.innerHTML = "Param Value: "
+            paramvalueLabel.innerHTML = "Param Value: <br>"
             paramvalueLabel.htmlFor = "paramvalue";
             paramvalue.value = intentResponse["params"]["paramvalue"];
-            var exec = document.createElement("input");
+            
+	    // exec
+	    var exec = document.createElement("input");
             exec.type = "text";
             exec.name = "exec";
             exec.id = "exec";
-            // create label for exec
+	    // create label for exec
             var execLabel = document.createElement("label");
-            execLabel.innerHTML = "Exec: "
+            execLabel.innerHTML = "Exec: <br>"
             execLabel.htmlFor = "exec";
             exec.value = intentResponse["exec"];
-            // execargs
+            
+	    // execargs
             var execargs = document.createElement("input");
             execargs.type = "text";
             execargs.name = "execargs";
             execargs.id = "execargs";
             // create label for execargs
             var execargsLabel = document.createElement("label");
-            execargsLabel.innerHTML = "Exec Args: "
+            execargsLabel.innerHTML = "Exec Args: <br>"
             execargsLabel.htmlFor = "execargs";
             execargs.value = intentResponse["execargs"];
-            // create button that launches function
+            
+	    // create button that launches function
             var submit = document.createElement("button");
             submit.type = "button";
             submit.id = "submit";
@@ -192,6 +219,13 @@ function editFormCreate() {
             submit.onclick = function() {
                 editIntent(intentNumber);
             }
+	    submit.style.position = "relative";
+	    submit.style.left = "50%";
+	    submit.style.top = "15px";
+	    submit.style.transform = "translate(-50%, -50%)";
+
+
+		
             form.appendChild(nameLabel).appendChild(name);
             form.appendChild(document.createElement("br"));
             form.appendChild(descriptionLabel).appendChild(description);
@@ -211,6 +245,15 @@ function editFormCreate() {
             form.appendChild(submit);
             document.getElementById("editIntentForm").innerHTML = "";
             document.getElementById("editIntentForm").appendChild(form);
+
+            //editIntentFrame.appendChild(nameLabel);
+            //editIntentFrame.appendChild(descriptionLabel);
+            //editIntentFrame.appendChild(utterancesLabel);
+            //editIntentFrame.appendChild(form);
+
+	    //document.body.appendChild(editIntentFrame);
+	    showEditIntents();
+
         } else {
             console.log("No intents founda")
             var error1 = document.createElement("p");
@@ -251,7 +294,7 @@ function editIntent(intentNumber) {
     console.log(response);
     console.log("Intent edited")
     var success = document.createElement("p");
-    success.innerHTML = "Intent edited"
+    success.innerHTML = "Intent edited successfully"
     document.getElementById("editIntentStatus").innerHTML = "";
     document.getElementById("editIntentStatus").appendChild(success);
   }   
@@ -274,7 +317,8 @@ var HttpClient = function() {
 }
 
 function deleteSelectedIntent() {
-  var intentNumber = document.getElementById("deleteSelectintents").selectedIndex;
+  var intentNumber = document.getElementById("editSelectintents").selectedIndex;
+  
   var formData = new FormData();
   formData.append("number", intentNumber+1);
   console.log(intentNumber+1)
@@ -285,10 +329,7 @@ function deleteSelectedIntent() {
     var response = xhr.response;
     console.log(response);
     console.log("Intent deleted")
-    var success = document.createElement("p");
-    success.innerHTML = "Intent deleted"
-    document.getElementById("deleteIntentStatus").innerHTML = "";
-    document.getElementById("deleteIntentStatus").appendChild(success);
+    hideEditIntents()
     updateIntentSelection("editSelect")
     updateIntentSelection("deleteSelect")
   }
@@ -328,22 +369,32 @@ function sendLinkForm() {
   })
 }
 
-// Toggle Headllines and +
-function toggleContent(element) {
-  if (element.style.display === "block") {
-    element.style.display = "none";
+
+
+
+// Toggle Headllines
+function toggleSection(sectionToToggle, sectionToClose, foldableID) {
+  const toggleSect = document.getElementById(sectionToToggle);
+  const closeSect = document.getElementById(sectionToClose);
+  
+  if (toggleSect.style.display === "block") {
+    closeSection(toggleSect, foldableID);
   } else {
-    element.style.display = "block";
+    openSection(toggleSect, foldableID);
+    closeSection(closeSect, foldableID);
   }
 }
 
-var headings = document.querySelectorAll("h2[id='foldable']");
-for (var i = 0; i < headings.length; i++) {
-  headings[i].addEventListener("click", function() {
-    toggleContent(this.nextElementSibling);
-  });
+function openSection(sectionID, foldableID) {
+  sectionID.style.display = "block";
 }
 
+function closeSection(sectionID, foldableID) {
+  sectionID.style.display = "none";
+}
+
+
+/*
 function togglePlusMinusSymbols() {
   var h2Elements = document.querySelectorAll("h2[id='foldable']");
   for (var i = 0; i < h2Elements.length; i++) {
@@ -357,7 +408,7 @@ function togglePlusMinusSymbols() {
     });
   }
 }
-togglePlusMinusSymbols();
+*/
 
 // Changes color of the clicked icon
 function updateColor(id) {
@@ -681,3 +732,11 @@ function sendRestart() {
         })
 }
 
+function hideEditIntents() {
+   document.getElementById("editIntentForm").style.display = "none";
+   document.getElementById("editIntentStatus").innerHTML = "";
+}
+
+function showEditIntents() {
+   document.getElementById("editIntentForm").style.display = "block";
+}
