@@ -21,12 +21,13 @@
     </div>
     <hr>
 
-    <div id="section-intents" style="display:none">
-      <h2 id="foldable">
+
+    <div id="section-intents" style="display:none;">
+      <h2 id="foldable-add" onclick="toggleSection('content-add', 'content-edit')">
         <span>+</span>
         Add a custom intent
       </h2>
-      <div class="content">
+      <div class="content" id="content-add">
         <p>It is recommended you read <a href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#web-interface" target="_blank">the wiki</a></p>
         <div id="addIntentStatus"></div>
         <form id="intentAddForm">
@@ -52,33 +53,25 @@
         <hr>
       </div>
 
-      <h2 id="foldable">
+      <h2 id="foldable-edit" onclick="toggleSection('content-edit', 'content-add')">
         <span>+</span>
-        Edit a custom intent
+        Edit/delete a custom intent
       </h2>
-      <div class="content">
+      <div class="content" id="content-edit">
         <div id="editSelect"></div>
-        <div id="editIntentStatus"></div><br>
-        <div class="center">
-          <button onclick="editFormCreate()">Start editing selected intent</button>
-        </div>
+        <div id="editIntentStatus"></div>
+        <div id="deleteIntentStatus"></div>
+	<div class="center">
+	  <div>
+            <button onclick="editFormCreate()">Edit selected intent</button>
+            <button onclick="deleteSelectedIntent()">Delete selected intent</button>
+	  </div>
+	</div>
         <div id="editIntentForm"></div>
         <hr>
       </div>
-
-      <h2 id="foldable">
-        <span>+</span>
-        Delete a custom intent
-      </h2>
-      <div class="content">
-        <div id="deleteSelect"></div>
-        <div id="deleteIntentStatus"></div><br>
-        <div class="center">
-          <button onclick="deleteSelectedIntent()">Delete selected intent</button>
-        </div>
-        <hr>
-      </div>
     </div>
+
 
     <div id="section-botauth" style="display: none;">
       <h2>Bot Authentication</h2>
