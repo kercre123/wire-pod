@@ -182,7 +182,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		// for houndify
 		kgAPIID := r.FormValue("api_id")
 		kgIntent := r.FormValue("intent_graph")
-        // for together
+        // for Together AI Service
         kgModel := r.FormValue("model")
 
 		if kgProvider == "" {
