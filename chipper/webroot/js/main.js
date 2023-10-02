@@ -569,14 +569,17 @@ function updateWeatherAPI() {
 function checkKG() {
     if (document.getElementById("kgProvider").value=="") {
         document.getElementById("houndifyInput").style.display = "none";
+        document.getElementById("togetherInput").style.display = "none";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("openAIRobotNameInput").style.display = "none";
     } else if (document.getElementById("kgProvider").value=="houndify") {
         document.getElementById("openAIRobotNameInput").style.display = "none";  
+        document.getElementById("togetherInput").style.display = "none";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "block";
     } else if (document.getElementById("kgProvider").value=="openai") {
         document.getElementById("openAIInput").style.display = "block";
+        document.getElementById("togetherInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "none";
 
         if (document.getElementById("intentyes").checked == true) {
@@ -584,6 +587,11 @@ function checkKG() {
         } else {
             document.getElementById("openAIRobotNameInput").style.display = "none";
         }
+    } else if (document.getElementById("kgProvider").value=="together") {
+        document.getElementById("openAIRobotNameInput").style.display = "none";
+        document.getElementById("togetherInput").style.display = "block";
+        document.getElementById("openAIInput").style.display = "none";
+        document.getElementById("houndifyInput").style.display = "none";
     }
 }
 
@@ -593,6 +601,7 @@ function sendKGAPIKey() {
     var id = ""
     var intentgraph = ""
     var robotName = ""
+    var model = ""
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
@@ -602,6 +611,10 @@ function sendKGAPIKey() {
         } else {
             intentgraph = "false"
         }
+    else if (provider == "together") {
+        key = document.getElementById("togetherKey").value
+        model = document.getElementById("togetherModel").value
+        intentgraph = "false"
     } else if (provider == "houndify") {
         key = document.getElementById("houndKey").value
         id = document.getElementById("houndID").value
@@ -612,7 +625,7 @@ function sendKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName
+    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName
     var result = document.getElementById('addKGProviderAPIStatus');
     const resultP = document.createElement('p');
     resultP.textContent =  "Saving...";
