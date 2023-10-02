@@ -73,8 +73,9 @@ func togetherRequest(transcribedText string) string {
 	sendString := "You are a helpful robot called Vector . You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
 	logger.Println("Making request to Together API...")
 	url := "https://api.together.xyz/inference"
+    model := vars.APIConfig.Knowledge.Model
 	formData := `{
-"model": "databricks/dolly-v2-3b",
+"model": "` + model + `",
 "prompt": "` + sendString + `",
 "temperature": 0.7,
 "max_tokens": 256,
@@ -86,7 +87,6 @@ func togetherRequest(transcribedText string) string {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
 		return "There was an error making the request to Together API"
 	}
 	defer resp.Body.Close()
@@ -94,7 +94,6 @@ func togetherRequest(transcribedText string) string {
     var togetherResponse map[string]any
 	err = json.Unmarshal(body, &togetherResponse)
 	if err != nil {
-		fmt.Println("Together API returned no response.")
 		return "Together API returned no response."
 	}
     output := togetherResponse["output"].(map[string]any)
@@ -103,6 +102,7 @@ func togetherRequest(transcribedText string) string {
         x := val.(map[string]any)
         textResponse := x["text"].(string)
         apiResponse := strings.TrimSuffix(textResponse, "</s>")
+	    logger.Println("Together response: " + apiResponse)
         return apiResponse
     }
     // In case text is not present in result from API, return a string saying answer was not found
@@ -166,6 +166,14 @@ func openaiKG(speechReq sr.SpeechRequest) string {
 	if err != nil {
 		return "There was an error."
 	}
+	return openaiRequest(transcribedText)
+}
+
+func togetherKG(speechReq sr.SpeechRequest) string {
+	transcribedText, err := sttHandler(speechReq)
+	if err != nil {
+		return "There was an error."
+	}
 	return togetherRequest(transcribedText)
 }
 
@@ -176,6 +184,8 @@ func KgRequest(speechReq sr.SpeechRequest) string {
 			return houndifyKG(speechReq)
 		} else if vars.APIConfig.Knowledge.Provider == "openai" {
 			return openaiKG(speechReq)
+		} else if vars.APIConfig.Knowledge.Provider == "togetherai" {
+			return togetherKG(speechReq)
 		}
 	}
 	return "Knowledge graph is not enabled. This can be enabled in the web interface."
