@@ -71,7 +71,6 @@ func houndifyKG(req sr.SpeechRequest) string {
 
 func togetherRequest(transcribedText string) string {
 	sendString := "You are a helpful robot called Vector . You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
-	logger.Println("Making request to Together API...")
 	url := "https://api.together.xyz/inference"
     model := vars.APIConfig.Knowledge.Model
 	formData := `{
@@ -81,6 +80,8 @@ func togetherRequest(transcribedText string) string {
 "max_tokens": 256,
 "top_p": 1
 }`
+	logger.Println("Making request to Together API...")
+    logger.Println("Model is " + model)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(formData)))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+vars.APIConfig.Knowledge.Key)
@@ -184,7 +185,7 @@ func KgRequest(speechReq sr.SpeechRequest) string {
 			return houndifyKG(speechReq)
 		} else if vars.APIConfig.Knowledge.Provider == "openai" {
 			return openaiKG(speechReq)
-		} else if vars.APIConfig.Knowledge.Provider == "togetherai" {
+		} else if vars.APIConfig.Knowledge.Provider == "together" {
 			return togetherKG(speechReq)
 		}
 	}
