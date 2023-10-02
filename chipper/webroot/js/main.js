@@ -605,23 +605,26 @@ function sendKGAPIKey() {
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
+        model = ""
         if (document.getElementById("intentyes").checked == true) {
             intentgraph = "true"
             robotName = document.getElementById("openAIRobotName").value
         } else {
             intentgraph = "false"
         }
-    else if (provider == "together") {
+    } else if (provider == "together") {
         key = document.getElementById("togetherKey").value
         model = document.getElementById("togetherModel").value
         intentgraph = "false"
     } else if (provider == "houndify") {
         key = document.getElementById("houndKey").value
+        model = ""
         id = document.getElementById("houndID").value
         intentgraph = "false"
     } else {
         key = ""
         id = ""
+        model = ""
         intentgraph = "false"
     }
 
