@@ -79,13 +79,8 @@
     <div id="section-kg" style="display:block">
       <h3>Knowledge Graph Setup</h3>
       <div>
-        <p>Select the Knowledge Graph provider you want to use.</p>
-        <small>
-          <ul>
-            <li>Houndify: What the official servers use, provides most accurate information</li>
-            <li>OpenAI: More tailored and entertaining answers, may require small fee, allows you to use Intent Graph feature</li>
-          </ul>
-        </small>
+        <p>Set the Knowledge Graph Provider you want to use</p>
+        <p>
           <div id="addKGProviderAPI"></div>
           <form id="kgAPIAddForm">
             <label for="kgProvider">Knowledge Graph API Provider:</label>
@@ -93,16 +88,23 @@
               <option value="" selected>None</option>
               <option value="openai">OpenAI</option>
               <option value="houndify">Houndify</option>
+              <option value="together">Together</option>
             </select><br>
             <span id="houndifyInput" style="display:none">
-              <small>To use Houndify, create an account at <a href="https://www.houndify.com/signup">houndify.com</a>, create a free domain, and enter the Client ID and Key here.</small><br>
+              <small>To use Houndify, create an account at <a href=https://www.houndify.com/signup>houndify.com</a>, create a free domain, and enter the Client ID and Key here.</small><br>
               <label for="houndID">Knowledge Graph Client ID:</label>
               <input type="text" name="houndID" id="houndID"><br>
               <label for="houndKey">Knowledge Graph Client Key:</label>
               <input type="text" name="houndKey" id="houndKey"><br>
             </span>
+            <span id="togetherInput" style="display:none">
+              <small>To use Together, create an account at <a href="https://www.together.xyz">together.com</a>, create a free domain, and enter the Model Name and Together Key here.</small><br>
+              <label for="togetherModel">Together Model Name: e.g. togethercomputer/llama-2-7b-chat</label>
+              <input type="text" name="togetherModel" id="togetherModel"><br>
+              <label for="togetherKey">Together Key:</label>
+              <input type="text" name="togetherKey" id="togetherKey"><br>
+            </span>
             <span id="openAIInput" style="display:none">
-              <small>To use OpenAI, create an account at <a href="https://beta.openai.com/signup">https://beta.openai.com/signup</a>, create an API key, and enter it here.</small><br>
               <label for="openAIKey">Knowledge Graph API Key:</label>
               <input type="text" name="openAIKey" id="openAIKey"><br>
               <small>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</small><br>
@@ -117,7 +119,7 @@
               </span>
             </span>
           </form>
-        <div id="addKGProviderAPIStatus"></div>
+        </p>
         <hr>
       </div>
     </div>
