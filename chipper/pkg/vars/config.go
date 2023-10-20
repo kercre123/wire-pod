@@ -26,6 +26,7 @@ type apiConfig struct {
 		Provider    string `json:"provider"`
 		Key         string `json:"key"`
 		ID          string `json:"id"`
+		Model       string `json:"model"`
 		IntentGraph bool   `json:"intentgraph"`
 		RobotName   string `json:"robotName"`
 	} `json:"knowledge"`
