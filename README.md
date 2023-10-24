@@ -12,6 +12,11 @@ The installation guide exists on the wiki: [Installation guide](https://github.c
 
 Check out the [wiki](https://github.com/kercre123/wire-pod/wiki) for more information on what wire-pod is, a guide on how to install wire-pod, troubleshooting, how to develop for it, and for some generally helpful tips.
 
+## APP Vector Wire-Pod
+
+After installing Wire-pod, you can use your Android smartphone to control Vector, view photos, and make Vector say text and more.md.
+Check out on [Google Play](https://play.google.com/store/apps/details?id=com.wireextent.vector_wire_extent&pli=1)
+
 ## Donate
 
 If you want to :P
