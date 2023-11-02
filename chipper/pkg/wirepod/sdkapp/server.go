@@ -395,18 +395,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		removeRobot(robotObj.ESN, "server")
 		fmt.Fprint(w, "done")
 		return
-	case r.URL.Path == "/api-sdk/debug":
-		// 		var jdocsTargets []string
-		// var jdocsTimers []int
-		// var jdocsShouldPing []bool
-		// var jdocsTimerStarted []bool
-		// var jdocsTimerReset []bool
-		fmt.Fprint(w, jdocsTargets)
-		fmt.Fprint(w, jdocsTimers)
-		fmt.Fprint(w, jdocsShouldPing)
-		fmt.Fprint(w, jdocsTimerReset)
-		fmt.Fprint(w, jdocsTimerStarted)
-		return
 	}
 }
 
@@ -456,7 +444,9 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 					imageBytes := response.GetData()
 					img, _, _ := image.Decode(bytes.NewReader(imageBytes))
 					fmt.Fprintf(multi, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
-					jpeg.Encode(multi, img, nil)
+					jpeg.Encode(multi, img, &jpeg.Options{
+						Quality: 50,
+					})
 				}
 			} else {
 				robotObj.Vector.Conn.EnableImageStreaming(
@@ -482,6 +472,7 @@ func BeginServer() {
 	// in jdocspinger.go
 	http.HandleFunc("/ok:80", connCheck)
 	http.HandleFunc("/ok", connCheck)
+	InitJdocsPinger()
 	// camstream
 	http.HandleFunc("/cam-stream", camStreamHandler)
 	logger.Println("Starting SDK app")
