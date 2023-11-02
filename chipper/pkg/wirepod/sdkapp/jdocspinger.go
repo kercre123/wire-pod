@@ -2,24 +2,32 @@ package sdkapp
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
-	"github.com/digital-dream-labs/hugh/grpc/client"
-	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/chipper/pkg/logger"
-	jdocsserver "github.com/kercre123/chipper/pkg/servers/jdocs"
 	"github.com/kercre123/chipper/pkg/vars"
 )
 
-// the big workaround
+var JdocsPingerBots struct {
+	mu     sync.Mutex
+	Robots []JdocsPingerRobot
+}
+
+type JdocsPingerRobot struct {
+	ESN                string `json:"esn"`
+	GUID               string `json:"guid"`
+	IP                 string `json:"ip"`
+	TimeSinceLastCheck int    `json:"timesince"`
+	Stopped            bool   `json:"stopped"`
+}
 
 // the escape pod CA cert only gets appended to the cert store when a jdocs connection is created
 // this doesn't happen at every boot
@@ -42,7 +50,6 @@ func pingJdocs(target string) {
 	}
 	if !matched {
 		logger.Println("jdocs pinger error: serial did not match any bot in bot json")
-		logger.Println("Error pinging jdocs")
 		return
 	}
 	robotTmp, err := NewWP(serial, false)
@@ -68,8 +75,7 @@ func pingJdocs(target string) {
 		JdocTypes: []vectorpb.JdocType{vectorpb.JdocType_ROBOT_SETTINGS},
 	})
 	if err != nil {
-		logger.Println(err)
-		logger.Println("Failed to pull jdocs")
+		logger.Println("Failed to pull jdocs: ", err)
 		return
 	}
 	logger.Println("Successfully got jdocs from " + serial)
@@ -82,103 +88,69 @@ func pingJdocs(target string) {
 	vars.AddJdoc("vic:"+serial, "vic.RobotSettings", jdoc)
 }
 
-var jdocsTargets []string
-var jdocsTimers []int
-var jdocsShouldPing []bool
-var jdocsTimerStarted []bool
-var jdocsTimerReset []bool
-
-func startJdocsTimer(target string) {
-	var jdocsBotNum int
-	for num, ip := range jdocsTargets {
-		if ip == target {
-			jdocsBotNum = num
-		}
+func InitJdocsPinger() {
+	if os.Getenv("JDOCS_PINGER_ENABLED") == "false" {
+		logger.Println("Jdocs pinger is disabled (JDOCS_PINGER_ENABLED=false)")
+		PingerEnabled = false
+		return
 	}
-	if !jdocsTimerStarted[jdocsBotNum] {
-		jdocsTimerStarted[jdocsBotNum] = true
-		jdocsShouldPing[jdocsBotNum] = false
-		logger.Println("Starting jdocs pinger timer for " + target)
-		go func() {
-			// wait 10 seconds
-			for {
-				time.Sleep(time.Second * 1)
-				jdocsTimers[jdocsBotNum] = jdocsTimers[jdocsBotNum] + 1
-				if jdocsTimers[jdocsBotNum] == 10 {
-					logger.Println("No connCheck from " + target + " in more than 10 seconds, will ping jdocs on next check")
-					jdocsShouldPing[jdocsBotNum] = true
-					jdocsTimerStarted[jdocsBotNum] = false
-					return
-				}
-				if jdocsTimerReset[jdocsBotNum] {
-					jdocsTimers[jdocsBotNum] = 0
-					//logger.Println("Resetting timer to 0 for bot " + target)
-					jdocsTimerReset[jdocsBotNum] = false
+	fmt.Println("Starting jdocs pinger ticker")
+	go func() {
+		for {
+			JdocsPingerBots.mu.Lock()
+			for i, bot := range JdocsPingerBots.Robots {
+				if !bot.Stopped {
+					JdocsPingerBots.Robots[i].TimeSinceLastCheck = JdocsPingerBots.Robots[i].TimeSinceLastCheck + 1
+					if JdocsPingerBots.Robots[i].TimeSinceLastCheck > 15 {
+						logger.Println("Haven't recieved a conn check from " + bot.ESN + " in 15 seconds, will ping jdocs on next check")
+						JdocsPingerBots.Robots[i].Stopped = true
+					}
 				}
 			}
-		}()
-	}
+			JdocsPingerBots.mu.Unlock()
+			time.Sleep(time.Second)
+		}
+	}()
 }
 
-func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
-	target := ""
-	guid := ""
-	if serial == "" {
-		log.Fatal("please use the -serial argument and set it to your robots serial number")
-		return nil, fmt.Errorf("Configuration options missing")
-	}
-	wirepodPath := os.Getenv("WIREPOD_HOME")
-	if len(wirepodPath) == 0 {
-		wirepodPath = "."
-	}
+func ShouldPingJdocs(target string) bool {
+	var esn, guid, botip string
 	matched := false
-	for _, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(serial, robot.Esn) {
+	for _, bot := range vars.BotInfo.Robots {
+		if target == bot.IPAddress {
+			esn = bot.Esn
+			guid = bot.GUID
+			botip = bot.IPAddress
 			matched = true
-			target = robot.IPAddress + ":443"
-			guid = robot.GUID
 			break
 		}
 	}
 	if !matched {
-		log.Println("vector-go-sdk error: serial did not match any bot in bot json")
-		return nil, errors.New("vector-go-sdk error: serial did not match any bot in bot json")
+		return false
 	}
-	c, err := client.New(
-		client.WithTarget(target),
-		client.WithInsecureSkipVerify(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	if err := c.Connect(); err != nil {
-		return nil, err
-	}
-	return vector.New(
-		vector.WithTarget(target),
-		vector.WithSerialNo(serial),
-		vector.WithToken(guid),
-	)
-}
-
-func jdocsPingTimer(target string) bool {
-	for num, ip := range jdocsTargets {
-		if ip == target {
-			var returnValue bool = jdocsShouldPing[num]
-			startJdocsTimer(target)
-			jdocsTimerReset[num] = true
-			if returnValue {
-				jdocsShouldPing[num] = false
+	JdocsPingerBots.mu.Lock()
+	defer JdocsPingerBots.mu.Unlock()
+	for i, bot := range JdocsPingerBots.Robots {
+		if esn == bot.ESN {
+			if bot.Stopped {
+				JdocsPingerBots.Robots[i].TimeSinceLastCheck = 0
+				JdocsPingerBots.Robots[i].Stopped = false
+				return true
+			} else {
+				JdocsPingerBots.Robots[i].TimeSinceLastCheck = 0
+				return false
 			}
-			return returnValue
 		}
 	}
-	jdocsTargets = append(jdocsTargets, target)
-	jdocsTimers = append(jdocsTimers, 0)
-	jdocsShouldPing = append(jdocsShouldPing, false)
-	jdocsTimerStarted = append(jdocsTimerStarted, false)
-	jdocsTimerReset = append(jdocsTimerReset, false)
-	startJdocsTimer(target)
+	// below will only execute if esn doesn't match bots in list
+	newBot := JdocsPingerRobot{
+		ESN:                esn,
+		GUID:               guid,
+		IP:                 botip,
+		TimeSinceLastCheck: 0,
+		Stopped:            false,
+	}
+	JdocsPingerBots.Robots = append(JdocsPingerBots.Robots, newBot)
 	return true
 }
 
@@ -190,12 +162,11 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 	case strings.Contains(r.URL.Path, "/ok"):
 		if PingerEnabled {
 			//	logger.Println("connCheck request from " + r.RemoteAddr)
-			robotTarget := strings.Split(r.RemoteAddr, ":")[0] + ":443"
-			robotTargetCheck := strings.Split(r.RemoteAddr, ":")[0]
-			jsonB, _ := os.ReadFile(jdocsserver.InfoPath)
+			robotTarget := strings.Split(r.RemoteAddr, ":")[0]
+			jsonB, _ := json.Marshal(vars.BotInfo)
 			json := string(jsonB)
-			if strings.Contains(json, strings.TrimSpace(robotTargetCheck)) {
-				ping := jdocsPingTimer(robotTarget)
+			if strings.Contains(json, strings.TrimSpace(robotTarget)) {
+				ping := ShouldPingJdocs(robotTarget)
 				if ping {
 					pingJdocs(robotTarget)
 				}
