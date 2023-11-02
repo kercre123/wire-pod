@@ -172,7 +172,8 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 	isOpus := request.OpusDetect()
 	if isOpus {
 		request.OpusStream = &opus.OggStream{}
-		request.OpusStream.Decode(request.FirstReq)
+		decodedFirstReq, _ := request.OpusStream.Decode(request.FirstReq)
+		request.FirstReq = decodedFirstReq
 		request.IsOpus = true
 	}
 	return request
