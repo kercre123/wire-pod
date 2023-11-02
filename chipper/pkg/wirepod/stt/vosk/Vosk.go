@@ -54,13 +54,13 @@ func STT(req sr.SpeechRequest) (string, error) {
 	rec.AcceptWaveform(req.FirstReq)
 	for {
 		var chunk []byte
-		req, chunk, err = sr.GetNextStreamChunk(req)
+		chunk, err = req.GetNextStreamChunk()
 		if err != nil {
 			return "", err
 		}
 		rec.AcceptWaveform(chunk)
 		// has to be split into 320 []byte chunks for VAD
-		req, speechIsDone = sr.DetectEndOfSpeech(req)
+		speechIsDone = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}

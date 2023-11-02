@@ -57,8 +57,8 @@ func STT(sreq sr.SpeechRequest) (string, error) {
 				return
 			default:
 				var chunk []byte
-				sreq, chunk, err = sr.GetNextStreamChunkOpus(sreq)
-				sreq, speechDone = sr.DetectEndOfSpeech(sreq)
+				chunk, err = sreq.GetNextStreamChunkOpus()
+				speechDone = sreq.DetectEndOfSpeech()
 				if err != nil {
 					fmt.Println("End of stream")
 					return
