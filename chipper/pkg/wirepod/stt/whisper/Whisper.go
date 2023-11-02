@@ -113,7 +113,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 	speechIsDone := false
 	var err error
 	for {
-		req, _, err = sr.GetNextStreamChunk(req)
+		_, err = req.GetNextStreamChunk()
 		if err != nil {
 			return "", err
 		}
@@ -121,7 +121,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 			return "", err
 		}
 		// has to be split into 320 []byte chunks for VAD
-		req, speechIsDone = sr.DetectEndOfSpeech(req)
+		speechIsDone = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}
