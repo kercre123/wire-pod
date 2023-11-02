@@ -2,11 +2,13 @@ package sdkapp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/digital-dream-labs/hugh/grpc/client"
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/chipper/pkg/logger"
@@ -172,4 +174,39 @@ func removeRobot(serial, source string) {
 	}
 	robots = newRobots
 	inhibitCreation = false
+}
+
+func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
+	var target, guid string
+	if serial == "" {
+		return nil, fmt.Errorf("serial string missing")
+	}
+	matched := false
+	for _, robot := range vars.BotInfo.Robots {
+		if strings.EqualFold(serial, robot.Esn) {
+			matched = true
+			target = robot.IPAddress + ":443"
+			guid = robot.GUID
+			break
+		}
+	}
+	if !matched {
+		logger.Println("serial did not match any bot in bot json")
+		return nil, errors.New("serial did not match any bot in bot json")
+	}
+	c, err := client.New(
+		client.WithTarget(target),
+		client.WithInsecureSkipVerify(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.Connect(); err != nil {
+		return nil, err
+	}
+	return vector.New(
+		vector.WithTarget(target),
+		vector.WithSerialNo(serial),
+		vector.WithToken(guid),
+	)
 }
