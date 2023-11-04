@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/kercre123/chipper/pkg/logger"
@@ -34,7 +36,15 @@ func Init() error {
 	if vars.APIConfig.PastInitialSetup {
 		vosk.SetLogLevel(-1)
 		if modelLoaded {
-			logger.Println("A model was already loaded, freeing")
+			logger.Println("A model was already loaded, freeing all recognizers and model")
+			for ind, _ := range grmRecs {
+				grmRecs[ind].Rec.Free()
+			}
+			for ind, _ := range gpRecs {
+				gpRecs[ind].Rec.Free()
+			}
+			gpRecs = []ARec{}
+			grmRecs = []ARec{}
 			model.Free()
 		}
 		sttLanguage := vars.APIConfig.STT.Language
@@ -49,10 +59,12 @@ func Init() error {
 			return err
 		}
 		model = aModel
+
+		fmt.Println("Initializing grammer list")
 		Grammer = GetGrammerList(vars.APIConfig.STT.Language)
-		fmt.Println(Grammer)
+
+		fmt.Println("Initializing VOSK recognizers")
 		grmRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
-		//aRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,9 +80,38 @@ func Init() error {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		modelLoaded = true
-		logger.Println("VOSK initiated successfully")
+		logger.Println("VOSK initiated successfully, running speed tests...")
+
+		// run test
+		pcmBytes, _ := os.ReadFile("./stttest.pcm")
+		var micData [][]byte
+		cTime := time.Now()
+		micData = sr.SplitVAD(pcmBytes)
+
+		recWithGrm, grmind := getRec(true)
+		for _, sample := range micData {
+			recWithGrm.AcceptWaveform(sample)
+		}
+		var jres map[string]interface{}
+		json.Unmarshal([]byte(recWithGrm.FinalResult()), &jres)
+		transcribedText := jres["text"].(string)
+		fmt.Println("(Grammer Recognizer) Transcribed text: " + transcribedText)
+		grmRecs[grmind].InUse = false
+		fmt.Println("Grammer recognizer test completed, took", time.Now().Sub(cTime))
+		fmt.Println("Running general recognizer test...")
+		cTime = time.Now()
+
+		recGp, gpind := getRec(false)
+		for _, sample := range micData {
+			recGp.AcceptWaveform(sample)
+		}
+		var jres2 map[string]interface{}
+		json.Unmarshal([]byte(recGp.FinalResult()), &jres2)
+		transcribedText = jres2["text"].(string)
+		fmt.Println("(General Recognizer) Transcribed text: " + transcribedText)
+		gpRecs[gpind].InUse = false
+		fmt.Println("General recognizer test completed, took", time.Now().Sub(cTime))
 	}
 	return nil
 }
