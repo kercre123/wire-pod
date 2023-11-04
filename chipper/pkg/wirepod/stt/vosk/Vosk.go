@@ -74,8 +74,8 @@ func Init() error {
 			return err
 		}
 		model = aModel
-		aRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
-		//aRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
+		//aRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
+		aRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
 		if err != nil {
 			log.Fatal(err)
 			return err
