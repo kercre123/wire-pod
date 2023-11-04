@@ -12,6 +12,7 @@ import (
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
+	"github.com/kercre123/chipper/pkg/wirepod/localization"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
 
@@ -133,6 +134,7 @@ func removeDuplicates(slice []string) []string {
 func GetGrammerList(lang string) string {
 	var wordsList []string
 	var grammer string
+	// add words in intent json
 	for _, words := range vars.MatchListList {
 		for _, word := range words {
 			wors := strings.Split(word, " ")
@@ -144,6 +146,30 @@ func GetGrammerList(lang string) string {
 			}
 		}
 	}
+	// add words in localization
+	for _, str := range localization.ALL_STR {
+		text := localization.GetText(str)
+		wors := strings.Split(text, " ")
+		for _, wor := range wors {
+			found := model.FindWord(wor)
+			if found != -1 {
+				wordsList = append(wordsList, wor)
+			}
+		}
+	}
+	// add custom intent matches
+	for _, intent := range vars.CustomIntents {
+		for _, utterance := range intent.Utterances {
+			wors := strings.Split(utterance, " ")
+			for _, wor := range wors {
+				found := model.FindWord(wor)
+				if found != -1 {
+					wordsList = append(wordsList, wor)
+				}
+			}
+		}
+	}
+
 	wordsList = removeDuplicates(wordsList)
 	for i, word := range wordsList {
 		if i == len(wordsList)-1 {
