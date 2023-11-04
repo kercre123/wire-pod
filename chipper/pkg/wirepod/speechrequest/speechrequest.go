@@ -178,6 +178,7 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 		request.OpusStream = &opus.OggStream{}
 		decodedFirstReq, _ := request.OpusStream.Decode(request.FirstReq)
 		request.FirstReq = decodedFirstReq
+		request.LastAudioChunk = decodedFirstReq
 		request.IsOpus = true
 	}
 	return request
