@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/kercre123/chipper/pkg/logger"
@@ -119,9 +118,10 @@ func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
 	speechIsDone := false
-	bTime := time.Now()
 	var withGrm bool
 	if vars.APIConfig.Knowledge.IntentGraph || req.IsKG {
+		withGrm = false
+	} else {
 		withGrm = true
 	}
 	rec, recind := getRec(withGrm)
@@ -146,7 +146,6 @@ func STT(req sr.SpeechRequest) (string, error) {
 	} else {
 		gpRecs[recind].InUse = false
 	}
-	fmt.Println("Process took: ", time.Now().Sub(bTime))
 	transcribedText := jres["text"].(string)
 	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
 	return transcribedText, nil
