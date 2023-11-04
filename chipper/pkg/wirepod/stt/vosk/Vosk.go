@@ -161,8 +161,10 @@ func STT(req sr.SpeechRequest) (string, error) {
 	speechIsDone := false
 	var withGrm bool
 	if vars.APIConfig.Knowledge.IntentGraph || req.IsKG {
+		logger.Println("Using general recognizer")
 		withGrm = false
 	} else {
+		logger.Println("Using grammer-optimized recognizer")
 		withGrm = true
 	}
 	rec, recind := getRec(withGrm)
