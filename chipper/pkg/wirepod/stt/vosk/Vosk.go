@@ -41,6 +41,8 @@ func Init() error {
 			sttLanguage = "en-US"
 		}
 		modelPath := "../vosk/models/" + sttLanguage + "/model"
+		Grammer = GetGrammerList(vars.APIConfig.STT.Language)
+		fmt.Println(Grammer)
 		logger.Println("Opening VOSK model (" + modelPath + ")")
 		aModel, err := vosk.NewModel(modelPath)
 		if err != nil {
@@ -49,8 +51,8 @@ func Init() error {
 		}
 		model = aModel
 		// just one rec for now. if more bots request later, those will get newly created and added to list of active recs
-		//aRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
-		aRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
+		aRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
+		//aRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
 		if err != nil {
 			log.Fatal(err)
 			return err
