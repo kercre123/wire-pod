@@ -71,6 +71,7 @@ func getRec() (*vosk.VoskRecognizer, int) {
 	for ind, rec := range recs {
 		if !rec.InUse {
 			recs[ind].InUse = true
+			fmt.Println("Returning already-created rec")
 			return recs[ind].Rec, ind
 		}
 	}
@@ -90,7 +91,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 	speechIsDone := false
 	bTime := time.Now()
 	rec, recind := getRec()
-	//thisRec.SetWords(2)
+	rec.SetWords(0)
 	rec.AcceptWaveform(req.FirstReq)
 	for {
 		chunk, err := req.GetNextStreamChunk()
