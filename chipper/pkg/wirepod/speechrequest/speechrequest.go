@@ -123,7 +123,7 @@ func (req *SpeechRequest) DetectEndOfSpeech() bool {
 		} else {
 			req.InactiveFrames = req.InactiveFrames + 1
 		}
-		if req.InactiveFrames >= inactiveNumMax && req.ActiveFrames > 20 {
+		if req.InactiveFrames >= inactiveNumMax && req.ActiveFrames > 15 {
 			logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ") End of speech detected.")
 			return true
 		}
