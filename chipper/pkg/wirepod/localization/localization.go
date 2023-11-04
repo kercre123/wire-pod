@@ -93,7 +93,7 @@ func GetText(key string) string {
 		} else if vars.APIConfig.STT.Language == "pl-PL" {
 			return data[5]
 		} else if vars.APIConfig.STT.Language == "zh-CN" {
-			return data[6]			
+			return data[6]
 		}
 	}
 	return data[0]
@@ -101,7 +101,7 @@ func GetText(key string) string {
 
 func ReloadVosk() {
 	if vars.APIConfig.STT.Service == "vosk" {
-		vars.SttInitFunc()
 		vars.MatchListList, vars.IntentsList, _ = vars.LoadIntents()
+		vars.SttInitFunc()
 	}
 }
