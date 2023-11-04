@@ -121,7 +121,7 @@
 	},
 	{	
 		"name": "intent_imperative_volumedown",
-		"keyphrases" : ["all you down", "volume down", "down volume", "down the volume", "quieter" ]
+		"keyphrases" : ["all you down", "volume down", "down volume", "down the volume", "quieter", "down to low", "down to medium" ]
 	},
 	{	
 		"name": "intent_imperative_volumeup", 
