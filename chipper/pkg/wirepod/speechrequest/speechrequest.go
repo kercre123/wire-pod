@@ -26,6 +26,8 @@ type SpeechRequest struct {
 	Session        string
 	FirstReq       []byte
 	Stream         interface{}
+	IsKG           bool
+	IsIG           bool
 	MicData        []byte
 	DecodedMicData []byte
 	PrevLen        int
@@ -151,12 +153,14 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 		request.MicData = append(request.MicData, req1.FirstReq.InputAudio...)
 	} else if str, ok := req.(*vtt.KnowledgeGraphRequest); ok {
 		var req1 *vtt.KnowledgeGraphRequest = str
+		request.IsKG = true
 		request.Device = req1.Device
 		request.Session = req1.Session
 		request.Stream = req1.Stream
 		request.FirstReq = req1.FirstReq.InputAudio
 		request.MicData = append(request.MicData, req1.FirstReq.InputAudio...)
 	} else if str, ok := req.(*vtt.IntentGraphRequest); ok {
+		request.IsIG = true
 		var req1 *vtt.IntentGraphRequest = str
 		request.Device = req1.Device
 		request.Session = req1.Session

@@ -20,7 +20,8 @@ var Name string = "vosk"
 
 var model *vosk.VoskModel
 var recsmu sync.Mutex
-var recs []ARec
+var grmRecs []ARec
+var gpRecs []ARec
 var modelLoaded bool
 
 type ARec struct {
@@ -51,49 +52,79 @@ func Init() error {
 		model = aModel
 		Grammer = GetGrammerList(vars.APIConfig.STT.Language)
 		fmt.Println(Grammer)
-		// just one rec for now. if more bots request later, those will get newly created and added to list of active recs
-		aRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
+		grmRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
 		//aRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
 		if err != nil {
 			log.Fatal(err)
-			return err
 		}
-		var arec ARec
-		arec.Rec = aRecognizer
-		arec.InUse = false
-		recs = append(recs, arec)
+		var grmrec ARec
+		grmrec.Rec = grmRecognizer
+		grmrec.InUse = false
+		grmRecs = append(grmRecs, grmrec)
+		gpRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
+		var gprec ARec
+		gprec.Rec = gpRecognizer
+		gprec.InUse = false
+		gpRecs = append(gpRecs, gprec)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		modelLoaded = true
 		logger.Println("VOSK initiated successfully")
 	}
 	return nil
 }
 
-func getRec() (*vosk.VoskRecognizer, int) {
+func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 	recsmu.Lock()
 	defer recsmu.Unlock()
-	for ind, rec := range recs {
-		if !rec.InUse {
-			recs[ind].InUse = true
-			fmt.Println("Returning already-created rec")
-			return recs[ind].Rec, ind
+	if withGrm {
+		for ind, rec := range grmRecs {
+			if !rec.InUse {
+				grmRecs[ind].InUse = true
+				return grmRecs[ind].Rec, ind
+			}
+		}
+	} else {
+		for ind, rec := range gpRecs {
+			if !rec.InUse {
+				gpRecs[ind].InUse = true
+				return gpRecs[ind].Rec, ind
+			}
 		}
 	}
 	var newrec ARec
+	var newRec *vosk.VoskRecognizer
+	var err error
 	newrec.InUse = true
-	newRec, err := vosk.NewRecognizer(model, 16000.0)
+	if withGrm {
+		newRec, err = vosk.NewRecognizerGrm(model, 16000.0, Grammer)
+	} else {
+		newRec, err = vosk.NewRecognizer(model, 16000.0)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
 	newrec.Rec = newRec
-	recs = append(recs, newrec)
-	return recs[len(recs)-1].Rec, len(recs) - 1
+	if withGrm {
+		grmRecs = append(grmRecs, newrec)
+		return grmRecs[len(grmRecs)-1].Rec, len(grmRecs) - 1
+	} else {
+		gpRecs = append(gpRecs, newrec)
+		return gpRecs[len(gpRecs)-1].Rec, len(gpRecs) - 1
+	}
 }
 
 func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
 	speechIsDone := false
 	bTime := time.Now()
-	rec, recind := getRec()
+	var withGrm bool
+	if vars.APIConfig.Knowledge.IntentGraph || req.IsKG {
+		withGrm = true
+	}
+	rec, recind := getRec(withGrm)
 	rec.SetWords(0)
 	rec.AcceptWaveform(req.FirstReq)
 	for {
@@ -110,7 +141,11 @@ func STT(req sr.SpeechRequest) (string, error) {
 	}
 	var jres map[string]interface{}
 	json.Unmarshal([]byte(rec.FinalResult()), &jres)
-	recs[recind].InUse = false
+	if withGrm {
+		grmRecs[recind].InUse = false
+	} else {
+		gpRecs[recind].InUse = false
+	}
 	fmt.Println("Process took: ", time.Now().Sub(bTime))
 	transcribedText := jres["text"].(string)
 	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
