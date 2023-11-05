@@ -182,8 +182,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		// for houndify
 		kgAPIID := r.FormValue("api_id")
 		kgIntent := r.FormValue("intent_graph")
-        // for Together AI Service
-        kgModel := r.FormValue("model")
+		// for Together AI Service
+		kgModel := r.FormValue("model")
 
 		if kgProvider == "" {
 			vars.APIConfig.Knowledge.Enable = false
@@ -196,7 +196,14 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if kgProvider == "openai" && kgIntent == "true" {
 			vars.APIConfig.Knowledge.IntentGraph = true
-			vars.APIConfig.Knowledge.RobotName = r.FormValue("robot_name")
+			if r.FormValue("robot_name") == "" {
+				vars.APIConfig.Knowledge.RobotName = "Vector"
+			} else {
+				vars.APIConfig.Knowledge.RobotName = r.FormValue("robot_name")
+			}
+		} else if kgProvider == "openai" && kgIntent == "false" {
+			vars.APIConfig.Knowledge.IntentGraph = false
+			vars.APIConfig.Knowledge.RobotName = ""
 		}
 		vars.WriteConfigToDisk()
 		fmt.Fprintf(w, "Changes successfully applied.")
@@ -206,7 +213,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgProvider := ""
 		kgAPIKey := ""
 		kgAPIID := ""
-        kgModel := ""
+		kgModel := ""
 		kgIntent := false
 		kgRobotName := ""
 		if vars.APIConfig.Knowledge.Enable {

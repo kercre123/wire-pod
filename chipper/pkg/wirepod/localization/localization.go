@@ -39,6 +39,44 @@ const STR_NAME_IS2 = "str_name_is1"
 const STR_NAME_IS3 = "str_name_is2"
 const STR_FOR = "str_for"
 
+// for grammer
+var ALL_STR []string = []string{
+	"str_weather_in",
+	"str_weather_forecast",
+	"str_weather_tomorrow",
+	"str_weather_the_day_after_tomorrow",
+	"str_weather_tonight",
+	"str_weather_this_afternoon",
+	"str_eye_color_purple",
+	"str_eye_color_blue",
+	"str_eye_color_sapphire",
+	"str_eye_color_yellow",
+	"str_eye_color_teal",
+	"str_eye_color_teal2",
+	"str_eye_color_green",
+	"str_eye_color_orange",
+	"str_me",
+	"str_self",
+	"str_volume_low",
+	"str_volume_quiet",
+	"str_volume_medium_low",
+	"str_volume_medium",
+	"str_volume_normal",
+	"str_volume_regular",
+	"str_volume_medium_high",
+	"str_volume_high",
+	"str_volume_loud",
+	"str_volume_mute",
+	"str_volume_nothing",
+	"str_volume_silent",
+	"str_volume_off",
+	"str_volume_zero",
+	"str_name_is",
+	"str_name_is1",
+	"str_name_is2",
+	"str_for",
+}
+
 // All text must be lowercase!
 
 var texts = map[string][]string{
@@ -93,7 +131,7 @@ func GetText(key string) string {
 		} else if vars.APIConfig.STT.Language == "pl-PL" {
 			return data[5]
 		} else if vars.APIConfig.STT.Language == "zh-CN" {
-			return data[6]			
+			return data[6]
 		}
 	}
 	return data[0]
@@ -101,7 +139,7 @@ func GetText(key string) string {
 
 func ReloadVosk() {
 	if vars.APIConfig.STT.Service == "vosk" {
-		vars.SttInitFunc()
 		vars.MatchListList, vars.IntentsList, _ = vars.LoadIntents()
+		vars.SttInitFunc()
 	}
 }
