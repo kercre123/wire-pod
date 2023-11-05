@@ -43,6 +43,11 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		return nil, nil
 	}
 	if !successMatched {
+		// if vars.APIConfig.Knowledge.IntentGraph {
+		// 	logger.Println("Making request to OpenAI...")
+		// 	resp := openaiRequest(transcribedText)
+		// 	KGSim(req.Device, resp)
+		// }
 		logger.Println("No intent was matched.")
 		sr.BotNum = sr.BotNum - 1
 		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false, speechReq.BotNum)
