@@ -170,6 +170,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 	rec, recind := getRec(withGrm)
 	rec.SetWords(0)
 	rec.AcceptWaveform(req.FirstReq)
+	req.DetectEndOfSpeech()
 	for {
 		chunk, err := req.GetNextStreamChunk()
 		if err != nil {
