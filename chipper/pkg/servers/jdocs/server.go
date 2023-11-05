@@ -2,6 +2,7 @@ package jdocsserver
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"strings"
 
@@ -29,6 +30,20 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 	ajdoc.JsonDoc = req.Doc.JsonDoc
 	latestVersion := vars.AddJdoc(req.Thing, req.DocName, ajdoc)
 	vars.WriteJdocs()
+
+	esn := strings.Split(req.Thing, ":")[1]
+	p, _ := peer.FromContext(ctx)
+	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+
+	for ind, bot := range vars.BotInfo.Robots {
+		if bot.Esn == esn && bot.IPAddress != ipAddr {
+			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
+			vars.BotInfo.Robots[ind].IPAddress = ipAddr
+			writeBytes, _ := json.Marshal(vars.BotInfo)
+			os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
+		}
+	}
+
 	return &jdocspb.WriteDocResp{
 		Status:           jdocspb.WriteDocResp_ACCEPTED,
 		LatestDocVersion: latestVersion,
@@ -38,12 +53,23 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*jdocspb.ReadDocsResp, error) {
 	globalGUIDHash := `{"client_tokens":[{"hash":"J5TAnJTPRCioMExFo5KzH2fHOAXyM5fuO8YRbQSamIsNzymnJ8KDIerFxuJV4qBN","client_name":"","app_id":"","issued_at":"2022-11-26T18:23:08Z","is_primary":true}]}`
 	// global guid now only used in edge cases
+
 	logger.Println("Jdocs: Incoming ReadDocs request, Robot ID: " + req.Thing + ", Item(s) to return: ")
 	logger.Println(req.Items)
 	esn := strings.Split(req.Thing, ":")[1]
 	isAlreadyKnown := IsBotInInfo(esn)
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+
+	for ind, bot := range vars.BotInfo.Robots {
+		if bot.Esn == esn && bot.IPAddress != ipAddr {
+			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
+			vars.BotInfo.Robots[ind].IPAddress = ipAddr
+			writeBytes, _ := json.Marshal(vars.BotInfo)
+			os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
+		}
+	}
+
 	for _, pair := range tokenserver.SessionWriteStoreNames {
 		if ipAddr == strings.Split(pair[0], ":")[0] {
 			vars.DeleteData(req.Thing)
