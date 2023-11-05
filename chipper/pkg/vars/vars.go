@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/kercre123/chipper/pkg/logger"
 )
 
@@ -29,6 +28,7 @@ var BotInfo RobotInfoStore
 var CustomIntents IntentsStruct
 var CustomIntentsExist bool = false
 var DownloadedVoskModels []string
+var VoskGrammerEnable bool = false
 
 // here to prevent import cycle (localization restructure)
 var SttInitFunc func() error
@@ -65,13 +65,20 @@ type IntentsStruct []struct {
 	IsSystemIntent bool     `json:"issystem"`
 }
 
+type AJdoc struct {
+	DocVersion     uint64 `protobuf:"varint,1,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"`            // first version = 1; 0 => invalid or doesn't exist
+	FmtVersion     uint64 `protobuf:"varint,2,opt,name=fmt_version,json=fmtVersion,proto3" json:"fmt_version,omitempty"`            // first version = 1; 0 => invalid
+	ClientMetadata string `protobuf:"bytes,3,opt,name=client_metadata,json=clientMetadata,proto3" json:"client_metadata,omitempty"` // arbitrary client-defined string, eg a data fingerprint (typ "", 32 chars max)
+	JsonDoc        string `protobuf:"bytes,4,opt,name=json_doc,json=jsonDoc,proto3" json:"json_doc,omitempty"`
+}
+
 type botjdoc struct {
 	// vic:00000000
 	Thing string `json:"thing"`
 	// vic.RobotSettings, etc
 	Name string `json:"name"`
 	// actual jdoc
-	Jdoc jdocspb.Jdoc `json:"jdoc"`
+	Jdoc AJdoc `json:"jdoc"`
 }
 
 func Init() {
@@ -127,7 +134,7 @@ func Init() {
 				} else {
 					logger.Println("Appending " + file.Name() + " to new jdocs json")
 					var newJdoc botjdoc
-					var jdoc jdocspb.Jdoc
+					var jdoc AJdoc
 					newJdoc.Thing = thing
 					newJdoc.Name = jdocname
 					json.Unmarshal(jsonBytes, &jdoc)
@@ -229,16 +236,21 @@ func DeleteData(thing string) {
 	WriteJdocs()
 }
 
-func GetJdoc(thing, jdocname string) (jdocspb.Jdoc, bool) {
+func GetJdoc(thing, jdocname string) (AJdoc, bool) {
 	for _, botJdoc := range BotJdocs {
 		if botJdoc.Name == jdocname && botJdoc.Thing == thing {
 			return botJdoc.Jdoc, true
 		}
 	}
-	return jdocspb.Jdoc{}, false
+	return AJdoc{}, false
 }
 
-func AddJdoc(thing string, name string, jdoc jdocspb.Jdoc) uint64 {
+//    DocVersion     uint64 `protobuf:"varint,1,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"`            // first version = 1; 0 => invalid or doesn't exist
+// FmtVersion     uint64 `protobuf:"varint,2,opt,name=fmt_version,json=fmtVersion,proto3" json:"fmt_version,omitempty"`            // first version = 1; 0 => invalid
+// ClientMetadata string `protobuf:"bytes,3,opt,name=client_metadata,json=clientMetadata,proto3" json:"client_metadata,omitempty"` // arbitrary client-defined string, eg a data fingerprint (typ "", 32 chars max)
+// JsonDoc        string
+
+func AddJdoc(thing string, name string, jdoc AJdoc) uint64 {
 	var latestVersion uint64 = 0
 	matched := false
 	for index, jdocentry := range BotJdocs {
