@@ -9,18 +9,17 @@ import (
 
 var NumbersEN_US []string = []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety", "hundred", "seconds", "minutes", "hours", "minute", "second", "hour"}
 
-func removeDuplicates(slice []string) []string {
-	seen := make(map[string]bool)
-	result := []string{}
-	for _, val := range slice {
-		if _, ok := seen[val]; !ok {
-			seen[val] = true
-			result = append(result, val)
+func removeDuplicates(strings []string) []string {
+	occurred := map[string]bool{}
+	var result []string
+	for _, str := range strings {
+		if !occurred[str] {
+			result = append(result, str)
+			occurred[str] = true
 		}
 	}
 	return result
 }
-
 func GetGrammerList(lang string) string {
 	var wordsList []string
 	var grammer string
