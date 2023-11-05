@@ -97,6 +97,8 @@
 
       <div id="section-face" class="toggleable-section" style="display:none;">
         <h2 class="center">Face Manager</h2>
+
+        <h3 class="center">Modify existing faces:</h3>
         <p class="center">Choose the face you would like to modify.</p>
         <div class="center">
           <select id="faceList" name="faceList"></select>
@@ -109,6 +111,15 @@
             <button onclick="deleteFace()" type="submit">Delete</button>
             <button onclick="renameFace()" type="submit">Rename</button>
           </div>
+        </div>
+
+        <h3 class="center">Add a new face:</h3>
+        <p class="center">Enter a name you'd like to add:</p>
+        <div class="center">
+          <input class="tinput" id="faceInput" name="faceInput" type="text" placeholder="Put name here">
+          </div>
+          <div class="center">
+          <button onclick="addFace()">Add Face</button>
         </div>
         <hr>
       </div>

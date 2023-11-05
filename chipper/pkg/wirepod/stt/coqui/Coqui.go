@@ -1,6 +1,7 @@
 package wirepod_coqui
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -15,8 +16,6 @@ var Name string = "coqui"
 
 // Init should be defined as `func() error`
 func Init() error {
-	var testTimer float64
-	var timerDie bool = false
 	logger.Println("Running a Coqui test...")
 	coquiInstance, _ := asticoqui.New("../stt/model.tflite")
 	if _, err := os.Stat("../stt/large_vocabulary.scorer"); err == nil {
@@ -32,29 +31,21 @@ func Init() error {
 	}
 	pcmBytes, _ := os.ReadFile("./stttest.pcm")
 	var micData [][]byte
+	cTime := time.Now()
 	micData = sr.SplitVAD(pcmBytes)
 	for _, sample := range micData {
 		coquiStream.FeedAudioContent(sr.BytesToSamples(sample))
 	}
-	go func() {
-		for testTimer <= 7.00 {
-			if timerDie {
-				break
-			}
-			time.Sleep(time.Millisecond * 10)
-			testTimer = testTimer + 0.01
-			if testTimer > 6.50 {
-				logger.Println("The STT test is taking too long, this hardware may not be adequate.")
-			}
-		}
-	}()
 	res, err := coquiStream.Finish()
+	tTime := time.Now().Sub(cTime)
 	if err != nil {
 		log.Fatal("Failed testing speech to text: ", err)
 	}
 	logger.Println("Text:", res)
-	timerDie = true
-	logger.Println("Coqui test successful! (Took " + strconv.FormatFloat(testTimer, 'f', 2, 64) + " seconds)")
+	if tTime.Seconds() > 3 {
+		logger.Println("Coqui test took a while, performance may be degraded. (" + fmt.Sprint(tTime) + ")")
+	}
+	logger.Println("Coqui test successful! (Took " + fmt.Sprint(tTime) + ")")
 	return nil
 }
 
@@ -75,12 +66,12 @@ func STT(req sr.SpeechRequest) (string, error) {
 	for {
 		var chunk []byte
 		var err error
-		req, chunk, err = sr.GetNextStreamChunk(req)
+		chunk, err = req.GetNextStreamChunk()
 		if err != nil {
 			return "", err
 		}
 		coquiStream.FeedAudioContent(sr.BytesToSamples(chunk))
-		req, speechIsDone = sr.DetectEndOfSpeech(req)
+		speechIsDone = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}
