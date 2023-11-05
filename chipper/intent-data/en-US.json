@@ -1,43 +1,43 @@
 [
 	{
 		"name" : "intent_names_username_extend", 
-		"keyphrases": ["name is", "native is", "names", "name's" ]
+		"keyphrases": ["name is", "native is", "names", "name's", "my name is" ]
 	},
 	{	
 		"name": "intent_weather_extend", 
-		"keyphrases" : ["weather", "whether", "the other", "the water", "no other", "weather forecast", "weather tomorrow" ]
+		"keyphrases" : ["weather", "whether", "the other", "the water", "no other", "weather forecast", "weather tomorrow", "whats the weather" ]
 	},
 	{	
 		"name": "intent_names_ask", 
-		"keyphrases" : ["my name", "who am"]
+		"keyphrases" : ["my name", "who am", "who am i"]
 	},
 	{	
 		"name": "intent_imperative_eyecolor",
-		"keyphrases" : ["eye color", "colo", "i call her", "i foller", "icolor", "ecce", "erior", "ichor", "agricola", "change", "oracular", "oracle" ]
+		"keyphrases" : ["eye color", "colo", "i call her", "i foller", "icolor", "ecce", "erior", "ichor", "agricola", "change", "oracular", "oracle", "set your eye color to"]
 	},
 	{	
 		"name": "intent_character_age", 
-		"keyphrases" : ["older", "how old", "old are you", "old or yo", "how there you" ]
+		"keyphrases" : ["older", "how old", "old are you", "old or yo", "how there you"]
 	},
 	{	
 		"name": "intent_explore_start", 
-		"keyphrases" : ["start", "plor", "owing", "tailoring", "oding", "oring", "pling" ]
+		"keyphrases" : ["start", "plor", "owing", "tailoring", "oding", "oring", "pling", "start exploring"]
 	},
 	{	
 		"name": "intent_system_charger", 
-		"keyphrases" : ["charge", "home", "go to your", "church", "find your ch" ]
+		"keyphrases" : ["charge", "home", "go to your", "church", "find your ch", "charger" ]
 	},
 		{	
 		"name": "intent_system_sleep",
-		"keyphrases" : ["flee", "sleep", "sheep" ]
+		"keyphrases" : ["flee", "sleep", "sheep", "go to sleep" ]
 	},
 	{	
 		"name": "intent_greeting_goodmorning", 
-		"keyphrases" : ["morning", "mourning", "mooning", "it bore", "afternoon", "after noon", "after whom" ]
+		"keyphrases" : ["morning", "mourning", "mooning", "it bore", "afternoon", "after noon", "after whom", "good morning" ]
 	},
 		{	
 		"name": "intent_greeting_goodnight", 
-		"keyphrases" : ["night", "might" ]
+		"keyphrases" : ["night", "might", "goodnight" ]
 	},
 		{	
 		"name": "intent_greeting_goodbye", 
@@ -53,7 +53,7 @@
 	},
 	{	
 		"name": "intent_amazon_signin", 
-		"keyphrases" : ["in intellect", "fine in electa", "in alex", "ing alex", "in an elect", "to alex", "in angelica", "up alexa" ]
+		"keyphrases" : ["in intellect", "fine in electa", "in alex", "ing alex", "in an elect", "to alex", "in angelica", "up alexa", "sign in to alexa" ]
 	},
 	{	
 		"name": "intent_amazon_signin", 
@@ -61,11 +61,11 @@
 	},
 	{	
 		"name": "intent_imperative_forward",
-		"keyphrases" : ["forward", "for ward", "for word" ]
+		"keyphrases" : ["forward", "for ward", "for word", "move forward", "forwards" ]
 	},
 	{	
 		"name": "intent_imperative_turnaround", 
-		"keyphrases" : ["around", "one eighty", "one ate he" ]
+		"keyphrases" : ["around", "one eighty", "one ate he", "turn around" ]
 	},
 	{	
 		"name": "intent_imperative_turnleft", 
@@ -77,19 +77,19 @@
 	},
 	{	
 		"name": "intent_play_rollcube",
-		"keyphrases" : ["roll cu", "roll your cu", "all your cu", "roll human", "yorke", "old your he" ]
+		"keyphrases" : ["roll cu", "roll your cu", "all your cu", "roll human", "yorke", "old your he", "roll your cube" ]
 	},
 	{	
 		"name": "intent_play_popawheelie", 
-		"keyphrases" : ["pop a w", "polwhele", "olwen", "i wieland", "do a wheel", "doorstone", "thibetan", "powell", "welst", "a wheel", "willie", "a really", "o' billy" ]
+		"keyphrases" : ["pop a w", "polwhele", "olwen", "i wieland", "do a wheel", "doorstone", "thibetan", "powell", "welst", "a wheel", "willie", "a really", "o' billy", "pop a wheelie", "do a wheel stand" ]
 	},
 	{	
 		"name": "intent_play_fistbump", 
-		"keyphrases" : ["this pomp", "this pump", "bump", "fistb", "fistf", "this book", "pisto", "with pomp", "fison", "first", "fifth", "were fifteen", "if bump", "wisdom", "this bu", "fist bomb", "fist ball", "this ball", "system" ]
+		"keyphrases" : ["this pomp", "this pump", "bump", "fistb", "fistf", "this book", "pisto", "with pomp", "fison", "first", "fifth", "were fifteen", "if bump", "wisdom", "this bu", "fist bomb", "fist ball", "this ball", "system", "fistbump" ]
 	},
 		{	
 		"name": "intent_play_blackjack", 
-		"keyphrases" : ["black", "cards", "game" ]
+		"keyphrases" : ["black", "cards", "game", "play blackjack" ]
 	},
 		{	
 		"name": "intent_imperative_affirmative",
@@ -101,27 +101,27 @@
 	},
 	{	
 		"name": "intent_photo_take_extend", 
-		"keyphrases" : ["photo", "foto", "selby", "capture", "picture" ]
+		"keyphrases" : ["photo", "foto", "selby", "capture", "picture", "take a photo of me" ]
 	},
 	{	
 		"name": "intent_imperative_praise", 
-		"keyphrases" : ["good", "awesome", "also", "as some", "of them", "battle", "t rob", "the ro", "amazing", "woodcourt" ]
+		"keyphrases" : ["good", "awesome", "also", "as some", "of them", "battle", "t rob", "the ro", "amazing", "woodcourt", "good robot" ]
 	},
 	{	
 		"name": "intent_imperative_abuse",
-		"keyphrases" : ["bad", "that ro", "ad ro", "a root", "hate", "horrible" ]
+		"keyphrases" : ["bad", "that ro", "ad ro", "a root", "hate", "horrible", "bad robot" ]
 	},
 	{	
 		"name": "intent_imperative_apologize", 
-		"keyphrases" : ["sorry", "apologize", "apologise", "the tory", "nevermind", "never mind" ]
+		"keyphrases" : ["sorry", "apologize", "apologise", "the tory", "nevermind", "never mind", "im sorry" ]
 	},
 	{	
 		"name": "intent_imperative_backup", 
-		"keyphrases" : ["back" ]
+		"keyphrases" : ["back", "back up", "backwards" ]
 	},
 	{	
 		"name": "intent_imperative_volumedown",
-		"keyphrases" : ["all you down", "volume down", "down volume", "down the volume", "quieter", "down to low", "down to medium" ]
+		"keyphrases" : ["all you down", "volume down", "down volume", "down the volume", "quieter", "turn the volume down" ]
 	},
 	{	
 		"name": "intent_imperative_volumeup", 
@@ -141,19 +141,19 @@
 	},
 	{	
 		"name": "intent_greeting_hello", 
-		"keyphrases" : ["hello", "are you", "our you", "high", "below", "little", "follow", "for you", "far you", "how about you" ]
+		"keyphrases" : ["hello", "are you", "our you", "high", "below", "little", "follow", "for you", "far you", "how about you", "how are you" ]
 	},
 	{	
 		"name": "intent_imperative_come", 
-		"keyphrases" : ["come", "to me" ]
+		"keyphrases" : ["come", "to me", "come here" ]
 	},
 	{	
 		"name": "intent_imperative_love",
-		"keyphrases" : ["love", "dove" ]
+		"keyphrases" : ["love", "dove", "i love you" ]
 	},
 	{	
 		"name": "intent_knowledge_promptquestion", 
-		"keyphrases" : ["question", "weston" ]
+		"keyphrases" : ["question", "weston", "i have a question" ]
 	},
 	{	
 		"name": "intent_clock_checktimer", 
@@ -165,35 +165,35 @@
 	},
 	{	
 		"name": "intent_clock_settimer_extend",
-		"keyphrases" : ["timer", "time for", "time of for", "time or", "time of" ]
+		"keyphrases" : ["timer", "time for", "time of for", "time or", "time of", "set a timer for" ]
 	},
 	{	
 		"name": "intent_clock_time", 
-		"keyphrases" : ["time is it", "the time", "what time", "clock" ]
+		"keyphrases" : ["time is it", "the time", "what time", "clock", "what time is it" ]
 	},
 	{	
 		"name": "intent_imperative_quiet", 
-		"keyphrases" : ["quiet", "stop" ]
+		"keyphrases" : ["quiet", "stop", "be quiet" ]
 	},
 	{	
 		"name": "intent_imperative_dance", 
-		"keyphrases" : ["dance", "dancing", "thence" ]
+		"keyphrases" : ["dance", "dancing", "thence", "dance to the beat", "the beat", "boogie" ]
 	},
 	{	
 		"name": "intent_play_pickupcube",
-		"keyphrases" : ["pickup", "pick up", "bring to me", "bring me", "the beat", "boogie" ]
+		"keyphrases" : ["pickup", "pick up" ]
 	},
 	{	
 		"name": "intent_imperative_fetchcube", 
-		"keyphrases" : ["fetch your cu", "fetch cu", "fetch the cu" ]
+		"keyphrases" : ["fetch your cu", "fetch cu", "fetch the cu", "bring to me", "bring me", "bring me your cube" ]
 	},
 	{	
 		"name": "intent_imperative_findcube", 
-		"keyphrases" : ["your cu", "the cu" ]
+		"keyphrases" : ["your cu", "the cu", "find your cube" ]
 	},
 	{	
 		"name": "intent_play_anytrick", 
-		"keyphrases" : ["trick", "something cool", "some thing cool" ]
+		"keyphrases" : ["trick", "something cool", "some thing cool", "do a trick" ]
 	},
 	{	
 		"name": "intent_message_recordmessage_extend",
@@ -213,6 +213,6 @@
 	},
 	{	
 		"name": "intent_play_keepaway",
-		"keyphrases": ["keepaway", "keep away" ]
+		"keyphrases": ["keepaway", "keep away", "play keepaway" ]
 	}
 ]

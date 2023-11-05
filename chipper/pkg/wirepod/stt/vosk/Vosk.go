@@ -2,18 +2,15 @@ package wirepod_vosk
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
-	"github.com/kercre123/chipper/pkg/wirepod/localization"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
 
@@ -21,8 +18,10 @@ var Name string = "vosk"
 
 var model *vosk.VoskModel
 var recsmu sync.Mutex
+
 var grmRecs []ARec
 var gpRecs []ARec
+
 var modelLoaded bool
 
 type ARec struct {
@@ -60,10 +59,11 @@ func Init() error {
 		}
 		model = aModel
 
-		fmt.Println("Initializing grammer list")
+		logger.Println("Initializing grammer list")
 		Grammer = GetGrammerList(vars.APIConfig.STT.Language)
+		logger.Println(Grammer)
 
-		fmt.Println("Initializing VOSK recognizers")
+		logger.Println("Initializing VOSK recognizers")
 		grmRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
 		if err != nil {
 			log.Fatal(err)
@@ -96,10 +96,10 @@ func Init() error {
 		var jres map[string]interface{}
 		json.Unmarshal([]byte(recWithGrm.FinalResult()), &jres)
 		transcribedText := jres["text"].(string)
-		fmt.Println("(Grammer Recognizer) Transcribed text: " + transcribedText)
+		logger.Println("(Grammer Recognizer) Transcribed text: " + transcribedText)
 		grmRecs[grmind].InUse = false
-		fmt.Println("Grammer recognizer test completed, took", time.Now().Sub(cTime))
-		fmt.Println("Running general recognizer test...")
+		logger.Println("Grammer recognizer test completed, took", time.Now().Sub(cTime))
+		logger.Println("Running general recognizer test...")
 		cTime = time.Now()
 
 		recGp, gpind := getRec(false)
@@ -109,9 +109,9 @@ func Init() error {
 		var jres2 map[string]interface{}
 		json.Unmarshal([]byte(recGp.FinalResult()), &jres2)
 		transcribedText = jres2["text"].(string)
-		fmt.Println("(General Recognizer) Transcribed text: " + transcribedText)
+		logger.Println("(General Recognizer) Transcribed text: " + transcribedText)
 		gpRecs[gpind].InUse = false
-		fmt.Println("General recognizer test completed, took", time.Now().Sub(cTime))
+		logger.Println("General recognizer test completed, took", time.Now().Sub(cTime))
 	}
 	return nil
 }
@@ -193,69 +193,4 @@ func STT(req sr.SpeechRequest) (string, error) {
 	transcribedText := jres["text"].(string)
 	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
 	return transcribedText, nil
-}
-
-// more performance can be gotten via grammar
-
-func removeDuplicates(slice []string) []string {
-	seen := make(map[string]bool)
-	result := []string{}
-	for _, val := range slice {
-		if _, ok := seen[val]; !ok {
-			seen[val] = true
-			result = append(result, val)
-		}
-	}
-	return result
-}
-
-func GetGrammerList(lang string) string {
-	var wordsList []string
-	var grammer string
-	// add words in intent json
-	for _, words := range vars.MatchListList {
-		for _, word := range words {
-			wors := strings.Split(word, " ")
-			for _, wor := range wors {
-				found := model.FindWord(wor)
-				if found != -1 {
-					wordsList = append(wordsList, wor)
-				}
-			}
-		}
-	}
-	// add words in localization
-	for _, str := range localization.ALL_STR {
-		text := localization.GetText(str)
-		wors := strings.Split(text, " ")
-		for _, wor := range wors {
-			found := model.FindWord(wor)
-			if found != -1 {
-				wordsList = append(wordsList, wor)
-			}
-		}
-	}
-	// add custom intent matches
-	for _, intent := range vars.CustomIntents {
-		for _, utterance := range intent.Utterances {
-			wors := strings.Split(utterance, " ")
-			for _, wor := range wors {
-				found := model.FindWord(wor)
-				if found != -1 {
-					wordsList = append(wordsList, wor)
-				}
-			}
-		}
-	}
-
-	wordsList = removeDuplicates(wordsList)
-	for i, word := range wordsList {
-		if i == len(wordsList)-1 {
-			grammer = grammer + `"` + word + `"`
-		} else {
-			grammer = grammer + `"` + word + `"` + ", "
-		}
-	}
-	grammer = "[" + grammer + "]"
-	return grammer
 }
