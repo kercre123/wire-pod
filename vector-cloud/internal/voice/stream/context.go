@@ -110,6 +110,8 @@ func (strm *Streamer) responseRoutine() {
 			log.Println("Intent response ->", fmt.Sprintf("%T", resp))
 		}
 		switch r := resp.(type) {
+		case *chipper.IntentResult:
+			sendIntentResponse(r, strm.receiver)
 		case *chipper.IntentGraphResponse:
 			sendIntentGraphResponse(r, strm.receiver)
 		case *chipper.KnowledgeGraphResponse:
