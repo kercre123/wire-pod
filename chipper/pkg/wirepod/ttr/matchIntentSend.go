@@ -33,6 +33,12 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 		esn = req2.Device
 		isIntentGraph = true
 	}
+
+	// intercept if not intent graph but intent graph is enabled
+	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && intentThing == "intent_system_noaudio" {
+		intentThing = "intent_greeting_hello"
+	}
+
 	var intentResult pb.IntentResult
 	if isParam {
 		intentResult = pb.IntentResult{
