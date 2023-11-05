@@ -28,7 +28,9 @@ require (
 )
 
 require (
+	github.com/alphacep/vosk-api v0.3.45 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/cryptix/wav v0.0.0-20180415113528-8bdace674401 // indirect
 	github.com/ebitengine/purego v0.5.0 // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
 	github.com/miekg/dns v1.1.56 // indirect

@@ -65,7 +65,7 @@ func STT(req sr.SpeechRequest) (intent string, slots map[string]string, err erro
 	breakOut := false
 	for {
 		var chunk []byte
-		req, chunk, err = sr.GetNextStreamChunk(req)
+		chunk, err = req.GetNextStreamChunk()
 		if err != nil {
 			return "", map[string]string{}, err
 		}
