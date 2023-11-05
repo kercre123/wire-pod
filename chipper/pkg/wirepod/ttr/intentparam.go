@@ -168,7 +168,7 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 		}
 		intentParams = map[string]string{intentParam: intentParamValue}
 	} else if strings.Contains(intent, "intent_names_username_extend") {
-		if vars.APIConfig.STT.Service == "vosk" && !vars.APIConfig.Knowledge.IntentGraph {
+		if vars.VoskGrammerEnable {
 			var guid string
 			var target string
 			matched := false

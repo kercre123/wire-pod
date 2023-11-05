@@ -22,7 +22,12 @@ type JdocServer struct {
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
 	logger.Println("Jdocs: Incoming WriteDoc request, Item to write: " + req.DocName + ", Robot ID: " + req.Thing)
-	latestVersion := vars.AddJdoc(req.Thing, req.DocName, *req.Doc)
+	var ajdoc vars.AJdoc
+	ajdoc.ClientMetadata = req.Doc.ClientMetadata
+	ajdoc.DocVersion = req.Doc.DocVersion
+	ajdoc.FmtVersion = req.Doc.FmtVersion
+	ajdoc.JsonDoc = req.Doc.JsonDoc
+	latestVersion := vars.AddJdoc(req.Thing, req.DocName, ajdoc)
 	vars.WriteJdocs()
 	return &jdocspb.WriteDocResp{
 		Status:           jdocspb.WriteDocResp_ACCEPTED,
@@ -103,12 +108,17 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					}
 					// bot is not authenticated yet, do not write to botinfo json
 					tokenJdoc, _ := vars.GetJdoc(req.Thing, "vic.AppToken")
+					var truejdoc jdocspb.Jdoc
+					truejdoc.ClientMetadata = tokenJdoc.ClientMetadata
+					truejdoc.DocVersion = tokenJdoc.DocVersion
+					truejdoc.FmtVersion = tokenJdoc.FmtVersion
+					truejdoc.JsonDoc = tokenJdoc.JsonDoc
 					tokenserver.RemoveFromSecondStore(len(tokenserver.SecondaryTokenStore) - 1)
 					return &jdocspb.ReadDocsResp{
 						Items: []*jdocspb.ReadDocsResp_Item{
 							{
 								Status: jdocspb.ReadDocsResp_CHANGED,
-								Doc:    &tokenJdoc,
+								Doc:    &truejdoc,
 							},
 						},
 					}, nil
@@ -134,7 +144,12 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	for _, item := range req.Items {
 		gottenDoc, jdocExists := vars.GetJdoc(req.Thing, item.DocName)
 		if jdocExists {
-			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &gottenDoc})
+			var truejdoc jdocspb.Jdoc
+			truejdoc.DocVersion = gottenDoc.DocVersion
+			truejdoc.FmtVersion = gottenDoc.FmtVersion
+			truejdoc.ClientMetadata = gottenDoc.ClientMetadata
+			truejdoc.JsonDoc = gottenDoc.JsonDoc
+			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &truejdoc})
 		} else {
 			var noJdoc jdocspb.Jdoc
 			noJdoc.DocVersion = 0
