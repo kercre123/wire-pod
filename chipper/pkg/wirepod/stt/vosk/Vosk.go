@@ -145,6 +145,7 @@ func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 			}
 		}
 	}
+	recsmu.Unlock()
 	var newrec ARec
 	var newRec *vosk.VoskRecognizer
 	var err error
@@ -158,6 +159,7 @@ func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 		log.Fatal(err)
 	}
 	newrec.Rec = newRec
+	recsmu.Lock()
 	if withGrm {
 		grmRecs = append(grmRecs, newrec)
 		return grmRecs[len(grmRecs)-1].Rec, len(grmRecs) - 1
@@ -171,7 +173,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
 	speechIsDone := false
 	var withGrm bool
-	if vars.APIConfig.Knowledge.IntentGraph || req.IsKG || !GrammerEnable {
+	if (vars.APIConfig.Knowledge.IntentGraph || req.IsKG) || !GrammerEnable {
 		logger.Println("Using general recognizer")
 		withGrm = false
 	} else {
@@ -179,7 +181,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 		withGrm = true
 	}
 	rec, recind := getRec(withGrm)
-	rec.SetWords(0)
+	rec.SetWords(1)
 	rec.AcceptWaveform(req.FirstReq)
 	req.DetectEndOfSpeech()
 	for {
