@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
@@ -80,7 +79,7 @@ func pingJdocs(target string) {
 	}
 	logger.Println("Successfully got jdocs from " + serial)
 	// write to file
-	var jdoc jdocspb.Jdoc
+	var jdoc vars.AJdoc
 	jdoc.DocVersion = resp.NamedJdocs[0].Doc.DocVersion
 	jdoc.FmtVersion = resp.NamedJdocs[0].Doc.FmtVersion
 	jdoc.ClientMetadata = resp.NamedJdocs[0].Doc.ClientMetadata

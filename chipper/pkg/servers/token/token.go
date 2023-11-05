@@ -121,7 +121,12 @@ func WriteTokenHash(esn string, tokenHash string) error {
 		logger.Println(err)
 	}
 	jdoc.JsonDoc = string(jdocJsoc)
-	vars.AddJdoc("vic:"+esn, "vic.AppTokens", jdoc)
+	var ajdoc vars.AJdoc
+	ajdoc.ClientMetadata = jdoc.ClientMetadata
+	ajdoc.DocVersion = jdoc.DocVersion
+	ajdoc.FmtVersion = jdoc.FmtVersion
+	ajdoc.JsonDoc = jdoc.JsonDoc
+	vars.AddJdoc("vic:"+esn, "vic.AppTokens", ajdoc)
 	vars.WriteJdocs()
 	return nil
 }

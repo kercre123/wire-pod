@@ -72,7 +72,7 @@ func houndifyKG(req sr.SpeechRequest) string {
 func togetherRequest(transcribedText string) string {
 	sendString := "You are a helpful robot called Vector . You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
 	url := "https://api.together.xyz/inference"
-    model := vars.APIConfig.Knowledge.Model
+	model := vars.APIConfig.Knowledge.Model
 	formData := `{
 "model": "` + model + `",
 "prompt": "` + sendString + `",
@@ -81,7 +81,7 @@ func togetherRequest(transcribedText string) string {
 "top_p": 1
 }`
 	logger.Println("Making request to Together API...")
-    logger.Println("Model is " + model)
+	logger.Println("Model is " + model)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(formData)))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+vars.APIConfig.Knowledge.Key)
@@ -92,30 +92,30 @@ func togetherRequest(transcribedText string) string {
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
-    var togetherResponse map[string]any
+	var togetherResponse map[string]any
 	err = json.Unmarshal(body, &togetherResponse)
 	if err != nil {
 		return "Together API returned no response."
 	}
-    output := togetherResponse["output"].(map[string]any)
-    choice := output["choices"].([]any)
-    for _, val := range choice {
-        x := val.(map[string]any)
-        textResponse := x["text"].(string)
-        apiResponse := strings.TrimSuffix(textResponse, "</s>")
-	    logger.Println("Together response: " + apiResponse)
-        return apiResponse
-    }
-    // In case text is not present in result from API, return a string saying answer was not found
-    return "Answer was not found"
+	output := togetherResponse["output"].(map[string]any)
+	choice := output["choices"].([]any)
+	for _, val := range choice {
+		x := val.(map[string]any)
+		textResponse := x["text"].(string)
+		apiResponse := strings.TrimSuffix(textResponse, "</s>")
+		logger.Println("Together response: " + apiResponse)
+		return apiResponse
+	}
+	// In case text is not present in result from API, return a string saying answer was not found
+	return "Answer was not found"
 }
 
 func openaiRequest(transcribedText string) string {
-	sendString := "You are a helpful robot called " + vars.APIConfig.Knowledge.RobotName + ". You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
+	sendString := "You are a helpful robot called " + vars.APIConfig.Knowledge.RobotName + ". You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
 	logger.Println("Making request to OpenAI...")
 	url := "https://api.openai.com/v1/completions"
 	formData := `{
-"model": "text-davinci-003",
+"model": "gpt-3.5-turbo-instruct",
 "prompt": "` + sendString + `",
 "temperature": 0.7,
 "max_tokens": 256,

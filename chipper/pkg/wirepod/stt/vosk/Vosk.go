@@ -2,8 +2,12 @@ package wirepod_vosk
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 	"strconv"
+	"sync"
+	"time"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/kercre123/chipper/pkg/logger"
@@ -11,23 +15,48 @@ import (
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 )
 
+var GrammerEnable bool = false
+
 var Name string = "vosk"
 
 var model *vosk.VoskModel
+var recsmu sync.Mutex
+
+var grmRecs []ARec
+var gpRecs []ARec
+
 var modelLoaded bool
 
+type ARec struct {
+	InUse bool
+	Rec   *vosk.VoskRecognizer
+}
+
+var Grammer string
+
 func Init() error {
+	if os.Getenv("VOSK_WITH_GRAMMER") == "true" {
+		fmt.Println("Initializing vosk with grammer optimizations")
+		GrammerEnable = true
+	}
 	if vars.APIConfig.PastInitialSetup {
 		vosk.SetLogLevel(-1)
 		if modelLoaded {
-			logger.Println("A model was already loaded, freeing")
+			logger.Println("A model was already loaded, freeing all recognizers and model")
+			for ind, _ := range grmRecs {
+				grmRecs[ind].Rec.Free()
+			}
+			for ind, _ := range gpRecs {
+				gpRecs[ind].Rec.Free()
+			}
+			gpRecs = []ARec{}
+			grmRecs = []ARec{}
 			model.Free()
 		}
 		sttLanguage := vars.APIConfig.STT.Language
 		if len(sttLanguage) == 0 {
 			sttLanguage = "en-US"
 		}
-		// Open model
 		modelPath := "../vosk/models/" + sttLanguage + "/model"
 		logger.Println("Opening VOSK model (" + modelPath + ")")
 		aModel, err := vosk.NewModel(modelPath)
@@ -36,25 +65,127 @@ func Init() error {
 			return err
 		}
 		model = aModel
+		if GrammerEnable {
+			logger.Println("Initializing grammer list")
+			Grammer = GetGrammerList(vars.APIConfig.STT.Language)
+		}
+
+		logger.Println("Initializing VOSK recognizers")
+		if GrammerEnable {
+			grmRecognizer, err := vosk.NewRecognizerGrm(aModel, 16000.0, Grammer)
+			if err != nil {
+				log.Fatal(err)
+			}
+			var grmrec ARec
+			grmrec.Rec = grmRecognizer
+			grmrec.InUse = false
+			grmRecs = append(grmRecs, grmrec)
+		}
+		gpRecognizer, err := vosk.NewRecognizer(aModel, 16000.0)
+		var gprec ARec
+		gprec.Rec = gpRecognizer
+		gprec.InUse = false
+		gpRecs = append(gpRecs, gprec)
+		if err != nil {
+			log.Fatal(err)
+		}
 		modelLoaded = true
-		logger.Println("VOSK initiated successfully")
+		logger.Println("VOSK initiated successfully, running speed tests...")
+
+		// run test
+		pcmBytes, _ := os.ReadFile("./stttest.pcm")
+		var micData [][]byte
+		cTime := time.Now()
+		micData = sr.SplitVAD(pcmBytes)
+
+		if GrammerEnable {
+			recWithGrm, grmind := getRec(true)
+			for _, sample := range micData {
+				recWithGrm.AcceptWaveform(sample)
+			}
+			var jres map[string]interface{}
+			json.Unmarshal([]byte(recWithGrm.FinalResult()), &jres)
+			transcribedText := jres["text"].(string)
+			logger.Println("(Grammer Recognizer) Transcribed text: " + transcribedText)
+			grmRecs[grmind].InUse = false
+			logger.Println("Grammer recognizer test completed, took", time.Now().Sub(cTime))
+			cTime = time.Now()
+		}
+		logger.Println("Running general recognizer test...")
+
+		recGp, gpind := getRec(false)
+		for _, sample := range micData {
+			recGp.AcceptWaveform(sample)
+		}
+		var jres2 map[string]interface{}
+		json.Unmarshal([]byte(recGp.FinalResult()), &jres2)
+		transcribedText := jres2["text"].(string)
+		logger.Println("(General Recognizer) Transcribed text: " + transcribedText)
+		gpRecs[gpind].InUse = false
+		logger.Println("General recognizer test completed, took", time.Now().Sub(cTime))
 	}
 	return nil
+}
+
+func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
+	recsmu.Lock()
+	defer recsmu.Unlock()
+	if withGrm && GrammerEnable {
+		for ind, rec := range grmRecs {
+			if !rec.InUse {
+				grmRecs[ind].InUse = true
+				return grmRecs[ind].Rec, ind
+			}
+		}
+	} else {
+		for ind, rec := range gpRecs {
+			if !rec.InUse {
+				gpRecs[ind].InUse = true
+				return gpRecs[ind].Rec, ind
+			}
+		}
+	}
+	recsmu.Unlock()
+	var newrec ARec
+	var newRec *vosk.VoskRecognizer
+	var err error
+	newrec.InUse = true
+	if withGrm {
+		newRec, err = vosk.NewRecognizerGrm(model, 16000.0, Grammer)
+	} else {
+		newRec, err = vosk.NewRecognizer(model, 16000.0)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	newrec.Rec = newRec
+	recsmu.Lock()
+	if withGrm {
+		grmRecs = append(grmRecs, newrec)
+		return grmRecs[len(grmRecs)-1].Rec, len(grmRecs) - 1
+	} else {
+		gpRecs = append(gpRecs, newrec)
+		return gpRecs[len(gpRecs)-1].Rec, len(gpRecs) - 1
+	}
 }
 
 func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
 	speechIsDone := false
-	sampleRate := 16000.0
-	rec, err := vosk.NewRecognizer(model, sampleRate)
-	if err != nil {
-		log.Fatal(err)
+	var withGrm bool
+	if (vars.APIConfig.Knowledge.IntentGraph || req.IsKG) || !GrammerEnable {
+		logger.Println("Using general recognizer")
+		withGrm = false
+	} else {
+		logger.Println("Using grammer-optimized recognizer")
+		withGrm = true
 	}
+	rec, recind := getRec(withGrm)
 	rec.SetWords(1)
 	rec.AcceptWaveform(req.FirstReq)
+	req.DetectEndOfSpeech()
 	for {
-		var chunk []byte
-		chunk, err = req.GetNextStreamChunk()
+		chunk, err := req.GetNextStreamChunk()
 		if err != nil {
 			return "", err
 		}
@@ -67,6 +198,11 @@ func STT(req sr.SpeechRequest) (string, error) {
 	}
 	var jres map[string]interface{}
 	json.Unmarshal([]byte(rec.FinalResult()), &jres)
+	if withGrm {
+		grmRecs[recind].InUse = false
+	} else {
+		gpRecs[recind].InUse = false
+	}
 	transcribedText := jres["text"].(string)
 	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
 	return transcribedText, nil

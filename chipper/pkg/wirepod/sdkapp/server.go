@@ -236,6 +236,21 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprintf(w, "success")
 		return
+	case r.URL.Path == "/api-sdk/add_face":
+		name := r.FormValue("name")
+		_, err := robot.Conn.AppIntent(
+			ctx,
+			&vectorpb.AppIntentRequest{
+				Intent: "intent_meet_victor",
+				Param:  name,
+			},
+		)
+		if err != nil {
+			fmt.Fprint(w, err.Error())
+			return
+		}
+		fmt.Fprintf(w, "success")
+		return
 	case r.URL.Path == "/api-sdk/mirror_mode":
 		enable := r.FormValue("enable")
 		if enable == "true" {

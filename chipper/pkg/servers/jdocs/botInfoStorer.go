@@ -94,10 +94,12 @@ func WriteToIniSecondary(esn, guid, ip string) {
 		}
 	}
 	if !certExists {
-		logger.Println("WriteToIniSecondary: getting session cert from Anki server")
+		logger.Println("WriteToIniSecondary: getting session cert from DDL server")
 		resp, err := http.Get("https://session-certs.token.global.anki-services.com/vic/" + esn)
 		if err != nil {
 			logger.Println(err)
+			logger.Println("The DDL servers are down at the moment. The cert will not be gotten. The Python SDK will not be configured.")
+			return
 		}
 		certBytesOrig, _ := io.ReadAll(resp.Body)
 		block, _ := pem.Decode(certBytesOrig)
