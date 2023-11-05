@@ -129,7 +129,7 @@ func UnzipFile(file, dest string) {
 	zipReader, err := zip.OpenReader(file)
 	if err != nil {
 		DownloadStatus = "error downloading: " + err.Error()
-		logger.Println("error opening zip file: %v", err)
+		logger.Println("error opening zip file:", err)
 		return
 	}
 	defer zipReader.Close()
@@ -139,7 +139,7 @@ func UnzipFile(file, dest string) {
 		rc, err := f.Open()
 		if err != nil {
 			DownloadStatus = "error downloading: " + err.Error()
-			logger.Println("error opening zip file: %v", err)
+			logger.Println("error opening zip file:", err)
 			return
 		}
 		defer rc.Close()
@@ -151,7 +151,7 @@ func UnzipFile(file, dest string) {
 			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 			if err != nil {
 				DownloadStatus = "error downloading: " + err.Error()
-				logger.Println("Error creating file: %v", err)
+				logger.Println("Error creating file:", err)
 				return
 			}
 			defer f.Close()
@@ -159,7 +159,7 @@ func UnzipFile(file, dest string) {
 			_, err = io.Copy(f, rc)
 			if err != nil {
 				DownloadStatus = "error downloading: " + err.Error()
-				logger.Println("Error writing to file: %v", err)
+				logger.Println("Error writing to file:", err)
 				return
 			}
 		}

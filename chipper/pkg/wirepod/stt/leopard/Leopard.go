@@ -63,11 +63,11 @@ func STT(req sr.SpeechRequest) (transcribedText string, err error) {
 		leopardSTT = leopardSTTArray[req.BotNum-1]
 	}
 	for {
-		req, _, err = sr.GetNextStreamChunk(req)
+		_, err = req.GetNextStreamChunk()
 		if err != nil {
 			return "", err
 		}
-		req, speechIsDone = sr.DetectEndOfSpeech(req)
+		speechIsDone = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}
