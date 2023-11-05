@@ -5,6 +5,8 @@ esn = urlParams.get('serial');
 
 showFaceButtons = false
 
+var areThereFaces = false
+
 function refreshFaceList() {
 var x = document.getElementById("faceList");
 x.innerHTML = ""
@@ -17,8 +19,10 @@ fetch("/api-sdk/get_faces?serial=" + esn)
     var option = document.createElement("option");
     option.text = "No faces found. You must tell Vector your name."
     option.value = "none"
+    areThereFaces = false
     x.add(option);
   } else {
+  areThereFaces = true
   jsonResp = JSON.parse(response)
   showFaceButtons = true
   for (var i = 0; i < jsonResp.length; i++){
@@ -56,21 +60,41 @@ function showFaceSection() {
 */
 
 function renameFace() {
-  var x = document.getElementById("faceList");
-  oldFaceName = x.value.split(":")[1]
-  faceId = x.value.split(":")[0]
-  newFaceName = window.prompt('Enter the new name here:');
-  console.log(newFaceName)
-  if (newFaceName == '') {
-    window.alert('Face name cannot be empty')
+  if (!areThereFaces) {
+      window.alert("You must register a face first.")
   } else {
-    fetch("/api-sdk/rename_face?serial=" + esn + "&oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
-      .then (function(){alert("Success!"); refreshFaceList()})
-}}
+      var x = document.getElementById("faceList");
+      oldFaceName = x.value.split(":")[1]
+      faceId = x.value.split(":")[0]
+      newFaceName = window.prompt('Enter the new name here:');
+      console.log(newFaceName)
+      if (newFaceName == '') {
+        window.alert('Face name cannot be empty')
+      } else {
+        fetch("/api-sdk/rename_face?serial=" + esn + "&oldname=" + oldFaceName + "&id=" + faceId + "&newname=" + newFaceName)
+          .then (function(){alert("Success!"); refreshFaceList()})
+    }
+  }
+}
+
+function addFace() {
+  var name = document.getElementById("faceInput").value;
+  if (name == "") {
+    alert("You must enter a name.")
+    return
+  } else {
+    fetch("/api-sdk/add_face?serial=" + esn + "&name=" + name)
+      .then (function(){alert("Request successfully sent. Vector should now be finding a face to scan."); refreshFaceList()})
+  }
+}
 
 function deleteFace() {
-  var x = document.getElementById("faceList");
-  faceId = x.value.split(":")[0]
-  fetch("/api-sdk/delete_face?serial=" + esn + "&id=" + faceId)
-    .then (function(){alert("Success!"); refreshFaceList()})
+  if (!areThereFaces) {
+    window.alert("You must register a face first.")
+  } else {
+    var x = document.getElementById("faceList");
+    faceId = x.value.split(":")[0]
+    fetch("/api-sdk/delete_face?serial=" + esn + "&id=" + faceId)
+      .then (function(){alert("Success!"); refreshFaceList()})
+  }
 }
