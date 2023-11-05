@@ -3,6 +3,7 @@ package processreqs
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
@@ -93,6 +94,16 @@ func KGSim(esn string, textToSay string) error {
 					Text:           textToSay,
 					UseVectorVoice: true,
 					DurationScalar: 1.0,
+				},
+			)
+			time.Sleep(time.Millisecond * 100)
+			robot.Conn.PlayAnimation(
+				context.Background(),
+				&vectorpb.PlayAnimationRequest{
+					Animation: &vectorpb.Animation{
+						Name: "anim_knowledgegraph_success_01",
+					},
+					Loops: 1,
 				},
 			)
 			stop <- true
