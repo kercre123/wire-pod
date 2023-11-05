@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	lcztn "github.com/kercre123/chipper/pkg/wirepod/localization"
@@ -167,6 +168,29 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 		}
 		intentParams = map[string]string{intentParam: intentParamValue}
 	} else if strings.Contains(intent, "intent_names_username_extend") {
+		if vars.APIConfig.STT.Service == "vosk" && !vars.APIConfig.Knowledge.IntentGraph {
+			var guid string
+			var target string
+			matched := false
+			for _, bot := range vars.BotInfo.Robots {
+				if botSerial == bot.Esn {
+					guid = bot.GUID
+					target = bot.IPAddress + ":443"
+					matched = true
+					break
+				}
+			}
+			if matched {
+				vec, err := vector.New(vector.WithSerialNo(botSerial), vector.WithToken(guid), vector.WithTarget(target))
+				if err != nil {
+					logger.Println("error connecting to vector:", err)
+				} else {
+					sayText(vec, "You must add a face in the web interface. It cannot be done via voice by default.")
+				}
+			}
+			logger.Println("You must add a face via the web interface (Bot Settings -> Connect -> Faces).")
+			logger.LogUI("You must add a face via the web interface (Bot Settings -> Connect -> Faces).")
+		}
 		var username string
 		var nameSplitter string = ""
 		isParam = true

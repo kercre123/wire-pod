@@ -77,6 +77,17 @@ function renameFace() {
   }
 }
 
+function addFace() {
+  var name = document.getElementById("faceInput").value;
+  if (name == "") {
+    alert("You must enter a name.")
+    return
+  } else {
+    fetch("/api-sdk/add_face?serial=" + esn + "&name=" + name)
+      .then (function(){alert("Request successfully sent. Vector should now be finding a face to scan."); refreshFaceList()})
+  }
+}
+
 function deleteFace() {
   if (!areThereFaces) {
     window.alert("You must register a face first.")
