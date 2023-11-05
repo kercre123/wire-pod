@@ -2,6 +2,7 @@ package jdocsserver
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"strings"
 
@@ -22,8 +23,27 @@ type JdocServer struct {
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
 	logger.Println("Jdocs: Incoming WriteDoc request, Item to write: " + req.DocName + ", Robot ID: " + req.Thing)
-	latestVersion := vars.AddJdoc(req.Thing, req.DocName, *req.Doc)
+	var ajdoc vars.AJdoc
+	ajdoc.ClientMetadata = req.Doc.ClientMetadata
+	ajdoc.DocVersion = req.Doc.DocVersion
+	ajdoc.FmtVersion = req.Doc.FmtVersion
+	ajdoc.JsonDoc = req.Doc.JsonDoc
+	latestVersion := vars.AddJdoc(req.Thing, req.DocName, ajdoc)
 	vars.WriteJdocs()
+
+	esn := strings.Split(req.Thing, ":")[1]
+	p, _ := peer.FromContext(ctx)
+	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+
+	for ind, bot := range vars.BotInfo.Robots {
+		if bot.Esn == esn && bot.IPAddress != ipAddr {
+			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
+			vars.BotInfo.Robots[ind].IPAddress = ipAddr
+			writeBytes, _ := json.Marshal(vars.BotInfo)
+			os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
+		}
+	}
+
 	return &jdocspb.WriteDocResp{
 		Status:           jdocspb.WriteDocResp_ACCEPTED,
 		LatestDocVersion: latestVersion,
@@ -33,12 +53,23 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*jdocspb.ReadDocsResp, error) {
 	globalGUIDHash := `{"client_tokens":[{"hash":"J5TAnJTPRCioMExFo5KzH2fHOAXyM5fuO8YRbQSamIsNzymnJ8KDIerFxuJV4qBN","client_name":"","app_id":"","issued_at":"2022-11-26T18:23:08Z","is_primary":true}]}`
 	// global guid now only used in edge cases
+
 	logger.Println("Jdocs: Incoming ReadDocs request, Robot ID: " + req.Thing + ", Item(s) to return: ")
 	logger.Println(req.Items)
 	esn := strings.Split(req.Thing, ":")[1]
 	isAlreadyKnown := IsBotInInfo(esn)
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+
+	for ind, bot := range vars.BotInfo.Robots {
+		if bot.Esn == esn && bot.IPAddress != ipAddr {
+			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
+			vars.BotInfo.Robots[ind].IPAddress = ipAddr
+			writeBytes, _ := json.Marshal(vars.BotInfo)
+			os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
+		}
+	}
+
 	for _, pair := range tokenserver.SessionWriteStoreNames {
 		if ipAddr == strings.Split(pair[0], ":")[0] {
 			vars.DeleteData(req.Thing)
@@ -103,12 +134,17 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					}
 					// bot is not authenticated yet, do not write to botinfo json
 					tokenJdoc, _ := vars.GetJdoc(req.Thing, "vic.AppToken")
+					var truejdoc jdocspb.Jdoc
+					truejdoc.ClientMetadata = tokenJdoc.ClientMetadata
+					truejdoc.DocVersion = tokenJdoc.DocVersion
+					truejdoc.FmtVersion = tokenJdoc.FmtVersion
+					truejdoc.JsonDoc = tokenJdoc.JsonDoc
 					tokenserver.RemoveFromSecondStore(len(tokenserver.SecondaryTokenStore) - 1)
 					return &jdocspb.ReadDocsResp{
 						Items: []*jdocspb.ReadDocsResp_Item{
 							{
 								Status: jdocspb.ReadDocsResp_CHANGED,
-								Doc:    &tokenJdoc,
+								Doc:    &truejdoc,
 							},
 						},
 					}, nil
@@ -134,7 +170,12 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	for _, item := range req.Items {
 		gottenDoc, jdocExists := vars.GetJdoc(req.Thing, item.DocName)
 		if jdocExists {
-			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &gottenDoc})
+			var truejdoc jdocspb.Jdoc
+			truejdoc.DocVersion = gottenDoc.DocVersion
+			truejdoc.FmtVersion = gottenDoc.FmtVersion
+			truejdoc.ClientMetadata = gottenDoc.ClientMetadata
+			truejdoc.JsonDoc = gottenDoc.JsonDoc
+			returnItems = append(returnItems, &jdocspb.ReadDocsResp_Item{Status: jdocspb.ReadDocsResp_CHANGED, Doc: &truejdoc})
 		} else {
 			var noJdoc jdocspb.Jdoc
 			noJdoc.DocVersion = 0

@@ -18,7 +18,7 @@ import (
 
 var BotNum = 0
 
-var debugWriteFile bool = false
+var debugWriteFile bool = true
 var debugFile *os.File
 
 type SpeechRequest struct {
@@ -26,6 +26,8 @@ type SpeechRequest struct {
 	Session        string
 	FirstReq       []byte
 	Stream         interface{}
+	IsKG           bool
+	IsIG           bool
 	MicData        []byte
 	DecodedMicData []byte
 	PrevLen        int
@@ -105,7 +107,7 @@ func BytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) []
 // Uses VAD to detect when the user stops speaking
 func (req *SpeechRequest) DetectEndOfSpeech() bool {
 	// changes InactiveFrames and ActiveFrames in req
-	inactiveNumMax := 20
+	inactiveNumMax := 23
 	vad := req.VADInst
 	vad.SetMode(3)
 	for _, chunk := range SplitVAD(req.LastAudioChunk) {
@@ -121,7 +123,7 @@ func (req *SpeechRequest) DetectEndOfSpeech() bool {
 		} else {
 			req.InactiveFrames = req.InactiveFrames + 1
 		}
-		if req.InactiveFrames >= inactiveNumMax && req.ActiveFrames > 20 {
+		if req.InactiveFrames >= inactiveNumMax && req.ActiveFrames > 18 {
 			logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ") End of speech detected.")
 			return true
 		}
@@ -151,12 +153,14 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 		request.MicData = append(request.MicData, req1.FirstReq.InputAudio...)
 	} else if str, ok := req.(*vtt.KnowledgeGraphRequest); ok {
 		var req1 *vtt.KnowledgeGraphRequest = str
+		request.IsKG = true
 		request.Device = req1.Device
 		request.Session = req1.Session
 		request.Stream = req1.Stream
 		request.FirstReq = req1.FirstReq.InputAudio
 		request.MicData = append(request.MicData, req1.FirstReq.InputAudio...)
 	} else if str, ok := req.(*vtt.IntentGraphRequest); ok {
+		request.IsIG = true
 		var req1 *vtt.IntentGraphRequest = str
 		request.Device = req1.Device
 		request.Session = req1.Session
@@ -174,6 +178,9 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 		request.OpusStream = &opus.OggStream{}
 		decodedFirstReq, _ := request.OpusStream.Decode(request.FirstReq)
 		request.FirstReq = decodedFirstReq
+		request.DecodedMicData = append(request.DecodedMicData, decodedFirstReq...)
+		request.LastAudioChunk = request.DecodedMicData[request.PrevLen:]
+		request.PrevLen = len(request.DecodedMicData)
 		request.IsOpus = true
 	}
 	return request
