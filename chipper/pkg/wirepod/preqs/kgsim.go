@@ -87,7 +87,38 @@ func KGSim(esn string, textToSay string) error {
 			}
 			// * end - modified from official vector-go-sdk
 		}()
+		var stopTTSLoop bool
+		var TTSLoopStopped bool
 		for range start {
+			time.Sleep(time.Millisecond * 200)
+			robot.Conn.PlayAnimation(
+				context.Background(),
+				&vectorpb.PlayAnimationRequest{
+					Animation: &vectorpb.Animation{
+						Name: "anim_getin_tts_01",
+					},
+					Loops: 1,
+				},
+			)
+			//time.Sleep(time.Millisecond * 990)
+			go func() {
+				for {
+					if stopTTSLoop {
+						TTSLoopStopped = true
+						break
+					}
+					robot.Conn.PlayAnimation(
+						context.Background(),
+						&vectorpb.PlayAnimationRequest{
+							Animation: &vectorpb.Animation{
+								Name: "anim_tts_loop_02",
+							},
+							Loops: 1,
+						},
+					)
+					//time.Sleep(time.Millisecond * 100)
+				}
+			}()
 			robot.Conn.SayText(
 				context.Background(),
 				&vectorpb.SayTextRequest{
@@ -96,6 +127,14 @@ func KGSim(esn string, textToSay string) error {
 					DurationScalar: 1.0,
 				},
 			)
+			stopTTSLoop = true
+			for {
+				if TTSLoopStopped {
+					break
+				} else {
+					time.Sleep(time.Millisecond * 10)
+				}
+			}
 			time.Sleep(time.Millisecond * 100)
 			robot.Conn.PlayAnimation(
 				context.Background(),
@@ -106,6 +145,7 @@ func KGSim(esn string, textToSay string) error {
 					Loops: 1,
 				},
 			)
+			//time.Sleep(time.Millisecond * 3300)
 			stop <- true
 		}
 	}()
