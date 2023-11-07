@@ -18,7 +18,7 @@ import (
 
 var BotNum = 0
 
-var debugWriteFile bool = true
+var debugWriteFile bool = false
 var debugFile *os.File
 
 type SpeechRequest struct {
