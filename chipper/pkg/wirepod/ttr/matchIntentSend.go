@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
@@ -19,7 +18,7 @@ type systemIntentResponseStruct struct {
 	ReturnIntent string `json:"returnIntent"`
 }
 
-func IntentPass(req interface{}, intentThing string, speechText string, intentParams map[string]string, isParam bool, justThisBotNum int) (interface{}, error) {
+func IntentPass(req interface{}, intentThing string, speechText string, intentParams map[string]string, isParam bool) (interface{}, error) {
 	var esn string
 	var req1 *vtt.IntentRequest
 	var req2 *vtt.IntentGraphRequest
@@ -73,9 +72,9 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 		r := &vtt.IntentResponse{
 			Intent: &intent,
 		}
-		logger.Println("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
+		logger.Println("Bot " + esn + " Intent Sent: " + intentThing)
 		if isParam {
-			logger.Println("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
+			logger.Println("Bot "+esn+" Parameters Sent:", intentParams)
 		} else {
 			logger.Println("No Parameters Sent")
 		}
@@ -87,9 +86,9 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 		r := &vtt.IntentGraphResponse{
 			Intent: &intentGraphSend,
 		}
-		logger.Println("Bot " + strconv.Itoa(justThisBotNum) + " Intent Sent: " + intentThing)
+		logger.Println("Bot " + esn + " Intent Sent: " + intentThing)
 		if isParam {
-			logger.Println("Bot "+strconv.Itoa(justThisBotNum)+" Parameters Sent:", intentParams)
+			logger.Println("Bot "+esn+" Parameters Sent:", intentParams)
 		} else {
 			logger.Println("No Parameters Sent")
 		}
@@ -97,7 +96,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 }
 
-func customIntentHandler(req interface{}, voiceText string, intentList []string, isOpus bool, justThisBotNum int, botSerial string) bool {
+func customIntentHandler(req interface{}, voiceText string, intentList []string, isOpus bool, botSerial string) bool {
 	var successMatched bool = false
 	if vars.CustomIntentsExist {
 		for _, c := range vars.CustomIntents {
@@ -153,11 +152,11 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 						err := json.Unmarshal(out.Bytes(), &resp)
 						if err == nil && resp.Status == "ok" {
 							logger.Println("System intent parsed and executed successfully")
-							IntentPass(req, resp.ReturnIntent, voiceText, intentParams, isParam, justThisBotNum)
+							IntentPass(req, resp.ReturnIntent, voiceText, intentParams, isParam)
 							successMatched = true
 						}
 					} else {
-						IntentPass(req, c.Intent, voiceText, intentParams, isParam, justThisBotNum)
+						IntentPass(req, c.Intent, voiceText, intentParams, isParam)
 						successMatched = true
 					}
 					break
@@ -174,7 +173,7 @@ func customIntentHandler(req interface{}, voiceText string, intentList []string,
 	return successMatched
 }
 
-func pluginFunctionHandler(req interface{}, voiceText string, justThisBotNum int, botSerial string) bool {
+func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) bool {
 	matched := false
 	var intent string
 	for num, array := range PluginUtterances {
@@ -186,7 +185,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, justThisBotNum int
 				if intent == "" {
 					intent = "intent_imperative_praise"
 				}
-				IntentPass(req, intent, voiceText, make(map[string]string), false, justThisBotNum)
+				IntentPass(req, intent, voiceText, make(map[string]string), false)
 				matched = true
 				break
 			}
@@ -198,7 +197,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, justThisBotNum int
 	return matched
 }
 
-func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, intentList []string, isOpus bool, justThisBotNum int) bool {
+func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, intentList []string, isOpus bool) bool {
 	var botSerial string
 	var req2 *vtt.IntentRequest
 	var req1 *vtt.KnowledgeGraphRequest
@@ -217,8 +216,8 @@ func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 	var intentNum int = 0
 	var successMatched bool = false
 	voiceText = strings.ToLower(voiceText)
-	pluginMatched := pluginFunctionHandler(req, voiceText, justThisBotNum, botSerial)
-	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, justThisBotNum, botSerial)
+	pluginMatched := pluginFunctionHandler(req, voiceText, botSerial)
+	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, botSerial)
 	if !customIntentMatched && !pluginMatched {
 		logger.Println("Not a custom intent")
 		// Look for a perfect match first
@@ -227,9 +226,9 @@ func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 				if voiceText == strings.ToLower(c) {
 					logger.Println("Perfect match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
 					if isOpus {
-						ParamChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
+						ParamChecker(req, intentList[intentNum], voiceText, botSerial)
 					} else {
-						prehistoricParamChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
+						prehistoricParamChecker(req, intentList[intentNum], voiceText, botSerial)
 					}
 					successMatched = true
 					matched = 1
@@ -251,9 +250,9 @@ func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 					if strings.Contains(voiceText, strings.ToLower(c)) {
 						logger.Println("Partial match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
 						if isOpus {
-							ParamChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
+							ParamChecker(req, intentList[intentNum], voiceText, botSerial)
 						} else {
-							prehistoricParamChecker(req, intentList[intentNum], voiceText, justThisBotNum, botSerial)
+							prehistoricParamChecker(req, intentList[intentNum], voiceText, botSerial)
 						}
 						successMatched = true
 						matched = 1

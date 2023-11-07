@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
@@ -193,7 +192,6 @@ func KgRequest(speechReq sr.SpeechRequest) string {
 }
 
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
-	sr.BotNum = sr.BotNum + 1
 	InitKnowledge()
 	speechReq := sr.ReqToSpeechRequest(req)
 	apiResponse := KgRequest(speechReq)
@@ -203,8 +201,7 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 		CommandType: NoResult,
 		SpokenText:  apiResponse,
 	}
-	sr.BotNum = sr.BotNum - 1
-	logger.Println("(KG) Bot " + strconv.Itoa(speechReq.BotNum) + " request served.")
+	logger.Println("(KG) Bot " + speechReq.Device + " request served.")
 	if err := req.Stream.Send(&kg); err != nil {
 		return nil, err
 	}
