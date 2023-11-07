@@ -1,8 +1,6 @@
 package processreqs
 
 import (
-	"strconv"
-
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/vtt"
@@ -12,7 +10,6 @@ import (
 
 // This is here for compatibility with 1.6 and older software
 func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
-	sr.BotNum = sr.BotNum + 1
 	var successMatched bool
 	speechReq := sr.ReqToSpeechRequest(req)
 	var transcribedText string
@@ -20,27 +17,23 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		var err error
 		transcribedText, err = sttHandler(speechReq)
 		if err != nil {
-			sr.BotNum = sr.BotNum - 1
-			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, speechReq.BotNum)
+			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
 			return nil, nil
 		}
-		successMatched = ttr.ProcessTextAll(req, transcribedText, vars.MatchListList, vars.IntentsList, speechReq.IsOpus, speechReq.BotNum)
+		successMatched = ttr.ProcessTextAll(req, transcribedText, vars.MatchListList, vars.IntentsList, speechReq.IsOpus)
 	} else {
 		intent, slots, err := stiHandler(speechReq)
 		if err != nil {
 			if err.Error() == "inference not understood" {
 				logger.Println("No intent was matched")
-				sr.BotNum = sr.BotNum - 1
-				ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, speechReq.BotNum)
+				ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
 				return nil, nil
 			}
 			logger.Println(err)
-			sr.BotNum = sr.BotNum - 1
-			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true, speechReq.BotNum)
+			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
 			return nil, nil
 		}
-		ttr.ParamCheckerSlotsEnUS(req, intent, slots, speechReq.IsOpus, speechReq.BotNum, speechReq.Device)
-		sr.BotNum = sr.BotNum - 1
+		ttr.ParamCheckerSlotsEnUS(req, intent, slots, speechReq.IsOpus, speechReq.Device)
 		return nil, nil
 	}
 	if !successMatched {
@@ -49,11 +42,9 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 			KGSim(req.Device, resp)
 		}
 		logger.Println("No intent was matched.")
-		sr.BotNum = sr.BotNum - 1
-		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false, speechReq.BotNum)
+		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false)
 		return nil, nil
 	}
-	sr.BotNum = sr.BotNum - 1
-	logger.Println("Bot " + strconv.Itoa(speechReq.BotNum) + " request served.")
+	logger.Println("Bot " + speechReq.Device + " request served.")
 	return nil, nil
 }

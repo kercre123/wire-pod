@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"os"
-	"strconv"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/opus-go/opus"
@@ -15,8 +14,6 @@ import (
 
 // one type and many functions for dealing with intent, intent-graph, and knowledge-graph requests
 // also some functions to help decode the stream bytes into ones friendly for stt engines
-
-var BotNum = 0
 
 var debugWriteFile bool = false
 var debugFile *os.File
@@ -38,7 +35,6 @@ type SpeechRequest struct {
 	LastAudioChunk []byte
 	IsOpus         bool
 	OpusStream     *opus.OggStream
-	BotNum         int
 }
 
 func BytesToSamples(buf []byte) []int16 {
@@ -53,11 +49,11 @@ func (req *SpeechRequest) OpusDetect() bool {
 	var isOpus bool
 	if len(req.FirstReq) > 0 {
 		if req.FirstReq[0] == 0x4f {
-			logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Stream type: OPUS")
+			logger.Println("Bot " + req.Device + " Stream type: OPUS")
 			isOpus = true
 		} else {
 			isOpus = false
-			logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Stream type: PCM")
+			logger.Println("Bot " + req.Device + " Stream type: PCM")
 		}
 	}
 	return isOpus
@@ -124,7 +120,7 @@ func (req *SpeechRequest) DetectEndOfSpeech() bool {
 			req.InactiveFrames = req.InactiveFrames + 1
 		}
 		if req.InactiveFrames >= inactiveNumMax && req.ActiveFrames > 18 {
-			logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ") End of speech detected.")
+			logger.Println("(Bot " + req.Device + ") End of speech detected.")
 			return true
 		}
 	}
@@ -143,7 +139,6 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 	if err != nil {
 		logger.Println(err)
 	}
-	request.BotNum = BotNum
 	if str, ok := req.(*vtt.IntentRequest); ok {
 		var req1 *vtt.IntentRequest = str
 		request.Device = req1.Device

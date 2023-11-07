@@ -12,7 +12,7 @@ import (
 )
 
 // stt
-func ParamChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
+func ParamChecker(req interface{}, intent string, speechText string, botSerial string) {
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
@@ -306,11 +306,11 @@ func ParamChecker(req interface{}, intent string, speechText string, justThisBot
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
+	IntentPass(req, newIntent, speechText, intentParams, isParam)
 }
 
 // stintent
-func ParamCheckerSlotsEnUS(req interface{}, intent string, slots map[string]string, isOpus bool, justThisBotNum int, botSerial string) {
+func ParamCheckerSlotsEnUS(req interface{}, intent string, slots map[string]string, isOpus bool, botSerial string) {
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
@@ -496,10 +496,10 @@ func ParamCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 			intentParams = map[string]string{intentParam: intentParamValue}
 		}
 	}
-	IntentPass(req, newIntent, intent, intentParams, isParam, justThisBotNum)
+	IntentPass(req, newIntent, intent, intentParams, isParam)
 }
 
-func prehistoricParamChecker(req interface{}, intent string, speechText string, justThisBotNum int, botSerial string) {
+func prehistoricParamChecker(req interface{}, intent string, speechText string, botSerial string) {
 	// intent.go detects if the stream uses opus or PCM.
 	// If the stream is PCM, it is likely a bot with 0.10.
 	// This accounts for the newer 0.10.1### builds.
@@ -699,5 +699,5 @@ func prehistoricParamChecker(req interface{}, intent string, speechText string, 
 		isParam = false
 		intentParams = map[string]string{intentParam: intentParamValue}
 	}
-	IntentPass(req, newIntent, speechText, intentParams, isParam, justThisBotNum)
+	IntentPass(req, newIntent, speechText, intentParams, isParam)
 }
