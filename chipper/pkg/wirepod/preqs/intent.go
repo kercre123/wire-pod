@@ -10,6 +10,7 @@ import (
 
 // This is here for compatibility with 1.6 and older software
 func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
+	Interrupt(req.Device)
 	var successMatched bool
 	speechReq := sr.ReqToSpeechRequest(req)
 	var transcribedText string
@@ -38,7 +39,9 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	}
 	if !successMatched {
 		if vars.APIConfig.Knowledge.IntentGraph {
+			RemoveFromInterrupt(req.Device)
 			resp := openaiRequest(transcribedText)
+			logger.LogUI("OpenAI response for device " + req.Device + ": " + resp)
 			KGSim(req.Device, resp)
 		}
 		logger.Println("No intent was matched.")
