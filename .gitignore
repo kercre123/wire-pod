@@ -23,3 +23,4 @@
 /chipper/nvm
 /chipper/apiConfig.json
 /chipper/session-certs/00*
+/chipper/vbuild/vic-toolchain
