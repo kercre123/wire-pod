@@ -24,3 +24,5 @@
 /chipper/apiConfig.json
 /chipper/session-certs/00*
 /chipper/vbuild/vic-toolchain
+/chipper/vbuild/chipper
+/chipper/vbuild/botpack.tar.gz
