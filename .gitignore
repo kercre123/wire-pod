@@ -26,3 +26,7 @@
 /chipper/vbuild/vic-toolchain
 /chipper/vbuild/chipper
 /chipper/vbuild/botpack.tar.gz
+/chipper/windows/tmp
+/chipper/windows/chipper.exe
+/chipper/windows/wire-pod-win.zip
+/chipper/vbuild/built-libs
