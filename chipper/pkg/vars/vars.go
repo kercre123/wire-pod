@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -89,19 +90,24 @@ func Init() {
 	// Split puts an extra / in the beginning of the array
 	podPath, _ := os.Getwd()
 	podPathSplit := strings.Split(strings.TrimSpace(podPath), "/")
-	if podPathSplit[len(podPathSplit)-1] != "chipper" || podPathSplit[len(podPathSplit)-2] != PodName {
-		logger.Println("It looks like you may have changed path names of the directories wire-pod is running in. This is not recommended because the SDK implementation depends on relativity in a few spots.")
-	}
-	if len(podPathSplit) >= 5 {
-		SDKIniPath = "/" + podPathSplit[1] + "/" + podPathSplit[2] + "/.anki_vector/"
-	} else if strings.EqualFold(podPathSplit[0], "root") {
-		SDKIniPath = "/root/.anki_vector/"
-	} else if len(podPathSplit) == 4 {
-		SDKIniPath = "/" + podPathSplit[1] + "/.anki_vector/"
+	if runtime.GOOS == "windows" {
+		dir, _ := os.UserHomeDir()
+		SDKIniPath = dir + "/.anki_vector/"
 	} else {
-		logger.Println("Unsupported path scenario, printing podPathSplit: ")
-		logger.Println(podPathSplit)
-		SDKIniPath = "/tmp/.anki_vector/"
+		if podPathSplit[len(podPathSplit)-1] != "chipper" || podPathSplit[len(podPathSplit)-2] != PodName {
+			logger.Println("It looks like you may have changed path names of the directories wire-pod is running in. This is not recommended because the SDK implementation depends on relativity in a few spots.")
+		}
+		if len(podPathSplit) >= 5 {
+			SDKIniPath = "/" + podPathSplit[1] + "/" + podPathSplit[2] + "/.anki_vector/"
+		} else if strings.EqualFold(podPathSplit[0], "root") {
+			SDKIniPath = "/root/.anki_vector/"
+		} else if len(podPathSplit) == 4 {
+			SDKIniPath = "/" + podPathSplit[1] + "/.anki_vector/"
+		} else {
+			logger.Println("Unsupported path scenario, printing podPathSplit: ")
+			logger.Println(podPathSplit)
+			SDKIniPath = "/tmp/.anki_vector/"
+		}
 	}
 	logger.Println("SDK info path: " + SDKIniPath)
 

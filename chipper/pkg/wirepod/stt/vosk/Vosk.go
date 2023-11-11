@@ -57,6 +57,9 @@ func Init() error {
 			sttLanguage = "en-US"
 		}
 		modelPath := "../vosk/models/" + sttLanguage + "/model"
+		if _, err := os.Stat(modelPath); err != nil {
+			return err
+		}
 		logger.Println("Opening VOSK model (" + modelPath + ")")
 		aModel, err := vosk.NewModel(modelPath)
 		if err != nil {
