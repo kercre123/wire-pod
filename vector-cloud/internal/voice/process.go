@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/clad/cloud"
+	"github.com/digital-dream-labs/vector-cloud/internal/robot"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/config"
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
@@ -217,11 +218,19 @@ procloop:
 					})
 				} else {
 					// Replaces Intent with hybrid that can respond to KG directly if necessary
-					option = stream.WithIntentGraphOptions(chipper.IntentGraphOpts{
-						StreamOpts: chipperOpts,
-						Handler:    p.opts.handler,
-						Mode:       serverMode,
-					}, mode)
+					if strings.Contains(robot.AnkiVersion(), "1.8.") || strings.Contains(robot.AnkiVersion(), "2.0.") {
+						option = stream.WithIntentGraphOptions(chipper.IntentGraphOpts{
+							StreamOpts: chipperOpts,
+							Handler:    p.opts.handler,
+							Mode:       serverMode,
+						}, mode)
+					} else {
+						option = stream.WithIntentOptions(chipper.IntentOpts{
+							StreamOpts: chipperOpts,
+							Handler:    p.opts.handler,
+							Mode:       serverMode,
+						}, mode)
+					}
 				}
 				logVerbose("Got hotword event", serverMode)
 				newReceiver := *cloudChans
