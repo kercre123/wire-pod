@@ -8,7 +8,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/go-audio/audio"
@@ -109,7 +108,7 @@ func makeOpenAIReq(in []byte) string {
 }
 
 func STT(req sr.SpeechRequest) (string, error) {
-	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Whisper) Processing...")
+	logger.Println("(Bot " + req.Device + ", Whisper) Processing...")
 	speechIsDone := false
 	var err error
 	for {
@@ -132,6 +131,6 @@ func STT(req sr.SpeechRequest) (string, error) {
 	pcmBuf := pcm2wav(pcmBufTo.BytesReader())
 
 	transcribedText := strings.ToLower(makeOpenAIReq(pcmBuf))
-	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
+	logger.Println("Bot " + req.Device + " Transcribed text: " + transcribedText)
 	return transcribedText, nil
 }

@@ -15,33 +15,24 @@ require (
 
 require (
 	github.com/Picovoice/leopard/binding/go v1.2.0
-	github.com/Picovoice/rhino/binding/go/v2 v2.2.1
 	github.com/alphacep/vosk-api/go v0.3.45
 	github.com/fforchino/vector-go-sdk v0.0.0-20230501190038-5c1be0b59b5a
 	github.com/go-audio/audio v1.0.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.1
-	github.com/grandcat/zeroconf v1.0.0
-	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
 	github.com/soheilhy/cmux v0.1.5
 	gopkg.in/ini.v1 v1.67.0
 )
 
 require (
-	github.com/alphacep/vosk-api v0.3.45 // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/cryptix/wav v0.0.0-20180415113528-8bdace674401 // indirect
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/ebitengine/purego v0.5.0 // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
-	github.com/miekg/dns v1.1.56 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
-	golang.org/x/mod v0.13.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231012185656-8102cb6e9bc5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231012185656-8102cb6e9bc5 // indirect
 )
@@ -74,13 +65,11 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/orcaman/writerseeker v0.0.0-20200621085525-1d3f536ff85e
-	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/robertkrimen/otto v0.2.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.17.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
@@ -95,7 +84,6 @@ require (
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apimachinery v0.28.2 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
