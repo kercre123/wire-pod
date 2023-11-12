@@ -33,9 +33,12 @@ var mBoxError = `There was an error starting wire-pod: `
 var mBoxAlreadyRunning = "Wire-pod is already running. You must quit that instance before starting another one. Exiting."
 var mBoxExit = `Wire-pod is exiting.`
 var mBoxSuccess = `Wire-pod has started successfully! It is now running in the background. It can be stopped in the system tray.`
+var mBoxIcon = "./icons/start-up-full.png"
 
 func main() {
-	resp, err := http.Get("http://localhost:8080/api/is_running")
+	hcl := http.Client{}
+	hcl.Timeout = 2
+	resp, err := hcl.Get("http://localhost:8080/api/is_running")
 	if err == nil {
 		body, _ := io.ReadAll(resp.Body)
 		if strings.TrimSpace(string(body)) == "true" {
@@ -55,7 +58,7 @@ func main() {
 func onExit() {
 	zenity.Info(
 		mBoxExit,
-		zenity.NoIcon,
+		zenity.Icon(mBoxIcon),
 		zenity.Title(mBoxTitle),
 	)
 	os.Exit(0)
@@ -67,6 +70,16 @@ func onReady() {
 	os.Setenv("STT_SERVICE", "vosk")
 	os.Setenv("DEBUG_LOGGING", "true")
 
+	systrayIcon, err := os.ReadFile("./icons/start-up-24x24.ico")
+	if err != nil {
+		zenity.Error(
+			"Error, could not load systray icon. Exiting.",
+			zenity.Title(mBoxTitle),
+		)
+		os.Exit(1)
+	}
+
+	systray.SetIcon(systrayIcon)
 	systray.SetTitle("wire-pod")
 	systray.SetTooltip("wire-pod is starting...")
 	mQuit := systray.AddMenuItem("Quit", "Quit the whole app")
@@ -78,7 +91,7 @@ func onReady() {
 			case <-mQuit.ClickedCh:
 				zenity.Info(
 					mBoxExit,
-					zenity.NoIcon,
+					zenity.Icon(mBoxIcon),
 					zenity.Title(mBoxTitle),
 				)
 				os.Exit(0)

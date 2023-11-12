@@ -14,7 +14,6 @@ import (
 	"github.com/digital-dream-labs/hugh/log"
 	"github.com/getlantern/systray"
 	"github.com/grandcat/zeroconf"
-	"github.com/kercre123/chipper/pkg/initwirepod"
 	"github.com/kercre123/chipper/pkg/logger"
 	chipperserver "github.com/kercre123/chipper/pkg/servers/chipper"
 	jdocsserver "github.com/kercre123/chipper/pkg/servers/jdocs"
@@ -93,7 +92,7 @@ func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	voiceProcessor, err = wp.New(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	wpweb.SttInitFunc = sttInitFunc
 	go sdkWeb.BeginServer()
-	http.HandleFunc("/api-chipper/", initwirepod.ChipperHTTPApi)
+	http.HandleFunc("/api-chipper/", ChipperHTTPApi)
 	if err != nil {
 		return err
 	}
@@ -104,9 +103,11 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	err := BeginWirepodSpecific(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	if err != nil {
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
+		vars.APIConfig.PastInitialSetup = false
+		vars.WriteConfigToDisk()
 		go zenity.Info(
 			mBoxNeedsSetupMsg,
-			zenity.NoIcon,
+			zenity.Icon(mBoxIcon),
 			zenity.Title(mBoxTitle),
 		)
 		systray.SetTooltip("wire-pod must be set up at http://localhost:8080.")
@@ -114,7 +115,7 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
 		go zenity.Info(
 			mBoxNeedsSetupMsg,
-			zenity.NoIcon,
+			zenity.Icon(mBoxIcon),
 			zenity.Title(mBoxTitle),
 		)
 		systray.SetTooltip("wire-pod must be set up at http://localhost:8080.")
@@ -123,7 +124,7 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
 		go zenity.Info(
 			mBoxNeedsSetupMsg,
-			zenity.NoIcon,
+			zenity.Icon(mBoxIcon),
 			zenity.Title(mBoxTitle),
 		)
 		systray.SetTooltip("wire-pod must be set up at http://localhost:8080.")
@@ -131,7 +132,7 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	} else {
 		go zenity.Info(
 			mBoxSuccess,
-			zenity.NoIcon,
+			zenity.Icon(mBoxIcon),
 			zenity.Title(mBoxTitle),
 		)
 		systray.SetTitle("wire-pod is running.")
@@ -182,17 +183,26 @@ func StartChipper() {
 		certPub, _ = os.ReadFile("./epod/ep.crt")
 		certPriv, _ = os.ReadFile("./epod/ep.key")
 	} else {
-		var err error
-		certPub, _ = os.ReadFile("../certs/cert.crt")
-		certPriv, err = os.ReadFile("../certs/cert.key")
-		if err != nil {
-			logger.Println("wire-pod is not setup.")
-			return
+		if !vars.ChipperKeysLoaded {
+			var err error
+			certPub, _ = os.ReadFile(vars.CertPath)
+			certPriv, err = os.ReadFile(vars.KeyPath)
+			if err != nil {
+				logger.Println("Unable to read certificates. wire-pod is not setup.")
+				logger.Println(err)
+				zenity.Error("wire-pod has run into an issue. The program will now exist. Error details: "+err.Error(),
+					zenity.NoIcon,
+					zenity.Title(mBoxTitle))
+				os.Exit(1)
+				return
+			}
+			vars.ChipperKey = certPriv
+			vars.ChipperCert = certPub
 		}
 	}
 
 	logger.Println("Initiating TLS listener, cmux, gRPC handler, and REST handler")
-	cert, err := tls.X509KeyPair(certPub, certPriv)
+	cert, err := tls.X509KeyPair(vars.ChipperCert, vars.ChipperKey)
 	if err != nil {
 		zenity.Error("wire-pod has run into an issue. The program will now exist. Error details: "+err.Error(),
 			zenity.Title(mBoxTitle))
@@ -206,6 +216,7 @@ func StartChipper() {
 	})
 	if err != nil {
 		zenity.Error("wire-pod has run into an issue. The program will now exist. Error details: "+err.Error(),
+			zenity.NoIcon,
 			zenity.Title(mBoxTitle))
 		fmt.Println(err)
 		os.Exit(1)
@@ -224,6 +235,7 @@ func StartChipper() {
 		})
 		if err != nil {
 			zenity.Error("wire-pod has run into an issue. The program will now exist. Error details: "+err.Error(),
+				zenity.NoIcon,
 				zenity.Title(mBoxTitle))
 			fmt.Println(err)
 			os.Exit(1)
