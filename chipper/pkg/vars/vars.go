@@ -23,6 +23,16 @@ var (
 	VoskModelPath     string = "../vosk/models/"
 )
 
+var (
+	OutboundIPTester = "8.8.8.8:80"
+	CertPath         = "../certs/cert.crt"
+	KeyPath          = "../certs/cert.key"
+	ServerConfigPath = "../certs/server_config.json"
+	Certs            = "../certs"
+)
+
+var SessionCertPath = "./session-certs/"
+
 // /home/name/.anki_vector/
 var SDKIniPath string
 var BotJdocs []botjdoc
@@ -36,6 +46,10 @@ var VoskGrammerEnable bool = false
 var SttInitFunc func() error
 var MatchListList [][]string
 var IntentsList = []string{}
+
+var ChipperCert []byte
+var ChipperKey []byte
+var ChipperKeysLoaded bool
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
@@ -95,12 +109,20 @@ func Init() {
 		confDir, _ := os.UserConfigDir()
 		podDir := join(confDir, PodName)
 		os.Mkdir(podDir, 0777)
-		JdocsPath = join(confDir, JdocsPath)
-		CustomIntentsPath = join(confDir, CustomIntentsPath)
-		BotConfigsPath = join(confDir, BotConfigsPath)
-		BotInfoPath = join(confDir, BotInfoPath)
-		VoskModelPath = join(confDir, VoskModelPath)
-		ApiConfigPath = join(confDir, ApiConfigPath)
+		JdocsPath = join(podDir, JdocsPath)
+		CustomIntentsPath = join(podDir, CustomIntentsPath)
+		BotConfigsPath = join(podDir, BotConfigsPath)
+		BotInfoPath = join(podDir, BotInfoPath)
+		VoskModelPath = join(podDir, "./vosk/models/")
+		ApiConfigPath = join(podDir, ApiConfigPath)
+		CertPath = join(podDir, "./certs/cert.crt")
+		KeyPath = join(podDir, "./certs/cert.key")
+		ServerConfigPath = join(podDir, "./certs/server_config.json")
+		Certs = join(podDir, "./certs")
+		SessionCertPath = join(podDir, SessionCertPath)
+		os.Mkdir(strings.TrimSuffix(JdocsPath, "/jdocs.json"), 0777)
+		os.Mkdir(SessionCertPath, 0777)
+		os.Mkdir(Certs, 0777)
 	}
 
 	// figure out user SDK path, containing sdk_config.ini

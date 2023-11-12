@@ -93,7 +93,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(err, "copying pod-bot-install")
 		}
 		scpClient.Session.Close()
-		serverConfig, err := os.Open("../certs/server_config.json")
+		serverConfig, err := os.Open(vars.ServerConfigPath)
 		if err != nil {
 			return doErr(err, "opening server config on disk")
 		}
@@ -120,7 +120,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(err, "copying vic-cloud")
 		}
 		scpClient.Session.Close()
-		certPath := "../certs/cert.crt"
+		certPath := vars.CertPath
 		if vars.APIConfig.Server.EPConfig {
 			certPath = "./epod/ep.crt"
 		}

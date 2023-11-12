@@ -110,7 +110,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					// export to ~/.anki_vector
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
 					// export to ./session-certs
-					os.WriteFile("./session-certs/"+esn, tokenserver.SessionWriteStoreCerts[num], 0755)
+					os.WriteFile(vars.SessionCertPath+"/"+esn, tokenserver.SessionWriteStoreCerts[num], 0755)
 					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
 					tokenserver.RemoveFromSessionStore(num)
 					logger.Println("Session certificate successfully output")

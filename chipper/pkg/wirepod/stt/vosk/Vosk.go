@@ -59,6 +59,7 @@ func Init() error {
 		}
 		modelPath := filepath.Join(vars.VoskModelPath, sttLanguage, "model")
 		if _, err := os.Stat(modelPath); err != nil {
+			fmt.Println("Path does not exist: " + modelPath)
 			return err
 		}
 		logger.Println("Opening VOSK model (" + modelPath + ")")

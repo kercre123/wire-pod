@@ -18,13 +18,6 @@ import (
 	"github.com/kercre123/chipper/pkg/vars"
 )
 
-const (
-	OutboundIPTester = "8.8.8.8:80"
-	CertPath         = "../certs/cert.crt"
-	KeyPath          = "../certs/cert.key"
-	ServerConfigPath = "../certs/server_config.json"
-)
-
 type ClientServerConfig struct {
 	Jdocs    string `json:"jdocs"`
 	Token    string `json:"tms"`
@@ -35,7 +28,7 @@ type ClientServerConfig struct {
 }
 
 func GetOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
+	conn, err := net.Dial("udp", vars.OutboundIPTester)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,24 +89,27 @@ func CreateCertCombo() error {
 	})
 
 	// export certificates
-	os.MkdirAll("../certs", 0644)
-	logger.Println("Outputting certificate to " + CertPath)
-	err = os.WriteFile(CertPath, certPEM.Bytes(), 0644)
+	os.MkdirAll(vars.Certs, 0777)
+	logger.Println("Outputting certificate to " + vars.CertPath)
+	err = os.WriteFile(vars.CertPath, certPEM.Bytes(), 0777)
 	if err != nil {
 		return err
 	}
-	logger.Println("Outputting private key to " + KeyPath)
-	err = os.WriteFile(KeyPath, certPrivKeyPEM.Bytes(), 0644)
+	logger.Println("Outputting private key to " + vars.KeyPath)
+	err = os.WriteFile(vars.KeyPath, certPrivKeyPEM.Bytes(), 0777)
 	if err != nil {
 		return err
 	}
+	vars.ChipperCert = certPEM.Bytes()
+	vars.ChipperKey = certPrivKeyPEM.Bytes()
+	vars.ChipperKeysLoaded = true
 
 	return nil
 }
 
 // outputs a server config to ../certs/server_config.json
 func CreateServerConfig() {
-	os.MkdirAll("../certs", 0644)
+	os.MkdirAll(vars.Certs, 0777)
 	var config ClientServerConfig
 	//{"jdocs": "escapepod.local:443", "tms": "escapepod.local:443", "chipper": "escapepod.local:443", "check": "escapepod.local/ok:80", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}
 	if vars.APIConfig.Server.EPConfig {
@@ -135,5 +131,5 @@ func CreateServerConfig() {
 		config.Appkey = "oDoa0quieSeir6goowai7f"
 	}
 	writeBytes, _ := json.Marshal(config)
-	os.WriteFile(ServerConfigPath, writeBytes, 0644)
+	os.WriteFile(vars.ServerConfigPath, writeBytes, 0777)
 }

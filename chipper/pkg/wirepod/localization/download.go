@@ -23,6 +23,10 @@ import (
 	"github.com/kercre123/chipper/pkg/vars"
 )
 
+var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
+
+//var URLPrefix string = "https://alphacephei.com/vosk/models/"
+
 var DownloadStatus string = "not downloading"
 
 func DownloadVoskModel(language string) {
@@ -48,12 +52,13 @@ func DownloadVoskModel(language string) {
 		return
 	}
 	os.MkdirAll(vars.VoskModelPath, 0755)
-	url := "https://alphacephei.com/vosk/models/" + filename
+	url := URLPrefix + filename
 	filep := os.TempDir() + "/" + filename
 	destpath := filepath.Join(vars.VoskModelPath, language) + "/"
 	DownloadFile(url, filep)
 	UnzipFile(filep, destpath)
 	os.Rename(destpath+strings.TrimSuffix(filename, ".zip"), destpath+"model")
+	os.Remove(filep)
 	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
 	DownloadStatus = "Reloading voice processor"
 	vars.APIConfig.STT.Language = language
