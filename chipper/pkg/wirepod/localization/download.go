@@ -47,12 +47,12 @@ func DownloadVoskModel(language string) {
 		logger.Println("Language not valid? " + language)
 		return
 	}
-	os.MkdirAll("../vosk", 0755)
+	os.MkdirAll(vars.VoskModelPath, 0755)
 	url := "https://alphacephei.com/vosk/models/" + filename
-	filepath := os.TempDir() + "/" + filename
-	destpath := "../vosk/models/" + language + "/"
-	DownloadFile(url, filepath)
-	UnzipFile(filepath, destpath)
+	filep := os.TempDir() + "/" + filename
+	destpath := filepath.Join(vars.VoskModelPath, language) + "/"
+	DownloadFile(url, filep)
+	UnzipFile(filep, destpath)
 	os.Rename(destpath+strings.TrimSuffix(filename, ".zip"), destpath+"model")
 	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
 	DownloadStatus = "Reloading voice processor"

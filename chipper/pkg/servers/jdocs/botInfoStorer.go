@@ -11,15 +11,9 @@ import (
 	"strings"
 
 	"github.com/kercre123/chipper/pkg/logger"
-	tokenserver "github.com/kercre123/chipper/pkg/servers/token"
 	"github.com/kercre123/chipper/pkg/vars"
 	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
-)
-
-const (
-	BotInfoFile = tokenserver.BotInfoFile
-	InfoPath    = JdocsPath + BotInfoFile
 )
 
 func IsBotInInfo(esn string) bool {
@@ -154,5 +148,5 @@ func StoreBotInfo(ctx context.Context, thing string) {
 		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
 	}
 	finalJsonBytes, _ := json.Marshal(vars.BotInfo)
-	os.WriteFile(InfoPath, finalJsonBytes, 0644)
+	os.WriteFile(vars.BotInfoPath, finalJsonBytes, 0644)
 }

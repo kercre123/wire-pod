@@ -10,7 +10,7 @@ import (
 
 // a way to create a JSON configuration for wire-pod, rather than the use of env vars
 
-const ApiConfigPath = "./apiConfig.json"
+var ApiConfigPath = "./apiConfig.json"
 
 var APIConfig apiConfig
 
