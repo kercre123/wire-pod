@@ -96,6 +96,7 @@ func WriteToIniSecondary(esn, guid, ip string) {
 			return
 		}
 		certBytesOrig, _ := io.ReadAll(resp.Body)
+		os.WriteFile(vars.SessionCertPath+"/"+esn, certBytesOrig, 0777)
 		block, _ := pem.Decode(certBytesOrig)
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
