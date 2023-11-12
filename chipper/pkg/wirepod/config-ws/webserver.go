@@ -3,9 +3,9 @@ package webserver
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -13,7 +13,9 @@ import (
 	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
+	"github.com/kercre123/chipper/pkg/wirepod/sdkapp"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
+	"github.com/ncruces/zenity"
 )
 
 var SttInitFunc func() error
@@ -327,24 +329,21 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartWebServer() {
-	var webPort string
 	botsetup.RegisterSSHAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
 	webRoot := http.FileServer(http.Dir("./webroot"))
 	http.Handle("/", webRoot)
-	if os.Getenv("WEBSERVER_PORT") != "" {
-		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
-			webPort = os.Getenv("WEBSERVER_PORT")
-		} else {
-			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
-			webPort = "8080"
+	fmt.Printf("Starting webserver at port " + sdkapp.WebPort + " (http://localhost:" + sdkapp.WebPort + ")\n")
+	if err := http.ListenAndServe(":"+sdkapp.WebPort, nil); err != nil {
+		logger.Println("Error binding to " + sdkapp.WebPort + ": " + err.Error())
+		if runtime.GOOS == "windows" {
+			zenity.Error(
+				"FATAL: Wire-pod was unable to bind to port "+sdkapp.WebPort+". Another process is likely using it. Exiting.",
+				zenity.ErrorIcon,
+				zenity.Title("wire-pod"),
+			)
 		}
-	} else {
-		webPort = "8080"
-	}
-	fmt.Printf("Starting webserver at port " + webPort + " (http://localhost:" + webPort + ")\n")
-	if err := http.ListenAndServe(":"+webPort, nil); err != nil {
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }

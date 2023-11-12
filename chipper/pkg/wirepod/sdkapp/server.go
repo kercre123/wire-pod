@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +18,10 @@ import (
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
+	"github.com/ncruces/zenity"
 )
+
+var WebPort string
 
 const serverFiles string = "./webroot/sdkapp"
 
@@ -493,19 +497,25 @@ func BeginServer() {
 	logger.Println("Starting SDK app")
 	fmt.Printf("Starting server at port 80 for connCheck\n")
 	ipAddr := botsetup.GetOutboundIP().String()
-	var webPort string
 	if os.Getenv("WEBSERVER_PORT") != "" {
 		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
-			webPort = os.Getenv("WEBSERVER_PORT")
+			WebPort = os.Getenv("WEBSERVER_PORT")
 		} else {
 			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
-			webPort = "8080"
+			WebPort = "8080"
 		}
 	} else {
-		webPort = "8080"
+		WebPort = "8080"
 	}
-	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + webPort + "\033[0m")
+	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + WebPort + "\033[0m")
 	if err := http.ListenAndServe(":80", nil); err != nil {
+		if runtime.GOOS == "windows" {
+			go zenity.Warning(
+				"A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.",
+				zenity.Title("wire-pod"),
+				zenity.WarningIcon,
+			)
+		}
 		logger.Println("A process is already using port 80 - connCheck functionality will not work")
 	}
 }

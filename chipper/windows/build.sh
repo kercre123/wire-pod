@@ -17,8 +17,6 @@ fi
 export ORIGDIR="$(pwd)"
 export PODLIBS="${ORIGDIR}/libs"
 
-export
-
 mkdir -p "${PODLIBS}"
 
 if [[ ! -d ogg ]] || [[ ! -d "${PODLIBS}/ogg" ]]; then
@@ -96,9 +94,9 @@ cp ${PODLIBS}/vosk/* tmp/wire-pod/chipper/
 
 cd tmp
 
-rm -rf ../wire-pod-win.zip
+rm -rf ../wire-pod-win-${ARCHITECTURE}.zip
 
-zip -r ../wire-pod-win.zip wire-pod
+zip -r ../wire-pod-win-${ARCHITECTURE}.zip wire-pod
 
 cd ..
 rm -rf tmp

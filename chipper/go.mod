@@ -14,7 +14,6 @@ require (
 )
 
 require (
-	gioui.org v0.3.1
 	github.com/Picovoice/leopard/binding/go v1.2.0
 	github.com/alphacep/vosk-api/go v0.3.45
 	github.com/fforchino/vector-go-sdk v0.0.0-20231108155304-62168f3595d6
@@ -29,8 +28,6 @@ require (
 )
 
 require (
-	gioui.org/cpu v0.0.0-20210817075930-8d6a761490d2 // indirect
-	gioui.org/shader v1.0.8 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
@@ -44,7 +41,6 @@ require (
 	github.com/getlantern/ops v0.0.0-20190325191751-d70cb0d6f85f // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/go-text/typesetting v0.0.0-20230803102845-24e03d8b5372 // indirect
 	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
 	github.com/miekg/dns v1.1.27 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
@@ -54,7 +50,6 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
-	golang.org/x/exp/shiny v0.0.0-20220827204233-334a2380cb91 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
 )
