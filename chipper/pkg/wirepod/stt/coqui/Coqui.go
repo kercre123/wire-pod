@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/asticode/go-asticoqui"
@@ -52,7 +51,7 @@ func Init() error {
 // STT funcs should be defined as func(sr.SpeechRequest) (string, error)
 
 func STT(req sr.SpeechRequest) (string, error) {
-	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Coqui) Processing...")
+	logger.Println("(Bot " + req.Device + ", Coqui) Processing...")
 	speechIsDone := false
 	coquiInstance, _ := asticoqui.New("../stt/model.tflite")
 	if _, err := os.Stat("../stt/large_vocabulary.scorer"); err == nil {
@@ -77,6 +76,6 @@ func STT(req sr.SpeechRequest) (string, error) {
 		}
 	}
 	transcribedText, _ := coquiStream.Finish()
-	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
+	logger.Println("Bot " + req.Device + " Transcribed text: " + transcribedText)
 	return transcribedText, nil
 }

@@ -1,8 +1,10 @@
-FROM golang:buster
+FROM golang:1.18.4-buster
+
+COPY ./sources.list /etc/apt/sources.list
 
 RUN dpkg --add-architecture armel
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::http::Dl-Limit=500 update -y && apt -o Acquire::Check-Valid-Until=false install -y \
 	g++-arm-linux-gnueabi \
 	gcc-arm-linux-gnueabi \
 	libc6-dev-armhf-cross \

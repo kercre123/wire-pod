@@ -6,13 +6,11 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"time"
 
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/digital-dream-labs/hugh/log"
-	"github.com/grandcat/zeroconf"
 	"github.com/kercre123/chipper/pkg/logger"
 	chipperserver "github.com/kercre123/chipper/pkg/servers/chipper"
 	jdocsserver "github.com/kercre123/chipper/pkg/servers/jdocs"
@@ -21,8 +19,6 @@ import (
 	wpweb "github.com/kercre123/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/chipper/pkg/wirepod/sdkapp"
-	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
-	"github.com/phayes/freeport"
 	"github.com/soheilhy/cmux"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
@@ -114,17 +110,17 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	wpweb.StartWebServer()
 }
 
-func PostmDNS() {
-	logger.Println("Registering escapepod.local on network (every minute)")
-	mdnsport, _ := freeport.GetFreePort()
-	for {
-		ipAddr := botsetup.GetOutboundIP().String()
-		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", mdnsport, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
-		time.Sleep(time.Second * 60)
-		server.Shutdown()
-		server = nil
-	}
-}
+// func PostmDNS() {
+// 	logger.Println("Registering escapepod.local on network (every minute)")
+// 	mdnsport, _ := freeport.GetFreePort()
+// 	for {
+// 		ipAddr := botsetup.GetOutboundIP().String()
+// 		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", mdnsport, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
+// 		time.Sleep(time.Second * 60)
+// 		server.Shutdown()
+// 		server = nil
+// 	}
+// }
 
 func CheckHostname() {
 	hostname, _ := os.Hostname()

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
@@ -58,6 +57,9 @@ func Init() error {
 			sttLanguage = "en-US"
 		}
 		modelPath := "../vosk/models/" + sttLanguage + "/model"
+		if _, err := os.Stat(modelPath); err != nil {
+			return err
+		}
 		logger.Println("Opening VOSK model (" + modelPath + ")")
 		aModel, err := vosk.NewModel(modelPath)
 		if err != nil {
@@ -170,7 +172,7 @@ func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 }
 
 func STT(req sr.SpeechRequest) (string, error) {
-	logger.Println("(Bot " + strconv.Itoa(req.BotNum) + ", Vosk) Processing...")
+	logger.Println("(Bot " + req.Device + ", Vosk) Processing...")
 	speechIsDone := false
 	var withGrm bool
 	if (vars.APIConfig.Knowledge.IntentGraph || req.IsKG) || !GrammerEnable {
@@ -204,6 +206,6 @@ func STT(req sr.SpeechRequest) (string, error) {
 		gpRecs[recind].InUse = false
 	}
 	transcribedText := jres["text"].(string)
-	logger.Println("Bot " + strconv.Itoa(req.BotNum) + " Transcribed text: " + transcribedText)
+	logger.Println("Bot " + req.Device + " Transcribed text: " + transcribedText)
 	return transcribedText, nil
 }
