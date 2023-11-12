@@ -2,7 +2,7 @@
 
 set -e
 
-export BUILDFILE="cmd/vosk/main.go"
+export BUILDFILE="cmd/windows/main.go cmd/windows/win-initwirepod.go"
 
 export LIBS="$(pwd)/prebuilt"
 
@@ -11,7 +11,7 @@ export CXX=/usr/bin/x86_64-w64-mingw32-g++
 
 export GOOS=windows
 export GOARCH=amd64
-export GO_TAGS="nolibopusfile,windows"
+export GO_TAGS="nolibopusfile"
 
 export CGO_ENABLED=1
 export CGO_LDFLAGS="-L${LIBS}/ogg/lib -L${LIBS}/opus/lib -L${LIBS}/vosk"
@@ -21,6 +21,7 @@ cd ..
 
 go build \
 -tags ${GO_TAGS} \
+-ldflags "-H=windowsgui" \
 -o windows/chipper.exe \
 ${BUILDFILE}
 
@@ -54,4 +55,6 @@ cd tmp
 
 zip -r ../wire-pod-win.zip wire-pod
 
+cd ..
 rm -rf tmp
+rm chipper.exe
