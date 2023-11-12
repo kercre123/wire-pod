@@ -16,9 +16,11 @@ import (
 
 var (
 	JdocsPath         string = "./jdocs/jdocs.json"
+	JdocsDir          string = "./jdocs"
 	CustomIntentsPath string = "./customIntents.json"
 	BotConfigsPath    string = "./botConfig.json"
 	BotInfoPath       string = "./jdocs/botSdkInfo.json"
+	BotInfoName       string = "botSdkInfo.json"
 	PodName           string = "wire-pod"
 	VoskModelPath     string = "../vosk/models/"
 )
@@ -109,10 +111,11 @@ func Init() {
 		confDir, _ := os.UserConfigDir()
 		podDir := join(confDir, PodName)
 		os.Mkdir(podDir, 0777)
-		JdocsPath = join(podDir, JdocsPath)
+		JdocsDir = join(podDir, JdocsDir)
+		JdocsPath = JdocsDir + "/jdocs.json"
 		CustomIntentsPath = join(podDir, CustomIntentsPath)
 		BotConfigsPath = join(podDir, BotConfigsPath)
-		BotInfoPath = join(podDir, BotInfoPath)
+		BotInfoPath = JdocsDir + "/" + BotInfoName
 		VoskModelPath = join(podDir, "./vosk/models/")
 		ApiConfigPath = join(podDir, ApiConfigPath)
 		CertPath = join(podDir, "./certs/cert.crt")
@@ -120,7 +123,7 @@ func Init() {
 		ServerConfigPath = join(podDir, "./certs/server_config.json")
 		Certs = join(podDir, "./certs")
 		SessionCertPath = join(podDir, SessionCertPath)
-		os.Mkdir(strings.TrimSuffix(JdocsPath, "/jdocs.json"), 0777)
+		os.Mkdir(JdocsDir, 0777)
 		os.Mkdir(SessionCertPath, 0777)
 		os.Mkdir(Certs, 0777)
 	}
