@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export BUILDFILES="cmd/windows/*.go"
+export BUILDFILES="./cmd/windows"
 
 export CC=/usr/bin/x86_64-w64-mingw32-gcc
 export CXX=/usr/bin/x86_64-w64-mingw32-g++
@@ -62,11 +62,19 @@ export CGO_CFLAGS="-I${PODLIBS}/ogg/include -I${PODLIBS}/opus/include -I${PODLIB
 
 cd ..
 
+x86_64-w64-mingw32-windres cmd/windows/rc/app.rc -O coff -o cmd/windows/app.syso
+
 go build \
 -tags ${GO_TAGS} \
 -ldflags "-H=windowsgui" \
 -o windows/chipper.exe \
 ${BUILDFILES}
+
+go build \
+-tags ${GO_TAGS} \
+-ldflags "-H=windowsgui" \
+-o windows/uninstall.exe \
+./cmd/wire-pod-installer/uninstall/main.go
 
 cd windows
 
@@ -86,6 +94,7 @@ cp -r icons tmp/wire-pod/chipper/
 # echo "export DEBUG_LOGGING=true" > tmp/botpack/wire-pod/chipper/source.sh
 # echo "export STT_SERVICE=vosk" >> tmp/botpack/wire-pod/chipper/source.sh
 
+cp uninstall.exe tmp/wire-pod/
 cp chipper.exe tmp/wire-pod/chipper/
 
 cp ${PODLIBS}/opus/bin/libopus-0.dll tmp/wire-pod/chipper/
@@ -101,3 +110,4 @@ zip -r ../wire-pod-win-${ARCHITECTURE}.zip wire-pod
 cd ..
 rm -rf tmp
 rm chipper.exe
+rm uninstall.exe
