@@ -39,6 +39,8 @@ var (
 	Certs            = "../certs"
 )
 
+var WebPort string = "8080"
+
 // /home/name/.anki_vector/
 var SDKIniPath string
 var BotJdocs []botjdoc
@@ -134,6 +136,17 @@ func Init() {
 		os.Mkdir(JdocsDir, 0777)
 		os.Mkdir(SessionCertPath, 0777)
 		os.Mkdir(Certs, 0777)
+	}
+
+	if os.Getenv("WEBSERVER_PORT") != "" {
+		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
+			WebPort = os.Getenv("WEBSERVER_PORT")
+		} else {
+			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
+			WebPort = "8080"
+		}
+	} else {
+		WebPort = "8080"
 	}
 
 	// figure out user SDK path, containing sdk_config.ini

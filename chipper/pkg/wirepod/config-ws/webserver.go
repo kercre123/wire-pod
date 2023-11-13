@@ -12,7 +12,6 @@ import (
 	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
-	"github.com/kercre123/chipper/pkg/wirepod/sdkapp"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 	"github.com/ncruces/zenity"
 )
@@ -333,12 +332,12 @@ func StartWebServer() {
 	http.HandleFunc("/session-certs/", certHandler)
 	webRoot := http.FileServer(http.Dir("./webroot"))
 	http.Handle("/", webRoot)
-	fmt.Printf("Starting webserver at port " + sdkapp.WebPort + " (http://localhost:" + sdkapp.WebPort + ")\n")
-	if err := http.ListenAndServe(":"+sdkapp.WebPort, nil); err != nil {
-		logger.Println("Error binding to " + sdkapp.WebPort + ": " + err.Error())
+	fmt.Printf("Starting webserver at port " + vars.WebPort + " (http://localhost:" + vars.WebPort + ")\n")
+	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {
+		logger.Println("Error binding to " + vars.WebPort + ": " + err.Error())
 		if vars.Packaged {
 			zenity.Error(
-				"FATAL: Wire-pod was unable to bind to port "+sdkapp.WebPort+". Another process is likely using it. Exiting.",
+				"FATAL: Wire-pod was unable to bind to port "+vars.WebPort+". Another process is likely using it. Exiting.",
 				zenity.ErrorIcon,
 				zenity.Title("wire-pod"),
 			)
