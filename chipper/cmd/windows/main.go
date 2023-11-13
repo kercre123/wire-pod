@@ -2,22 +2,21 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
-	"strings"
 
-	"github.com/digital-dream-labs/hugh/log"
 	"github.com/getlantern/systray"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/wirepod/sdkapp"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 	stt "github.com/kercre123/chipper/pkg/wirepod/stt/vosk"
 	"github.com/ncruces/zenity"
 )
+
+// this directory contains code which compiled a single program for end users. gui elements are implemented.
 
 var mBoxTitle = "wire-pod"
 var mBoxError = `There was an error starting wire-pod: `
@@ -30,36 +29,37 @@ func getNeedsSetupMsg() string {
 }
 
 func main() {
-	if os.Getenv("WEBSERVER_PORT") != "" {
-		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
-			sdkapp.WebPort = os.Getenv("WEBSERVER_PORT")
-		} else {
-			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
-			sdkapp.WebPort = "8080"
-		}
-	} else {
-		sdkapp.WebPort = "8080"
+	vars.Packaged = true
+	conf, err := os.UserConfigDir()
+	if err != nil {
+		ErrMsg(err)
 	}
-	resp, err := http.Get("http://" + botsetup.GetOutboundIP().String() + ":" + sdkapp.WebPort + "/api/is_running")
+	pidFile, err := os.ReadFile(conf + "/runningPID")
 	if err == nil {
-		body, _ := io.ReadAll(resp.Body)
-		if strings.TrimSpace(string(body)) == "true" {
-			zenity.Error(mBoxAlreadyRunning,
+		pid, _ := strconv.Atoi(string(pidFile))
+		_, err := os.FindProcess(pid)
+		if err == nil {
+			zenity.Error(
+				"Wire-pod is already running.",
 				zenity.ErrorIcon,
-				zenity.Title(mBoxTitle))
-			os.Exit(1)
-		} else {
-			zenity.Error("Port "+sdkapp.WebPort+" is in use by another program. Close that program before starting wire-pod. Exiting.",
-				zenity.ErrorIcon,
-				zenity.Title(mBoxTitle))
+				zenity.Title(mBoxTitle),
+			)
 			os.Exit(1)
 		}
 	}
+	os.WriteFile(conf+"/runningPID", []byte(strconv.Itoa(os.Getpid())), 0777)
 	systray.Run(onReady, onExit)
 }
 
+func ExitProgram(code int) {
+	conf, _ := os.UserConfigDir()
+	os.Remove(conf + "/runningPID")
+	os.Exit(code)
+
+}
+
 func onExit() {
-	os.Exit(0)
+	ExitProgram(0)
 }
 
 func onReady() {
@@ -80,7 +80,7 @@ func onReady() {
 	systray.SetIcon(systrayIcon)
 	systray.SetTitle("wire-pod")
 	systray.SetTooltip("wire-pod is starting...")
-	mQuit := systray.AddMenuItem("Quit", "Quit the whole app")
+	mQuit := systray.AddMenuItem("Quit", "Quit wire-pod")
 	mBrowse := systray.AddMenuItem("Web interface", "Open web UI")
 
 	go func() {
@@ -92,7 +92,7 @@ func onReady() {
 					zenity.Icon(mBoxIcon),
 					zenity.Title(mBoxTitle),
 				)
-				os.Exit(0)
+				ExitProgram(0)
 			case <-mBrowse.ClickedCh:
 				go openBrowser("http://" + botsetup.GetOutboundIP().String() + ":" + sdkapp.WebPort)
 			}
@@ -117,6 +117,11 @@ func openBrowser(url string) {
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		go zenity.Warning(
+			"Error opening browser: "+err.Error(),
+			zenity.WarningIcon,
+			zenity.Title(mBoxTitle),
+		)
+		logger.Println(err)
 	}
 }
