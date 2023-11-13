@@ -4,8 +4,11 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -19,6 +22,8 @@ import (
 var iconData embed.FS
 
 var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
+
+//var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
 
 var DefaultInstallationDirectory string = "C:\\Program Files\\wire-pod"
 
@@ -55,7 +60,14 @@ func GetStatusChan() chan string {
 	return installerStatusUpdate
 }
 
-func PostInstall(myApp fyne.App) {
+func ExecuteDetached(program string) error {
+	cmd := exec.Command(program)
+	// Start the program in a new process group to make it detached
+	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP}
+	return cmd.Start()
+}
+
+func PostInstall(myApp fyne.App, is InstallSettings) {
 	var shouldStartPod bool = true
 	window := myApp.NewWindow("wire-pod installer")
 	window.Resize(fyne.Size{Width: 600, Height: 100})
@@ -74,7 +86,8 @@ func PostInstall(myApp fyne.App) {
 
 	exitButton := widget.NewButton("Exit", func() {
 		if shouldStartPod {
-			fmt.Println("Would start wire-pod here")
+			window.Hide()
+			ExecuteDetached(filepath.Join(is.Where, "chipper/chipper.exe"))
 		}
 		os.Exit(0)
 	})
@@ -120,7 +133,7 @@ func DoInstall(myApp fyne.App, is InstallSettings) {
 	}()
 	InstallWirePod(is)
 	window.Hide()
-	PostInstall(myApp)
+	PostInstall(myApp, is)
 }
 
 func GetPreferences(myApp fyne.App) {
@@ -129,11 +142,8 @@ func GetPreferences(myApp fyne.App) {
 	window.SetIcon(icon)
 	window.Resize(fyne.Size{Width: 600, Height: 200})
 	window.CenterOnScreen()
-	launchOnStartup := widget.NewCheck("Launch on startup?", func(checked bool) {
+	launchOnStartup := widget.NewCheck("Automatically launch wire-pod after login?", func(checked bool) {
 		is.RunAtStartup = checked
-	})
-	autoUpdate := widget.NewCheck("Auto-update?", func(checked bool) {
-		is.AutoUpdate = checked
 	})
 
 	installDir := widget.NewEntry()
@@ -168,7 +178,6 @@ func GetPreferences(myApp fyne.App) {
 			Text: "This program will install wire-pod with the following settings.",
 		}),
 		launchOnStartup,
-		autoUpdate,
 		widget.NewSeparator(),
 		widget.NewRichText(&widget.TextSegment{
 			Text: "Installation Directory",
@@ -199,6 +208,9 @@ func StopWirePodIfRunning() {
 }
 
 func ValidateInstallDirectory(dir string) bool {
+	if dir == "C:\\Program Files" || dir == "C:\\Program Files\\" {
+		return false
+	}
 	var dirWithoutLast string
 	splitDir := strings.Split(dir, "\\")
 	dirWithoutLast = splitDir[0]

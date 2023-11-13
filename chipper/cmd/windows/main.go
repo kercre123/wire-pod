@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 
 	"github.com/getlantern/systray"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
-	"github.com/kercre123/chipper/pkg/wirepod/sdkapp"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 	stt "github.com/kercre123/chipper/pkg/wirepod/stt/vosk"
 	"github.com/ncruces/zenity"
+	"golang.org/x/sys/windows/registry"
 )
 
 // this directory contains code which compiled a single program for end users. gui elements are implemented.
@@ -25,7 +26,7 @@ var mBoxSuccess = `Wire-pod has started successfully! It is now running in the b
 var mBoxIcon = "./icons/start-up-full.png"
 
 func getNeedsSetupMsg() string {
-	return `Wire-pod is now running in the background. You must set it up by heading to http://` + botsetup.GetOutboundIP().String() + `:` + sdkapp.WebPort + ` in a browser.`
+	return `Wire-pod is now running in the background. You must set it up by heading to http://` + botsetup.GetOutboundIP().String() + `:` + vars.WebPort + ` in a browser.`
 }
 
 func main() {
@@ -47,7 +48,23 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	os.WriteFile(conf+"/runningPID", []byte(strconv.Itoa(os.Getpid())), 0777)
+	os.WriteFile(conf+"\\runningPID", []byte(strconv.Itoa(os.Getpid())), 0777)
+	os.WriteFile(filepath.Join(os.TempDir(), "/wirepodrunningPID"), []byte(strconv.Itoa(os.Getpid())), 0777)
+
+	keyPath := `Software\Microsoft\Windows\CurrentVersion\Uninstall\wire-pod`
+	k, err := registry.OpenKey(registry.LOCAL_MACHINE, keyPath, registry.QUERY_VALUE)
+	if err != nil {
+		ErrMsg(fmt.Errorf("error opening key from the registry: " + err.Error()))
+	}
+	val, _, err := k.GetStringValue("InstallPath")
+	if err != nil {
+		ErrMsg(fmt.Errorf("error getting value from the registry: " + err.Error()))
+	}
+	err = os.Chdir(filepath.Join(val, "chipper"))
+	fmt.Println("Working directory: " + val)
+	if err != nil {
+		ErrMsg(fmt.Errorf("error setting directory to " + val))
+	}
 	systray.Run(onReady, onExit)
 }
 
@@ -94,7 +111,7 @@ func onReady() {
 				)
 				ExitProgram(0)
 			case <-mBrowse.ClickedCh:
-				go openBrowser("http://" + botsetup.GetOutboundIP().String() + ":" + sdkapp.WebPort)
+				go openBrowser("http://" + botsetup.GetOutboundIP().String() + ":" + vars.WebPort)
 			}
 		}
 	}()

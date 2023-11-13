@@ -20,8 +20,6 @@ import (
 	"github.com/ncruces/zenity"
 )
 
-var WebPort string
-
 const serverFiles string = "./webroot/sdkapp"
 
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
@@ -496,17 +494,7 @@ func BeginServer() {
 	logger.Println("Starting SDK app")
 	fmt.Printf("Starting server at port 80 for connCheck\n")
 	ipAddr := botsetup.GetOutboundIP().String()
-	if os.Getenv("WEBSERVER_PORT") != "" {
-		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
-			WebPort = os.Getenv("WEBSERVER_PORT")
-		} else {
-			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
-			WebPort = "8080"
-		}
-	} else {
-		WebPort = "8080"
-	}
-	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + WebPort + "\033[0m")
+	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + vars.WebPort + "\033[0m")
 	if err := http.ListenAndServe(":80", nil); err != nil {
 		if vars.Packaged {
 			zenity.Warning(

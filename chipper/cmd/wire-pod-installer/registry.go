@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os/exec"
 	"path/filepath"
 
 	"golang.org/x/sys/windows/registry"
@@ -35,5 +37,43 @@ func UpdateRegistry(is InstallSettings) {
 	k.SetStringValue("Publisher", publisher)
 	k.SetStringValue("UninstallString", uninstallString)
 	k.SetStringValue("InstallLocation", installLocation)
+	k.SetStringValue("InstallPath", is.Where)
 	fmt.Println("Registry entries successfully created")
+}
+
+func RunPodAtStartup(is InstallSettings) {
+	key, _ := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`, registry.SET_VALUE)
+	key.SetStringValue("wire-pod", filepath.Join(is.Where, "\\chipper\\chipper.exe"))
+}
+
+func AllowThroughFirewall(is InstallSettings) {
+	cmdStr := fmt.Sprintf("netsh advfirewall firewall add rule name=\"wire-pod\" dir=in action=allow program=\"%s\\chipper\\chipper.exe\" enable=yes", is.Where)
+	fmt.Println("Executing command:", cmdStr)
+	cmd := exec.Command("netsh", "advfirewall", "firewall", "add", "rule",
+		"name=wire-pod",
+		"dir=in",
+		"action=allow",
+		"profile=any",
+		"program="+is.Where+"\\chipper\\chipper.exe",
+		"enable=yes")
+
+	out, err := cmd.Output()
+	if err != nil {
+		fmt.Println(string(out))
+		log.Fatalf("Failed to execute command in: %s", err)
+	}
+	cmd = exec.Command("netsh", "advfirewall", "firewall", "add", "rule",
+		"name=wire-pod",
+		"dir=out",
+		"action=allow",
+		"profile=any",
+		"program="+is.Where+"\\chipper\\chipper.exe",
+		"enable=yes")
+
+	err = cmd.Run()
+	if err != nil {
+		log.Fatalf("Failed to execute command out: %s", err)
+	}
+
+	log.Println("Firewall rule added successfully.")
 }
