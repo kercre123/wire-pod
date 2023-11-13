@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -337,7 +336,7 @@ func StartWebServer() {
 	fmt.Printf("Starting webserver at port " + sdkapp.WebPort + " (http://localhost:" + sdkapp.WebPort + ")\n")
 	if err := http.ListenAndServe(":"+sdkapp.WebPort, nil); err != nil {
 		logger.Println("Error binding to " + sdkapp.WebPort + ": " + err.Error())
-		if runtime.GOOS == "windows" {
+		if vars.Packaged {
 			zenity.Error(
 				"FATAL: Wire-pod was unable to bind to port "+sdkapp.WebPort+". Another process is likely using it. Exiting.",
 				zenity.ErrorIcon,

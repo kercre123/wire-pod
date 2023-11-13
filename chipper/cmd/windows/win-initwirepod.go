@@ -63,7 +63,7 @@ func ErrMsg(err error) {
 	zenity.Error("wire-pod has run into an issue. The program will now exit. Error details: "+err.Error(),
 		zenity.ErrorIcon,
 		zenity.Title(mBoxTitle))
-	os.Exit(1)
+	ExitProgram(1)
 }
 
 // grpcServer *grpc.Servervar
@@ -227,7 +227,7 @@ func StartChipper(fromInit bool) {
 				logger.Println("Unable to read certificates. wire-pod is not setup.")
 				logger.Println(err)
 				ErrMsg(err)
-				os.Exit(1)
+				ExitProgram(1)
 				return
 			}
 			vars.ChipperKey = certPriv
@@ -240,7 +240,7 @@ func StartChipper(fromInit bool) {
 	if err != nil {
 		ErrMsg(err)
 		logger.Println(err)
-		os.Exit(1)
+		ExitProgram(1)
 	}
 	logger.Println("Starting chipper server at port " + vars.APIConfig.Server.Port)
 	listenerOne, err = tls.Listen("tcp", ":"+vars.APIConfig.Server.Port, &tls.Config{
@@ -250,7 +250,7 @@ func StartChipper(fromInit bool) {
 	if err != nil {
 		ErrMsg(err)
 		fmt.Println(err)
-		os.Exit(1)
+		ExitProgram(1)
 	}
 	serverOne = cmux.New(listenerOne)
 	grpcListenerOne := serverOne.Match(cmux.HTTP2())
@@ -267,7 +267,7 @@ func StartChipper(fromInit bool) {
 		if err != nil {
 			ErrMsg(err)
 			fmt.Println(err)
-			os.Exit(1)
+			ExitProgram(1)
 		}
 		serverTwo = cmux.New(listenerTwo)
 		grpcListenerTwo := serverTwo.Match(cmux.HTTP2())
