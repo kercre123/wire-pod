@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -19,14 +18,41 @@ import (
 //go:embed ico
 var iconData embed.FS
 
+var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
+
 var DefaultInstallationDirectory string = "C:\\Program Files\\wire-pod"
 
 var icon *fyne.StaticResource
+
+var installerStatusUpdate chan string
+var installerBarUpdate chan float64
 
 type InstallSettings struct {
 	RunAtStartup bool
 	AutoUpdate   bool
 	Where        string
+}
+
+func UpdateInstallStatus(status string) {
+	select {
+	case installerStatusUpdate <- status:
+	default:
+	}
+}
+
+func UpdateInstallBar(status float64) {
+	select {
+	case installerBarUpdate <- status / 100:
+	default:
+	}
+}
+
+func GetBarChan() chan float64 {
+	return installerBarUpdate
+}
+
+func GetStatusChan() chan string {
+	return installerStatusUpdate
 }
 
 func PostInstall(myApp fyne.App) {
@@ -62,8 +88,7 @@ func PostInstall(myApp fyne.App) {
 	window.Show()
 }
 
-func DoInstall(myApp fyne.App) {
-	var barStatus float64
+func DoInstall(myApp fyne.App, is InstallSettings) {
 	window := myApp.NewWindow("wire-pod installer")
 	window.Resize(fyne.Size{Width: 600, Height: 100})
 	window.CenterOnScreen()
@@ -77,20 +102,23 @@ func DoInstall(myApp fyne.App) {
 		bar,
 	))
 
+	barChan := GetBarChan()
+	statusChan := GetStatusChan()
+
 	window.Show()
-	i := 0
-	for {
-		time.Sleep(time.Second / 2)
-		barStatus = barStatus + 0.1
-		card.SetSubTitle(fmt.Sprint(i))
-		card.Refresh()
-		bar.SetValue(barStatus)
-		bar.Refresh()
-		i = i + 1
-		if i == 10 {
-			break
+	go func() {
+		for val := range barChan {
+			bar.SetValue(val)
+			card.Refresh()
 		}
-	}
+	}()
+	go func() {
+		for val := range statusChan {
+			card.SetSubTitle(val)
+			card.Refresh()
+		}
+	}()
+	InstallWirePod(is)
 	window.Hide()
 	PostInstall(myApp)
 }
@@ -130,7 +158,7 @@ func GetPreferences(myApp fyne.App) {
 			)
 		} else {
 			window.Hide()
-			DoInstall(myApp)
+			DoInstall(myApp, is)
 		}
 	})
 
@@ -189,10 +217,16 @@ func ValidateInstallDirectory(dir string) bool {
 }
 
 func main() {
+	if !CheckIfElevated() {
+		fmt.Println("installer must be run as administrator")
+		os.Exit(0)
+	}
 	iconBytes, err := iconData.ReadFile("ico/pod.png")
 	if err != nil {
 		fmt.Println(err)
 	}
+	installerBarUpdate = make(chan float64)
+	installerStatusUpdate = make(chan string)
 	icon = fyne.NewStaticResource("icon", iconBytes)
 	myApp := app.New()
 	GetPreferences(myApp)
@@ -200,32 +234,11 @@ func main() {
 	os.Exit(0)
 }
 
-// func runElevated() {
-// 	drv, err := os.Open("\\\\.\\PHYSICALDRIVE0")
-// 	if err != nil {
-// 		for _, arg := range os.Args {ico
-// 			if strings.Contains(arg, "-esc") {
-// 				fmt.Println("Privledge escalation failed")
-// 				os.Exit(0)
-// 			}
-// 		}
-// 		verb := "runas"
-// 		exe, _ := os.Executable()
-// 		cwd, _ := os.Getwd()
-// 		args := strings.Join(os.Args[1:], "-esc")
-
-// 		verbPtr, _ := syscall.UTF16PtrFromString(verb)
-// 		exePtr, _ := syscall.UTF16PtrFromString(exe)
-// 		cwdPtr, _ := syscall.UTF16PtrFromString(cwd)
-// 		argPtr, _ := syscall.UTF16PtrFromString(args)
-
-// 		var showCmd int32 = 1 //SW_NORMAL
-
-// 		err := windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd)
-// 		if err != nil {
-// 			fmt.Println(err)
-// 			os.Exit(0)
-// 		}
-// 	}
-// 	drv.Close()
-// }
+func CheckIfElevated() bool {
+	drv, err := os.Open("\\\\.\\PHYSICALDRIVE0")
+	if err != nil {
+		return false
+	}
+	drv.Close()
+	return true
+}
