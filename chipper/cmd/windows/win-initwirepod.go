@@ -22,7 +22,6 @@ import (
 	"github.com/kercre123/chipper/pkg/vars"
 	wpweb "github.com/kercre123/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/chipper/pkg/wirepod/preqs"
-	"github.com/kercre123/chipper/pkg/wirepod/sdkapp"
 	sdkWeb "github.com/kercre123/chipper/pkg/wirepod/sdkapp"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 	"github.com/ncruces/zenity"
@@ -41,7 +40,7 @@ var voiceProcessor *wp.Server
 
 var epodIsPosting bool
 
-var NotSetUp string = "Wire-pod is not setup. Use the webserver at port " + sdkapp.WebPort + " to set up wire-pod."
+var NotSetUp string = "Wire-pod is not setup. Use the webserver at port " + vars.WebPort + " to set up wire-pod."
 
 func NeedsSetupMsg() {
 	go func() {
@@ -53,7 +52,7 @@ func NeedsSetupMsg() {
 		)
 		if err != nil {
 			if err == zenity.ErrExtraButton {
-				openBrowser("http://" + botsetup.GetOutboundIP().String() + ":" + sdkapp.WebPort)
+				openBrowser("http://" + botsetup.GetOutboundIP().String() + ":" + vars.WebPort)
 			}
 		}
 	}()
@@ -129,20 +128,20 @@ func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, 
 func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) {
 	err := BeginWirepodSpecific(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	if err != nil {
-		logger.Println("Wire-pod is not setup. Use the webserver at port " + sdkapp.WebPort + " to set up wire-pod.")
+		logger.Println("Wire-pod is not setup. Use the webserver at port " + vars.WebPort + " to set up wire-pod.")
 		vars.APIConfig.PastInitialSetup = false
 		vars.WriteConfigToDisk()
 		NeedsSetupMsg()
-		systray.SetTooltip("wire-pod must be set up at http://" + botsetup.GetOutboundIP().String() + ":" + sdkapp.WebPort)
+		systray.SetTooltip("wire-pod must be set up at http://" + botsetup.GetOutboundIP().String() + ":" + vars.WebPort)
 	} else if !vars.APIConfig.PastInitialSetup {
-		logger.Println("Wire-pod is not setup. Use the webserver at port " + sdkapp.WebPort + " to set up wire-pod.")
+		logger.Println("Wire-pod is not setup. Use the webserver at port " + vars.WebPort + " to set up wire-pod.")
 		NeedsSetupMsg()
-		systray.SetTooltip("wire-pod must be set up at http://" + botsetup.GetOutboundIP().String() + ":" + sdkapp.WebPort)
+		systray.SetTooltip("wire-pod must be set up at http://" + botsetup.GetOutboundIP().String() + ":" + vars.WebPort)
 	} else if vars.APIConfig.STT.Service == "vosk" && vars.APIConfig.STT.Language == "" {
 		logger.Println("\033[33m\033[1mLanguage value is blank, but STT service is Vosk. Reinitiating setup process.\033[0m")
-		logger.Println("Wire-pod is not setup. Use the webserver at port " + sdkapp.WebPort + " to set up wire-pod.")
+		logger.Println("Wire-pod is not setup. Use the webserver at port " + vars.WebPort + " to set up wire-pod.")
 		NeedsSetupMsg()
-		systray.SetTooltip("wire-pod must be set up at http://" + botsetup.GetOutboundIP().String() + ":" + sdkapp.WebPort)
+		systray.SetTooltip("wire-pod must be set up at http://" + botsetup.GetOutboundIP().String() + ":" + vars.WebPort)
 		vars.APIConfig.PastInitialSetup = false
 	} else {
 		go StartChipper(true)

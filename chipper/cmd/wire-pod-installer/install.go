@@ -123,10 +123,17 @@ func InstallWirePod(is InstallSettings) error {
 	UpdateInstallStatus("Updating registry...")
 
 	UpdateRegistry(is)
+	if is.RunAtStartup {
+		RunPodAtStartup(is)
+	}
+
 	UpdateInstallBar(90)
 
 	UpdateInstallStatus("Creating shortcut...")
 	CreateShortcut(is)
+
+	UpdateInstallStatus("Creating firewall rules...")
+	AllowThroughFirewall(is)
 
 	UpdateInstallStatus("Done!")
 
