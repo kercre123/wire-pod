@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -509,8 +508,8 @@ func BeginServer() {
 	}
 	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + WebPort + "\033[0m")
 	if err := http.ListenAndServe(":80", nil); err != nil {
-		if runtime.GOOS == "windows" {
-			go zenity.Warning(
+		if vars.Packaged {
+			zenity.Warning(
 				"A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.",
 				zenity.Title("wire-pod"),
 				zenity.WarningIcon,

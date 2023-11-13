@@ -14,6 +14,11 @@ import (
 
 // initialize variables so they don't have to be found during runtime
 
+var VarsInited bool
+
+// if compiled into an installation package. wire-pod will use os.UserConfigDir()
+var Packaged bool
+
 var (
 	JdocsPath         string = "./jdocs/jdocs.json"
 	JdocsDir          string = "./jdocs"
@@ -23,6 +28,7 @@ var (
 	BotInfoName       string = "botSdkInfo.json"
 	PodName           string = "wire-pod"
 	VoskModelPath     string = "../vosk/models/"
+	SessionCertPath   string = "./session-certs/"
 )
 
 var (
@@ -32,8 +38,6 @@ var (
 	ServerConfigPath = "../certs/server_config.json"
 	Certs            = "../certs"
 )
-
-var SessionCertPath = "./session-certs/"
 
 // /home/name/.anki_vector/
 var SDKIniPath string
@@ -104,10 +108,14 @@ func join(p1, p2 string) string {
 }
 
 func Init() {
+	if VarsInited {
+		logger.Println("Not initting vars again")
+		return
+	}
 	logger.Println("Initializing variables")
 
-	if runtime.GOOS == "windows" {
-		logger.Println("GOOS is Windows, set vars accordingly...")
+	if Packaged {
+		logger.Println("This version of wire-pod is packaged. Set vars to include UserConfigDir...")
 		confDir, _ := os.UserConfigDir()
 		podDir := join(confDir, PodName)
 		os.Mkdir(podDir, 0777)
@@ -181,6 +189,7 @@ func Init() {
 		logger.Println("Loaded bot info file, known bots: " + fmt.Sprint(botList))
 	}
 	LoadCustomIntents()
+	VarsInited = true
 }
 
 func GetDownloadedVoskModels() {
