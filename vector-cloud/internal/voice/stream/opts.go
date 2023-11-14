@@ -44,6 +44,7 @@ func WithIntentOptions(opts chipper.IntentOpts, mode cloud.StreamType) Option {
 		o.intentOpts = &opts
 		o.intentOpts.Timeout = voice.DefaultTimeout
 		o.streamOpts = &opts.StreamOpts
+		o.streamOpts.Timeout = voice.DefaultTimeout
 	}
 }
 
@@ -53,6 +54,7 @@ func WithKnowledgeGraphOptions(opts chipper.KGOpts) Option {
 		o.kgOpts = &opts
 		o.kgOpts.Timeout = voice.DefaultTimeout
 		o.streamOpts = &opts.StreamOpts
+		o.streamOpts.Timeout = voice.DefaultTimeout
 	}
 }
 
@@ -62,6 +64,7 @@ func WithIntentGraphOptions(opts chipper.IntentGraphOpts, mode cloud.StreamType)
 		o.intentGraphOpts = &opts
 		o.intentGraphOpts.Timeout = voice.DefaultTimeout
 		o.streamOpts = &opts.StreamOpts
+		o.streamOpts.Timeout = voice.DefaultTimeout
 	}
 }
 

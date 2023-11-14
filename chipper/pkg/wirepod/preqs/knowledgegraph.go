@@ -233,7 +233,7 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 				{
 					Type: openai.AssistantToolTypeFunction,
 					Function: &openai.FunctionDefinition{
-						Name:        "intent_photo_take_extend",
+						Name:        "intent_take_selfie",
 						Description: "Take a selfie. A photo of one's self.",
 						Parameters: FunctionParams{
 							Type: "object",
@@ -265,7 +265,16 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 					},
 				},
 				{
-					Type: openai.AssistantToolTypeCodeInterpreter,
+					Type: openai.AssistantToolTypeFunction,
+					Function: &openai.FunctionDefinition{
+						Name:        "intent_play_fistbump",
+						Description: "Give a playful fist bump",
+						Parameters: FunctionParams{
+							Type:       "object",
+							Properties: map[string]FunctionParam{},
+							Required:   []string{},
+						},
+					},
 				},
 			},
 		})

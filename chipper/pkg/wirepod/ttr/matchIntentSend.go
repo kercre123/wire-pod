@@ -81,6 +81,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 		return r, nil
 	} else {
 		if err := req2.Stream.Send(&intentGraphSend); err != nil {
+			logger.Println("Error sending intent graph response", err.Error())
 			return nil, err
 		}
 		r := &vtt.IntentGraphResponse{
