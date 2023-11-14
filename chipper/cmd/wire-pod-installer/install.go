@@ -8,11 +8,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func InstallWirePod(is InstallSettings) error {
 	UpdateInstallStatus("Stopping any wire-pod instances...")
 	StopWirePodIfRunning()
+
+	UpdateInstallStatus("Uninstalling any previous wire-pod instances (user data will be kept)...")
+	DeleteAnyOtherInstallation()
 
 	UpdateInstallStatus("Removing any wire-pod files (if they exist)...")
 	os.RemoveAll(is.Where)
@@ -31,7 +35,6 @@ func InstallWirePod(is InstallSettings) error {
 	var bytesRead int64 = 0
 
 	// Create a temporary file to store the download
-	UpdateInstallStatus("Creating temp file...")
 	tempFile, err := os.CreateTemp("", "wire-pod-*.zip")
 	if err != nil {
 		return fmt.Errorf("error creating a temp file: %s", err)
@@ -138,5 +141,6 @@ func InstallWirePod(is InstallSettings) error {
 	UpdateInstallStatus("Done!")
 
 	UpdateInstallBar(100)
+	time.Sleep(time.Second / 3)
 	return nil
 }

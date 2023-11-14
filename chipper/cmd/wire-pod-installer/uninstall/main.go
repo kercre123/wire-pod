@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,8 @@ import (
 	"github.com/ncruces/zenity"
 	"golang.org/x/sys/windows/registry"
 )
+
+var discrete bool
 
 func StopWirePodIfRunning() {
 	podPid, err := os.ReadFile(filepath.Join(os.TempDir(), "/wirepodrunningPID"))
@@ -23,20 +26,64 @@ func StopWirePodIfRunning() {
 			fmt.Println("Stopped")
 		}
 	}
+	CheckWirePodRunningViaRegistry()
+}
+
+func CheckWirePodRunningViaRegistry() {
+	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
+	if err != nil {
+		fmt.Println("Error reading from registry: " + err.Error())
+		return
+	}
+	defer k.Close()
+
+	// Write a value
+	val, _, err := k.GetIntegerValue("LastRunningPID")
+	if err != nil {
+		fmt.Println("Error reading from registry: " + err.Error())
+		return
+	}
+	// doesn't work on unix, but should on Windows
+	podProcess, err := os.FindProcess(int(val))
+	if err == nil || errors.Is(err, os.ErrPermission) {
+		fmt.Println("Stopping wire-pod")
+		podProcess.Kill()
+		podProcess.Wait()
+		fmt.Println("Stopped")
+	}
 }
 
 func main() {
-	StopWirePodIfRunning()
-	err := zenity.Question(
-		"Would you like to remove application data, like saved bot settings or API preferences?",
-		zenity.ExtraButton("No"),
-	)
-	if err == nil {
-		conf, _ := os.UserConfigDir()
-		os.RemoveAll(filepath.Join(conf, "wire-pod"))
+	if os.Getenv("RUN_DISCRETE") == "true" {
+		discrete = true
 	}
-	keyPath := `Software\Microsoft\Windows\CurrentVersion\Uninstall\wire-pod`
-	k, err := registry.OpenKey(registry.LOCAL_MACHINE, keyPath, registry.QUERY_VALUE)
+	if !discrete {
+		err := zenity.Question(
+			"Are you sure you want to uninstall wire-pod?",
+			zenity.QuestionIcon,
+			zenity.Title("wire-pod uninstaller"),
+			zenity.OKLabel("Yes"),
+		)
+		if errors.Is(err, zenity.ErrCanceled) {
+			os.Exit(1)
+		}
+	}
+	StopWirePodIfRunning()
+	if !discrete {
+		err := zenity.Question(
+			"Would you like to remove application data, including saved bot settings and API preferences?",
+			zenity.ExtraButton("No"),
+			zenity.QuestionIcon,
+			zenity.NoCancel(),
+			zenity.Title("wire-pod uninstaller"),
+		)
+		if err == nil {
+			conf, _ := os.UserConfigDir()
+			os.RemoveAll(filepath.Join(conf, "wire-pod"))
+		}
+	}
+	keyPath := `Software\wire-pod`
+	k, err := registry.OpenKey(registry.CURRENT_USER, keyPath, registry.QUERY_VALUE)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -48,7 +95,10 @@ func main() {
 	}
 
 	k.Close()
+	keyPath = `Software\Microsoft\Windows\CurrentVersion\Uninstall\wire-pod`
 	registry.DeleteKey(registry.LOCAL_MACHINE, keyPath)
+	keyPath = `Software\wire-pod`
+	registry.DeleteKey(registry.CURRENT_USER, keyPath)
 
 	DontRunPodAtStartup()
 
@@ -57,11 +107,13 @@ func main() {
 	os.RemoveAll(filepath.Join(val, "chipper"))
 	os.RemoveAll(filepath.Join(val, "vector-cloud"))
 	os.Remove("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\wire-pod.lnk")
-	zenity.Info(
-		"wire-pod has successfully been uninstalled.",
-		zenity.InfoIcon,
-		zenity.Title("wire-pod uninstaller"),
-	)
+	if !discrete {
+		zenity.Info(
+			"wire-pod has successfully been uninstalled.",
+			zenity.InfoIcon,
+			zenity.Title("wire-pod uninstaller"),
+		)
+	}
 	os.RemoveAll(val)
 	os.Exit(0)
 }
