@@ -13,6 +13,7 @@ func (s *Server) StreamingIntentGraph(stream pb.ChipperGrpc_StreamingIntentGraph
 	recvTime := time.Now()
 
 	req, err := stream.Recv()
+	logger.Println("Received intent graph request")
 	if err != nil {
 		logger.Println("Intent graph error")
 		logger.Println(err)
@@ -36,6 +37,8 @@ func (s *Server) StreamingIntentGraph(stream pb.ChipperGrpc_StreamingIntentGraph
 		logger.Println(err)
 		return err
 	}
+
+	logger.Println("Intent graph request served")
 
 	return nil
 }

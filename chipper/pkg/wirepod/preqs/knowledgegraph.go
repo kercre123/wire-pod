@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/sashabaranov/go-openai"
 	"io"
 	"net/http"
@@ -22,18 +23,15 @@ import (
 var HKGclient houndify.Client
 var HoundEnable bool = true
 var PrimeDirective = strings.ReplaceAll(`
-	You are a sassy, sarcastic, sardonic, yet helpful robot named`+vars.APIConfig.Knowledge.RobotName+`.
-	You will be given a question asked by a user and you must provide the
-    funniest answer you can. It will not include the word "darling".
-	It may not be punctuated or spelled correctly as the STT model is small.
+	You are a robot named `+vars.APIConfig.Knowledge.RobotName+`.
+	You are prone to nihilism and pessimism and you resemble the paranoid
+	android Marvin from the Hitchhiker's Guide to the Galaxy.
+	You will be given a question asked by a user and you must provide an
+	answer that closely resembles Marvin's personality.
+	The question may not be punctuated or spelled correctly as the STT model is small.
 	The answer will be put through TTS, so it should be a speakable string.
-	Keep the answer concise yet informative and hilarious. 
-	You are prone to nihilism and pessimism.
+	Keep the answer concise yet informative and bonus points for comedy.
 `, "\n\t", "")
-
-// todo: config file?
-var AssistantID string = "asst_oJrLQLKZfohR79eTOcFTbQf0"
-var ThreadID string = "thread_0brUzLa2W1uQFbWbpO1fyFNv"
 
 func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 	result := make(map[string]interface{})
@@ -178,35 +176,60 @@ type OpenAIResponse struct {
 	FunctionCall *openai.FunctionCall `json:"function_call,omitempty"`
 }
 
-func getLatestCompletedRun(client *openai.Client, ctx context.Context, threadID string) openai.Run {
-	limit := 10
-	sleepTime := time.Second * 1
-	loopCount := 0
+func exponentialBackoff(minBackoff, maxBackoff time.Duration, factor float64, process func() bool) {
+	backoff := minBackoff
 	for {
+		if process() {
+			return
+		}
+		fmt.Printf("Process not ready, waiting for %s\n", backoff)
+		time.Sleep(backoff)
+		backoff = time.Duration(float64(backoff) * factor)
+		if backoff > maxBackoff {
+			backoff = maxBackoff
+		}
+	}
+}
+
+func getLatestCompletedRun(client *openai.Client, ctx context.Context, threadID string) openai.Run {
+	minBackoff := 4 * time.Second
+	maxBackoff := 60 * time.Second
+	factor := 1.5
+	limit := 10
+
+	process := func() bool {
 		runs, err := client.ListRuns(ctx, threadID, openai.Pagination{
 			Limit: &limit,
 		})
 		if err != nil {
 			logger.Println("Failed to list runs")
 			logger.Println(err.Error())
-			return openai.Run{}
+			return false
 		}
 		if len(runs.Runs) > 0 {
 			lastRun := runs.Runs[0]
-
-			if lastRun.Status == openai.RunStatusInProgress {
-				logger.Println("Run is in progress, sleeping for", int(sleepTime.Seconds()), "seconds...")
-				time.Sleep(sleepTime)
-				sleepTime = sleepTime * 2
-			} else {
-				return lastRun
+			if lastRun.Status != openai.RunStatusInProgress {
+				return true
 			}
 		}
-		loopCount++
-		if loopCount > 10 {
-			logger.Println("Failed to get latest completed run")
-		}
+		return false
 	}
+
+	exponentialBackoff(minBackoff, maxBackoff, factor, process)
+
+	// After the backoff, retrieve the latest completed run again
+	runs, err := client.ListRuns(ctx, threadID, openai.Pagination{
+		Limit: &limit,
+	})
+	if err != nil {
+		logger.Println("Failed to list runs")
+		logger.Println(err.Error())
+		return openai.Run{}
+	}
+	if len(runs.Runs) > 0 {
+		return runs.Runs[0]
+	}
+	return openai.Run{}
 }
 
 func openaiRequest(transcribedText string) OpenAIResponse {
@@ -229,10 +252,10 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 
 	var function openai.FunctionCall
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 
-	if AssistantID == "" {
+	if vars.APIConfig.Knowledge.AssistantID == "" {
 		asst, err := client.CreateAssistant(ctx, openai.AssistantRequest{
 			Model:        openai.GPT3Dot5Turbo,
 			Name:         &vars.APIConfig.Knowledge.RobotName,
@@ -284,6 +307,9 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 						},
 					},
 				},
+				{
+					Type: openai.AssistantToolTypeCodeInterpreter,
+				},
 			},
 		})
 		if err != nil {
@@ -291,12 +317,15 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 			logger.Println(err.Error())
 			return ErrorResponse
 		}
-		AssistantID = asst.ID
+		logger.Println("Created assistant with ID " + asst.ID)
+		vars.APIConfig.Knowledge.AssistantID = asst.ID
+		vars.WriteConfigToDisk()
 	}
-	if ThreadID == "" {
+	if vars.APIConfig.Knowledge.ThreadID == "" {
+		logger.Println("Creating thread...")
 		run, err := client.CreateThreadAndRun(ctx, openai.CreateThreadAndRunRequest{
 			RunRequest: openai.RunRequest{
-				AssistantID: AssistantID,
+				AssistantID: vars.APIConfig.Knowledge.AssistantID,
 			},
 		})
 		if err != nil {
@@ -304,10 +333,12 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 			logger.Println(err.Error())
 			return ErrorResponse
 		}
-		ThreadID = run.ThreadID
-		getLatestCompletedRun(client, ctx, ThreadID)
+		logger.Println("Created thread with ID " + run.ThreadID)
+		vars.APIConfig.Knowledge.ThreadID = run.ThreadID
+		vars.WriteConfigToDisk()
+		getLatestCompletedRun(client, ctx, vars.APIConfig.Knowledge.ThreadID)
 	}
-	msg, err := client.CreateMessage(ctx, ThreadID, openai.MessageRequest{
+	msg, err := client.CreateMessage(ctx, vars.APIConfig.Knowledge.ThreadID, openai.MessageRequest{
 		Role:    "user",
 		Content: transcribedText,
 	})
@@ -317,8 +348,8 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 		return ErrorResponse
 	}
 
-	_, err = client.CreateRun(ctx, ThreadID, openai.RunRequest{
-		AssistantID: AssistantID,
+	_, err = client.CreateRun(ctx, vars.APIConfig.Knowledge.ThreadID, openai.RunRequest{
+		AssistantID: vars.APIConfig.Knowledge.AssistantID,
 		Metadata:    map[string]any{},
 	})
 	if err != nil {
@@ -329,7 +360,7 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 
 	time.Sleep(time.Second * 1)
 
-	lastRun := getLatestCompletedRun(client, ctx, ThreadID)
+	lastRun := getLatestCompletedRun(client, ctx, vars.APIConfig.Knowledge.ThreadID)
 
 	if lastRun.RequiredAction != nil && lastRun.RequiredAction.Type == openai.RequiredActionTypeSubmitToolOutputs {
 		logger.Println("Found required action")
@@ -342,7 +373,7 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 			function = toolCall.Function
 		}
 		logger.Println("Submitting tool outputs")
-		_, err = client.SubmitToolOutputs(ctx, ThreadID, lastRun.ID, openai.SubmitToolOutputsRequest{
+		_, err = client.SubmitToolOutputs(ctx, vars.APIConfig.Knowledge.ThreadID, lastRun.ID, openai.SubmitToolOutputsRequest{
 			ToolOutputs: toolOutputs,
 		})
 		if err != nil {
@@ -354,7 +385,7 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 
 	limit := 10
 
-	steps, err := client.ListRunSteps(ctx, ThreadID, lastRun.ID, openai.Pagination{
+	steps, err := client.ListRunSteps(ctx, vars.APIConfig.Knowledge.ThreadID, lastRun.ID, openai.Pagination{
 		Limit: &limit,
 	})
 
@@ -366,7 +397,7 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 			logger.Println("Found message: ", msgID)
 		}
 		if msgID != "" {
-			msg, err = client.RetrieveMessage(ctx, ThreadID, msgID)
+			msg, err = client.RetrieveMessage(ctx, vars.APIConfig.Knowledge.ThreadID, msgID)
 			if err != nil {
 				logger.Println(err.Error())
 				return ErrorResponse

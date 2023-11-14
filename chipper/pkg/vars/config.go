@@ -29,6 +29,8 @@ type apiConfig struct {
 		Model       string `json:"model"`
 		IntentGraph bool   `json:"intentgraph"`
 		RobotName   string `json:"robotName"`
+		AssistantID string `json:"assistantID"`
+		ThreadID    string `json:"threadID"`
 	} `json:"knowledge"`
 	STT struct {
 		Service  string `json:"provider"`
