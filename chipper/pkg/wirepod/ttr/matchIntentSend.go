@@ -242,30 +242,30 @@ func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 			intentNum = intentNum + 1
 		}
 		// Not found? Then let's be happy with a bare substring search
-		if !successMatched {
-			intentNum = 0
-			matched = 0
-			for _, b := range listOfLists {
-				for _, c := range b {
-					if strings.Contains(voiceText, strings.ToLower(c)) {
-						logger.Println("Partial match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
-						if isOpus {
-							ParamChecker(req, intentList[intentNum], voiceText, botSerial)
-						} else {
-							prehistoricParamChecker(req, intentList[intentNum], voiceText, botSerial)
-						}
-						successMatched = true
-						matched = 1
-						break
-					}
-				}
-				if matched == 1 {
-					matched = 0
-					break
-				}
-				intentNum = intentNum + 1
-			}
-		}
+		//if !successMatched {
+		//	intentNum = 0
+		//	matched = 0
+		//	for _, b := range listOfLists {
+		//		for _, c := range b {
+		//			if strings.Contains(voiceText, strings.ToLower(c)) {
+		//				logger.Println("Partial match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
+		//				if isOpus {
+		//					ParamChecker(req, intentList[intentNum], voiceText, botSerial)
+		//				} else {
+		//					prehistoricParamChecker(req, intentList[intentNum], voiceText, botSerial)
+		//				}
+		//				successMatched = true
+		//				matched = 1
+		//				break
+		//			}
+		//		}
+		//		if matched == 1 {
+		//			matched = 0
+		//			break
+		//		}
+		//		intentNum = intentNum + 1
+		//	}
+		//}
 	} else {
 		logger.Println("This is a custom intent or plugin!")
 		successMatched = true

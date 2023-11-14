@@ -31,7 +31,7 @@ const (
 	// SampleBits defines how many bits each sample should contain
 	SampleBits = 16
 	// DefaultTimeout is the length of time before the process will cancel a voice request
-	DefaultTimeout = 9 * time.Second
+	DefaultTimeout = 30 * time.Second
 )
 
 // Process contains the data associated with an instance of the cloud process,

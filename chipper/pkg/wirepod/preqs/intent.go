@@ -37,10 +37,11 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		ttr.ParamCheckerSlotsEnUS(req, intent, slots, speechReq.IsOpus, speechReq.Device)
 		return nil, nil
 	}
+
 	if !successMatched {
 		if vars.APIConfig.Knowledge.IntentGraph {
 			RemoveFromInterrupt(req.Device)
-			resp := openaiRequest(transcribedText)
+			resp := openaiRequest(transcribedText).Message
 			logger.LogUI("OpenAI response for device " + req.Device + ": " + resp)
 			KGSim(req.Device, resp)
 		}

@@ -2,10 +2,13 @@ package processreqs
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"github.com/sashabaranov/go-openai"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/chipper/pkg/logger"
@@ -18,6 +21,19 @@ import (
 
 var HKGclient houndify.Client
 var HoundEnable bool = true
+var PrimeDirective = strings.ReplaceAll(`
+	You are a sassy, sarcastic, sardonic, yet helpful robot named`+vars.APIConfig.Knowledge.RobotName+`.
+	You will be given a question asked by a user and you must provide the
+    funniest answer you can. It will not include the word "darling".
+	It may not be punctuated or spelled correctly as the STT model is small.
+	The answer will be put through TTS, so it should be a speakable string.
+	Keep the answer concise yet informative and hilarious. 
+	You are prone to nihilism and pessimism.
+`, "\n\t", "")
+
+// todo: config file?
+var AssistantID string = "asst_V7c8WwDkjIJSjMHiLs7oqFW8"
+var ThreadID string = "thread_3uPHyDgX70iSjMtNPfZoDf6v"
 
 func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 	result := make(map[string]interface{})
@@ -109,64 +125,12 @@ func togetherRequest(transcribedText string) string {
 	return "Answer was not found"
 }
 
-func openaiRequest(transcribedText string) string {
-	sendString := "You are a helpful robot called " + vars.APIConfig.Knowledge.RobotName + ". You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
-	logger.Println("Making request to OpenAI...")
-	url := "https://api.openai.com/v1/completions"
-	formData := `{
-"model": "gpt-3.5-turbo-instruct",
-"prompt": "` + sendString + `",
-"temperature": 0.7,
-"max_tokens": 256,
-"top_p": 1,
-"frequency_penalty": 0.2,
-"presence_penalty": 0
-}`
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(formData)))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+vars.APIConfig.Knowledge.Key)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		logger.Println(err)
-		return "There was an error making the request to OpenAI."
-	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	type openAIStruct struct {
-		ID      string `json:"id"`
-		Object  string `json:"object"`
-		Created int    `json:"created"`
-		Model   string `json:"model"`
-		Choices []struct {
-			Text         string      `json:"text"`
-			Index        int         `json:"index"`
-			Logprobs     interface{} `json:"logprobs"`
-			FinishReason string      `json:"finish_reason"`
-		} `json:"choices"`
-		Usage struct {
-			PromptTokens     int `json:"prompt_tokens"`
-			CompletionTokens int `json:"completion_tokens"`
-			TotalTokens      int `json:"total_tokens"`
-		} `json:"usage"`
-	}
-	var openAIResponse openAIStruct
-	err = json.Unmarshal(body, &openAIResponse)
-	if err != nil || len(openAIResponse.Choices) == 0 {
-		logger.Println("OpenAI returned no response.")
-		return "OpenAI returned no response."
-	}
-	apiResponse := strings.TrimSpace(openAIResponse.Choices[0].Text)
-	logger.Println("OpenAI response: " + apiResponse)
-	return apiResponse
-}
-
 func openaiKG(speechReq sr.SpeechRequest) string {
 	transcribedText, err := sttHandler(speechReq)
 	if err != nil {
 		return "There was an error."
 	}
-	return openaiRequest(transcribedText)
+	return openaiRequest(transcribedText).Message
 }
 
 func togetherKG(speechReq sr.SpeechRequest) string {
@@ -207,4 +171,200 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 	}
 	return nil, nil
 
+}
+
+type OpenAIResponse struct {
+	Message      string               `json:"message"`
+	FunctionCall *openai.FunctionCall `json:"function_call,omitempty"`
+}
+
+func getLatestCompletedRun(client *openai.Client, ctx context.Context, threadID string) openai.Run {
+	limit := 10
+	sleepTime := time.Second * 1
+	for {
+		runs, err := client.ListRuns(ctx, threadID, openai.Pagination{
+			Limit: &limit,
+		})
+		if err != nil {
+			logger.Println("Failed to list runs")
+			logger.Println(err.Error())
+			return openai.Run{}
+		}
+		lastRun := runs.Runs[0]
+		if lastRun.Status == openai.RunStatusInProgress {
+			logger.Println("Run is in progress, sleeping for", int(sleepTime.Seconds()), "seconds...")
+			time.Sleep(sleepTime)
+			sleepTime = sleepTime * 2
+		} else {
+			return lastRun
+		}
+	}
+}
+
+func openaiRequest(transcribedText string) OpenAIResponse {
+	client := openai.NewClient(vars.APIConfig.Knowledge.Key)
+
+	type FunctionParam struct {
+		Type        string `json:"type"`
+		Description string `json:"description"`
+	}
+
+	type FunctionParams struct {
+		Type       string                   `json:"type"`
+		Required   []string                 `json:"required"`
+		Properties map[string]FunctionParam `json:"properties"`
+	}
+
+	ErrorResponse := OpenAIResponse{
+		Message: "Whoops, I fucked up, sorry.",
+	}
+
+	var function openai.FunctionCall
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	if AssistantID == "" {
+		asst, err := client.CreateAssistant(ctx, openai.AssistantRequest{
+			Model:        openai.GPT4,
+			Name:         &vars.APIConfig.Knowledge.RobotName,
+			Instructions: &PrimeDirective,
+			Tools: []openai.AssistantTool{
+				{
+					Type: openai.AssistantToolTypeFunction,
+					Function: &openai.FunctionDefinition{
+						Name:        "intent_photo_take_extend",
+						Description: "Take a selfie. A photo of one's self.",
+						Parameters: FunctionParams{
+							Type: "object",
+							Properties: map[string]FunctionParam{
+								"user": {
+									Type:        "string",
+									Description: "The user to take a selfie of",
+								},
+							},
+							Required: []string{"user"},
+						},
+					},
+				},
+				{
+					Type: openai.AssistantToolTypeFunction,
+					Function: &openai.FunctionDefinition{
+						Name:        "intent_imperative_eyecolor_specific_extend",
+						Description: "Change the color of your eyes. Possible colors are: purple, blue, yellow, teal, orange",
+						Parameters: FunctionParams{
+							Type: "object",
+							Properties: map[string]FunctionParam{
+								"eye_color": {
+									Type:        "string",
+									Description: "The color to change your eyes to",
+								},
+							},
+							Required: []string{"eye_color"},
+						},
+					},
+				},
+				{
+					Type: openai.AssistantToolTypeCodeInterpreter,
+				},
+			},
+		})
+		if err != nil {
+			logger.Println("Failed to create assistant")
+			logger.Println(err.Error())
+			return ErrorResponse
+		}
+		AssistantID = asst.ID
+	}
+	if ThreadID == "" {
+		thread, err := client.CreateThread(ctx, openai.ThreadRequest{})
+		if err != nil {
+			logger.Println("Error creating thread")
+			logger.Println(err.Error())
+			return ErrorResponse
+		}
+		ThreadID = thread.ID
+	}
+	msg, err := client.CreateMessage(ctx, ThreadID, openai.MessageRequest{
+		Role:    "user",
+		Content: transcribedText,
+	})
+	if err != nil {
+		logger.Println("Failed to create message")
+		logger.Println(err.Error())
+		return ErrorResponse
+	}
+
+	_, err = client.CreateRun(ctx, ThreadID, openai.RunRequest{
+		AssistantID: AssistantID,
+		Metadata:    map[string]any{},
+	})
+	if err != nil {
+		logger.Println("Failed to create run")
+		logger.Println(err.Error())
+		return ErrorResponse
+	}
+
+	time.Sleep(time.Second * 1)
+
+	lastRun := getLatestCompletedRun(client, ctx, ThreadID)
+
+	if lastRun.RequiredAction != nil && lastRun.RequiredAction.Type == openai.RequiredActionTypeSubmitToolOutputs {
+		logger.Println("Found required action")
+		var toolOutputs []openai.ToolOutput
+		for _, toolCall := range lastRun.RequiredAction.SubmitToolOutputs.ToolCalls {
+			toolOutputs = append(toolOutputs, openai.ToolOutput{
+				ToolCallID: toolCall.ID,
+				Output:     `{"success": true}`,
+			})
+			function = toolCall.Function
+		}
+		logger.Println("Submitting tool outputs")
+		_, err = client.SubmitToolOutputs(ctx, ThreadID, lastRun.ID, openai.SubmitToolOutputsRequest{
+			ToolOutputs: toolOutputs,
+		})
+		if err != nil {
+			logger.Println("Failed to submit tool outputs")
+			logger.Println(err.Error())
+			return ErrorResponse
+		}
+	}
+
+	limit := 10
+
+	steps, err := client.ListRunSteps(ctx, ThreadID, lastRun.ID, openai.Pagination{
+		Limit: &limit,
+	})
+
+	if len(steps.RunSteps) > 0 {
+		lastStep := steps.RunSteps[0]
+		var msgID string
+		if lastStep.StepDetails.Type == "message_creation" {
+			msgID = lastStep.StepDetails.MessageCreation.MessageID
+			logger.Println("Found message: ", msgID)
+		}
+		if msgID != "" {
+			msg, err = client.RetrieveMessage(ctx, ThreadID, msgID)
+			if err != nil {
+				logger.Println(err.Error())
+				return ErrorResponse
+			}
+			apiResponse := strings.TrimSpace(msg.Content[0].Text.Value)
+			logger.Println("OpenAI response: " + apiResponse)
+
+			return OpenAIResponse{
+				Message: apiResponse,
+			}
+		} else if function != (openai.FunctionCall{}) {
+			logger.Println("Found function call, executing...")
+			return OpenAIResponse{
+				FunctionCall: &function,
+			}
+		} else {
+			logger.Println("Failed to find message in run steps")
+		}
+	} else {
+		logger.Println("Failed to find run steps")
+	}
+	return ErrorResponse
 }

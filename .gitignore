@@ -11,6 +11,7 @@
 /chipper/processOnce
 /ssh_root_key
 /.vscode
+/.idea
 /chipper/botConfig.json
 /chipper/.vscode
 /chipper/useepod
