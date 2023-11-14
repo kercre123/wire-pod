@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -22,7 +23,7 @@ import (
 var mBoxTitle = "wire-pod"
 var mBoxError = `There was an error starting wire-pod: `
 var mBoxAlreadyRunning = "Wire-pod is already running. You must quit that instance before starting another one. Exiting."
-var mBoxSuccess = `Wire-pod has started successfully! It is now running in the background. It can be stopped in the system tray.`
+var mBoxSuccess = `Wire-pod has started successfully! It is now running in the background and can be managed in the system tray.`
 var mBoxIcon = "./icons/start-up-full.png"
 
 func getNeedsSetupMsg() string {
@@ -48,14 +49,33 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	os.WriteFile(conf+"\\runningPID", []byte(strconv.Itoa(os.Getpid())), 0777)
-	os.WriteFile(filepath.Join(os.TempDir(), "/wirepodrunningPID"), []byte(strconv.Itoa(os.Getpid())), 0777)
-
-	keyPath := `Software\Microsoft\Windows\CurrentVersion\Uninstall\wire-pod`
-	k, err := registry.OpenKey(registry.LOCAL_MACHINE, keyPath, registry.QUERY_VALUE)
+	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
 	if err != nil {
-		ErrMsg(fmt.Errorf("error opening key from the registry: " + err.Error()))
+		fmt.Println("Error reading from registry: " + err.Error())
+		return
 	}
+	defer k.Close()
+
+	pidPre, _, err := k.GetIntegerValue("LastRunningPID")
+	if err == nil {
+		fmt.Println(int(pidPre))
+		_, err := os.FindProcess(int(pidPre))
+		if err == nil || errors.Is(err, os.ErrPermission) {
+			zenity.Error(
+				"Wire-pod is already running.",
+				zenity.ErrorIcon,
+				zenity.Title(mBoxTitle),
+			)
+			os.Exit(1)
+		}
+	}
+
+	err = k.SetQWordValue("LastRunningPID", uint64(os.Getpid()))
+	if err != nil {
+		fmt.Println("Error writing to registry: " + err.Error())
+		return
+	}
+
 	val, _, err := k.GetStringValue("InstallPath")
 	if err != nil {
 		ErrMsg(fmt.Errorf("error getting value from the registry: " + err.Error()))
@@ -69,10 +89,13 @@ func main() {
 }
 
 func ExitProgram(code int) {
-	conf, _ := os.UserConfigDir()
-	os.Remove(conf + "/runningPID")
+	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
+	if err != nil {
+		fmt.Println("Error reading from registry: " + err.Error())
+		os.Exit(code)
+	}
+	k.DeleteValue("LastRunningPID")
 	os.Exit(code)
-
 }
 
 func onExit() {
@@ -99,6 +122,7 @@ func onReady() {
 	systray.SetTooltip("wire-pod is starting...")
 	mQuit := systray.AddMenuItem("Quit", "Quit wire-pod")
 	mBrowse := systray.AddMenuItem("Web interface", "Open web UI")
+	mConfig := systray.AddMenuItem("Config folder", "Open config folder in case you need to. The web UI should have everything you need.")
 
 	go func() {
 		for {
@@ -112,6 +136,9 @@ func onReady() {
 				ExitProgram(0)
 			case <-mBrowse.ClickedCh:
 				go openBrowser("http://" + botsetup.GetOutboundIP().String() + ":" + vars.WebPort)
+			case <-mConfig.ClickedCh:
+				conf, _ := os.UserConfigDir()
+				go openFileExplorer(filepath.Join(conf, vars.PodName))
 			}
 		}
 	}()
@@ -141,4 +168,20 @@ func openBrowser(url string) {
 		)
 		logger.Println(err)
 	}
+}
+
+func openFileExplorer(path string) error {
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("explorer", path)
+	case "darwin":
+		cmd = exec.Command("open", path)
+	case "linux":
+		cmd = exec.Command("xdg-open", path)
+	default:
+		return fmt.Errorf("unsupported platform")
+	}
+	return cmd.Start()
 }

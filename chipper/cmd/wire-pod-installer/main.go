@@ -62,7 +62,6 @@ func GetStatusChan() chan string {
 
 func ExecuteDetached(program string) error {
 	cmd := exec.Command(program)
-	// Start the program in a new process group to make it detached
 	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP}
 	return cmd.Start()
 }
@@ -131,7 +130,10 @@ func DoInstall(myApp fyne.App, is InstallSettings) {
 			card.Refresh()
 		}
 	}()
-	InstallWirePod(is)
+	err := InstallWirePod(is)
+	if err != nil {
+		fmt.Println("error installing wire-pod: " + err.Error())
+	}
 	window.Hide()
 	PostInstall(myApp, is)
 }
@@ -146,13 +148,16 @@ func GetPreferences(myApp fyne.App) {
 		is.RunAtStartup = checked
 	})
 
+	launchOnStartup.SetChecked(true)
+	is.RunAtStartup = true
+
 	installDir := widget.NewEntry()
 	installDir.SetText(DefaultInstallationDirectory)
 
 	selectDirButton := widget.NewButton("Select Directory", func() {
 		dlg := dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
 			if uri != nil {
-				installDir.SetText(uri.Path())
+				installDir.SetText(filepath.Join(uri.Path(), "wire-pod"))
 			}
 		}, window)
 		dlg.Show()
@@ -191,9 +196,7 @@ func GetPreferences(myApp fyne.App) {
 }
 
 func StopWirePodIfRunning() {
-	confDir, _ := os.UserConfigDir()
-	podDir := confDir + "/wire-pod"
-	podPid, err := os.ReadFile(podDir + "/runningPID")
+	podPid, err := os.ReadFile(filepath.Join(os.TempDir(), "/wirepodrunningPID"))
 	if err == nil {
 		pid, _ := strconv.Atoi(string(podPid))
 		// doesn't work on unix, but should on Windows
@@ -205,12 +208,10 @@ func StopWirePodIfRunning() {
 			fmt.Println("Stopped")
 		}
 	}
+	CheckWirePodRunningViaRegistry()
 }
 
 func ValidateInstallDirectory(dir string) bool {
-	if dir == "C:\\Program Files" || dir == "C:\\Program Files\\" {
-		return false
-	}
 	var dirWithoutLast string
 	splitDir := strings.Split(dir, "\\")
 	dirWithoutLast = splitDir[0]
@@ -233,6 +234,19 @@ func main() {
 		fmt.Println("installer must be run as administrator")
 		os.Exit(0)
 	}
+	fmt.Println("Getting tag from GitHub")
+	tag, err := GetLatestReleaseTag("kercre123", "wire-pod")
+	if err != nil {
+		fmt.Println("Error getting: " + err.Error())
+		zenity.Error(
+			"Error getting latest GitHub tag from GitHub, exiting: "+err.Error(),
+			zenity.ErrorIcon,
+			zenity.Title("wire-pod installer"),
+		)
+		os.Exit(0)
+	}
+	GitHubTag = tag
+	fmt.Println(tag)
 	iconBytes, err := iconData.ReadFile("ico/pod.png")
 	if err != nil {
 		fmt.Println(err)

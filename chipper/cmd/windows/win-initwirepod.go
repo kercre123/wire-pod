@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
@@ -49,6 +50,7 @@ func NeedsSetupMsg() {
 			zenity.Icon(mBoxIcon),
 			zenity.Title(mBoxTitle),
 			zenity.ExtraButton("Open browser"),
+			zenity.OKLabel("OK"),
 		)
 		if err != nil {
 			if err == zenity.ErrExtraButton {
@@ -275,8 +277,14 @@ func StartChipper(fromInit bool) {
 		go httpServe(httpListenerTwo)
 	}
 
-	systray.SetTooltip("wire-pod is running.")
-	if fromInit {
+	systray.SetTooltip("wire-pod is running.\n" + "http://" + botsetup.GetOutboundIP().String() + ":" + vars.WebPort)
+	var discrete bool
+	if len(os.Args) > 1 {
+		if strings.Contains(os.Args[1], "-d") {
+			discrete = true
+		}
+	}
+	if fromInit && !discrete {
 		go zenity.Info(
 			mBoxSuccess,
 			zenity.Icon(mBoxIcon),
