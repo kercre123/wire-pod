@@ -182,7 +182,7 @@ func exponentialBackoff(minBackoff, maxBackoff time.Duration, factor float64, pr
 		if process() {
 			return
 		}
-		fmt.Printf("Process not ready, waiting for %s\n", backoff)
+		fmt.Printf("Waiting for run to complete %s\n", backoff)
 		time.Sleep(backoff)
 		backoff = time.Duration(float64(backoff) * factor)
 		if backoff > maxBackoff {

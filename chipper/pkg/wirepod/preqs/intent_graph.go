@@ -1,12 +1,12 @@
 package processreqs
 
 import (
+	"encoding/json"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/vtt"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
 	ttr "github.com/kercre123/chipper/pkg/wirepod/ttr"
-	"k8s.io/apimachinery/pkg/util/json"
 )
 
 func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGraphResponse, error) {
