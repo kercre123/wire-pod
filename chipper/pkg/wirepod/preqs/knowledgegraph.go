@@ -32,8 +32,8 @@ var PrimeDirective = strings.ReplaceAll(`
 `, "\n\t", "")
 
 // todo: config file?
-var AssistantID string = "asst_V7c8WwDkjIJSjMHiLs7oqFW8"
-var ThreadID string = "thread_3uPHyDgX70iSjMtNPfZoDf6v"
+var AssistantID string = "asst_oJrLQLKZfohR79eTOcFTbQf0"
+var ThreadID string = "thread_0brUzLa2W1uQFbWbpO1fyFNv"
 
 func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 	result := make(map[string]interface{})
@@ -181,6 +181,7 @@ type OpenAIResponse struct {
 func getLatestCompletedRun(client *openai.Client, ctx context.Context, threadID string) openai.Run {
 	limit := 10
 	sleepTime := time.Second * 1
+	loopCount := 0
 	for {
 		runs, err := client.ListRuns(ctx, threadID, openai.Pagination{
 			Limit: &limit,
@@ -190,13 +191,20 @@ func getLatestCompletedRun(client *openai.Client, ctx context.Context, threadID 
 			logger.Println(err.Error())
 			return openai.Run{}
 		}
-		lastRun := runs.Runs[0]
-		if lastRun.Status == openai.RunStatusInProgress {
-			logger.Println("Run is in progress, sleeping for", int(sleepTime.Seconds()), "seconds...")
-			time.Sleep(sleepTime)
-			sleepTime = sleepTime * 2
-		} else {
-			return lastRun
+		if len(runs.Runs) > 0 {
+			lastRun := runs.Runs[0]
+
+			if lastRun.Status == openai.RunStatusInProgress {
+				logger.Println("Run is in progress, sleeping for", int(sleepTime.Seconds()), "seconds...")
+				time.Sleep(sleepTime)
+				sleepTime = sleepTime * 2
+			} else {
+				return lastRun
+			}
+		}
+		loopCount++
+		if loopCount > 10 {
+			logger.Println("Failed to get latest completed run")
 		}
 	}
 }
@@ -221,12 +229,12 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 
 	var function openai.FunctionCall
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
 	if AssistantID == "" {
 		asst, err := client.CreateAssistant(ctx, openai.AssistantRequest{
-			Model:        openai.GPT4,
+			Model:        openai.GPT3Dot5Turbo,
 			Name:         &vars.APIConfig.Knowledge.RobotName,
 			Instructions: &PrimeDirective,
 			Tools: []openai.AssistantTool{
@@ -286,13 +294,18 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 		AssistantID = asst.ID
 	}
 	if ThreadID == "" {
-		thread, err := client.CreateThread(ctx, openai.ThreadRequest{})
+		run, err := client.CreateThreadAndRun(ctx, openai.CreateThreadAndRunRequest{
+			RunRequest: openai.RunRequest{
+				AssistantID: AssistantID,
+			},
+		})
 		if err != nil {
 			logger.Println("Error creating thread")
 			logger.Println(err.Error())
 			return ErrorResponse
 		}
-		ThreadID = thread.ID
+		ThreadID = run.ThreadID
+		getLatestCompletedRun(client, ctx, ThreadID)
 	}
 	msg, err := client.CreateMessage(ctx, ThreadID, openai.MessageRequest{
 		Role:    "user",
