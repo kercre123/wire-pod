@@ -91,6 +91,7 @@ func UpdateSoftwareRegistry(is InstallSettings) {
 	defer k.Close()
 	k.SetStringValue("InstallPath", is.Where)
 	k.SetStringValue("PodVersion", GitHubTag)
+	k.SetStringValue("WebPort", is.WebPort)
 }
 
 type Release struct {
@@ -121,11 +122,7 @@ func GetLatestReleaseTag(owner, repo string) (string, error) {
 
 func RunPodAtStartup(is InstallSettings) {
 	key, _ := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`, registry.SET_VALUE)
-
-	// Constructing the command to set the environment variable and run chipper.exe
-	//cmd.exe /C start "" "C:\Program Files\wire-pod\chipper\chipper.exe" -d
 	cmd := fmt.Sprintf(`cmd.exe /C start "" "` + filepath.Join(is.Where, "chipper\\chipper.exe") + `" -d`)
-
 	key.SetStringValue("wire-pod", cmd)
 }
 
