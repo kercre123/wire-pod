@@ -247,7 +247,7 @@ func openaiRequest(transcribedText string) OpenAIResponse {
 	}
 
 	ErrorResponse := OpenAIResponse{
-		Message: "Whoops, I fucked up, sorry.",
+		Message: "Whoops, something went wrong with the request.",
 	}
 
 	var function openai.FunctionCall
