@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"strconv"
 
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
 	"github.com/getlantern/systray"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
@@ -19,6 +21,10 @@ import (
 )
 
 // this directory contains code which compiled a single program for end users. gui elements are implemented.
+
+var fyneApp fyne.App
+
+var InstallPath string
 
 var mBoxTitle = "wire-pod"
 var mBoxError = `There was an error starting wire-pod: `
@@ -80,12 +86,23 @@ func main() {
 	if err != nil {
 		ErrMsg(fmt.Errorf("error getting value from the registry: " + err.Error()))
 	}
+	InstallPath = val
 	err = os.Chdir(filepath.Join(val, "chipper"))
 	fmt.Println("Working directory: " + val)
 	if err != nil {
-		ErrMsg(fmt.Errorf("error setting directory to " + val))
+		ErrMsg(fmt.Errorf("error setting runtime directory to " + val))
 	}
-	systray.Run(onReady, onExit)
+
+	webPort, _, err := k.GetStringValue("WebPort")
+	if err == nil {
+		os.Setenv("WEBSERVER_PORT", webPort)
+	}
+
+	go systray.Run(onReady, onExit)
+	// for the about window to work
+	// fine since everything uses `os.Exit()` to exit the program
+	fyneApp = app.New()
+	fyneApp.Run()
 }
 
 func ExitProgram(code int) {
@@ -123,6 +140,7 @@ func onReady() {
 	mQuit := systray.AddMenuItem("Quit", "Quit wire-pod")
 	mBrowse := systray.AddMenuItem("Web interface", "Open web UI")
 	mConfig := systray.AddMenuItem("Config folder", "Open config folder in case you need to. The web UI should have everything you need.")
+	mAbout := systray.AddMenuItem("About", "About wire-pod")
 
 	go func() {
 		for {
@@ -139,6 +157,8 @@ func onReady() {
 			case <-mConfig.ClickedCh:
 				conf, _ := os.UserConfigDir()
 				go openFileExplorer(filepath.Join(conf, vars.PodName))
+			case <-mAbout.ClickedCh:
+				ShowAbout(fyneApp)
 			}
 		}
 	}()

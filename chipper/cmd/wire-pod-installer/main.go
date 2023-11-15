@@ -21,9 +21,9 @@ import (
 //go:embed ico
 var iconData embed.FS
 
-var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
+//var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
 
-//var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
+var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
 
 var DefaultInstallationDirectory string = "C:\\Program Files\\wire-pod"
 
@@ -36,6 +36,7 @@ type InstallSettings struct {
 	RunAtStartup bool
 	AutoUpdate   bool
 	Where        string
+	WebPort      string
 }
 
 func UpdateInstallStatus(status string) {
@@ -138,6 +139,17 @@ func DoInstall(myApp fyne.App, is InstallSettings) {
 	PostInstall(myApp, is)
 }
 
+func ValidateWebPort(port string) bool {
+	i, err := strconv.Atoi(port)
+	if err == nil {
+		if i < 1000 || i > 65353 {
+			return false
+		}
+		return true
+	}
+	return false
+}
+
 func GetPreferences(myApp fyne.App) {
 	var is InstallSettings
 	window := myApp.NewWindow("wire-pod installer")
@@ -153,6 +165,10 @@ func GetPreferences(myApp fyne.App) {
 
 	installDir := widget.NewEntry()
 	installDir.SetText(DefaultInstallationDirectory)
+	installDir.Disable()
+
+	webPort := widget.NewEntry()
+	webPort.SetText("8080")
 
 	selectDirButton := widget.NewButton("Select Directory", func() {
 		dlg := dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
@@ -165,9 +181,16 @@ func GetPreferences(myApp fyne.App) {
 
 	nextButton := widget.NewButton("Next", func() {
 		is.Where = installDir.Text
+		is.WebPort = webPort.Text
 		if !ValidateInstallDirectory(is.Where) {
 			zenity.Warning(
 				"The directory you have provided ("+is.Where+") is invalid. Please provide a valid path or use the default one.",
+				zenity.WarningIcon,
+				zenity.Title("wire-pod installer"),
+			)
+		} else if !ValidateWebPort(is.WebPort) {
+			zenity.Warning(
+				"The web port you have provided ("+is.WebPort+") is invalid. It must be an integer between 1000-65353.",
 				zenity.WarningIcon,
 				zenity.Title("wire-pod installer"),
 			)
@@ -182,13 +205,15 @@ func GetPreferences(myApp fyne.App) {
 		widget.NewRichText(&widget.TextSegment{
 			Text: "This program will install wire-pod with the following settings.",
 		}),
+		widget.NewSeparator(),
 		launchOnStartup,
 		widget.NewSeparator(),
-		widget.NewRichText(&widget.TextSegment{
-			Text: "Installation Directory",
-		}),
+		widget.NewRichTextWithText("Installation Directory"),
 		installDir,
 		selectDirButton,
+		widget.NewSeparator(),
+		widget.NewRichTextWithText("Web Configurator Port"),
+		webPort,
 		widget.NewSeparator(),
 		nextButton,
 	))
