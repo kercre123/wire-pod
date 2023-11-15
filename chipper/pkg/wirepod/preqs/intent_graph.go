@@ -2,6 +2,7 @@ package processreqs
 
 import (
 	"encoding/json"
+	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	"github.com/kercre123/chipper/pkg/vtt"
@@ -47,10 +48,22 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 					logger.Println("Error unmarshalling arguments")
 					logger.Println(err.Error())
 				}
-				logger.Println("Passing intent to ParamCheckerSlotsEnUS")
+				logger.Println("Passing intent to ParamCheckerSlotsEnUS: ", apiResponse.FunctionCall.Name, "with arguments: ", arguments)
 				ttr.ParamCheckerSlotsEnUS(req, apiResponse.FunctionCall.Name, arguments, speechReq.IsOpus, speechReq.Device)
 			} else {
-				KGSim(req.Device, apiResponse.Message)
+				response := &pb.IntentGraphResponse{
+					Session:      req.Session,
+					DeviceId:     req.Device,
+					ResponseType: pb.IntentGraphMode_KNOWLEDGE_GRAPH,
+					SpokenText:   apiResponse.Message,
+					QueryText:    transcribedText,
+					IsFinal:      true,
+				}
+				err := req.Stream.Send(response)
+				if err != nil {
+					logger.Println("Error sending IntentGraphResponse")
+					logger.Println(err.Error())
+				}
 			}
 			return nil, nil
 		}
