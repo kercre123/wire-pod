@@ -33,6 +33,7 @@ require (
 	fyne.io/systray v1.10.1-0.20230722100817-88df1e0ffa9a // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
+	github.com/alphacep/vosk-api v0.3.45 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect
 	github.com/ebitengine/purego v0.5.0 // indirect
