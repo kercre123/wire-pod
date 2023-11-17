@@ -1,18 +1,13 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 
-	"github.com/kercre123/chipper/pkg/podreg"
-	"golang.org/x/sys/windows/registry"
+	"github.com/kercre123/chipper/pkg/podonwin"
 )
 
 var GitHubTag string
@@ -23,9 +18,9 @@ func UpdateRegistry(is InstallSettings) {
 }
 
 func DeleteAnyOtherInstallation() {
-	instPath, err := podreg.GetRegistryValueString(podreg.UninstallKey, "InstallPath")
+	instPath, err := podonwin.GetRegistryValueString(podonwin.UninstallKey, "InstallPath")
 	if err != nil {
-		val, err := podreg.GetRegistryValueString(podreg.SoftwareKey, "InstallPath")
+		val, err := podonwin.GetRegistryValueString(podonwin.SoftwareKey, "InstallPath")
 		if err != nil {
 			return
 		}
@@ -46,60 +41,33 @@ func UpdateUninstallRegistry(is InstallSettings) {
 	publisher := "github.com/kercre123"
 	uninstallString := filepath.Join(is.Where, `\uninstall.exe`)
 	installLocation := filepath.Join(is.Where, `\chipper\chipper.exe`)
-	err := podreg.UpdateRegistryValueString(podreg.UninstallKey, "DisplayName", appName)
+	err := podonwin.UpdateRegistryValueString(podonwin.UninstallKey, "DisplayName", appName)
 	if err != nil {
 		// if this one works, the rest will
 		fmt.Printf("Error setting DisplayName: %v\n", err)
 		return
 	}
-	podreg.UpdateRegistryValueString(podreg.UninstallKey, "DisplayIcon", displayIcon)
-	podreg.UpdateRegistryValueString(podreg.UninstallKey, "DisplayVersion", displayVersion)
-	podreg.UpdateRegistryValueString(podreg.UninstallKey, "Publisher", publisher)
-	podreg.UpdateRegistryValueString(podreg.UninstallKey, "UninstallString", uninstallString)
-	podreg.UpdateRegistryValueString(podreg.UninstallKey, "InstallLocation", installLocation)
+	podonwin.UpdateRegistryValueString(podonwin.UninstallKey, "DisplayIcon", displayIcon)
+	podonwin.UpdateRegistryValueString(podonwin.UninstallKey, "DisplayVersion", displayVersion)
+	podonwin.UpdateRegistryValueString(podonwin.UninstallKey, "Publisher", publisher)
+	podonwin.UpdateRegistryValueString(podonwin.UninstallKey, "UninstallString", uninstallString)
+	podonwin.UpdateRegistryValueString(podonwin.UninstallKey, "InstallLocation", installLocation)
 	fmt.Println("Registry entries successfully created")
 }
 
 func UpdateSoftwareRegistry(is InstallSettings) {
-	err := podreg.UpdateRegistryValueString(podreg.SoftwareKey, "InstallPath", is.Where)
+	err := podonwin.UpdateRegistryValueString(podonwin.SoftwareKey, "InstallPath", is.Where)
 	if err != nil {
 		fmt.Printf("Error setting registry key InstallPath: %v\n", err)
 		return
 	}
-	podreg.UpdateRegistryValueString(podreg.SoftwareKey, "PodVersion", GitHubTag)
-	podreg.UpdateRegistryValueString(podreg.SoftwareKey, "WebPort", is.WebPort)
-}
-
-type Release struct {
-	TagName string `json:"tag_name"`
-}
-
-func GetLatestReleaseTag(owner, repo string) (string, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var release Release
-	if err := json.Unmarshal(body, &release); err != nil {
-		return "", err
-	}
-
-	return release.TagName, nil
+	podonwin.UpdateRegistryValueString(podonwin.SoftwareKey, "PodVersion", GitHubTag)
+	podonwin.UpdateRegistryValueString(podonwin.SoftwareKey, "WebPort", is.WebPort)
 }
 
 func RunPodAtStartup(is InstallSettings) {
-	key, _ := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`, registry.SET_VALUE)
 	cmd := fmt.Sprintf(`cmd.exe /C start "" "` + filepath.Join(is.Where, "chipper\\chipper.exe") + `" -d`)
-	key.SetStringValue("wire-pod", cmd)
+	podonwin.UpdateRegistryValueString(podonwin.StartupRunKey, "wire-pod", cmd)
 }
 
 func AllowThroughFirewall(is InstallSettings) {
@@ -134,23 +102,24 @@ func AllowThroughFirewall(is InstallSettings) {
 	log.Println("Firewall rule added successfully.")
 }
 
-func CheckWirePodRunningViaRegistry() {
-	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
+func StopWirePod_Registry() {
+	val, err := podonwin.GetRegistryValueInt(podonwin.SoftwareKey, "LastRunningPID")
 	if err != nil {
-		fmt.Println("Error reading from registry: " + err.Error())
+		fmt.Println("wire-pod is not running (good): " + err.Error())
 		return
 	}
-	defer k.Close()
 
-	// Write a value
-	val, _, err := k.GetIntegerValue("LastRunningPID")
+	isRunning, err := podonwin.IsProcessRunning(val)
 	if err != nil {
-		fmt.Println("Error reading from registry: " + err.Error())
+		fmt.Println("Error seeing if wire-pod is running (isprocessrunning): " + err.Error())
 		return
 	}
-	// doesn't work on unix, but should on Windows
-	podProcess, err := os.FindProcess(int(val))
-	if err == nil || errors.Is(err, os.ErrPermission) {
+	if isRunning {
+		podProcess, err := os.FindProcess(val)
+		if err != nil {
+			fmt.Println("Error seeing if wire-pod is running (findprocess): " + err.Error())
+			return
+		}
 		fmt.Println("Stopping wire-pod")
 		podProcess.Kill()
 		podProcess.Wait()

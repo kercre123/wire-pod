@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"golang.org/x/sys/windows/registry"
+	"github.com/kercre123/chipper/pkg/podonwin"
 )
 
 var AboutWindow fyne.Window
@@ -17,19 +17,16 @@ var WindowDefined bool
 var FakeWindow fyne.Window
 
 func RunPodAtStartup(installPath string) {
-	key, _ := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`, registry.QUERY_VALUE|registry.SET_VALUE)
 	cmd := fmt.Sprintf(`cmd.exe /C start "" "` + filepath.Join(installPath, "chipper\\chipper.exe") + `" -d`)
-	key.SetStringValue("wire-pod", cmd)
+	podonwin.UpdateRegistryValueString(podonwin.StartupRunKey, "wire-pod", cmd)
 }
 
 func DontRunPodAtStartup(installPath string) {
-	key, _ := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`, registry.QUERY_VALUE|registry.SET_VALUE)
-	key.DeleteValue("wire-pod")
+	podonwin.DeleteRegistryValue(podonwin.StartupRunKey, "wire-pod")
 }
 
 func IsPodRunningAtStartup() bool {
-	key, _ := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`, registry.QUERY_VALUE)
-	_, _, err := key.GetStringValue("wire-pod")
+	_, err := podonwin.GetRegistryValueString(podonwin.StartupRunKey, "wire-pod")
 	if err != nil {
 		return false
 	}
@@ -37,14 +34,7 @@ func IsPodRunningAtStartup() bool {
 }
 
 func GetPodVersion() string {
-	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
-	if err != nil {
-		fmt.Println("Error reading from registry: " + err.Error())
-		return "v0.0.0"
-	}
-	defer k.Close()
-
-	podVersion, _, err := k.GetStringValue("PodVersion")
+	podVersion, err := podonwin.GetRegistryValueString(podonwin.SoftwareKey, "PodVersion")
 	if err != nil {
 		return "v0.0.0"
 	}

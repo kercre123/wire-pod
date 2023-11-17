@@ -2,7 +2,10 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,16 +18,16 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"github.com/kercre123/chipper/pkg/podreg"
+	"github.com/kercre123/chipper/pkg/podonwin"
 	"github.com/ncruces/zenity"
 )
 
 //go:embed ico
 var iconData embed.FS
 
-var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
+//var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
 
-//var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
+var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
 
 var DefaultInstallationDirectory string = "C:\\Program Files\\wire-pod"
 
@@ -135,6 +138,13 @@ func DoInstall(myApp fyne.App, is InstallSettings) {
 	err := InstallWirePod(is)
 	if err != nil {
 		fmt.Println("error installing wire-pod: " + err.Error())
+		zenity.Error(
+			"Error installing wire-pod, will revert installation and quit: "+err.Error(),
+			zenity.ErrorIcon,
+			zenity.Title("wire-pod installer"),
+		)
+		podonwin.DeleteEverythingFromRegistry()
+		os.Exit(1)
 	}
 	window.Hide()
 	PostInstall(myApp, is)
@@ -225,16 +235,18 @@ func StopWirePodIfRunning() {
 	podPid, err := os.ReadFile(filepath.Join(os.TempDir(), "/wirepodrunningPID"))
 	if err == nil {
 		pid, _ := strconv.Atoi(string(podPid))
-		// doesn't work on unix, but should on Windows
-		podProcess, err := os.FindProcess(pid)
-		if err == nil {
-			fmt.Println("Stopping wire-pod")
-			podProcess.Kill()
-			podProcess.Wait()
-			fmt.Println("Stopped")
+		if is, _ := podonwin.IsProcessRunning(pid); is {
+			podProcess, err := os.FindProcess(pid)
+			if err == nil {
+				fmt.Println("Stopping wire-pod")
+				podProcess.Kill()
+				podProcess.Wait()
+				fmt.Println("Stopped")
+				return
+			}
 		}
 	}
-	CheckWirePodRunningViaRegistry()
+	StopWirePod_Registry()
 }
 
 func ValidateInstallDirectory(dir string) bool {
@@ -260,8 +272,9 @@ func main() {
 		fmt.Println("installer must be run as administrator")
 		os.Exit(0)
 	}
+	fmt.Println("Initing registry")
+	podonwin.Init()
 	fmt.Println("Getting tag from GitHub")
-	podreg.Init(true)
 	tag, err := GetLatestReleaseTag("kercre123", "wire-pod")
 	if err != nil {
 		fmt.Println("Error getting: " + err.Error())
@@ -294,4 +307,30 @@ func CheckIfElevated() bool {
 	}
 	drv.Close()
 	return true
+}
+
+type Release struct {
+	TagName string `json:"tag_name"`
+}
+
+func GetLatestReleaseTag(owner, repo string) (string, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var release Release
+	if err := json.Unmarshal(body, &release); err != nil {
+		return "", err
+	}
+
+	return release.TagName, nil
 }
