@@ -15,6 +15,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	"github.com/kercre123/chipper/pkg/podreg"
 	"github.com/ncruces/zenity"
 )
 
@@ -260,6 +261,7 @@ func main() {
 		os.Exit(0)
 	}
 	fmt.Println("Getting tag from GitHub")
+	podreg.Init(true)
 	tag, err := GetLatestReleaseTag("kercre123", "wire-pod")
 	if err != nil {
 		fmt.Println("Error getting: " + err.Error())

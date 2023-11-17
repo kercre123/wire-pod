@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/kercre123/chipper/pkg/podreg"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -22,18 +23,9 @@ func UpdateRegistry(is InstallSettings) {
 }
 
 func DeleteAnyOtherInstallation() {
-	keyPath := `Software\Microsoft\Windows\CurrentVersion\Uninstall\wire-pod`
-	k, err := registry.OpenKey(registry.LOCAL_MACHINE, keyPath, registry.QUERY_VALUE|registry.SET_VALUE)
+	instPath, err := podreg.GetRegistryValueString(podreg.UninstallKey, "InstallPath")
 	if err != nil {
-		return
-	}
-	instPath, _, err := k.GetStringValue("InstallPath")
-	if err != nil {
-		soft, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.QUERY_VALUE|registry.SET_VALUE)
-		if err != nil {
-			return
-		}
-		val, _, err := soft.GetStringValue("InstallPath")
+		val, err := podreg.GetRegistryValueString(podreg.SoftwareKey, "InstallPath")
 		if err != nil {
 			return
 		}
@@ -48,50 +40,34 @@ func DeleteAnyOtherInstallation() {
 }
 
 func UpdateUninstallRegistry(is InstallSettings) {
-	keyPath := `Software\Microsoft\Windows\CurrentVersion\Uninstall\wire-pod`
 	appName := "wire-pod"
 	displayIcon := filepath.Join(is.Where, `\chipper\icons\ico\pod256x256.ico`)
 	displayVersion := GitHubTag
 	publisher := "github.com/kercre123"
 	uninstallString := filepath.Join(is.Where, `\uninstall.exe`)
 	installLocation := filepath.Join(is.Where, `\chipper\chipper.exe`)
-	k, err := registry.OpenKey(registry.LOCAL_MACHINE, keyPath, registry.QUERY_VALUE|registry.SET_VALUE)
+	err := podreg.UpdateRegistryValueString(podreg.UninstallKey, "DisplayName", appName)
 	if err != nil {
-		k, _, err = registry.CreateKey(registry.LOCAL_MACHINE, keyPath, registry.ALL_ACCESS)
-		if err != nil {
-			fmt.Printf("Error creating registry key: %v\n", err)
-			return
-		}
-	}
-	defer k.Close()
-
-	err = k.SetStringValue("DisplayName", appName)
-	if err != nil {
+		// if this one works, the rest will
 		fmt.Printf("Error setting DisplayName: %v\n", err)
 		return
 	}
-	k.SetStringValue("DisplayIcon", displayIcon)
-	k.SetStringValue("DisplayVersion", displayVersion)
-	k.SetStringValue("Publisher", publisher)
-	k.SetStringValue("UninstallString", uninstallString)
-	k.SetStringValue("InstallLocation", installLocation)
+	podreg.UpdateRegistryValueString(podreg.UninstallKey, "DisplayIcon", displayIcon)
+	podreg.UpdateRegistryValueString(podreg.UninstallKey, "DisplayVersion", displayVersion)
+	podreg.UpdateRegistryValueString(podreg.UninstallKey, "Publisher", publisher)
+	podreg.UpdateRegistryValueString(podreg.UninstallKey, "UninstallString", uninstallString)
+	podreg.UpdateRegistryValueString(podreg.UninstallKey, "InstallLocation", installLocation)
 	fmt.Println("Registry entries successfully created")
 }
 
 func UpdateSoftwareRegistry(is InstallSettings) {
-	keyPath := `Software\wire-pod`
-	k, err := registry.OpenKey(registry.CURRENT_USER, keyPath, registry.QUERY_VALUE|registry.SET_VALUE)
+	err := podreg.UpdateRegistryValueString(podreg.SoftwareKey, "InstallPath", is.Where)
 	if err != nil {
-		k, _, err = registry.CreateKey(registry.CURRENT_USER, keyPath, registry.ALL_ACCESS)
-		if err != nil {
-			fmt.Printf("Error creating registry key: %v\n", err)
-			return
-		}
+		fmt.Printf("Error setting registry key InstallPath: %v\n", err)
+		return
 	}
-	defer k.Close()
-	k.SetStringValue("InstallPath", is.Where)
-	k.SetStringValue("PodVersion", GitHubTag)
-	k.SetStringValue("WebPort", is.WebPort)
+	podreg.UpdateRegistryValueString(podreg.SoftwareKey, "PodVersion", GitHubTag)
+	podreg.UpdateRegistryValueString(podreg.SoftwareKey, "WebPort", is.WebPort)
 }
 
 type Release struct {
