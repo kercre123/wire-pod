@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,11 +12,11 @@ import (
 	"fyne.io/fyne/v2/app"
 	"github.com/getlantern/systray"
 	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/chipper/pkg/podonwin"
 	"github.com/kercre123/chipper/pkg/vars"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
 	stt "github.com/kercre123/chipper/pkg/wirepod/stt/vosk"
 	"github.com/ncruces/zenity"
-	"golang.org/x/sys/windows/registry"
 )
 
 // this directory contains code which compiled a single program for end users. gui elements are implemented.
@@ -37,6 +36,7 @@ func getNeedsSetupMsg() string {
 }
 
 func main() {
+	podonwin.Init()
 	vars.Packaged = true
 	conf, err := os.UserConfigDir()
 	if err != nil {
@@ -45,8 +45,7 @@ func main() {
 	pidFile, err := os.ReadFile(conf + "/runningPID")
 	if err == nil {
 		pid, _ := strconv.Atoi(string(pidFile))
-		_, err := os.FindProcess(pid)
-		if err == nil {
+		if is, _ := podonwin.IsProcessRunning(pid); is {
 			zenity.Error(
 				"Wire-pod is already running.",
 				zenity.ErrorIcon,
@@ -55,18 +54,9 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
-	if err != nil {
-		fmt.Println("Error reading from registry: " + err.Error())
-		return
-	}
-	defer k.Close()
-
-	pidPre, _, err := k.GetIntegerValue("LastRunningPID")
+	pid, err := podonwin.GetRegistryValueInt(podonwin.SoftwareKey, "LastRunningPID")
 	if err == nil {
-		fmt.Println(int(pidPre))
-		_, err := os.FindProcess(int(pidPre))
-		if err == nil || errors.Is(err, os.ErrPermission) {
+		if is, _ := podonwin.IsProcessRunning(pid); is {
 			zenity.Error(
 				"Wire-pod is already running.",
 				zenity.ErrorIcon,
@@ -76,15 +66,14 @@ func main() {
 		}
 	}
 
-	err = k.SetQWordValue("LastRunningPID", uint64(os.Getpid()))
+	err = podonwin.UpdateRegistryValueInt(podonwin.SoftwareKey, "LastRunningPID", os.Getpid())
 	if err != nil {
-		fmt.Println("Error writing to registry: " + err.Error())
-		return
+		ErrMsg(fmt.Errorf("Error writing to the registry (lastrunningpid): " + err.Error()))
 	}
 
-	val, _, err := k.GetStringValue("InstallPath")
+	val, err := podonwin.GetRegistryValueString(podonwin.SoftwareKey, "InstallPath")
 	if err != nil {
-		ErrMsg(fmt.Errorf("error getting value from the registry: " + err.Error()))
+		ErrMsg(fmt.Errorf("error getting InstallPath value from the registry: " + err.Error()))
 	}
 	InstallPath = val
 	err = os.Chdir(filepath.Join(val, "chipper"))
@@ -93,7 +82,7 @@ func main() {
 		ErrMsg(fmt.Errorf("error setting runtime directory to " + val))
 	}
 
-	webPort, _, err := k.GetStringValue("WebPort")
+	webPort, err := podonwin.GetRegistryValueString(podonwin.SoftwareKey, "WebPort")
 	if err == nil {
 		os.Setenv("WEBSERVER_PORT", webPort)
 	}
@@ -106,12 +95,7 @@ func main() {
 }
 
 func ExitProgram(code int) {
-	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
-	if err != nil {
-		fmt.Println("Error reading from registry: " + err.Error())
-		os.Exit(code)
-	}
-	k.DeleteValue("LastRunningPID")
+	podonwin.DeleteRegistryValue(podonwin.SoftwareKey, "LastRunningPID")
 	os.Exit(code)
 }
 
