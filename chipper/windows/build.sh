@@ -100,6 +100,7 @@ cp chipper.exe tmp/wire-pod/chipper/
 cp ${PODLIBS}/opus/bin/libopus-0.dll tmp/wire-pod/chipper/
 cp ${PODLIBS}/ogg/bin/libogg-0.dll tmp/wire-pod/chipper/
 cp ${PODLIBS}/vosk/* tmp/wire-pod/chipper/
+rm tmp/wire-pod/chipper/libvosk.lib
 
 cd tmp
 
