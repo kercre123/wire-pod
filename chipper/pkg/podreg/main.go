@@ -66,10 +66,11 @@ func UpdateRegistryValueString(keyInfo KeyInfo, key string, value string) error 
 	if !Inited {
 		return fmt.Errorf(nonInitedError)
 	}
-	k, err := registry.OpenKey(keyInfo.Key, keyInfo.KeyPath, keyInfo.Perms)
+	k, _, err := registry.CreateKey(keyInfo.Key, keyInfo.KeyPath, keyInfo.Perms)
 	if err != nil {
 		return err
 	}
+	defer k.Close()
 	err = k.SetStringValue(key, value)
 	if err != nil {
 		return err
@@ -85,6 +86,7 @@ func GetRegistryValueString(keyInfo KeyInfo, key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer k.Close()
 	val, _, err := k.GetStringValue(key)
 	if err != nil {
 		return "", err
@@ -96,10 +98,11 @@ func UpdateRegistryValueInt(keyInfo KeyInfo, key string, value int) error {
 	if !Inited {
 		return fmt.Errorf(nonInitedError)
 	}
-	k, err := registry.OpenKey(keyInfo.Key, keyInfo.KeyPath, keyInfo.Perms)
+	k, _, err := registry.CreateKey(keyInfo.Key, keyInfo.KeyPath, keyInfo.Perms)
 	if err != nil {
 		return err
 	}
+	defer k.Close()
 	err = k.SetQWordValue(key, uint64(value))
 	if err != nil {
 		return err
@@ -115,6 +118,7 @@ func GetRegistryValueInt(keyInfo KeyInfo, key string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	defer k.Close()
 	val, _, err := k.GetIntegerValue(key)
 	if err != nil {
 		return 0, err
