@@ -29,6 +29,7 @@
 /chipper/windows/tmp
 /chipper/windows/chipper.exe
 /chipper/windows/*.zip
+/chipper/windows/*.exe
 /chipper/vbuild/built-libs
 /chipper/windows/libs
 /chipper/windows/opus
