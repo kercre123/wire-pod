@@ -11,7 +11,7 @@ if [[ ${UNAME} == *"Darwin"* ]]; then
     if [[ -f /usr/local/Homebrew/bin/brew ]] || [[ -f /opt/Homebrew/bin/brew ]]; then
         TARGET="darwin"
         ROOT="$HOME"
-        echo "macOS confirmed."
+        echo "macOS detected."
         if [[ ! -f /usr/local/go/bin/go ]]; then
             echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
             exit 1
@@ -23,10 +23,10 @@ if [[ ${UNAME} == *"Darwin"* ]]; then
     fi
 elif [[ -f /usr/bin/apt ]]; then
     TARGET="debian"
-    echo "Debian-based Linux confirmed."
+    echo "Debian-based Linux detected."
 elif [[ -f /usr/bin/pacman ]]; then
     TARGET="arch"
-    echo "Arch Linux confirmed."
+    echo "Arch Linux detected."
 elif [[ -f /usr/bin/dnf ]]; then
     TARGET="fedora"
     echo "Fedora/openSUSE detected."
@@ -94,7 +94,7 @@ function getPackages() {
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
     elif [[ ${TARGET} == "darwin" ]]; then
         sudo -u $SUDO_USER brew update
-        sudo -u $SUDO_USER brew install wget pkg-config opus opusfile 
+        sudo -u $SUDO_USER brew install wget pkg-config opus opusfile
     fi
     touch ./vector-cloud/packagesGotten
     echo
@@ -208,15 +208,6 @@ function getSTT() {
             /usr/local/go/bin/go get -u github.com/alphacep/vosk-api/go/...
             /usr/local/go/bin/go get github.com/alphacep/vosk-api
             /usr/local/go/bin/go install github.com/alphacep/vosk-api/go
-
-            if [[ ${TARGET} == "darwin" ]]; then # this is kinda hacky but required for now because there is no macos build for v0.3.45
-                cd ${ROOT}/go/pkg/mod/github.com/alphacep
-                cp ${ROOT}/.vosk/libvosk/vosk_api.h ./vosk-api@v0.3.45/src/
-                cp -R ./vosk-api@v0.3.45/src ./vosk-api/
-                mkdir /usr/local/lib
-                cp ${ROOT}/.vosk/libvosk/libvosk.dylib /usr/local/lib/
-            fi
-
             cd ${origDir}
         fi
     else
@@ -493,7 +484,7 @@ function scpToBot() {
 }
 
 function setupSystemd() {
-    if [[ ${TARGET} == "macos" ]]; then
+    if [[ ${TARGET} == "darwin" ]]; then
         echo "This cannot be done on macOS."
         exit 1
     fi
@@ -551,7 +542,7 @@ function setupSystemd() {
 }
 
 function disableSystemd() {
-    if [[ ${TARGET} == "macos" ]]; then
+    if [[ ${TARGET} == "darwin" ]]; then
         echo "This cannot be done on macOS."
         exit 1
     fi
