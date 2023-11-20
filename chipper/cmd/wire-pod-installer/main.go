@@ -12,11 +12,13 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/kercre123/chipper/pkg/podonwin"
 	"github.com/ncruces/zenity"
@@ -25,9 +27,9 @@ import (
 //go:embed ico
 var iconData embed.FS
 
-//var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
+var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
 
-var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
+//var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
 
 var DefaultInstallationDirectory string = "C:\\Program Files\\wire-pod"
 
@@ -37,10 +39,11 @@ var installerStatusUpdate chan string
 var installerBarUpdate chan float64
 
 type InstallSettings struct {
-	RunAtStartup bool
-	AutoUpdate   bool
-	Where        string
-	WebPort      string
+	RunAtStartup    bool
+	AutoUpdate      bool
+	Where           string
+	WebPort         string
+	SetHostnameEpod bool
 }
 
 func UpdateInstallStatus(status string) {
@@ -71,16 +74,56 @@ func ExecuteDetached(program string) error {
 	return cmd.Start()
 }
 
+func PostInstall_RestartReq(myApp fyne.App, is InstallSettings) {
+	window := myApp.NewWindow("wire-pod installer")
+	window.Resize(fyne.Size{Width: 600, Height: 100})
+	window.SetIcon(icon)
+	window.CenterOnScreen()
+	window.SetMaster()
+
+	finished := widget.NewCard("wire-pod installer", "wire-pod has finished installing!", container.NewWithoutLayout())
+
+	tellRestart := widget.NewRichTextWithText("You must restart your computer before you start wire-pod, otherwise Vector won't be able to communicate with it.")
+
+	var clarifyWhenPodStarts *widget.RichText
+	if is.RunAtStartup {
+		clarifyWhenPodStarts = widget.NewRichTextWithText("wire-pod will automatically start after you reboot.")
+	} else {
+		clarifyWhenPodStarts = widget.NewRichTextWithText("You must manually run wire-pod after restart because you chose for it not to automatically start at login. This can be changed in wire-pod's 'About' menu.")
+	}
+
+	clarifyWhenPodStarts.Wrapping = fyne.TextWrapWord
+
+	rebootNowButton := widget.NewButton("Reboot Now", func() {
+		RebootSystem()
+	})
+
+	rebootLaterButton := widget.NewButton("Reboot Later", func() {
+		podonwin.UpdateRegistryValueString(podonwin.SoftwareKey, "RestartNeeded", "true")
+		os.Exit(0)
+	})
+
+	window.SetContent(container.NewVBox(
+		finished,
+		tellRestart,
+		clarifyWhenPodStarts,
+		widget.NewSeparator(),
+		rebootNowButton,
+		rebootLaterButton,
+	))
+
+	window.Show()
+}
+
 func PostInstall(myApp fyne.App, is InstallSettings) {
 	var shouldStartPod bool = true
 	window := myApp.NewWindow("wire-pod installer")
 	window.Resize(fyne.Size{Width: 600, Height: 100})
 	window.SetIcon(icon)
 	window.CenterOnScreen()
+	window.SetMaster()
 
-	finished := widget.NewRichText(&widget.TextSegment{
-		Text: "wire-pod has finished installing!",
-	})
+	finished := widget.NewCard("wire-pod installer", "wire-pod has finished installing!", container.NewWithoutLayout())
 
 	startpod := widget.NewCheck("Start wire-pod after exit?", func(checked bool) {
 		shouldStartPod = checked
@@ -110,6 +153,7 @@ func DoInstall(myApp fyne.App, is InstallSettings) {
 	window.Resize(fyne.Size{Width: 600, Height: 100})
 	window.CenterOnScreen()
 	window.SetIcon(icon)
+	window.SetMaster()
 	bar := widget.NewProgressBar()
 	card := widget.NewCard("Installing wire-pod", "Starting installation...",
 		container.NewWithoutLayout())
@@ -147,7 +191,60 @@ func DoInstall(myApp fyne.App, is InstallSettings) {
 		os.Exit(1)
 	}
 	window.Hide()
-	PostInstall(myApp, is)
+	if is.SetHostnameEpod {
+		PostInstall_RestartReq(myApp, is)
+	} else {
+		PostInstall(myApp, is)
+	}
+}
+
+func GetSetNameEscapepod(myApp fyne.App, is InstallSettings) {
+	window := myApp.NewWindow("wire-pod installer")
+	window.SetIcon(icon)
+	window.CenterOnScreen()
+	window.SetMaster()
+	window.Resize(fyne.NewSize(673, 275))
+	content := container.NewVBox()
+
+	//content.Resize(fyne.NewSize(600, 200))
+	prefInfo := widget.NewCard("wire-pod installer",
+		"Your computer's hostname is not `escapepod`.",
+		container.NewWithoutLayout())
+	content.Add(prefInfo)
+
+	morePrefInfo := widget.NewRichTextWithText("This means regular Vector robots will not be able to communicate with wire-pod unless you have a special network configuration or set it to `escapepod`.")
+	morePrefInfo.Wrapping = fyne.TextWrapWord
+	content.Add(morePrefInfo)
+
+	question := widget.NewRichTextWithText("Would you like the installer to set the computer's hostname to `escapepod` during installation?")
+	question.Wrapping = fyne.TextWrapWord
+	content.Add(question)
+
+	exp := widget.NewRichTextWithText("This will require a computer restart once installation has completed.")
+	question.Wrapping = fyne.TextWrapWord
+	content.Add(exp)
+
+	content.Add(widget.NewSeparator())
+
+	yesButton := widget.NewButton("Yes", func() {
+		is.SetHostnameEpod = true
+		window.Hide()
+		DoInstall(myApp, is)
+	})
+	noButton := widget.NewButton("No", func() {
+		is.SetHostnameEpod = false
+		podonwin.DeleteRegistryValue(podonwin.SoftwareKey, "RestartNeeded")
+		window.Hide()
+		DoInstall(myApp, is)
+	})
+	buttonContainer := container.New(layout.NewGridLayout(2), yesButton, noButton)
+	content.Add(buttonContainer)
+	window.SetContent(content)
+	window.Show()
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		window.Resize(fyne.NewSize(673, 275))
+	}()
 }
 
 func ValidateWebPort(port string) bool {
@@ -167,6 +264,7 @@ func GetPreferences(myApp fyne.App) {
 	window.SetIcon(icon)
 	window.Resize(fyne.Size{Width: 600, Height: 200})
 	window.CenterOnScreen()
+	window.SetMaster()
 	launchOnStartup := widget.NewCheck("Automatically launch wire-pod after login?", func(checked bool) {
 		is.RunAtStartup = checked
 	})
@@ -207,15 +305,19 @@ func GetPreferences(myApp fyne.App) {
 			)
 		} else {
 			window.Hide()
-			DoInstall(myApp, is)
+			hn, _ := os.Hostname()
+			if hn == "escapepod" {
+				DoInstall(myApp, is)
+			} else {
+				GetSetNameEscapepod(myApp, is)
+			}
 		}
 	})
 
-	// Add widgets to the window
+	firstCard := widget.NewCard("wire-pod installer", "This program will install wire-pod with the following settings.", container.NewWithoutLayout())
+
 	window.SetContent(container.NewVBox(
-		widget.NewRichText(&widget.TextSegment{
-			Text: "This program will install wire-pod with the following settings.",
-		}),
+		firstCard,
 		widget.NewSeparator(),
 		launchOnStartup,
 		widget.NewSeparator(),

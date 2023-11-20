@@ -29,8 +29,10 @@ func DeleteAnyOtherInstallation() {
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, "RUN_DISCRETE=true")
 		cmd.Run()
+		podonwin.DeleteEverythingFromRegistry()
 	} else {
 		os.RemoveAll(instPath)
+		podonwin.DeleteEverythingFromRegistry()
 	}
 }
 
@@ -68,6 +70,32 @@ func UpdateSoftwareRegistry(is InstallSettings) {
 func RunPodAtStartup(is InstallSettings) {
 	cmd := fmt.Sprintf(`cmd.exe /C start "" "` + filepath.Join(is.Where, "chipper\\chipper.exe") + `" -d`)
 	podonwin.UpdateRegistryValueString(podonwin.StartupRunKey, "wire-pod", cmd)
+}
+
+func RebootSystem() error {
+	cmd := exec.Command("shutdown", "/r", "/t", "0")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to reboot system: %v, output: %s", err, output)
+	}
+	return nil
+}
+
+func ChangeHostname(newHostname string) error {
+	// Construct the PowerShell command
+	psCommand := fmt.Sprintf("Rename-Computer -NewName %s", newHostname)
+
+	// Execute the PowerShell command
+	cmd := exec.Command("powershell", "-Command", psCommand)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error executing PowerShell command: %v, output: %s", err, string(output))
+	}
+
+	// Output for debugging
+	fmt.Println("Command Output:", string(output))
+
+	return nil
 }
 
 func AllowThroughFirewall(is InstallSettings) {
