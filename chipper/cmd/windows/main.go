@@ -35,8 +35,31 @@ func getNeedsSetupMsg() string {
 	return `Wire-pod is now running in the background. You must set it up by heading to http://` + botsetup.GetOutboundIP().String() + `:` + vars.WebPort + ` in a browser.`
 }
 
+func checkIfRestartNeeded() bool {
+	host, _ := os.Hostname()
+	val, err := podonwin.GetRegistryValueString(podonwin.SoftwareKey, "RestartNeeded")
+	if err != nil {
+		return false
+	}
+	if val == "true" && host != "escapepod" {
+		return true
+	} else if val == "true" && host == "escapepod" {
+		podonwin.DeleteRegistryValue(podonwin.SoftwareKey, "RestartNeeded")
+		return false
+	}
+	return false
+}
+
 func main() {
 	podonwin.Init()
+	if checkIfRestartNeeded() {
+		zenity.Error(
+			"You must restart your computer before starting wire-pod.",
+			zenity.ErrorIcon,
+			zenity.Title(mBoxTitle),
+		)
+		os.Exit(1)
+	}
 	vars.Packaged = true
 	conf, err := os.UserConfigDir()
 	if err != nil {

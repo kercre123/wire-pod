@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/kercre123/chipper/pkg/podonwin"
 	"github.com/ncruces/zenity"
-	"golang.org/x/sys/windows/registry"
 )
 
 var discrete bool
@@ -18,34 +18,40 @@ func StopWirePodIfRunning() {
 	if err == nil {
 		pid, _ := strconv.Atoi(string(podPid))
 		// doesn't work on unix, but should on Windows
-		podProcess, err := os.FindProcess(pid)
-		if err == nil {
-			fmt.Println("Stopping wire-pod")
-			podProcess.Kill()
-			podProcess.Wait()
-			fmt.Println("Stopped")
+		isRunning, err := podonwin.IsProcessRunning(pid)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if isRunning {
+			podProcess, err := os.FindProcess(pid)
+			if err == nil {
+				fmt.Println("Stopping wire-pod")
+				podProcess.Kill()
+				podProcess.Wait()
+				fmt.Println("Stopped")
+			}
 		}
 	}
 	CheckWirePodRunningViaRegistry()
 }
 
 func CheckWirePodRunningViaRegistry() {
-	k, err := registry.OpenKey(registry.CURRENT_USER, `Software\wire-pod`, registry.WRITE|registry.READ)
+	pid, err := podonwin.GetRegistryValueInt(podonwin.SoftwareKey, "LastRunningPID")
 	if err != nil {
-		fmt.Println("Error reading from registry: " + err.Error())
 		return
 	}
-	defer k.Close()
-
-	// Write a value
-	val, _, err := k.GetIntegerValue("LastRunningPID")
+	isRunning, err := podonwin.IsProcessRunning(pid)
 	if err != nil {
-		fmt.Println("Error reading from registry: " + err.Error())
-		return
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	// doesn't work on unix, but should on Windows
-	podProcess, err := os.FindProcess(int(val))
-	if err == nil || errors.Is(err, os.ErrPermission) {
+	if isRunning {
+		podProcess, err := os.FindProcess(pid)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		fmt.Println("Stopping wire-pod")
 		podProcess.Kill()
 		podProcess.Wait()
@@ -54,6 +60,7 @@ func CheckWirePodRunningViaRegistry() {
 }
 
 func main() {
+	podonwin.Init()
 	if os.Getenv("RUN_DISCRETE") == "true" {
 		discrete = true
 	}
@@ -82,25 +89,16 @@ func main() {
 			os.RemoveAll(filepath.Join(conf, "wire-pod"))
 		}
 	}
-	keyPath := `Software\wire-pod`
-	k, err := registry.OpenKey(registry.CURRENT_USER, keyPath, registry.QUERY_VALUE)
+
+	val, err := podonwin.GetRegistryValueString(podonwin.SoftwareKey, "InstallPath")
+
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	val, _, err := k.GetStringValue("InstallPath")
-	if err != nil {
-		fmt.Println(err)
-		return
+		fmt.Println("error getting installpath from registry: " + err.Error())
+		os.Exit(0)
 	}
 
-	k.Close()
-	keyPath = `Software\Microsoft\Windows\CurrentVersion\Uninstall\wire-pod`
-	registry.DeleteKey(registry.LOCAL_MACHINE, keyPath)
-	keyPath = `Software\wire-pod`
-	registry.DeleteKey(registry.CURRENT_USER, keyPath)
-
-	DontRunPodAtStartup()
+	podonwin.DeleteEverythingFromRegistry()
+	fmt.Println("Deleted wire-pod from registry")
 
 	fmt.Println(val)
 
@@ -116,9 +114,4 @@ func main() {
 	}
 	os.RemoveAll(val)
 	os.Exit(0)
-}
-
-func DontRunPodAtStartup() {
-	key, _ := registry.OpenKey(registry.CURRENT_USER, `Software\Microsoft\Windows\CurrentVersion\Run`, registry.SET_VALUE)
-	key.DeleteValue("wire-pod")
 }
