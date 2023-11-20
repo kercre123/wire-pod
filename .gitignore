@@ -22,7 +22,7 @@
 /chipper/jdocs/*.json
 /chipper/nvm
 /chipper/apiConfig.json
-/chipper/session-certs/00*
+/chipper/session-certs/0*
 /chipper/vbuild/vic-toolchain
 /chipper/vbuild/chipper
 /chipper/vbuild/botpack.tar.gz
@@ -35,3 +35,4 @@
 /chipper/windows/opus
 /chipper/windows/ogg
 /chipper/windows/.aptDone
+.DS_Store
