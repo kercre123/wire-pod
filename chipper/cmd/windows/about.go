@@ -85,10 +85,10 @@ func DefineAboutWindow(myApp fyne.App) {
 func ShowAbout(myApp fyne.App) {
 	if !WindowDefined {
 		FakeWindow = myApp.NewWindow("a")
-		FakeWindow.SetMaster()
 		FakeWindow.Hide()
 		DefineAboutWindow(myApp)
 	}
 
+	FakeWindow.SetMaster()
 	AboutWindow.Show()
 }

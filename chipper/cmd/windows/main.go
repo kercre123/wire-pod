@@ -51,6 +51,19 @@ func checkIfRestartNeeded() bool {
 }
 
 func main() {
+
+	defer func() {
+		if r := recover(); r != nil {
+			conf, _ := os.UserConfigDir()
+			os.WriteFile(filepath.Join(conf, "dump.txt"), []byte(fmt.Sprint(r)), 0777)
+			fmt.Printf("panic!: %v\n", r)
+			zenity.Error("wire-pod has crashed. dump located in %APPDATA%/wire-pod/dump.txt. exiting",
+				zenity.ErrorIcon,
+				zenity.Title("wire-pod crash :("))
+			ExitProgram(1)
+		}
+	}()
+
 	podonwin.Init()
 	if checkIfRestartNeeded() {
 		zenity.Error(
@@ -118,6 +131,7 @@ func main() {
 }
 
 func ExitProgram(code int) {
+	systray.Quit()
 	podonwin.DeleteRegistryValue(podonwin.SoftwareKey, "LastRunningPID")
 	os.Exit(code)
 }
