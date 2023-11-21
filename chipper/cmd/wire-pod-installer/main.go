@@ -27,9 +27,9 @@ import (
 //go:embed ico
 var iconData embed.FS
 
-//var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
+var amd64podURL string = "https://github.com/kercre123/wire-pod/releases/latest/download/wire-pod-win-amd64.zip"
 
-var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
+//var amd64podURL string = "http://192.168.1.2:82/wire-pod-win-amd64.zip"
 
 var DefaultInstallationDirectory string = "C:\\Program Files\\wire-pod"
 
