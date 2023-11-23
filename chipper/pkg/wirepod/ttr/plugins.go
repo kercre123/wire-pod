@@ -10,7 +10,7 @@ import (
 
 var PluginList []*plugin.Plugin
 var PluginUtterances []*[]string
-var PluginFunctions []func(string, string) string
+var PluginFunctions []func(string, string) (string, string)
 var PluginNames []string
 
 func LoadPlugins() {
@@ -48,7 +48,7 @@ func LoadPlugins() {
 				logger.Println("Error loading Action func from plugin file " + file.Name())
 				continue
 			} else {
-				if _, ok := a.(func(string, string) string); ok {
+				if _, ok := a.(func(string, string) (string, string)); ok {
 					logger.Println("Action func in plugin " + file.Name() + " is OK")
 				} else {
 					logger.Println("Error: Action func in plugin " + file.Name() + " is not of type func(string, string) string")
@@ -68,7 +68,7 @@ func LoadPlugins() {
 				}
 			}
 			PluginUtterances = append(PluginUtterances, u.(*[]string))
-			PluginFunctions = append(PluginFunctions, a.(func(string, string) string))
+			PluginFunctions = append(PluginFunctions, a.(func(string, string) (string, string)))
 			PluginNames = append(PluginNames, *n.(*string))
 			PluginList = append(PluginList, plugin)
 			logger.Println(file.Name() + " loaded successfully")

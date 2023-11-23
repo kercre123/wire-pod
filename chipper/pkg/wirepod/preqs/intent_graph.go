@@ -25,7 +25,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 		intent, slots, err := stiHandler(speechReq)
 		if err != nil {
 			if err.Error() == "inference not understood" {
-				logger.Println("No intent was matched")
+				logger.Println("Bot " + speechReq.Device + " No intent was matched")
 				ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
 				return nil, nil
 			}
