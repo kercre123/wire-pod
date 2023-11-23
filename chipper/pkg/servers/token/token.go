@@ -25,14 +25,11 @@ type TokenServer struct {
 	tokenpb.UnimplementedTokenServer
 }
 
-const (
+var (
 	TimeFormat     = time.RFC3339Nano
-	JdocsPath      = "./jdocs/"
-	BotInfoFile    = "botSdkInfo.json"
 	ExpirationTime = time.Hour * 24
 	UserId         = "wirepod"
 	GlobalGUID     = "tni1TRsTRTaNSapjo0Y+Sw=="
-	InfoPath       = JdocsPath + BotInfoFile
 )
 
 // array of {"target", "guid", "guidhash"}
@@ -59,7 +56,7 @@ type RobotInfoStore struct {
 }
 
 func GetEsnFromTarget(target string) (string, error) {
-	jsonBytes, err := os.ReadFile(JdocsPath + BotInfoFile)
+	jsonBytes, err := os.ReadFile(vars.BotInfoPath)
 	if err != nil {
 		return "", err
 	}
@@ -95,7 +92,7 @@ func SetBotGUID(esn string, guid string, guidHash string) error {
 		logger.Println(err)
 		return err
 	}
-	os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
+	os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
 	return nil
 }
 
