@@ -13,10 +13,6 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
-const (
-	JdocsPath = tokenserver.JdocsPath
-)
-
 type JdocServer struct {
 	jdocspb.UnimplementedJdocsServer
 }
@@ -40,7 +36,7 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
 			vars.BotInfo.Robots[ind].IPAddress = ipAddr
 			writeBytes, _ := json.Marshal(vars.BotInfo)
-			os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
+			os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
 		}
 	}
 
@@ -66,7 +62,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
 			vars.BotInfo.Robots[ind].IPAddress = ipAddr
 			writeBytes, _ := json.Marshal(vars.BotInfo)
-			os.WriteFile(JdocsPath+BotInfoFile, writeBytes, 0644)
+			os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
 		}
 	}
 
@@ -93,7 +89,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					err = tokenserver.SetBotGUID(esn, pair[1], pair[2])
 					botGUID = pair[1]
 					if err != nil {
-						logger.Println("Error writing token hash to " + tokenserver.BotInfoFile)
+						logger.Println("Error writing token hash to " + vars.BotInfoPath)
 						logger.Println(err)
 					}
 					logger.Println("ReadJdocs: bot " + esn + " matched with IP " + ipAddr + " in token store")
@@ -114,7 +110,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					// export to ~/.anki_vector
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
 					// export to ./session-certs
-					os.WriteFile("./session-certs/"+esn, tokenserver.SessionWriteStoreCerts[num], 0755)
+					os.WriteFile(vars.SessionCertPath+"/"+esn, tokenserver.SessionWriteStoreCerts[num], 0755)
 					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
 					tokenserver.RemoveFromSessionStore(num)
 					logger.Println("Session certificate successfully output")
