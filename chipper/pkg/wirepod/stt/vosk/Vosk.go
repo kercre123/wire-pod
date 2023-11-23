@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -56,8 +57,9 @@ func Init() error {
 		if len(sttLanguage) == 0 {
 			sttLanguage = "en-US"
 		}
-		modelPath := "../vosk/models/" + sttLanguage + "/model"
+		modelPath := filepath.Join(vars.VoskModelPath, sttLanguage, "model")
 		if _, err := os.Stat(modelPath); err != nil {
+			fmt.Println("Path does not exist: " + modelPath)
 			return err
 		}
 		logger.Println("Opening VOSK model (" + modelPath + ")")

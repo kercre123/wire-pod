@@ -11,15 +11,9 @@ import (
 	"strings"
 
 	"github.com/kercre123/chipper/pkg/logger"
-	tokenserver "github.com/kercre123/chipper/pkg/servers/token"
 	"github.com/kercre123/chipper/pkg/vars"
 	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
-)
-
-const (
-	BotInfoFile = tokenserver.BotInfoFile
-	InfoPath    = JdocsPath + BotInfoFile
 )
 
 func IsBotInInfo(esn string) bool {
@@ -102,6 +96,7 @@ func WriteToIniSecondary(esn, guid, ip string) {
 			return
 		}
 		certBytesOrig, _ := io.ReadAll(resp.Body)
+		os.WriteFile(vars.SessionCertPath+"/"+esn, certBytesOrig, 0777)
 		block, _ := pem.Decode(certBytesOrig)
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
@@ -154,5 +149,5 @@ func StoreBotInfo(ctx context.Context, thing string) {
 		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
 	}
 	finalJsonBytes, _ := json.Marshal(vars.BotInfo)
-	os.WriteFile(InfoPath, finalJsonBytes, 0644)
+	os.WriteFile(vars.BotInfoPath, finalJsonBytes, 0644)
 }

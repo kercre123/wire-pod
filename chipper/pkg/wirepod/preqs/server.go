@@ -46,11 +46,11 @@ func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (
 	sttLanguage = vars.APIConfig.STT.Language
 	vars.MatchListList, vars.IntentsList, _ = vars.LoadIntents()
 	logger.Println("Initiating " + voiceProcessor + " voice processor with language " + sttLanguage)
+	vars.SttInitFunc = InitFunc
 	err := InitFunc()
 	if err != nil {
 		return nil, err
 	}
-	vars.SttInitFunc = InitFunc
 
 	// SttHandler can either be `func(sr.SpeechRequest) (string, error)` or `func (sr.SpeechRequest) (string, map[string]string, error)`
 	// second one exists to accomodate Rhino

@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # ensure all required packages are installed
-if [[ -f /usr/bin/apt ]]; then
+if [[ ${uname -a} == *"Darwin"* ]]; then
+    TARGET="darwin"
+    echo "macOS detected."
+elif [[ -f /usr/bin/apt ]]; then
     TARGET="debian"
-    echo "Debian-based Linux confirmed."
+    echo "Debian-based Linux detected."
 elif [[ -f /usr/bin/pacman ]]; then
     TARGET="arch"
-    echo "Arch Linux confirmed."
+    echo "Arch Linux detected."
 elif [[ -f /usr/bin/dnf ]]; then
     TARGET="fedora"
     echo "Fedora/openSUSE detected."
@@ -21,6 +24,9 @@ elif [[ ${TARGET} == "arch" ]]; then
 elif [[ ${TARGET} == "fedora" ]]; then
     sudo dnf update
     sudo dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
+elif [[ ${TARGET} == "darwin" ]]; then
+    sudo -u $SUDO_USER brew update
+    sudo -u $SUDO_USER brew install wget pkg-config opus opusfile
 fi
 
 if [[ ! -d ./chipper ]]; then

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -13,14 +14,32 @@ import (
 
 // initialize variables so they don't have to be found during runtime
 
-const (
+var VarsInited bool
+
+// if compiled into an installation package. wire-pod will use os.UserConfigDir()
+var Packaged bool
+
+var (
 	JdocsPath         string = "./jdocs/jdocs.json"
+	JdocsDir          string = "./jdocs"
 	CustomIntentsPath string = "./customIntents.json"
 	BotConfigsPath    string = "./botConfig.json"
 	BotInfoPath       string = "./jdocs/botSdkInfo.json"
+	BotInfoName       string = "botSdkInfo.json"
 	PodName           string = "wire-pod"
 	VoskModelPath     string = "../vosk/models/"
+	SessionCertPath   string = "./session-certs/"
 )
+
+var (
+	OutboundIPTester = "8.8.8.8:80"
+	CertPath         = "../certs/cert.crt"
+	KeyPath          = "../certs/cert.key"
+	ServerConfigPath = "../certs/server_config.json"
+	Certs            = "../certs"
+)
+
+var WebPort string = "8080"
 
 // /home/name/.anki_vector/
 var SDKIniPath string
@@ -35,6 +54,10 @@ var VoskGrammerEnable bool = false
 var SttInitFunc func() error
 var MatchListList [][]string
 var IntentsList = []string{}
+
+var ChipperCert []byte
+var ChipperKey []byte
+var ChipperKeysLoaded bool
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
@@ -82,8 +105,50 @@ type botjdoc struct {
 	Jdoc AJdoc `json:"jdoc"`
 }
 
+func join(p1, p2 string) string {
+	return filepath.Join(p1, p2)
+}
+
 func Init() {
+	if VarsInited {
+		logger.Println("Not initting vars again")
+		return
+	}
 	logger.Println("Initializing variables")
+
+	if Packaged {
+		logger.Println("This version of wire-pod is packaged. Set vars to include UserConfigDir...")
+		confDir, _ := os.UserConfigDir()
+		podDir := join(confDir, PodName)
+		os.Mkdir(podDir, 0777)
+		JdocsDir = join(podDir, JdocsDir)
+		JdocsPath = JdocsDir + "/jdocs.json"
+		CustomIntentsPath = join(podDir, CustomIntentsPath)
+		BotConfigsPath = join(podDir, BotConfigsPath)
+		BotInfoPath = JdocsDir + "/" + BotInfoName
+		VoskModelPath = join(podDir, "./vosk/models/")
+		ApiConfigPath = join(podDir, ApiConfigPath)
+		CertPath = join(podDir, "./certs/cert.crt")
+		KeyPath = join(podDir, "./certs/cert.key")
+		ServerConfigPath = join(podDir, "./certs/server_config.json")
+		Certs = join(podDir, "./certs")
+		SessionCertPath = join(podDir, SessionCertPath)
+		os.Mkdir(JdocsDir, 0777)
+		os.Mkdir(SessionCertPath, 0777)
+		os.Mkdir(Certs, 0777)
+	}
+
+	if os.Getenv("WEBSERVER_PORT") != "" {
+		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
+			WebPort = os.Getenv("WEBSERVER_PORT")
+		} else {
+			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
+			WebPort = "8080"
+		}
+	} else {
+		WebPort = "8080"
+	}
+
 	// figure out user SDK path, containing sdk_config.ini
 	// has to be done like this because wire-pod is running as root
 	// path should be /home/name/wire-pod/chipper
@@ -119,51 +184,11 @@ func Init() {
 		GetDownloadedVoskModels()
 	}
 
-	// load jdocs. if there are any in the old format, convert
-	jdocsDir, err := os.ReadDir("./jdocs")
-	oldJdocsExisted := false
-	if err != nil {
-		logger.Println("Error reading jdocs directory")
-		logger.Println(err)
-	} else {
-		for _, file := range jdocsDir {
-			if strings.Contains(file.Name(), "vic:") {
-				oldJdocsExisted = true
-				splitName := strings.Split(file.Name(), "-")
-				thing := splitName[0]
-				jdocname := splitName[1]
-				splitJdocName := strings.Split(jdocname, ".")
-				jdocname = strings.TrimSpace(splitJdocName[0] + "." + splitJdocName[1])
-				jsonBytes, err := os.ReadFile("./jdocs/" + file.Name())
-				if err != nil {
-					logger.Println(err)
-				} else {
-					logger.Println("Appending " + file.Name() + " to new jdocs json")
-					var newJdoc botjdoc
-					var jdoc AJdoc
-					newJdoc.Thing = thing
-					newJdoc.Name = jdocname
-					json.Unmarshal(jsonBytes, &jdoc)
-					newJdoc.Jdoc = jdoc
-					BotJdocs = append(BotJdocs, newJdoc)
-					err := os.Remove("./jdocs/" + file.Name())
-					if err != nil {
-						logger.Println(err)
-					}
-				}
-			}
-		}
-		if oldJdocsExisted {
-			writeBytes, _ := json.Marshal(BotJdocs)
-			os.WriteFile(JdocsPath, writeBytes, 0644)
-			logger.Println("New jdocs file written")
-		} else {
-			if _, err := os.Stat(JdocsPath); err == nil {
-				jsonBytes, _ := os.ReadFile(JdocsPath)
-				json.Unmarshal(jsonBytes, &BotJdocs)
-				logger.Println("Loaded jdocs file")
-			}
-		}
+	// load jdocs. if there are any in the old format, conver
+	if _, err := os.Stat(JdocsPath); err == nil {
+		jsonBytes, _ := os.ReadFile(JdocsPath)
+		json.Unmarshal(jsonBytes, &BotJdocs)
+		logger.Println("Loaded jdocs file")
 	}
 
 	// load bot sdk info
@@ -177,10 +202,11 @@ func Init() {
 		logger.Println("Loaded bot info file, known bots: " + fmt.Sprint(botList))
 	}
 	LoadCustomIntents()
+	VarsInited = true
 }
 
 func GetDownloadedVoskModels() {
-	array, err := os.ReadDir("../vosk/models/")
+	array, err := os.ReadDir(VoskModelPath)
 	if err != nil {
 		logger.Println(err)
 		return

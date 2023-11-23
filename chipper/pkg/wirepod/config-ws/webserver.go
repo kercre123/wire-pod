@@ -3,7 +3,6 @@ package webserver
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 	"github.com/kercre123/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
 	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
+	"github.com/ncruces/zenity"
 )
 
 var SttInitFunc func() error
@@ -294,6 +294,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
 		return
+	case r.URL.Path == "/api/is_running":
+		fmt.Fprintf(w, "true")
+		return
 	case r.URL.Path == "/api/generate_certs":
 		err := botsetup.CreateCertCombo()
 		if err != nil {
@@ -313,7 +316,7 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		esn := split[2]
-		fileBytes, err := os.ReadFile("./session-certs/" + esn)
+		fileBytes, err := os.ReadFile(vars.SessionCertPath + esn)
 		if err != nil {
 			fmt.Fprint(w, "error: cert does not exist")
 			return
@@ -324,24 +327,21 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartWebServer() {
-	var webPort string
 	botsetup.RegisterSSHAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
 	webRoot := http.FileServer(http.Dir("./webroot"))
 	http.Handle("/", webRoot)
-	if os.Getenv("WEBSERVER_PORT") != "" {
-		if _, err := strconv.Atoi(os.Getenv("WEBSERVER_PORT")); err == nil {
-			webPort = os.Getenv("WEBSERVER_PORT")
-		} else {
-			logger.Println("WEBSERVER_PORT contains letters, using default of 8080")
-			webPort = "8080"
+	fmt.Printf("Starting webserver at port " + vars.WebPort + " (http://localhost:" + vars.WebPort + ")\n")
+	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {
+		logger.Println("Error binding to " + vars.WebPort + ": " + err.Error())
+		if vars.Packaged {
+			zenity.Error(
+				"FATAL: Wire-pod was unable to bind to port "+vars.WebPort+". Another process is likely using it. Exiting.",
+				zenity.ErrorIcon,
+				zenity.Title("wire-pod"),
+			)
 		}
-	} else {
-		webPort = "8080"
-	}
-	fmt.Printf("Starting webserver at port " + webPort + " (http://localhost:" + webPort + ")\n")
-	if err := http.ListenAndServe(":"+webPort, nil); err != nil {
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }
