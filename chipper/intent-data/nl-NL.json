@@ -1,0 +1,178 @@
+[
+  {
+    "name" : "intent_names_username_extend",
+    "keyphrases": ["Mijn naam is", "Ik ben", "hier is", "Ik heet"]
+  },
+  {
+    "name": "intent_weather_extend",
+    "keyphrases": ["Hoe is het weer", "Hoe is het buiten", "Weer", "Weersvoorspelling"]
+  },
+  {
+    "name": "intent_names_ask",
+    "keyphrases": ["Wat is mijn naam", "Hoe is mijn naam", "wie ben ik", "hoe heet ik"]
+  },
+  {
+    "name": "intent_imperative_eyecolor",
+    "keyphrases": ["Verander de oogkleur", "verander je oogkleur", "Oogkleur", "Kleur veranderen", "Ogen"]
+  },
+  {
+    "name": "intent_character_age",
+    "keyphrases": ["Hoe oud ben je", "Wat is je leeftijd", "wanneer ben je geboren"]
+  },
+  {
+    "name": "intent_explore_start",
+    "keyphrases": ["Ga verkennen", "Verken", "Verken wat", "Ga op verkenning"]
+  },
+  {
+    "name": "intent_system_charger",
+    "keyphrases": ["Ga naar huis", "thuis", "opladen", "oplader", "zoek de oplader", "terug naar huis", "ga naar huis"]
+  },
+  {
+    "name": "intent_system_sleep",
+    "keyphrases": ["slaap", "ga slapen", "naar bed", "ga naar bed", "naar bed", "bed", "welterusten", "slaap lekker"]
+  },
+  {
+    "name": "intent_greeting_goodmorning",
+    "keyphrases": ["dag", "ochtend", "middag"]
+  },
+  {
+    "name": "intent_greeting_goodnight",
+    "keyphrases": ["nacht", "avond"]
+  },
+  {
+    "name": "intent_greeting_goodbye",
+    "keyphrases": ["Tot ziens", "Doei"]
+  },
+  {
+    "name": "intent_seasonal_happynewyear",
+    "keyphrases": ["vuurwerk", "Gelukkig Nieuwjaar"]
+  },
+  {
+    "name": "intent_seasonal_happyholidays",
+    "keyphrases": ["Kerstmis", "feestdagen", "vakantie", "feest", "viering"]
+  },
+  {
+    "name": "intent_amazon_signin",
+    "keyphrases": ["Word lid van Alexa", "Aanmelden met Alexa", "Schakel Alexa in", "Activeer Alexa"]
+  },
+  {
+    "name": "intent_amazon_signin",
+    "keyphrases": ["Verlaat Alexa", "Deactiveer Alexa", "Schakel Alexa uit", "Stop Alexa", "Sluit Alexa"]
+  },
+  {
+    "name": "intent_imperative_forward",
+    "keyphrases": ["Vooruit"]
+  },
+  {
+    "name": "intent_imperative_turnaround",
+    "keyphrases": ["draai", "draai om", "achter je"]
+  },
+  {
+    "name": "intent_imperative_turnleft",
+    "keyphrases": ["linksaf", "links"]
+  },
+  {
+    "name": "intent_imperative_turnright",
+    "keyphrases": ["rechtsaf", "rechts"]
+  },
+  {
+    "name": "intent_play_rollcube",
+    "keyphrases": ["Speel met de dobbelstenen", "Verplaats de dobbelstenen", "Beweeg je dobbelstenen", "Gooi de dobbelstenen", "Gooi je dobbelstenen", "Speel met je dobbelsteen"]
+  },
+  {
+    "name": "intent_play_popawheelie",
+    "keyphrases": ["fluitje", "fluit", "wheelie", "handstand", "doe een handstand", "hoofdstand", "doe een hoofdstand"]
+  },
+  {
+    "name": "intent_play_fistbump",
+    "keyphrases": ["Geef me vijf", "geef me de vijf", "handen omhoog"]
+  },
+  {
+    "name": "intent_play_blackjack",
+    "keyphrases": ["Eenentwintig", "Blackjack", "zeventien en vier"]
+  },
+  {
+    "name": "intent_imperative_affirmative",
+    "keyphrases": ["Ja", "Juist", "Juist", "waar"]
+  },
+  {
+    "name": "intent_imperative_negative",
+    "keyphrases": ["nee", "niet", "onwaar", "onjuist", "niet waar"]
+  },
+  {
+    "name": "intent_photo_take_extend",
+    "keyphrases": ["foto", "selfie", "afbeelding"]
+  },
+  {
+    "name": "intent_imperative_praise",
+    "keyphrases": ["Goed", "geweldig", "mythisch", "sterk", "indrukwekkend", "geweldig", "super"]
+  },
+  {
+    "name": "intent_imperative_abuse",
+    "keyphrases": ["slecht", "dom", "zo werkt het niet", "kwaad", "boos"]
+  },
+  {
+    "name": "intent_imperative_apologize",
+    "keyphrases": ["Het spijt me", "sorry"]
+  },
+  {
+    "name": "intent_imperative_backup",
+    "keyphrases": ["terug", "annuleren", "achteruit"]
+  },
+  {
+    "name": "intent_imperative_volumedown",
+    "keyphrases": ["verlaag het volume", "volume lager", "stiller", "zachter"]
+  },
+  {
+    "name": "intent_imperative_volumeup",
+    "keyphrases": ["verhoog het volume", "volume hoger", "harder", "luider"]
+  },
+  {
+    "name": "intent_imperative_lookatme",
+    "keyphrases": ["Kijk naar mij", "kijk me aan"]
+  },
+  {
+    "name": "intent_imperative_volumelevel_extend",
+    "keyphrases": ["volume"]
+  },
+  {
+    "name": "intent_imperative_shutup",
+    "keyphrases": ["zwijg", "wees stil", "stil", "blijf stil"]
+  },
+  {
+    "name": "intent_greeting_hello",
+    "keyphrases": ["Hallo", "Hoe gaat het", "Goedemorgen", "Goedenavond", "Goedendag", "Hé", "Hallo"]
+  },
+  {
+    "name": "intent_imperative_come",
+    "keyphrases": ["kom", "naar mij", "hier"]
+  },
+  {
+    "name": "intent_imperative_love",
+    "keyphrases": ["Ik hou van je", "Jij bent mijn liefde"]
+  },
+  {
+    "name": "intent_knowledge_promptquestion",
+    "keyphrases": ["vraag"]
+  },
+  {
+    "name": "intent_clock_checktimer",
+    "keyphrases": ["controleer de stopwatch", "controleer de timer", "controleer de timer", "toon de timer", "toon het aftellen"]
+  },
+  {
+    "name": "intent_global_stop_extend",
+    "keyphrases": ["Stop de stopwatch", "Stop de timer", "Stop het aftellen", "beëindig de timer", "beëindig het aftellen", "beëindig de stopwatch" , "Aftellen beëindigen"]
+  },
+  {
+    "name": "intent_clock_settimer_extend",
+    "keyphrases": ["Start de timer", "Start aftellen", "Planning"]
+  },
+  {
+    "name": "intent_clock_time",
+    "keyphrases": ["Wat is de tijd", "Hoe laat is het", "Hoe laat is het nu"]
+  },
+  {
+    "name": "intent_play_keepaway",
+    "keyphrases": ["ga weg", "weg", "ga weg", "terug"]
+  }
+]

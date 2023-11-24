@@ -2,7 +2,7 @@ package localization
 
 import "github.com/kercre123/chipper/pkg/vars"
 
-var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL", "zh-CN"}
+var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL", "zh-CN", "nl-NL"}
 
 const STR_WEATHER_IN = "str_weather_in"
 const STR_WEATHER_FORECAST = "str_weather_forecast"
@@ -80,41 +80,41 @@ var ALL_STR []string = []string{
 // All text must be lowercase!
 
 var texts = map[string][]string{
-	//  key                 			en-US   it-IT   es-ES    fr-FR    de-DE    pl-PL
+	//  key                 			en-US   it-IT   es-ES    fr-FR    de-DE    pl-PL    zh-CN    nl-NL
 	STR_WEATHER_IN:                     {" in ", " a ", " en ", " en ", " in ", " w ", " 的 "},
-	STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "wettervorhersage", "prognoza", "预报"},
-	STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "mañana", "demain", "morgen", "jutro", "明天"},
-	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am tag nach morgen", "pojutrze", "后天"},
-	STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "heute abend", "dziś wieczorem", "今晚"},
-	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "heute nachmittag", "popołudniu", "下午"},
-	STR_EYE_COLOR_PURPLE:               {"purple", "lilla", "violeta", "violet", "violett", "fioletowy", "紫色"},
-	STR_EYE_COLOR_BLUE:                 {"blue", "blu", "azul", "bleu", "blau", "niebieski", "蓝色"},
-	STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir", "szafir", "天蓝"},
-	STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb", "żółty", "黄色"},
-	STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün", "morski", "浅绿"},
-	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarina", "acquamarina", "akwamaryn", "蓝绿"},
-	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony", "绿色"},
-	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy", "橙色"},
-	STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie", "我"},
-	STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja", "自己"},
-	STR_VOLUME_LOW:                     {"low", "basso", "bajo", "bas", "niedrig", "niski", "低"},
-	STR_VOLUME_QUIET:                   {"quiet", "poco rumoroso", "tranquilo", "silencieux", "ruhig", "cichy", "安静"},
-	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen-doux", "mittelschwer", "średnio niski", "中低"},
-	STR_VOLUME_MEDIUM:                  {"medium", "medio", "medio", "moyen", "mittel", "średni", "中档"},
-	STR_VOLUME_NORMAL:                  {"normal", "normale", "normal", "normal", "normal", "normalny", "正常"},
-	STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "régulier", "regulär", "zwyczajny", "标准"},
-	STR_VOLUME_MEDIUM_HIGH:             {"medium high", "medio alto", "medio-alto", "moyen-élevé", "mittelhoch", "średno wysoki", "中高"},
-	STR_VOLUME_HIGH:                    {"high", "alto", "alto", "élevé", "hoch", "wysoki", "高档"},
-	STR_VOLUME_LOUD:                    {"loud", "rumoroso", "fuerte", "fort", "laut", "głośny", "高"},
-	STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "", "stumm", "wyciszony", "静音"},
-	STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts", "nic", "无声"},
-	STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still", "cichy", "悄声"},
-	STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus", "wyłączony", "关闭"},
-	STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "null", "zero", "零"},
-	STR_NAME_IS:                        {" is ", " è ", " es ", " est ", " ist ", " to ", "到"},
-	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się ", "的"},
-	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię", "名字"},
-	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla ", "给"},
+	STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "wettervorhersage", "prognoza", "预报", "weersverwachting"},
+	STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "mañana", "demain", "morgen", "jutro", "明天", "morgen"},
+	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am tag nach morgen", "pojutrze", "后天", "overmorgen"},
+	STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "heute abend", "dziś wieczorem", "今晚", "vanavond"},
+	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "heute nachmittag", "popołudniu", "下午", "vanmiddag"},
+	STR_EYE_COLOR_PURPLE:               {"purple", "lilla", "violeta", "violet", "violett", "fioletowy", "紫色", "paars"},
+	STR_EYE_COLOR_BLUE:                 {"blue", "blu", "azul", "bleu", "blau", "niebieski", "蓝色", "blauw"},
+	STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir", "szafir", "天蓝", "saffier"},
+	STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb", "żółty", "黄色", "geel"},
+	STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün", "morski", "浅绿", "blauwgroen"},
+	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarina", "acquamarina", "akwamaryn", "蓝绿", "aquamarijn"},
+	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony", "绿色", "groen"},
+	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy", "橙色", "oranje"},
+	STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie", "我", "me"},
+	STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja", "自己", "mijn"},
+	STR_VOLUME_LOW:                     {"low", "basso", "bajo", "bas", "niedrig", "niski", "低", "zacht"},
+	STR_VOLUME_QUIET:                   {"quiet", "poco rumoroso", "tranquilo", "silencieux", "ruhig", "cichy", "安静", "stil"},
+	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen-doux", "mittelschwer", "średnio niski", "中低", "middellaag"},
+	STR_VOLUME_MEDIUM:                  {"medium", "medio", "medio", "moyen", "mittel", "średni", "中档", "middel"},
+	STR_VOLUME_NORMAL:                  {"normal", "normale", "normal", "normal", "normal", "normalny", "正常", "normaal"},
+	STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "régulier", "regulär", "zwyczajny", "标准", "regulier"},
+	STR_VOLUME_MEDIUM_HIGH:             {"medium high", "medio alto", "medio-alto", "moyen-élevé", "mittelhoch", "średno wysoki", "中高", "middelhoog"},
+	STR_VOLUME_HIGH:                    {"high", "alto", "alto", "élevé", "hoch", "wysoki", "高档", "hoog"},
+	STR_VOLUME_LOUD:                    {"loud", "rumoroso", "fuerte", "fort", "laut", "głośny", "高", "luid"},
+	STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "", "stumm", "wyciszony", "静音", "gedempt"},
+	STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts", "nic", "无声", "niets"},
+	STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still", "cichy", "悄声", "stil"},
+	STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus", "wyłączony", "关闭", "uit"},
+	STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "null", "zero", "零", "nul"},
+	STR_NAME_IS:                        {" is ", " è ", " es ", " est ", " ist ", " to ", "到", " is "},
+	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się ", "的", "ben "},
+	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię", "名字", " heet "},
+	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla ", "给", " voor "},
 }
 
 func GetText(key string) string {
@@ -132,6 +132,8 @@ func GetText(key string) string {
 			return data[5]
 		} else if vars.APIConfig.STT.Language == "zh-CN" {
 			return data[6]
+		} else if vars.APIConfig.STT.Language == "nl-NL" {
+			return data[7]
 		}
 	}
 	return data[0]
