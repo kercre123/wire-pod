@@ -28,6 +28,7 @@ var (
 	BotInfoName       string = "botSdkInfo.json"
 	PodName           string = "wire-pod"
 	VoskModelPath     string = "../vosk/models/"
+	WhisperModelPath  string = "../whisper.cpp/models/"
 	SessionCertPath   string = "./session-certs/"
 )
 
@@ -127,6 +128,7 @@ func Init() {
 		BotConfigsPath = join(podDir, BotConfigsPath)
 		BotInfoPath = JdocsDir + "/" + BotInfoName
 		VoskModelPath = join(podDir, "./vosk/models/")
+		WhisperModelPath = join(podDir, "./whisper.cpp/models/")
 		ApiConfigPath = join(podDir, ApiConfigPath)
 		CertPath = join(podDir, "./certs/cert.crt")
 		KeyPath = join(podDir, "./certs/cert.key")

@@ -132,6 +132,7 @@ function getSTT() {
         echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
         echo "2: Picovoice Leopard (local, usage collected, accurate, account signup required)"
         echo "3: VOSK (local, accurate, multilanguage, fast, recommended)"
+        echo "4: Whisper"
         echo
         read -p "Enter a number (3): " sttServiceNum
         if [[ ! -n ${sttServiceNum} ]]; then
@@ -147,6 +148,8 @@ function getSTT() {
             sttService="leopard"
         elif [[ ${sttServiceNum} == "3" ]]; then
             sttService="vosk"
+        elif [[ ${sttServiceNum} == "4" ]]; then
+            sttService="whisper"
         else
             echo
             echo "Choose a valid number, or just press enter to use the default number."
@@ -210,6 +213,27 @@ function getSTT() {
             /usr/local/go/bin/go install github.com/alphacep/vosk-api/go
             cd ${origDir}
         fi
+    elif [[ ${sttService} == "whisper" ]]; then
+        echo "export STT_SERVICE=whisper.cpp" >> ./chipper/source.sh
+        origDir="$(pwd)"
+        echo "Getting Whisper assets"
+        mkdir whisper_tmp
+        cd whisper_tmp
+        git clone https://github.com/ggerganov/whisper.cpp.git .
+        bash ./models/download-ggml-model.sh tiny
+        cd bindings/go
+        make whisper
+        cd ${origDir}
+        mkdir -p whisper.cpp
+        mkdir -p whisper.cpp/models
+        cp whisper_tmp/whisper.h whisper.cpp/
+        cp whisper_tmp/ggml.h whisper.cpp/
+        cp whisper_tmp/libwhisper.a whisper.cpp/
+        if [[ ${TARGET} == "darwin" ]]; then
+            cp whisper_tmp/ggml-metal.metal whisper.cpp/
+        fi
+        cp whisper_tmp/models/ggml-tiny.bin whisper.cpp/models/
+        rm -rf whisper_tmp
     else
     echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then
