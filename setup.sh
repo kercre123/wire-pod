@@ -88,7 +88,7 @@ function getPackages() {
         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev
     elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium
+        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config
     elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
@@ -101,7 +101,7 @@ function getPackages() {
     echo "Installing golang binary package"
     mkdir golang
     cd golang
-    if [[ ${TARGET} != "darwin" ]]; then
+    if [[ ${TARGET} != "darwin" ]] && [[ ${TARGET} != "arch" ]]; then
         if [[ ! -f /usr/local/go/bin/go ]]; then
             if [[ ${ARCH} == "x86_64" ]]; then
                 wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
@@ -116,7 +116,11 @@ function getPackages() {
             ln -s /usr/local/go/bin/go /usr/bin/go
         fi
     else
-        echo "This is a macOS target, assuming Go is installed already"
+        echo "This is a macOS or arch target, assuming Go is installed already"
+	if [[ ${TARGET} == "arch" ]]; then
+		mkdir -p /usr/local/go/bin
+		ln -s /usr/bin/go /usr/local/go/bin/go
+	fi
     fi
     cd ..
     rm -rf golang
