@@ -35,4 +35,5 @@
 /chipper/windows/opus
 /chipper/windows/ogg
 /chipper/windows/.aptDone
+/whisper.cpp
 .DS_Store
