@@ -4,7 +4,7 @@ about: Report a bug with the software (this is NOT for cases of "it's not workin
   for me")
 title: "[BUG] "
 labels: bug
-assignees: kercre123
+assignees: ''
 
 ---
 
