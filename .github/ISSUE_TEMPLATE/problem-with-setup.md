@@ -1,8 +1,8 @@
 ---
 name: Problem with setup
 about: Please follow this template if you are having issues setting wire-pod up.
-title: ''
-labels: ''
+title: "[HELP]"
+labels: help wanted
 assignees: ''
 
 ---
