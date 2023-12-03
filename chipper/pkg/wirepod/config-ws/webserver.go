@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"runtime"
+	"path/filepath"
 
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
@@ -237,40 +239,59 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api/set_stt_info":
 		language := r.FormValue("language")
-		if vars.APIConfig.STT.Service != "vosk" {
-			fmt.Fprint(w, "error: service must be vosk")
-			return
-		}
-		// check if language is valid
-		matched := false
-		for _, lang := range localization.ValidVoskModels {
-			if lang == language {
-				matched = true
-				break
+		if vars.APIConfig.STT.Service == "vosk" {
+			// check if language is valid
+			matched := false
+			for _, lang := range localization.ValidVoskModels {
+				if lang == language {
+					matched = true
+					break
+				}
 			}
-		}
-		if !matched {
-			fmt.Fprint(w, "error: language not valid")
-			return
-		}
-		// check if language is downloaded already
-		matched = false
-		for _, lang := range vars.DownloadedVoskModels {
-			if lang == language {
-				matched = true
-				break
+			if !matched {
+				fmt.Fprint(w, "error: language not valid")
+				return
 			}
-		}
-		if !matched {
-			go localization.DownloadVoskModel(language)
-			fmt.Fprint(w, "downloading language model")
-		} else {
+			// check if language is downloaded already
+			matched = false
+			for _, lang := range vars.DownloadedVoskModels {
+				if lang == language {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				go localization.DownloadVoskModel(language)
+				fmt.Fprint(w, "downloading language model")
+			} else {
+				vars.APIConfig.STT.Language = language
+				vars.APIConfig.PastInitialSetup = true
+				vars.WriteConfigToDisk()
+				processreqs.ReloadVosk()
+				logger.Println("Reloaded voice processor successfully")
+				fmt.Fprint(w, "language switched successfully")
+			}
+		} else if vars.APIConfig.STT.Service == "whisper.cpp" {
+			matched := false
+			for _, lang := range localization.ValidVoskModels {
+				if lang == language {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				fmt.Fprint(w, "error: language not valid")
+				return
+			}
+
 			vars.APIConfig.STT.Language = language
 			vars.APIConfig.PastInitialSetup = true
 			vars.WriteConfigToDisk()
 			processreqs.ReloadVosk()
 			logger.Println("Reloaded voice processor successfully")
 			fmt.Fprint(w, "language switched successfully")
+		} else {
+			fmt.Fprint(w, "error: service must be vosk or whisper")
 		}
 		return
 	case r.URL.Path == "/api/get_download_status":
@@ -330,7 +351,13 @@ func StartWebServer() {
 	botsetup.RegisterSSHAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
-	webRoot := http.FileServer(http.Dir("./webroot"))
+	var webRoot http.Handler
+	if runtime.GOOS == "darwin" && vars.Packaged {
+		appPath, _ := os.Executable()
+		webRoot = http.FileServer(http.Dir(filepath.Dir(appPath) + "/../Frameworks/chipper/webroot"))
+	} else {
+		webRoot = http.FileServer(http.Dir("./webroot"))
+	}
 	http.Handle("/", webRoot)
 	fmt.Printf("Starting webserver at port " + vars.WebPort + " (http://localhost:" + vars.WebPort + ")\n")
 	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {
