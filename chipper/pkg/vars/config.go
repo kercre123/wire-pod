@@ -80,7 +80,7 @@ func WriteSTT() {
 	// was not part of the original code, so this is its own function
 	// launched if stt not found in config
 	APIConfig.STT.Service = os.Getenv("STT_SERVICE")
-	if os.Getenv("STT_SERVICE") == "vosk" {
+	if os.Getenv("STT_SERVICE") == "vosk" || os.Getenv("STT_SERVICE") == "whisper.cpp" {
 		APIConfig.STT.Language = os.Getenv("STT_LANGUAGE")
 	}
 }

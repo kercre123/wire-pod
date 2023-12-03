@@ -4,8 +4,8 @@ function checkLanguage() {
     xhr.send();
     xhr.onload = function() {
         parsed = JSON.parse(xhr.response)
-        if (parsed["sttProvider"] != "vosk") {
-            console.log("stt not vosk")
+        if (parsed["sttProvider"] != "vosk" && parsed["sttProvider"] != "whisper.cpp") {
+            console.log("stt not vosk/whisper")
           document.getElementById("section-language").style.display = "none"
           document.getElementById("languageSelection").value = "en-US"
         } else {
