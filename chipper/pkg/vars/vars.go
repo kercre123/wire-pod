@@ -121,6 +121,7 @@ func Init() {
 		logger.Println("This version of wire-pod is packaged. Set vars to include UserConfigDir...")
 		confDir, _ := os.UserConfigDir()
 		podDir := join(confDir, PodName)
+		appDir, _ := os.Executable()
 		os.Mkdir(podDir, 0777)
 		JdocsDir = join(podDir, JdocsDir)
 		JdocsPath = JdocsDir + "/jdocs.json"
@@ -128,7 +129,7 @@ func Init() {
 		BotConfigsPath = join(podDir, BotConfigsPath)
 		BotInfoPath = JdocsDir + "/" + BotInfoName
 		VoskModelPath = join(podDir, "./vosk/models/")
-		WhisperModelPath = join(podDir, "./whisper.cpp/models/")
+		WhisperModelPath = join(filepath.Dir(appDir), "/../Frameworks/chipper/whisper.cpp/models/") // macos
 		ApiConfigPath = join(podDir, ApiConfigPath)
 		CertPath = join(podDir, "./certs/cert.crt")
 		KeyPath = join(podDir, "./certs/cert.key")
@@ -157,7 +158,7 @@ func Init() {
 	// Split puts an extra / in the beginning of the array
 	podPath, _ := os.Getwd()
 	podPathSplit := strings.Split(strings.TrimSpace(podPath), "/")
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 		dir, _ := os.UserHomeDir()
 		SDKIniPath = dir + "/.anki_vector/"
 	} else {
@@ -231,7 +232,14 @@ func LoadCustomIntents() {
 }
 
 func LoadIntents() ([][]string, []string, error) {
-	jsonFile, err := os.ReadFile("./intent-data/" + APIConfig.STT.Language + ".json")
+	var path string
+  if runtime.GOOS == "darwin" && Packaged {
+    appPath, _ := os.Executable()
+    path = filepath.Dir(appPath) + "/../Frameworks/chipper/"
+  } else {
+    path = "./"
+  }
+  jsonFile, err := os.ReadFile(path + "intent-data/" + APIConfig.STT.Language + ".json")
 
 	var matches [][]string
 	var intents []string

@@ -6,9 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 	"math"
-	"log"
-
-	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"encoding/binary"
+	"runtime"
+	
+	"github.com/ggerganov/whisper.cpp/bindings/go"
 	"github.com/kercre123/chipper/pkg/logger"
 	"github.com/kercre123/chipper/pkg/vars"
 	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
@@ -17,13 +18,16 @@ import (
 
 var Name string = "whisper.cpp"
 
-var model whisper.Model
+var context *whisper.Context
+var params whisper.Params
 
 func Init() error {
-	// sttLanguage := vars.APIConfig.STT.Language
-	// if len(sttLanguage) == 0 {
-	// 	sttLanguage = "en-US"
-	// }
+	var sttLanguage string
+	if len(vars.APIConfig.STT.Language) == 0 {
+		sttLanguage = "en"
+	} else  {
+		sttLanguage = strings.Split(vars.APIConfig.STT.Language, "-")[0]
+	}
 
 	modelPath := filepath.Join(vars.WhisperModelPath, "ggml-tiny.bin")
 	if _, err := os.Stat(modelPath); err != nil {
@@ -31,14 +35,18 @@ func Init() error {
 		return err
 	}
 	logger.Println("Opening Whisper model (" + modelPath + ")")
-
-	aModel, err := whisper.New(modelPath)
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-	model = aModel
-
+	logger.Println(whisper.Whisper_print_system_info())
+	context = whisper.Whisper_init(modelPath)
+	params = context.Whisper_full_default_params(whisper.SAMPLING_GREEDY)
+	params.SetTranslate(false)
+	params.SetPrintSpecial(false)
+	params.SetPrintProgress(false)
+	params.SetPrintRealtime(false)
+	params.SetPrintTimestamps(false)
+	params.SetThreads(runtime.NumCPU())
+	params.SetNoContext(true)
+	params.SetSingleSegment(true)
+	params.SetLanguage(context.Whisper_lang_id(sttLanguage))
 	return nil
 }
 
@@ -51,9 +59,6 @@ func STT(req sr.SpeechRequest) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if err != nil {
-			return "", err
-		}
 		// has to be split into 320 []byte chunks for VAD
 		speechIsDone = req.DetectEndOfSpeech()
 		if speechIsDone {
@@ -61,7 +66,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 		}
 	}
 
-	transcribedText, err := process(asFloat32Buffer(sr.BytesToSamples(req.DecodedMicData)))
+	transcribedText, err := process(BytesToFloat32Buffer(req.DecodedMicData))
 	if err != nil {
 		return "", err
 	}
@@ -71,29 +76,18 @@ func STT(req sr.SpeechRequest) (string, error) {
 }
 
 func process(data []float32) (string, error) {
-	context, err := model.NewContext()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var cb whisper.SegmentCallback
 	var transcribedText string
-	cb = func(segment whisper.Segment) {
-		transcribedText = segment.Text
-	}
-
-	if err := context.Process(data, cb, nil); err != nil {
-		return "", err
-	}
-	
+	context.Whisper_full(params, data, nil, func(_ int) {
+		transcribedText = strings.TrimSpace(context.Whisper_full_get_segment_text(0))
+	}, nil)
 	return transcribedText, nil
 }
 
-func asFloat32Buffer(buf []int16) []float32 {
-	newB := make([]float32, len(buf))
+func BytesToFloat32Buffer(buf []byte) []float32 {
+	newB := make([]float32, len(buf)/2)
 	factor := math.Pow(2, float64(16)-1)
-	for i := 0; i < len(buf); i++ {
-		newB[i] = float32(float64(buf[i]) / factor)
+	for i := 0; i < len(buf)/2; i++ {
+		newB[i] = float32(float64(int16(binary.LittleEndian.Uint16(buf[i*2:]))) / factor)
 	}
 	return newB
 }

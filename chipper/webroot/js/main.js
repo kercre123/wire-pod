@@ -470,9 +470,9 @@ function showLanguage() {
     xhr.send();
     xhr.onload = function() {
         parsed = JSON.parse(xhr.response)
-        if (parsed["sttProvider"] != "vosk") {
+        if (parsed["sttProvider"] != "vosk" && parsed["sttProvider"] != "whisper.cpp") {
           error = document.createElement("p")
-          error.innerHTML = "To set the STT language, the provider must be Vosk. The current one is '" + parsed["sttProvider"] + "'."
+          error.innerHTML = "To set the STT language, the provider must be Vosk or Whisper. The current one is '" + parsed["sttProvider"] + "'."
           document.getElementById("languageStatus").appendChild(error)
           document.getElementById("languageSelectionDiv").style.display = "none"
         } else {
