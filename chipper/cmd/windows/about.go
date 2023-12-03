@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"github.com/kercre123/chipper/pkg/podonwin"
+	"github.com/kercre123/wire-pod/chipper/pkg/podonwin"
 )
 
 var AboutWindow fyne.Window

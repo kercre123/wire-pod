@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 )
 
 // mostly copied from vector-cloud

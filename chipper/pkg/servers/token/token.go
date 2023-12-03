@@ -15,8 +15,8 @@ import (
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
-	"github.com/kercre123/chipper/pkg/logger"
-	"github.com/kercre123/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
 )
