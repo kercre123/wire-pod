@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/kercre123/chipper/pkg/initwirepod"
-	stt "github.com/kercre123/chipper/pkg/wirepod/stt/houndify"
+	"github.com/kercre123/wire-pod/chipper/pkg/initwirepod"
+	stt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/houndify"
 )
 
 func main() {

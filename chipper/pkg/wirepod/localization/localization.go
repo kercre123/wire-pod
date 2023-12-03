@@ -1,6 +1,6 @@
 package localization
 
-import "github.com/kercre123/chipper/pkg/vars"
+import "github.com/kercre123/wire-pod/chipper/pkg/vars"
 
 var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL", "zh-CN"}
 

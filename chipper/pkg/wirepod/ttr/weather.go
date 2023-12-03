@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kercre123/chipper/pkg/logger"
-	"github.com/kercre123/chipper/pkg/vars"
-	lcztn "github.com/kercre123/chipper/pkg/wirepod/localization"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	lcztn "github.com/kercre123/wire-pod/chipper/pkg/wirepod/localization"
 )
 
 /* TODO:

@@ -8,11 +8,11 @@ import (
 	"runtime"
 
 	"github.com/getlantern/systray"
-	"github.com/kercre123/chipper/pkg/logger"
-	"github.com/kercre123/chipper/pkg/vars"
-	botsetup "github.com/kercre123/chipper/pkg/wirepod/setup"
-	stt "github.com/kercre123/chipper/pkg/wirepod/stt/vosk"
-	// stt "github.com/kercre123/chipper/pkg/wirepod/stt/whisper.cpp"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
+	stt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/vosk"
+	// stt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/whisper.cpp"
 	"github.com/ncruces/zenity"
 )
 

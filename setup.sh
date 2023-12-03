@@ -117,7 +117,7 @@ function getPackages() {
         fi
     else
         echo "This is a macOS or arch target, assuming Go is installed already"
-	if [[ ${TARGET} == "arch" ]]; then
+	if [[ ${TARGET} == "arch" ]] && [[ ! -d /usr/local/go/bin ]]; then
 		mkdir -p /usr/local/go/bin
 		ln -s /usr/bin/go /usr/local/go/bin/go
 	fi

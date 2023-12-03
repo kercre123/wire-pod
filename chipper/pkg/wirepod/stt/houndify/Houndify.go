@@ -5,9 +5,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/kercre123/chipper/pkg/logger"
-	preqs "github.com/kercre123/chipper/pkg/wirepod/preqs"
-	sr "github.com/kercre123/chipper/pkg/wirepod/speechrequest"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	preqs "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
+	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 	"github.com/soundhound/houndify-sdk-go"
 )
 
