@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kercre123/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 )
 
 // initialize variables so they don't have to be found during runtime
