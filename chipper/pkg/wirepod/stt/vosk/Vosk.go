@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 
 	vosk "github.com/alphacep/vosk-api/go"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -94,39 +93,7 @@ func Init() error {
 			log.Fatal(err)
 		}
 		modelLoaded = true
-		logger.Println("VOSK initiated successfully, running speed tests...")
-
-		// run test
-		pcmBytes, _ := os.ReadFile("./stttest.pcm")
-		var micData [][]byte
-		cTime := time.Now()
-		micData = sr.SplitVAD(pcmBytes)
-
-		if GrammerEnable {
-			recWithGrm, grmind := getRec(true)
-			for _, sample := range micData {
-				recWithGrm.AcceptWaveform(sample)
-			}
-			var jres map[string]interface{}
-			json.Unmarshal([]byte(recWithGrm.FinalResult()), &jres)
-			transcribedText := jres["text"].(string)
-			logger.Println("(Grammer Recognizer) Transcribed text: " + transcribedText)
-			grmRecs[grmind].InUse = false
-			logger.Println("Grammer recognizer test completed, took", time.Now().Sub(cTime))
-			cTime = time.Now()
-		}
-		logger.Println("Running general recognizer test...")
-
-		recGp, gpind := getRec(false)
-		for _, sample := range micData {
-			recGp.AcceptWaveform(sample)
-		}
-		var jres2 map[string]interface{}
-		json.Unmarshal([]byte(recGp.FinalResult()), &jres2)
-		transcribedText := jres2["text"].(string)
-		logger.Println("(General Recognizer) Transcribed text: " + transcribedText)
-		gpRecs[gpind].InUse = false
-		logger.Println("General recognizer test completed, took", time.Now().Sub(cTime))
+		logger.Println("VOSK initiated successfully")
 	}
 	return nil
 }
