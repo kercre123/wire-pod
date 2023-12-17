@@ -1,6 +1,6 @@
 module github.com/kercre123/wire-pod
 
-go 1.21.5
+go 1.18
 
 require (
 	github.com/Picovoice/leopard/binding/go v1.2.0
