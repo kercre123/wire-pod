@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime"
 
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
@@ -93,6 +94,10 @@ func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, 
 }
 
 func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) {
+	if runtime.GOOS == "android" {
+		os.Setenv("DEBUG_LOGGING", "true")
+		os.Setenv("STT_SERVICE", "vosk")
+	}
 	err := BeginWirepodSpecific(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	if err != nil {
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
@@ -144,16 +149,31 @@ func StartChipper() {
 	// load certs
 	var certPub []byte
 	var certPriv []byte
-	if vars.APIConfig.Server.EPConfig {
-		certPub, _ = os.ReadFile("./epod/ep.crt")
-		certPriv, _ = os.ReadFile("./epod/ep.key")
+	if runtime.GOOS == "android" {
+		if vars.APIConfig.Server.EPConfig {
+			certPub, _ = os.ReadFile(vars.AndroidPath + "/static/epod/ep.crt")
+			certPriv, _ = os.ReadFile(vars.AndroidPath + "/static/epod/ep.key")
+		} else {
+			var err error
+			certPub, _ = os.ReadFile(vars.AndroidPath + "/wire-pod/certs/cert.crt")
+			certPriv, err = os.ReadFile(vars.AndroidPath + "/wire-pod/certs/cert.key")
+			if err != nil {
+				logger.Println("wire-pod is not setup.")
+				return
+			}
+		}
 	} else {
-		var err error
-		certPub, _ = os.ReadFile("../certs/cert.crt")
-		certPriv, err = os.ReadFile("../certs/cert.key")
-		if err != nil {
-			logger.Println("wire-pod is not setup.")
-			return
+		if vars.APIConfig.Server.EPConfig {
+			certPub, _ = os.ReadFile("./epod/ep.crt")
+			certPriv, _ = os.ReadFile("./epod/ep.key")
+		} else {
+			var err error
+			certPub, _ = os.ReadFile("../certs/cert.crt")
+			certPriv, err = os.ReadFile("../certs/cert.key")
+			if err != nil {
+				logger.Println("wire-pod is not setup.")
+				return
+			}
 		}
 	}
 
@@ -199,7 +219,9 @@ func StartChipper() {
 
 	chipperServing = true
 	if vars.APIConfig.Server.EPConfig && os.Getenv("NO8084") != "true" {
-		go serverOne.Serve()
+		if runtime.GOOS != "android" {
+			go serverOne.Serve()
+		}
 		serverTwo.Serve()
 		logger.Println("Stopping chipper server")
 		chipperServing = false

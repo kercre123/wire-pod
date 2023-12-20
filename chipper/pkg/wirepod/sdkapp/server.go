@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -20,7 +22,7 @@ import (
 	"github.com/ncruces/zenity"
 )
 
-const serverFiles string = "./webroot/sdkapp"
+var serverFiles string = "./webroot/sdkapp"
 
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
@@ -483,6 +485,9 @@ func BeginServer() {
 		logger.Println("Jdocs pinger has been disabled")
 	}
 	http.HandleFunc("/api-sdk/", SdkapiHandler)
+	if runtime.GOOS == "android" {
+		serverFiles = filepath.Join(vars.AndroidPath, "/static/webroot")
+	}
 	fileServer := http.FileServer(http.Dir(serverFiles))
 	http.Handle("/sdk-app", fileServer)
 	// in jdocspinger.go
@@ -495,14 +500,16 @@ func BeginServer() {
 	fmt.Printf("Starting server at port 80 for connCheck\n")
 	ipAddr := botsetup.GetOutboundIP().String()
 	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + vars.WebPort + "\033[0m")
-	if err := http.ListenAndServe(":80", nil); err != nil {
-		if vars.Packaged {
-			zenity.Warning(
-				"A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.",
-				zenity.Title("wire-pod"),
-				zenity.WarningIcon,
-			)
+	if runtime.GOOS != "android" {
+		if err := http.ListenAndServe(":80", nil); err != nil {
+			if vars.Packaged {
+				zenity.Warning(
+					"A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.",
+					zenity.Title("wire-pod"),
+					zenity.WarningIcon,
+				)
+			}
+			logger.Println("A process is already using port 80 - connCheck functionality will not work")
 		}
-		logger.Println("A process is already using port 80 - connCheck functionality will not work")
 	}
 }

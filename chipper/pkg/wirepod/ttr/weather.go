@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -195,7 +196,13 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			body, _ := io.ReadAll(resp.Body)
 			weatherResponse := string(body)
 			var weatherAPICladMap weatherAPICladStruct
-			jsonFile, _ := os.ReadFile("./weather-map.json")
+			mapPath := ""
+			if runtime.GOOS == "android" {
+				mapPath = vars.AndroidPath + "/weather-map.json"
+			} else {
+				mapPath = "./weather-map.json"
+			}
+			jsonFile, _ := os.ReadFile(mapPath)
 			json.Unmarshal(jsonFile, &weatherAPICladMap)
 			var weatherStruct weatherAPIResponseStruct
 			json.Unmarshal([]byte(weatherResponse), &weatherStruct)

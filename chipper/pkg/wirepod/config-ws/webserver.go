@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
-	"runtime"
-	"path/filepath"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
@@ -355,6 +355,8 @@ func StartWebServer() {
 	if runtime.GOOS == "darwin" && vars.Packaged {
 		appPath, _ := os.Executable()
 		webRoot = http.FileServer(http.Dir(filepath.Dir(appPath) + "/../Frameworks/chipper/webroot"))
+	} else if runtime.GOOS == "android" {
+		webRoot = http.FileServer(http.Dir(vars.AndroidPath + "/static/webroot"))
 	} else {
 		webRoot = http.FileServer(http.Dir("./webroot"))
 	}

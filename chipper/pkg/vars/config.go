@@ -3,7 +3,6 @@ package vars
 import (
 	"encoding/json"
 	"os"
-	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 )
@@ -70,7 +69,6 @@ func CreateConfigFromEnv() {
 		APIConfig.Knowledge.Enable = false
 	}
 	WriteSTT()
-	WriteServer()
 	APIConfig.HasReadFromEnv = true
 	writeBytes, _ := json.Marshal(APIConfig)
 	os.WriteFile(ApiConfigPath, writeBytes, 0644)
@@ -82,21 +80,6 @@ func WriteSTT() {
 	APIConfig.STT.Service = os.Getenv("STT_SERVICE")
 	if os.Getenv("STT_SERVICE") == "vosk" || os.Getenv("STT_SERVICE") == "whisper.cpp" {
 		APIConfig.STT.Language = os.Getenv("STT_LANGUAGE")
-	}
-}
-
-func WriteServer() {
-	// was not part of the original code, so this is its own function
-	// launched if server not found in config
-
-	// check to see if DDL_RPC_TLS_CERTIFICATE matches ./epod/ep.crt
-	epodCertFile, _ := os.ReadFile("./epod/ep.crt")
-	if strings.EqualFold(string(epodCertFile), os.Getenv("DDL_RPC_TLS_CERTIFICATE")) {
-		APIConfig.Server.EPConfig = true
-		APIConfig.Server.Port = "443"
-	} else {
-		APIConfig.Server.EPConfig = false
-		APIConfig.Server.Port = os.Getenv("DDL_RPC_PORT")
 	}
 }
 
@@ -128,7 +111,6 @@ func ReadConfig() {
 		}
 		if !APIConfig.HasReadFromEnv {
 			if APIConfig.Server.Port != os.Getenv("DDL_RPC_PORT") {
-				WriteServer()
 				APIConfig.HasReadFromEnv = true
 				APIConfig.PastInitialSetup = true
 			}

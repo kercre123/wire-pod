@@ -19,6 +19,8 @@ var VarsInited bool
 // if compiled into an installation package. wire-pod will use os.UserConfigDir()
 var Packaged bool
 
+var AndroidPath string
+
 var (
 	JdocsPath         string = "./jdocs/jdocs.json"
 	JdocsDir          string = "./jdocs"
@@ -119,7 +121,12 @@ func Init() {
 
 	if Packaged {
 		logger.Println("This version of wire-pod is packaged. Set vars to include UserConfigDir...")
-		confDir, _ := os.UserConfigDir()
+		var confDir string
+		if runtime.GOOS == "android" {
+			confDir = AndroidPath
+		} else {
+			confDir, _ = os.UserConfigDir()
+		}
 		podDir := join(confDir, PodName)
 		appDir, _ := os.Executable()
 		os.Mkdir(podDir, 0777)
@@ -161,6 +168,8 @@ func Init() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 		dir, _ := os.UserHomeDir()
 		SDKIniPath = dir + "/.anki_vector/"
+	} else if runtime.GOOS == "android" {
+		SDKIniPath = filepath.Join(AndroidPath, "/wire-pod/anki_vector")
 	} else {
 		if podPathSplit[len(podPathSplit)-1] != "chipper" || podPathSplit[len(podPathSplit)-2] != PodName {
 			logger.Println("It looks like you may have changed path names of the directories wire-pod is running in. This is not recommended because the SDK implementation depends on relativity in a few spots.")
@@ -233,13 +242,15 @@ func LoadCustomIntents() {
 
 func LoadIntents() ([][]string, []string, error) {
 	var path string
-  if runtime.GOOS == "darwin" && Packaged {
-    appPath, _ := os.Executable()
-    path = filepath.Dir(appPath) + "/../Frameworks/chipper/"
-  } else {
-    path = "./"
-  }
-  jsonFile, err := os.ReadFile(path + "intent-data/" + APIConfig.STT.Language + ".json")
+	if runtime.GOOS == "darwin" && Packaged {
+		appPath, _ := os.Executable()
+		path = filepath.Dir(appPath) + "/../Frameworks/chipper/"
+	} else if runtime.GOOS == "android" {
+		path = AndroidPath + "/static/"
+	} else {
+		path = "./"
+	}
+	jsonFile, err := os.ReadFile(path + "intent-data/" + APIConfig.STT.Language + ".json")
 
 	var matches [][]string
 	var intents []string
