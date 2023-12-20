@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 )
 
 // this file will be copied to the bot
-const SetupScriptPath = "../vector-cloud/pod-bot-install.sh"
+var SetupScriptPath = "../vector-cloud/pod-bot-install.sh"
 
 // path to copy to
 const BotSetupPath = "/data/pod-bot-install.sh"
@@ -43,6 +44,9 @@ func runCmd(client *ssh.Client, cmd string) (string, error) {
 }
 
 func SetupBotViaSSH(ip string, key []byte) error {
+	if runtime.GOOS == "android" {
+		SetupScriptPath = vars.AndroidPath + "/static/pod-bot-install.sh"
+	}
 	if !SSHSettingUp {
 		logger.Println("Setting up " + ip + " via SSH")
 		SetupSSHStatus = "Setting up SSH connection..."
@@ -117,7 +121,15 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		}
 		err = scpClient.CopyFile(context.Background(), cloud, "/anki/bin/vic-cloud", "0755")
 		if err != nil {
-			return doErr(err, "copying vic-cloud")
+			time.Sleep(time.Second * 1)
+			scpClient, err = scp.NewClientBySSH(client)
+			if err != nil {
+				return doErr(err, "copying vic-cloud")
+			}
+			err = scpClient.CopyFile(context.Background(), cloud, "/anki/bin/vic-cloud", "0755")
+			if err != nil {
+				return doErr(err, "copying vic-cloud")
+			}
 		}
 		scpClient.Session.Close()
 		certPath := vars.CertPath

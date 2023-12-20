@@ -183,14 +183,18 @@ func StartChipper() {
 		logger.Println(err)
 		os.Exit(1)
 	}
-	logger.Println("Starting chipper server at port " + vars.APIConfig.Server.Port)
-	listenerOne, err = tls.Listen("tcp", ":"+vars.APIConfig.Server.Port, &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		CipherSuites: nil,
-	})
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if runtime.GOOS == "android" && vars.APIConfig.Server.Port == "443" {
+		logger.Println("not starting chipper at port 443 because android...")
+	} else {
+		logger.Println("Starting chipper server at port " + vars.APIConfig.Server.Port)
+		listenerOne, err = tls.Listen("tcp", ":"+vars.APIConfig.Server.Port, &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			CipherSuites: nil,
+		})
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 	serverOne = cmux.New(listenerOne)
 	grpcListenerOne := serverOne.Match(cmux.HTTP2())
