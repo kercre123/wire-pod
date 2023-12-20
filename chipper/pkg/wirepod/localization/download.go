@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -53,7 +54,12 @@ func DownloadVoskModel(language string) {
 	}
 	os.MkdirAll(vars.VoskModelPath, 0755)
 	url := URLPrefix + filename
-	filep := os.TempDir() + "/" + filename
+	var filep string
+	if runtime.GOOS == "android" {
+		filep = filepath.Join(vars.AndroidPath, "/"+filename)
+	} else {
+		filep = os.TempDir() + "/" + filename
+	}
 	destpath := filepath.Join(vars.VoskModelPath, language) + "/"
 	DownloadFile(url, filep)
 	UnzipFile(filep, destpath)
