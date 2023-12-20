@@ -19,7 +19,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
-	"github.com/ncruces/zenity"
 )
 
 var serverFiles string = "./webroot/sdkapp"
@@ -503,11 +502,7 @@ func BeginServer() {
 	if runtime.GOOS != "android" {
 		if err := http.ListenAndServe(":80", nil); err != nil {
 			if vars.Packaged {
-				zenity.Warning(
-					"A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.",
-					zenity.Title("wire-pod"),
-					zenity.WarningIcon,
-				)
+				logger.WarnMsg("A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.")
 			}
 			logger.Println("A process is already using port 80 - connCheck functionality will not work")
 		}

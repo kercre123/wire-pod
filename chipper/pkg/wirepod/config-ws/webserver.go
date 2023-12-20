@@ -15,7 +15,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
-	"github.com/ncruces/zenity"
 )
 
 var SttInitFunc func() error
@@ -365,11 +364,7 @@ func StartWebServer() {
 	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {
 		logger.Println("Error binding to " + vars.WebPort + ": " + err.Error())
 		if vars.Packaged {
-			zenity.Error(
-				"FATAL: Wire-pod was unable to bind to port "+vars.WebPort+". Another process is likely using it. Exiting.",
-				zenity.ErrorIcon,
-				zenity.Title("wire-pod"),
-			)
+			logger.ErrMsg("FATAL: Wire-pod was unable to bind to port " + vars.WebPort + ". Another process is likely using it. Exiting.")
 		}
 		os.Exit(1)
 	}
