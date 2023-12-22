@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ensure all required packages are installed
-if [[ ${uname -a} == *"Darwin"* ]]; then
+if [[ $(uname -a) == *"Darwin"* ]]; then
     TARGET="darwin"
     echo "macOS detected."
 elif [[ -f /usr/bin/apt ]]; then
