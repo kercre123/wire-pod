@@ -55,7 +55,7 @@ func DownloadVoskModel(language string) {
 	os.MkdirAll(vars.VoskModelPath, 0755)
 	url := URLPrefix + filename
 	var filep string
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		filep = filepath.Join(vars.AndroidPath, "/"+filename)
 	} else {
 		filep = os.TempDir() + "/" + filename

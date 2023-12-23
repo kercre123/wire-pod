@@ -484,7 +484,7 @@ func BeginServer() {
 		logger.Println("Jdocs pinger has been disabled")
 	}
 	http.HandleFunc("/api-sdk/", SdkapiHandler)
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		serverFiles = filepath.Join(vars.AndroidPath, "/static/webroot")
 	}
 	fileServer := http.FileServer(http.Dir(serverFiles))

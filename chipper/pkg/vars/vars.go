@@ -122,7 +122,7 @@ func Init() {
 	if Packaged {
 		logger.Println("This version of wire-pod is packaged. Set vars to include UserConfigDir...")
 		var confDir string
-		if runtime.GOOS == "android" {
+		if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 			confDir = AndroidPath
 		} else {
 			confDir, _ = os.UserConfigDir()
@@ -168,7 +168,7 @@ func Init() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 		dir, _ := os.UserHomeDir()
 		SDKIniPath = dir + "/.anki_vector/"
-	} else if runtime.GOOS == "android" {
+	} else if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		SDKIniPath = filepath.Join(AndroidPath, "/wire-pod/anki_vector")
 	} else {
 		if podPathSplit[len(podPathSplit)-1] != "chipper" || podPathSplit[len(podPathSplit)-2] != PodName {
@@ -245,7 +245,7 @@ func LoadIntents() ([][]string, []string, error) {
 	if runtime.GOOS == "darwin" && Packaged {
 		appPath, _ := os.Executable()
 		path = filepath.Dir(appPath) + "/../Frameworks/chipper/"
-	} else if runtime.GOOS == "android" {
+	} else if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		path = AndroidPath + "/static/"
 	} else {
 		path = "./"

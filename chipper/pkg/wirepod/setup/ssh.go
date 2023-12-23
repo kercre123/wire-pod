@@ -44,7 +44,7 @@ func runCmd(client *ssh.Client, cmd string) (string, error) {
 }
 
 func SetupBotViaSSH(ip string, key []byte) error {
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		SetupScriptPath = vars.AndroidPath + "/static/pod-bot-install.sh"
 	}
 	if !SSHSettingUp {
@@ -110,31 +110,59 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(err, "copying server-config.json")
 		}
 		scpClient.Session.Close()
-		cloud, err := os.Open("../vector-cloud/build/vic-cloud")
-		if err != nil {
-			return doErr(err, "transferring new vic-cloud")
-		}
-		SetupSSHStatus = "Transferring new vic-cloud..."
-		scpClient, err = scp.NewClientBySSH(client)
-		if err != nil {
-			return doErr(err, "new scp client 3")
-		}
-		err = scpClient.CopyFile(context.Background(), cloud, "/anki/bin/vic-cloud", "0755")
-		if err != nil {
-			time.Sleep(time.Second * 1)
+		if runtime.GOOS != "android" {
+			cloud, err := os.Open("../vector-cloud/build/vic-cloud")
+			if err != nil {
+				return doErr(err, "transferring new vic-cloud")
+			}
+			SetupSSHStatus = "Transferring new vic-cloud..."
 			scpClient, err = scp.NewClientBySSH(client)
 			if err != nil {
-				return doErr(err, "copying vic-cloud")
+				return doErr(err, "new scp client 3")
 			}
 			err = scpClient.CopyFile(context.Background(), cloud, "/anki/bin/vic-cloud", "0755")
 			if err != nil {
-				return doErr(err, "copying vic-cloud")
+				time.Sleep(time.Second * 1)
+				scpClient, err = scp.NewClientBySSH(client)
+				if err != nil {
+					return doErr(err, "copying vic-cloud")
+				}
+				err = scpClient.CopyFile(context.Background(), cloud, "/anki/bin/vic-cloud", "0755")
+				if err != nil {
+					return doErr(err, "copying vic-cloud")
+				}
+			}
+		} else {
+			resp, _ := http.Get("https://github.com/kercre123/wire-pod/raw/main/vector-cloud/build/vic-cloud")
+			if err != nil {
+				return doErr(err, "transferring new vic-cloud")
+			}
+			SetupSSHStatus = "Transferring new vic-cloud..."
+			scpClient, err = scp.NewClientBySSH(client)
+			if err != nil {
+				return doErr(err, "new scp client 3")
+			}
+			err = scpClient.CopyFile(context.Background(), resp.Body, "/anki/bin/vic-cloud", "0755")
+			if err != nil {
+				time.Sleep(time.Second * 1)
+				scpClient, err = scp.NewClientBySSH(client)
+				if err != nil {
+					return doErr(err, "copying vic-cloud")
+				}
+				err = scpClient.CopyFile(context.Background(), resp.Body, "/anki/bin/vic-cloud", "0755")
+				if err != nil {
+					return doErr(err, "copying vic-cloud")
+				}
 			}
 		}
 		scpClient.Session.Close()
 		certPath := vars.CertPath
 		if vars.APIConfig.Server.EPConfig {
-			certPath = "./epod/ep.crt"
+			if runtime.GOOS == "android" || runtime.GOOS == "ios" {
+				certPath = vars.AndroidPath + "/static/epod/ep.crt"
+			} else {
+				certPath = "./epod/ep.crt"
+			}
 		}
 		cert, err := os.Open(certPath)
 		if err != nil {
