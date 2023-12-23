@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/zeroconf"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
@@ -159,8 +160,13 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	case strings.Contains(r.URL.Path, "/ok"):
+		if r.FormValue("runMDNS") == "true" {
+			RunMDNS("t")
+			fmt.Fprintf(w, "ran")
+			return
+		}
 		if PingerEnabled {
-			//	logger.Println("connCheck request from " + r.RemoteAddr)
+			//logger.Println("connCheck request from " + r.RemoteAddr)
 			robotTarget := strings.Split(r.RemoteAddr, ":")[0]
 			jsonB, _ := json.Marshal(vars.BotInfo)
 			json := string(jsonB)
@@ -169,9 +175,53 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 				if ping {
 					pingJdocs(robotTarget)
 				}
+			} else {
+				go RunMDNS(strings.Split(r.RemoteAddr, ":")[0])
 			}
 		}
 		fmt.Fprintf(w, "ok")
 		return
 	}
+}
+
+var MDNSAlreadyRun []string
+
+var RunningMDNS bool
+
+func RunMDNS(botIP string) {
+	for _, ip := range MDNSAlreadyRun {
+		if ip == botIP {
+			return
+		}
+	}
+	fmt.Println("Running mDNS...")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	entries := make(chan *zeroconf.ServiceEntry)
+	resolver, _ := zeroconf.NewResolver()
+	resolver.Browse(ctx, "_ankivector._tcp", "local", entries)
+	for entry := range entries {
+		robotID := strings.Split(entry.HostName, ".")[0]
+		matched := false
+		for _, rinf := range vars.RecurringInfo {
+			if rinf.ID == robotID {
+				vars.AddToRInfo(rinf.ESN, robotID, fmt.Sprint(entry.AddrIPv4[0]))
+				for i, rob := range vars.BotInfo.Robots {
+					if rob.Esn == rinf.ESN {
+						vars.BotInfo.Robots[i].IPAddress = fmt.Sprint(entry.AddrIPv4[0])
+						jsonBytes, _ := json.Marshal(vars.BotInfo)
+						fmt.Println("Updating robot " + robotID)
+						go os.WriteFile(vars.BotInfoPath, jsonBytes, 0777)
+					}
+				}
+				go pingJdocs(fmt.Sprint(entry.AddrIPv4[0]))
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			MDNSAlreadyRun = append(MDNSAlreadyRun, fmt.Sprint(entry.AddrIPv4[0]))
+		}
+	}
+	fmt.Println("Done running mDNS")
 }

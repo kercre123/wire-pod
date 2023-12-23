@@ -112,6 +112,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					// export to ./session-certs
 					os.WriteFile(vars.SessionCertPath+"/"+esn, tokenserver.SessionWriteStoreCerts[num], 0755)
 					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
+					vars.AddToRInfo(esn, pair[1], ipAddr)
 					tokenserver.RemoveFromSessionStore(num)
 					logger.Println("Session certificate successfully output")
 					break

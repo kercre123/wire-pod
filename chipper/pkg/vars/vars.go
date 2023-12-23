@@ -1,7 +1,9 @@
 package vars
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -62,6 +64,8 @@ var ChipperCert []byte
 var ChipperKey []byte
 var ChipperKeysLoaded bool
 
+var RecurringInfo []RecurringInfoStore
+
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
 	Robots     []struct {
@@ -71,6 +75,15 @@ type RobotInfoStore struct {
 		GUID      string `json:"guid"`
 		Activated bool   `json:"activated"`
 	} `json:"robots"`
+}
+
+type RecurringInfoStore struct {
+	// Vector-R2D2
+	ID string `json:"id"`
+	// 00e20145
+	ESN string `json:"esn"`
+	// 192.168.1.150
+	IP string `json:"ip"`
 }
 
 type JsonIntent struct {
@@ -213,6 +226,8 @@ func Init() {
 		}
 		logger.Println("Loaded bot info file, known bots: " + fmt.Sprint(botList))
 	}
+
+	ReadSessionCerts()
 	LoadCustomIntents()
 	VarsInited = true
 }
@@ -323,4 +338,55 @@ func AddJdoc(thing string, name string, jdoc AJdoc) uint64 {
 	}
 	WriteJdocs()
 	return latestVersion
+}
+
+func ReadSessionCerts() {
+	logger.Println("Reading session certs for robot IDs")
+	var rinfo RecurringInfoStore
+	certDir, err := os.ReadDir(SessionCertPath)
+	if err != nil {
+		logger.Println(err)
+		return
+	}
+	for _, entry := range certDir {
+		if entry.Name() == "placeholder" {
+			continue
+		}
+		esn := entry.Name()
+		var ip string
+		certBytes, err := os.ReadFile(filepath.Join(SessionCertPath, entry.Name()))
+		if err != nil {
+			logger.Println(err)
+			return
+		}
+		pemBytes, _ := pem.Decode(certBytes)
+		cert, _ := x509.ParseCertificate(pemBytes.Bytes)
+		for _, robot := range BotInfo.Robots {
+			if esn == robot.Esn {
+				ip = robot.IPAddress
+				break
+			}
+		}
+		rinfo.ESN = esn
+		rinfo.ID = cert.Issuer.CommonName
+		rinfo.IP = ip
+		RecurringInfo = append(RecurringInfo, rinfo)
+	}
+}
+
+func AddToRInfo(esn string, id string, ip string) {
+	// the only bot constant is ESN
+	for i := range RecurringInfo {
+		if RecurringInfo[i].ESN == esn {
+			RecurringInfo[i].ID = id
+			RecurringInfo[i].IP = ip
+			return
+		}
+	}
+	var rinfo RecurringInfoStore
+	rinfo.ESN = esn
+	rinfo.ID = id
+	rinfo.IP = ip
+	RecurringInfo = append(RecurringInfo, rinfo)
+
 }
