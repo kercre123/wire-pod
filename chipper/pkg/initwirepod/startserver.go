@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"time"
 
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
@@ -20,6 +21,8 @@ import (
 	wpweb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
+	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
+	"github.com/kercre123/zeroconf"
 	"github.com/soheilhy/cmux"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
@@ -108,24 +111,25 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
 		vars.APIConfig.PastInitialSetup = false
 	} else {
-		//go PostmDNS()
+		go PostmDNS()
 		go StartChipper()
 	}
 	// main thread is configuration ws
 	wpweb.StartWebServer()
 }
 
-// func PostmDNS() {
-// 	logger.Println("Registering escapepod.local on network (every minute)")
-// 	mdnsport, _ := freeport.GetFreePort()
-// 	for {
-// 		ipAddr := botsetup.GetOutboundIP().String()
-// 		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", mdnsport, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
-// 		time.Sleep(time.Second * 60)
-// 		server.Shutdown()
-// 		server = nil
-// 	}
-// }
+func PostmDNS() {
+	logger.Println("Registering escapepod.local on network (every minute)")
+	mdnsport := 443
+	for {
+		ipAddr := botsetup.GetOutboundIP().String()
+		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", mdnsport, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
+		time.Sleep(time.Second * 10)
+		server.Shutdown()
+		server = nil
+		time.Sleep(time.Second * 2)
+	}
+}
 
 func CheckHostname() {
 	hostname, _ := os.Hostname()
