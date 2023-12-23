@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	vosk "github.com/alphacep/vosk-api/go"
+	vosk "github.com/kercre123/vosk-api/go"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
