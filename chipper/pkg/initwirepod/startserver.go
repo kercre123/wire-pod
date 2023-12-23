@@ -94,7 +94,7 @@ func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, 
 }
 
 func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) {
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		os.Setenv("DEBUG_LOGGING", "true")
 		os.Setenv("STT_SERVICE", "vosk")
 	}
@@ -149,7 +149,7 @@ func StartChipper() {
 	// load certs
 	var certPub []byte
 	var certPriv []byte
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		if vars.APIConfig.Server.EPConfig {
 			certPub, _ = os.ReadFile(vars.AndroidPath + "/static/epod/ep.crt")
 			certPriv, _ = os.ReadFile(vars.AndroidPath + "/static/epod/ep.key")
