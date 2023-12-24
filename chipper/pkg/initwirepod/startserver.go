@@ -111,7 +111,9 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
 		vars.APIConfig.PastInitialSetup = false
 	} else {
-		go PostmDNS()
+		if runtime.GOOS != "android" && runtime.GOOS != "ios" {
+			go PostmDNS()
+		}
 		go StartChipper()
 	}
 	// main thread is configuration ws
@@ -131,14 +133,6 @@ func PostmDNS() {
 	}
 }
 
-func CheckHostname() {
-	hostname, _ := os.Hostname()
-	if hostname != "escapepod" && vars.APIConfig.Server.EPConfig {
-		logger.Println("\033[31m\033[1mWARNING: You have chosen the Escape Pod config, but the system hostname is not 'escapepod'. This means your robot will not be able to communicate with wire-pod unless you have a custom network configuration.")
-		logger.Println("Actual reported hostname: " + hostname + "\033[0m")
-	}
-}
-
 func RestartServer() {
 	if chipperServing {
 		serverOne.Close()
@@ -147,6 +141,15 @@ func RestartServer() {
 		listenerTwo.Close()
 	}
 	go StartChipper()
+}
+
+func StopServer() {
+	if chipperServing {
+		serverOne.Close()
+		serverTwo.Close()
+		listenerOne.Close()
+		listenerTwo.Close()
+	}
 }
 
 func StartChipper() {
