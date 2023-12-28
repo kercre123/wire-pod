@@ -111,9 +111,6 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
 		vars.APIConfig.PastInitialSetup = false
 	} else {
-		if runtime.GOOS != "android" && runtime.GOOS != "ios" {
-			go PostmDNS()
-		}
 		go StartChipper()
 	}
 	// main thread is configuration ws
@@ -154,6 +151,9 @@ func StopServer() {
 
 func StartChipper() {
 	// load certs
+	if runtime.GOOS != "android" && runtime.GOOS != "ios" {
+		go PostmDNS()
+        }
 	var certPub []byte
 	var certPriv []byte
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
