@@ -35,7 +35,14 @@ func GetOutboundIP() net.IP {
 		for _, iface := range ifaces {
 			if iface.Name == "wlan0" {
 				adrs, _ := iface.Addrs()
-				return net.IP(adrs[0].String())
+				for _, adr := range adrs {
+					localAddr := adr.(*net.IPAddr)
+					logger.Println(localAddr.IP.String())
+					logger.Println(adr.Network())
+					logger.Println(adr.String())
+				}
+				localAddr := adrs[0].(*net.IPAddr)
+				return localAddr.IP
 			}
 		}
 	}
