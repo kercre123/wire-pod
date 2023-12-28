@@ -30,6 +30,8 @@ import (
 	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
 )
 
+var PostingmDNS bool
+
 var serverOne cmux.CMux
 var serverTwo cmux.CMux
 var listenerOne net.Listener
@@ -118,15 +120,19 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 }
 
 func PostmDNS() {
+	if PostingmDNS {
+		return
+	}
+	PostingmDNS = true
 	logger.Println("Registering escapepod.local on network (every minute)")
 	mdnsport := 443
 	for {
 		ipAddr := botsetup.GetOutboundIP().String()
 		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", mdnsport, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 4)
 		server.Shutdown()
 		server = nil
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second / 3)
 	}
 }
 
@@ -153,7 +159,7 @@ func StartChipper() {
 	// load certs
 	if runtime.GOOS != "android" && runtime.GOOS != "ios" {
 		go PostmDNS()
-        }
+	}
 	var certPub []byte
 	var certPriv []byte
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
@@ -191,7 +197,7 @@ func StartChipper() {
 		os.Exit(1)
 	}
 	if runtime.GOOS == "android" && vars.APIConfig.Server.Port == "443" {
-		logger.Println("not starting chipper at port 443 because android...")
+		logger.Println("not starting chipper at port 443 because android")
 	} else {
 		logger.Println("Starting chipper server at port " + vars.APIConfig.Server.Port)
 		listenerOne, err = tls.Listen("tcp", ":"+vars.APIConfig.Server.Port, &tls.Config{

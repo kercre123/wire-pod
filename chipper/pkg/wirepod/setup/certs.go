@@ -12,10 +12,12 @@ import (
 	"math/big"
 	"net"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/wlynxg/anet"
 )
 
 type ClientServerConfig struct {
@@ -28,6 +30,15 @@ type ClientServerConfig struct {
 }
 
 func GetOutboundIP() net.IP {
+	if runtime.GOOS == "android" {
+		ifaces, _ := anet.Interfaces()
+		for _, iface := range ifaces {
+			if iface.Name == "wlan0" {
+				adrs, _ := iface.Addrs()
+				return net.IP(adrs[0].String())
+			}
+		}
+	}
 	conn, err := net.Dial("udp", vars.OutboundIPTester)
 	if err != nil {
 		log.Fatal(err)
