@@ -8,7 +8,6 @@ import (
 	"crypto/x509/pkix"
 	"encoding/json"
 	"encoding/pem"
-	"log"
 	"math/big"
 	"net"
 	"os"
@@ -34,15 +33,21 @@ func GetOutboundIP() net.IP {
 		ifaces, _ := anet.Interfaces()
 		for _, iface := range ifaces {
 			if iface.Name == "wlan0" {
-				adrs, _ := iface.Addrs()
-				localAddr := adrs[0].(*net.IPNet)
-				return localAddr.IP
+				adrs, err := anet.InterfaceAddrsByInterface(&iface)
+				if err != nil {
+					logger.Println(err)
+					break
+				}
+				if len(adrs) > 0 {
+					localAddr := adrs[0].(*net.IPNet)
+					return localAddr.IP
+				}
 			}
 		}
 	}
 	conn, err := net.Dial("udp", vars.OutboundIPTester)
 	if err != nil {
-		log.Fatal(err)
+		logger.Println(err)
 	}
 	defer conn.Close()
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
