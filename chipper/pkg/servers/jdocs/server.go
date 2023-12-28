@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"strings"
+	"path/filepath"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -101,7 +102,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			for num, pair := range tokenserver.SessionWriteStoreNames {
 				if strings.EqualFold(ipAddr, strings.Split(pair[0], ":")[0]) {
 					sessionMatched = true
-					fullPath := vars.SDKIniPath + pair[1] + "-" + esn + ".cert"
+					fullPath := filepath.Join(vars.SDKIniPath, pair[1] + "-" + esn + ".cert")
 					if _, err := os.Stat(vars.SDKIniPath); err != nil {
 						logger.Println("Creating " + vars.SDKIniPath + " directory")
 						os.Mkdir(vars.SDKIniPath, 0755)
