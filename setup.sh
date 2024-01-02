@@ -172,7 +172,7 @@ function getSTT() {
             sttServicePrompt
         fi
     }
-
+    sttServicePrompt
     if [[ ${sttService} == "leopard" ]]; then
         function picoApiPrompt() {
             echo
@@ -242,7 +242,7 @@ function getSTT() {
            cd ${origDir}
        fi
     else
-    echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
+        echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then
             echo "Getting STT assets"
             if [[ -d /root/.coqui ]]; then
