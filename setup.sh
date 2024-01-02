@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-set -e
+set -x
 
 echo
 
@@ -230,16 +230,64 @@ function getSTT() {
        export CGO_ENABLED=1
        export CGO_CFLAGS="-I~/wire-pod/whisper.cpp"
        export CGO_LDFLAGS="-L~/wire-pod/whisper.cpp"
-
+       function whisperSttModelPrompt() {
+                
+                echo
+                echo "Which Whisper voice model would you like to use? (default: medium)"
+                echo "Model name | Parameters | Required VRAM | Relative speed"
+                echo "1: Tiny       39M         ~1GB           ~32x"
+                echo "2: Base       74M         ~1GB           ~16x"
+                echo "3: Small      244M        ~2GB           ~6x"
+                echo "4: Medium     769M        ~5GB           ~2x"
+                echo "5: Large      1470.13M    ~10GB          1x"
+                echo
+                read -p "Enter a number (default: 4): " sttModelNum
+                if [[ ! -n ${sttModelNum} ]]; then
+                    sttModel="medium"
+                elif [[ ${sttModelNum} == "1" ]]; then
+                    sttModel="tiny"
+                elif [[ ${sttModelNum} == "2" ]]; then
+                    sttModel="base"
+                elif [[ ${sttModelNum} == "3" ]]; then
+                    sttModel="small"
+                elif [[ ${sttModelNum} == "4" ]]; then
+                    sttModel="medium"
+                elif [[ ${sttModelNum} == "5" ]]; then
+                    sttModel="large"
+                else
+                    echo
+                    echo "Choose a valid number, or just press enter to use the default number."
+                    whisperSttModelPrompt
+                fi
+                echo "$sttModel"
+                echo "export STT_MODEL=$sttModel" >> ./chipper/source.sh
+           }
+       function makeWhisperModel() {
+                echo "model: ${STT_MODEL}"
+                if [[ ! -f ./models/ggml-${STT_MODEL}.bin ]]; then
+                        ./models/download-ggml-model.sh "${STT_MODEL}"
+                fi
+                cd bindings/go
+                if [[ $(lshw -C display | grep vendor) =~ NVIDIA ]]; then
+                        WHISPER_CUBLAS=1 make -j
+                else
+                        echo "nvidia detection didn't work, making using cpu only" 
+                        #make whisper
+                fi
+                cd ${origDir}
+           }
        echo "Getting Whisper assets"
+       whisperSttModelPrompt
+       source ./chipper/source.sh
        if [[ ! -d ./whisper.cpp ]]; then
            mkdir whisper.cpp
            cd whisper.cpp
            git clone https://github.com/ggerganov/whisper.cpp.git .
-           ./models/download-ggml-model.sh medium
-           cd bindings/go
-           make whisper
-           cd ${origDir}
+           makeWhisperModel ${STT_MODEL}
+        else
+           echo "Whisper already downloaded, rebuilding..."
+           cd whisper.cpp
+           makeWhisperModel ${STT_MODEL}
        fi
     else
         echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
