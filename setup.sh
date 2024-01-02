@@ -269,7 +269,12 @@ function getSTT() {
                 fi
                 cd bindings/go
                 if [[ $(lshw -C display | grep vendor) =~ NVIDIA ]]; then
+                    echo "Nvidia GPU detected, making with cuda"
+                    if [[ $(nvcc -V | grep release) =~ release ]]; then
                         WHISPER_CUBLAS=1 make -j
+                    else
+                        echo "Nvidia capable GPU detected, but Cuda toolkit was not found. Install Cuda toolkit and try again."
+                    fi
                 else
                         echo "nvidia detection didn't work, making using cpu only" 
                         #make whisper
