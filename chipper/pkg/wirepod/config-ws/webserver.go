@@ -354,7 +354,7 @@ func StartWebServer() {
 	if runtime.GOOS == "darwin" && vars.Packaged {
 		appPath, _ := os.Executable()
 		webRoot = http.FileServer(http.Dir(filepath.Dir(appPath) + "/../Frameworks/chipper/webroot"))
-	} else if runtime.GOOS == "android" {
+	} else if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		webRoot = http.FileServer(http.Dir(vars.AndroidPath + "/static/webroot"))
 	} else {
 		webRoot = http.FileServer(http.Dir("./webroot"))

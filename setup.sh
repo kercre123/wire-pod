@@ -21,8 +21,13 @@ if [[ ${UNAME} == *"Darwin"* ]]; then
         ROOT="$HOME"
         echo "macOS detected."
         if [[ ! -f /usr/local/go/bin/go ]]; then
-            echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
-            exit 1
+	    if [[ -f /usr/local/bin/go ]]; then
+		mkdir -p /usr/local/go/bin
+		ln -s /usr/local/bin/go /usr/local/go/bin/go
+	    else
+            	echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
+            	exit 1
+	    fi
         fi
     else
         echo "macOS detected, but 'brew' was not found. Install it with the following command and try running setup.sh again:"
@@ -214,9 +219,9 @@ function getSTT() {
             export CGO_CFLAGS="-I${ROOT}/.vosk/libvosk"
             export CGO_LDFLAGS="-L ${ROOT}/.vosk/libvosk -lvosk -ldl -lpthread"
             export LD_LIBRARY_PATH="${ROOT}/.vosk/libvosk:$LD_LIBRARY_PATH"
-            /usr/local/go/bin/go get -u github.com/alphacep/vosk-api/go/...
-            /usr/local/go/bin/go get github.com/alphacep/vosk-api
-            /usr/local/go/bin/go install github.com/alphacep/vosk-api/go
+            /usr/local/go/bin/go get -u github.com/kercre123/vosk-api/go/...
+            /usr/local/go/bin/go get github.com/kercre123/vosk-api
+            /usr/local/go/bin/go install github.com/kercre123/vosk-api/go
             cd ${origDir}
         fi
     elif [[ ${sttService} == "whisper.cpp" ]]; then

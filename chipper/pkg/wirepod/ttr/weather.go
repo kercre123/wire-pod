@@ -197,8 +197,8 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			weatherResponse := string(body)
 			var weatherAPICladMap weatherAPICladStruct
 			mapPath := ""
-			if runtime.GOOS == "android" {
-				mapPath = vars.AndroidPath + "/weather-map.json"
+			if runtime.GOOS == "android" || runtime.GOOS == "ios" {
+				mapPath = vars.AndroidPath + "/static/weather-map.json"
 			} else {
 				mapPath = "./weather-map.json"
 			}

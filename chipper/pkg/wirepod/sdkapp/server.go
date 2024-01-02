@@ -110,6 +110,12 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 		}
 		json := resp.NamedJdocs[0].Doc.JsonDoc
+		var ajdoc vars.AJdoc
+		ajdoc.DocVersion = resp.NamedJdocs[0].Doc.DocVersion
+		ajdoc.FmtVersion = resp.NamedJdocs[0].Doc.FmtVersion
+		ajdoc.JsonDoc = resp.NamedJdocs[0].Doc.JsonDoc
+		vars.AddJdoc("vic:"+robotObj.ESN, "vic.RobotSettings", ajdoc)
+		logger.Println("Updating vic.RobotSettings (source: sdkapp)")
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Write([]byte(json))
@@ -484,7 +490,7 @@ func BeginServer() {
 		logger.Println("Jdocs pinger has been disabled")
 	}
 	http.HandleFunc("/api-sdk/", SdkapiHandler)
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		serverFiles = filepath.Join(vars.AndroidPath, "/static/webroot")
 	}
 	fileServer := http.FileServer(http.Dir(serverFiles))
