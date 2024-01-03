@@ -13,14 +13,14 @@
       <h1 class="center">Vector configuration</h1>
       <hr>
       <div class="main-nav-parent">
-        <div class="main-nav-child"><a href="../index.html"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
-        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-bullseye"></i><br/>Select Robot</a></div>
+        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-reply"></i><br/>Back</a></div>
         <div class="main-nav-child"><a href="#" onclick="goToControlPage()"><i class="fa-solid fa-gamepad"></i><br/>Vector Control<br/>(Beta)</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i class="fa-solid fa-volume-high" id="icon-volume" name="icon"></i><br/>Volume</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i class="fa-solid fa-eye" id="icon-eyes" name="icon"></i><br/>Eye Color</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-face'); return false;"><i class="fa-solid fa-user" id="icon-face" name="icon"></i><br/>Face Manager</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-actions'); return false;"><i class="fa-solid fa-person-running" id="icon-actions" name="icon"></i><br/>Quick Actions</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-stim'); return false;"><i class="fa-solid fa-face-laugh-beam" id="icon-stim" name="icon"></i><br/>Stimulation</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-stats'); return false;"><i class="fa-solid fa-chart-simple" id="icon-stim" name="icon"></i><br/>Statistics</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-photos'); getPhotos(); return false;"><i class="fa-solid fa-images" id="icon-photos" name="icon"></i><br/>Photos</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i class="fa-solid fa-earth-americas" id="icon-locale" name="icon"></i><br/>Locale</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-time'); return false;"><i class="fa-solid fa-clock" id="icon-time" name="icon"></i><br/>Time Format</a></div>
@@ -140,6 +140,15 @@
         <h2 class="center">Stimulation</h2>
         <div class="center">
           <canvas id="stimChart"></canvas>
+        </div>
+	<hr>
+      </div>
+
+      <div id="section-stats" class="toggleable-section" style="display:none;">
+        <h2 class="center">Statistics</h2>
+        <div class="center">
+          <button onclick="updateStats()" type="submit">Refresh</button><br>
+          <div id="statsSection"></div>
         </div>
 	<hr>
       </div>

@@ -411,6 +411,17 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprint(w, "done")
 		return
+	case r.URL.Path == "/api-sdk/get_robot_stats":
+		resp, err := robot.Conn.PullJdocs(ctx,
+			&vectorpb.PullJdocsRequest{
+				JdocTypes: []vectorpb.JdocType{vectorpb.JdocType_ROBOT_LIFETIME_STATS},
+			})
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		w.Write([]byte(resp.GetNamedJdocs()[0].Doc.JsonDoc))
+		return
 	case r.URL.Path == "/api-sdk/print_robot_info":
 		fmt.Fprint(w, robot)
 		return
