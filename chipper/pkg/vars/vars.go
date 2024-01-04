@@ -388,5 +388,4 @@ func AddToRInfo(esn string, id string, ip string) {
 	rinfo.ID = id
 	rinfo.IP = ip
 	RecurringInfo = append(RecurringInfo, rinfo)
-
 }
