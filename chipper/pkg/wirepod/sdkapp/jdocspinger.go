@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
-	"github.com/kercre123/zeroconf"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/zeroconf"
 )
 
 var JdocsPingerBots struct {
@@ -214,7 +214,13 @@ func RunMDNS(botIP string) {
 						go os.WriteFile(vars.BotInfoPath, jsonBytes, 0777)
 					}
 				}
-				go pingJdocs(fmt.Sprint(entry.AddrIPv4[0]))
+				go func() {
+					// wait for escapepod.local trasmit
+					if vars.APIConfig.Server.EPConfig {
+						time.Sleep(time.Second)
+					}
+					pingJdocs(fmt.Sprint(entry.AddrIPv4[0]))
+				}()
 				matched = true
 				break
 			}

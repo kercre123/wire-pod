@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"time"
 
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
 	"github.com/digital-dream-labs/hugh/log"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/mdnshandler"
 	chipperserver "github.com/kercre123/wire-pod/chipper/pkg/servers/chipper"
 	jdocsserver "github.com/kercre123/wire-pod/chipper/pkg/servers/jdocs"
 	tokenserver "github.com/kercre123/wire-pod/chipper/pkg/servers/token"
@@ -21,8 +21,6 @@ import (
 	wpweb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
-	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
-	"github.com/kercre123/zeroconf"
 	"github.com/soheilhy/cmux"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
@@ -119,23 +117,6 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	wpweb.StartWebServer()
 }
 
-func PostmDNS() {
-	if PostingmDNS {
-		return
-	}
-	PostingmDNS = true
-	logger.Println("Registering escapepod.local on network (every minute)")
-	mdnsport := 443
-	for {
-		ipAddr := botsetup.GetOutboundIP().String()
-		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", mdnsport, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
-		time.Sleep(time.Second * 4)
-		server.Shutdown()
-		server = nil
-		time.Sleep(time.Second / 3)
-	}
-}
-
 func RestartServer() {
 	if chipperServing {
 		serverOne.Close()
@@ -157,9 +138,7 @@ func StopServer() {
 
 func StartChipper() {
 	// load certs
-	if runtime.GOOS != "android" && runtime.GOOS != "ios" {
-		go PostmDNS()
-	}
+	go mdnshandler.PostmDNS()
 	var certPub []byte
 	var certPriv []byte
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
