@@ -27,7 +27,7 @@ func PostmDNSWhenNewVector() {
 	for {
 		resolver, _ := zeroconf.NewResolver(nil)
 		entries := make(chan *zeroconf.ServiceEntry)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*130)
 		err := resolver.Browse(ctx, "_ankivector._tcp", "local.", entries)
 		if err != nil {
 			fmt.Println(err)
@@ -36,7 +36,6 @@ func PostmDNSWhenNewVector() {
 		}
 		for entry := range entries {
 			if strings.Contains(entry.Service, "ankivector") {
-				logger.Println("New vector discovered on the network, broadcasting mDNS")
 				PostmDNSNow()
 			}
 		}
