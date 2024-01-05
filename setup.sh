@@ -273,12 +273,16 @@ function getSTT() {
                     env
                     if [[ $(nvcc --version | grep "release") =~ release ]]; then
                         WHISPER_CUBLAS=1 make -j
+                        cd bindings/go
+                        make whisper
                     else
                         echo "Nvidia capable GPU detected, but Cuda toolkit was not found. Install Cuda toolkit and try again."
                         echo "If the toolkit is installed, run with <sudo -E env "PATH=$PATH" ./setup.sh>"
                     fi
                 else
-                        echo "nvidia detection didn't work, making using cpu only" 
+                        echo "nvidia detection didn't work, making using cpu only. may need to modify flags" 
+                        make 
+                        cd bindings/go
                         make whisper
                 fi
                 cd ${origDir}
