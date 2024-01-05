@@ -219,7 +219,53 @@ function sendCustomColor() {
   };
 };
 
+function updateStats() {
+  let xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api-sdk/get_robot_stats?serial=" + esn);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+  xhr.responseType = 'json';
+  xhr.send();
+  xhr.onload = function() {
+    var statsJson = JSON.stringify(xhr.response)
+    var jdocthing = JSON.parse(statsJson)
+    var jdocSecs = jdocthing["Alive.seconds"] 
+    var secondsInADay = 24 * 60 * 60; // Total seconds in a day
+    var jdocDays = Math.round(jdocSecs / secondsInADay);
+    var jdocTrigger = jdocthing["BStat.ReactedToTriggerWord"]
+    var featuresUsed = jdocthing["FeatureType.Utility"]
+    var petMs = jdocthing["Pet.ms"]
+    var cmMoved = jdocthing["Stim.CumlPosDelta"]
+
+    var s1 = document.getElementById("statsSection")
+    s1.innerHTML = ""
+    var s1p1 = document.createElement('p')
+    s1p1.textContent = "Days alive: " + jdocDays
+    var s1p2 = document.createElement('p')
+    s1p2.textContent = "Reacted to trigger word: " + jdocTrigger + " times"
+    var s1p3 = document.createElement('p')
+    s1p3.textContent = "Utility features used: " + featuresUsed
+    var s1p4 = document.createElement('p')
+    s1p4.textContent = "Seconds petted: " + Math.round(petMs/1000)
+    var s1p5 = document.createElement('p')
+    s1p5.textContent = "Distance moved (cm): " + Math.round(cmMoved/100)
+    s1.appendChild(s1p1)
+    s1.appendChild(s1p2)
+    s1.appendChild(s1p3)
+    s1.appendChild(s1p4)
+    s1.appendChild(s1p5)
+    //{
+//    "Alive.seconds" : 1619,
+//    "BStat.ReactedToTriggerWord" : 17,
+//    "FeatureType.Utility" : 2,
+//    "Pet.ms" : 3480,
+//    "Stim.CumlPosDelta" : 11148
+// }
+  }
+}
+
 function getCurrentSettings() {
+  updateStats()
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "/api-sdk/get_sdk_settings?serial=" + esn);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -358,7 +404,7 @@ function getCurrentSettings() {
     document.getElementById('tzInput').placeholder = `${timezone}`
     s11.innerHTML = ''
     s11.appendChild(s11P);
-  };
+ }
 };
 
 

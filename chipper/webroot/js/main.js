@@ -362,7 +362,7 @@ function sendLinkForm() {
   .then(response => response.text())
   .then((response) => {
     if (response.includes("success")) {
-      alert("Bot successfully linked! You may now set your bot up via https://keriganc.com/vector-epod-setup")
+      alert("Bot successfully linked! You may now set your bot up via https://vector.techshop82.com")
     } else {
       alert(response)
     }

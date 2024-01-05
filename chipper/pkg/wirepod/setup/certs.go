@@ -47,7 +47,8 @@ func GetOutboundIP() net.IP {
 	}
 	conn, err := net.Dial("udp", vars.OutboundIPTester)
 	if err != nil {
-		logger.Println(err)
+		logger.Println("not connected to a network: ", err)
+		return net.IPv4(0, 0, 0, 0)
 	}
 	defer conn.Close()
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
