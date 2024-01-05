@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 
 set -x
 
@@ -267,13 +267,15 @@ function getSTT() {
                 if [[ ! -f ./models/ggml-${STT_MODEL}.bin ]]; then
                         ./models/download-ggml-model.sh "${STT_MODEL}"
                 fi
-                cd bindings/go
+                #cd bindings/go
                 if [[ $(lshw -C display | grep vendor) =~ NVIDIA ]]; then
                     echo "Nvidia GPU detected, making with cuda"
-                    if [[ $(nvcc -V | grep release) =~ release ]]; then
+                    env
+                    if [[ $(nvcc --version | grep "release") =~ release ]]; then
                         WHISPER_CUBLAS=1 make -j
                     else
                         echo "Nvidia capable GPU detected, but Cuda toolkit was not found. Install Cuda toolkit and try again."
+                        echo "If the toolkit is installed, run with <sudo -E env "PATH=$PATH" ./setup.sh>"
                     fi
                 else
                         echo "nvidia detection didn't work, making using cpu only" 
@@ -284,10 +286,11 @@ function getSTT() {
        echo "Getting Whisper assets"
        whisperSttModelPrompt
        source ./chipper/source.sh
+       
        if [[ ! -d ./whisper.cpp ]]; then
            mkdir whisper.cpp
            cd whisper.cpp
-           git clone https://github.com/ggerganov/whisper.cpp.git .
+           git clone https://github.com/ba2512005/whisper.cpp.git .
            makeWhisperModel ${STT_MODEL}
         else
            echo "Whisper already downloaded, rebuilding..."
