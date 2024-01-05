@@ -29,7 +29,7 @@ func Init() error {
 		sttLanguage = strings.Split(vars.APIConfig.STT.Language, "-")[0]
 	}
 
-	modelPath := filepath.Join(vars.WhisperModelPath, "ggml-small.bin")
+	modelPath := filepath.Join(vars.WhisperModelPath, "ggml-medium.bin")
 	if _, err := os.Stat(modelPath); err != nil {
 		fmt.Println("Path does not exist: " + modelPath)
 		return err
