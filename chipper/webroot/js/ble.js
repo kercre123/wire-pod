@@ -1,4 +1,4 @@
-const vectorEpodSetup = "https://keriganc.com/vector-wirepod-setup"
+const vectorEpodSetup = "https://vector.techshop82.com"
 
 var authEl = document.getElementById("botAuth")
 var statusP = document.createElement("p")
@@ -36,8 +36,8 @@ function checkBLECapability() {
     m2 = document.createElement("a")
     m3 = document.createElement("small")
     m1.innerHTML = "Head to the following site on any device with Bluetooth support to set up your Vector."
-    m2.text = "https://keriganc.com/vector-wirepod-setup"
-    m2.href = "https://keriganc.com/vector-wirepod-setup"
+    m2.text = "https://vector.techshop82.com"
+    m2.href = "https://vector.techshop82.com"
     m2.target = "_blank"
     m3.innerHTML = "Note: if you have an OSKR/dev-unlocked robot, follow the instructions in the section below this one BEFORE using the web setup."
     m1.class = "center"
