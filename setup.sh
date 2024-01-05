@@ -279,7 +279,7 @@ function getSTT() {
                     fi
                 else
                         echo "nvidia detection didn't work, making using cpu only" 
-                        #make whisper
+                        make whisper
                 fi
                 cd ${origDir}
            }
