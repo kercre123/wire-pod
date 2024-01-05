@@ -267,7 +267,7 @@ function getSTT() {
                 if [[ ! -f ./models/ggml-${STT_MODEL}.bin ]]; then
                         ./models/download-ggml-model.sh "${STT_MODEL}"
                 fi
-                #cd bindings/go
+                cd bindings/go
                 if [[ $(lshw -C display | grep vendor) =~ NVIDIA ]]; then
                     echo "Nvidia GPU detected, making with cuda"
                     env
@@ -290,7 +290,7 @@ function getSTT() {
        if [[ ! -d ./whisper.cpp ]]; then
            mkdir whisper.cpp
            cd whisper.cpp
-           git clone https://github.com/ba2512005/whisper.cpp.git .
+           git clone https://github.com/ggerganov/whisper.cpp.git .
            makeWhisperModel ${STT_MODEL}
         else
            echo "Whisper already downloaded, rebuilding..."
