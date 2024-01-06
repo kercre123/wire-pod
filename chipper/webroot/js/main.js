@@ -355,20 +355,6 @@ function sendIntentAdd() {
   })
 }
 
-function sendLinkForm() {
-  var data = "esn=" + document.getElementById("link_esn").value + "&target=" + document.getElementById("link_ip").value
-  console.log(data)
-  fetch("/link-esn-and-target?" + data)
-  .then(response => response.text())
-  .then((response) => {
-    if (response.includes("success")) {
-      alert("Bot successfully linked! You may now set your bot up via https://vector.techshop82.com")
-    } else {
-      alert(response)
-    }
-  })
-}
-
 
 
 
