@@ -24,10 +24,11 @@ var MDNSNow chan bool
 var MDNSTimeBeforeNextRegister float32
 
 func PostmDNSWhenNewVector() {
+	time.Sleep(time.Second * 5)
 	for {
 		resolver, _ := zeroconf.NewResolver(nil)
 		entries := make(chan *zeroconf.ServiceEntry)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*130)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*80)
 		err := resolver.Browse(ctx, "_ankivector._tcp", "local.", entries)
 		if err != nil {
 			fmt.Println(err)
@@ -36,7 +37,11 @@ func PostmDNSWhenNewVector() {
 		}
 		for entry := range entries {
 			if strings.Contains(entry.Service, "ankivector") {
+				logger.Println("Vector discovered on network, broadcasting mDNS")
+				time.Sleep(time.Second * 2)
 				PostmDNSNow()
+				cancel()
+				return
 			}
 		}
 		cancel()
@@ -45,6 +50,7 @@ func PostmDNSWhenNewVector() {
 }
 
 func PostmDNSNow() {
+	logger.Println("Broadcasting mDNS now (outside of timer loop)")
 	select {
 	case MDNSNow <- true:
 	default:
@@ -66,7 +72,7 @@ func PostmDNS() {
 	logger.Println("Registering escapepod.local on network (loop)")
 	for {
 		ipAddr := botsetup.GetOutboundIP().String()
-		server, _ := zeroconf.RegisterProxy("escapepod", "_escapepod._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
+		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
 		for {
 			if MDNSTimeBeforeNextRegister >= 60 {
 				MDNSTimeBeforeNextRegister = 0
