@@ -12,6 +12,7 @@ import (
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/mdnshandler"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/zeroconf"
 )
@@ -103,6 +104,7 @@ func InitJdocsPinger() {
 					JdocsPingerBots.Robots[i].TimeSinceLastCheck = JdocsPingerBots.Robots[i].TimeSinceLastCheck + 1
 					if JdocsPingerBots.Robots[i].TimeSinceLastCheck > 15 {
 						logger.Println("Haven't recieved a conn check from " + bot.ESN + " in 15 seconds, will ping jdocs on next check")
+						mdnshandler.PostmDNSNow()
 						JdocsPingerBots.Robots[i].Stopped = true
 					}
 				}
@@ -230,4 +232,6 @@ func RunMDNS(botIP string) {
 		}
 	}
 	fmt.Println("Done running mDNS")
+	// a new resolver seems to kill any proxy
+	mdnshandler.PostmDNSNow()
 }
