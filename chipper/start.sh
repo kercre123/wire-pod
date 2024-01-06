@@ -56,10 +56,16 @@ elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
   if [[ -f ./chipper ]]; then
     export C_INCLUDE_PATH="../whisper.cpp"
     export LIBRARY_PATH="../whisper.cpp"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp"
+    export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
+    export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
     ./chipper
   else
     export C_INCLUDE_PATH="../whisper.cpp"
     export LIBRARY_PATH="../whisper.cpp"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp"
+    export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
+    export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
     if [[ ${UNAME} == *"Darwin"* ]]; then
       export GGML_METAL_PATH_RESOURCES="../whisper.cpp"
       /usr/local/go/bin/go run -ldflags "-extldflags '-framework Foundation -framework Metal -framework MetalKit'" cmd/experimental/whisper.cpp/main.go
