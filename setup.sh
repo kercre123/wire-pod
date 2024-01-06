@@ -157,8 +157,8 @@ function getSTT() {
             sttService="leopard"
         elif [[ ${sttServiceNum} == "3" ]]; then
             sttService="vosk"
-        # elif [[ ${sttServiceNum} == "4" ]]; then
-        #     sttService="whisper"
+        elif [[ ${sttServiceNum} == "4" ]]; then
+            sttService="whisper"
         else
             echo
             echo "Choose a valid number, or just press enter to use the default number."
@@ -222,19 +222,19 @@ function getSTT() {
             /usr/local/go/bin/go install github.com/kercre123/vosk-api/go
             cd ${origDir}
         fi
-    # elif [[ ${sttService} == "whisper" ]]; then
-    #     echo "export STT_SERVICE=whisper.cpp" >> ./chipper/source.sh
-    #     origDir="$(pwd)"
-    #     echo "Getting Whisper assets"
-    #     if [[ ! -d ./whisper.cpp ]]; then
-    #         mkdir whisper.cpp
-    #         cd whisper.cpp
-    #         git clone https://github.com/ggerganov/whisper.cpp.git .
-    #         ./models/download-ggml-model.sh tiny
-    #         cd bindings/go
-    #         make whisper
-    #         cd ${origDir}
-    #     fi
+    elif [[ ${sttService} == "whisper" ]]; then
+        echo "export STT_SERVICE=whisper.cpp" >> ./chipper/source.sh
+        origDir="$(pwd)"
+        echo "Getting Whisper assets"
+        if [[ ! -d ./whisper.cpp ]]; then
+            mkdir whisper.cpp
+            cd whisper.cpp
+            git clone https://github.com/ggerganov/whisper.cpp.git .
+            ./models/download-ggml-model.sh tiny
+            cd bindings/go
+            make whisper
+            cd ${origDir}
+        fi
     else
     echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then
