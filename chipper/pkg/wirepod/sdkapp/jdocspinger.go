@@ -12,7 +12,6 @@ import (
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
-	"github.com/kercre123/wire-pod/chipper/pkg/mdnshandler"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/zeroconf"
 )
@@ -174,7 +173,6 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(json, strings.TrimSpace(robotTarget)) {
 				ping := ShouldPingJdocs(robotTarget)
 				if ping {
-					mdnshandler.PostmDNSNow()
 					pingJdocs(robotTarget)
 				}
 			} else {
