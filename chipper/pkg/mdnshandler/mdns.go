@@ -65,7 +65,7 @@ func PostmDNS() {
 	MDNSNow = make(chan bool)
 	go func() {
 		for range MDNSNow {
-			MDNSTimeBeforeNextRegister = 60
+			MDNSTimeBeforeNextRegister = 30
 		}
 	}()
 	PostingmDNS = true
@@ -74,7 +74,7 @@ func PostmDNS() {
 		ipAddr := botsetup.GetOutboundIP().String()
 		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
 		for {
-			if MDNSTimeBeforeNextRegister >= 60 {
+			if MDNSTimeBeforeNextRegister >= 30 {
 				MDNSTimeBeforeNextRegister = 0
 				break
 			}
