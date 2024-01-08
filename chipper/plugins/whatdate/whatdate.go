@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var Utterances = []string{"what day is it", "date today", "date"}
+var Utterances = []string{"what day is it", "date today", "date", "what days it"}
 var Name = "Correct Date"
 
 func stripOutTriggerWords(s string) string {
@@ -21,7 +21,7 @@ func CountWords(s string) int {
 
 //Example go plugin that give back the correct date
 
-func Action(transcribedText string, botSerial string) (string, string) {
+func Action(transcribedText string, botSerial string, guid string, target string) (string, string) {
 	year, month, day := time.Now().Date()
 	yearSring := strconv.FormatInt(int64(year), 10)
 

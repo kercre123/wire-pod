@@ -11,6 +11,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
+	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 )
 
 type systemIntentResponseStruct struct {
@@ -178,7 +179,6 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 	var intent string
 	var igr *vtt.IntentGraphRequest
 	if str, ok := req.(*vtt.IntentGraphRequest); ok {
-		logger.Println("IntentGraphRequest....")
 		igr = str
 	}
 	var pluginResponse string
@@ -186,12 +186,20 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 		array := array
 		for _, str := range *array {
 			if strings.Contains(voiceText, str) {
-				logger.Println("Bot " + igr.Device + " matched plugin " + PluginNames[num] + ", executing function")
-				intent, pluginResponse = PluginFunctions[num](voiceText, botSerial)
+				logger.Println("Bot " + botSerial + " matched plugin " + PluginNames[num] + ", executing function")
+				var guid string
+				var target string
+				for _, bot := range vars.BotInfo.Robots {
+					if bot.Esn == botSerial {
+						guid = bot.GUID
+						target = bot.IPAddress + ":443"
+					}
+				}
+				intent, pluginResponse = PluginFunctions[num](voiceText, botSerial, guid, target)
 				if intent == "" {
 					intent = "intent_imperative_praise"
 				}
-				logger.Println("Bot " + igr.Device + " plugin " + PluginNames[num] + ", response " + pluginResponse)
+				logger.Println("Bot " + botSerial + " plugin " + PluginNames[num] + ", response " + pluginResponse)
 				if pluginResponse != "" && igr != nil {
 					response := &pb.IntentGraphResponse{
 						Session:      igr.Session,
@@ -202,10 +210,11 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 						IsFinal:      true,
 					}
 					igr.Stream.Send(response)
+				} else if pluginResponse != "" {
+					sdkapp.KGSim(botSerial, pluginResponse)
 				} else {
 					IntentPass(req, intent, voiceText, make(map[string]string), false)
 				}
-
 				matched = true
 				break
 			}

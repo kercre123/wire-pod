@@ -4,13 +4,13 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
+	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 	ttr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/ttr"
 )
 
 // This is here for compatibility with 1.6 and older software
 func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, error) {
-	Interrupt(req.Device)
 	var successMatched bool
 	speechReq := sr.ReqToSpeechRequest(req)
 	var transcribedText string
@@ -39,10 +39,9 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	}
 	if !successMatched {
 		if vars.APIConfig.Knowledge.IntentGraph {
-			RemoveFromInterrupt(req.Device)
 			resp := openaiRequest(transcribedText)
 			logger.LogUI("OpenAI response for device " + req.Device + ": " + resp)
-			KGSim(req.Device, resp)
+			sdkapp.KGSim(req.Device, resp)
 		}
 		logger.Println("No intent was matched.")
 		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false)

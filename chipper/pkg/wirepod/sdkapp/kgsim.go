@@ -1,4 +1,4 @@
-package processreqs
+package sdkapp
 
 import (
 	"context"
@@ -11,34 +11,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
-
-var BotsToInterrupt struct {
-	ESNs []string
-}
-
-func ShouldBeInterrupted(esn string) bool {
-	for _, sn := range BotsToInterrupt.ESNs {
-		if esn == sn {
-			RemoveFromInterrupt(esn)
-			return true
-		}
-	}
-	return false
-}
-
-func Interrupt(esn string) {
-	BotsToInterrupt.ESNs = append(BotsToInterrupt.ESNs, esn)
-}
-
-func RemoveFromInterrupt(esn string) {
-	var newList []string
-	for _, bot := range BotsToInterrupt.ESNs {
-		if bot != esn {
-			newList = append(newList, bot)
-		}
-	}
-	BotsToInterrupt.ESNs = newList
-}
 
 func KGSim(esn string, textToSay string) error {
 	ctx := context.Background()
@@ -151,27 +123,6 @@ func KGSim(esn string, textToSay string) error {
 					)
 				}
 			}()
-			var stopTTS bool
-			go func() {
-				for {
-					time.Sleep(time.Millisecond * 50)
-					if ShouldBeInterrupted(esn) {
-						RemoveFromInterrupt(esn)
-						robot.Conn.SayText(
-							ctx,
-							&vectorpb.SayTextRequest{
-								Text:           "",
-								UseVectorVoice: true,
-								DurationScalar: 1.0,
-							},
-						)
-						stop <- true
-						stopTTSLoop = true
-						stopTTS = true
-						break
-					}
-				}
-			}()
 			textToSaySplit := strings.Split(textToSay, ". ")
 			for _, str := range textToSaySplit {
 				_, err := robot.Conn.SayText(
@@ -186,9 +137,6 @@ func KGSim(esn string, textToSay string) error {
 					logger.Println("KG SayText error: " + err.Error())
 					stop <- true
 					break
-				}
-				if stopTTS {
-					return
 				}
 			}
 			stopTTSLoop = true
