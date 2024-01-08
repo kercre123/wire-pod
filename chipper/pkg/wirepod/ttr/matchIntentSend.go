@@ -185,7 +185,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 	for num, array := range PluginUtterances {
 		array := array
 		for _, str := range *array {
-			if strings.Contains(voiceText, str) {
+			if strings.Contains(voiceText, str) || str == "*" {
 				logger.Println("Bot " + botSerial + " matched plugin " + PluginNames[num] + ", executing function")
 				var guid string
 				var target string
@@ -196,6 +196,9 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 					}
 				}
 				intent, pluginResponse = PluginFunctions[num](voiceText, botSerial, guid, target)
+				if intent == "" && pluginResponse == "" {
+					return false
+				}
 				if intent == "" {
 					intent = "intent_imperative_praise"
 				}
