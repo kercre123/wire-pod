@@ -20,7 +20,7 @@ If you want to :P
 
 ## Credits
 
-- [Digital Dream Labs](https://github.com/digital-dream-labs) for saving Vector and for open sourcing chipper which made this possible
+- [Digital Dream Labs](https://github.com/digital-dream-labs) for open sourcing chipper and creating escape pod (which made this possible)
 - [dietb](https://github.com/dietb) for rewriting chipper and giving tips
 - [fforchino](https://github.com/fforchino) for adding many features such as localization and multilanguage, and for helping out
 - [xanathon](https://github.com/xanathon) for the publicity and web interface help
