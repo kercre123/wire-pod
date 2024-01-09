@@ -197,7 +197,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 				}
 				intent, pluginResponse = PluginFunctions[num](voiceText, botSerial, guid, target)
 				if intent == "" && pluginResponse == "" {
-					return false
+					break
 				}
 				if intent == "" {
 					intent = "intent_imperative_praise"
