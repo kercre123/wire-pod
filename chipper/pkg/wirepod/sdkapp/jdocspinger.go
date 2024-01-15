@@ -104,7 +104,9 @@ func InitJdocsPinger() {
 					JdocsPingerBots.Robots[i].TimeSinceLastCheck = JdocsPingerBots.Robots[i].TimeSinceLastCheck + 1
 					if JdocsPingerBots.Robots[i].TimeSinceLastCheck > 15 {
 						logger.Println("Haven't recieved a conn check from " + bot.ESN + " in 15 seconds, will ping jdocs on next check")
-						mdnshandler.PostmDNSNow()
+						if vars.APIConfig.Server.EPConfig {
+							mdnshandler.PostmDNSNow()
+						}
 						JdocsPingerBots.Robots[i].Stopped = true
 					}
 				}
@@ -177,7 +179,7 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 				if ping {
 					pingJdocs(robotTarget)
 				}
-			} else {
+			} else if vars.APIConfig.Server.EPConfig {
 				go RunMDNS(strings.Split(r.RemoteAddr, ":")[0])
 			}
 		}
