@@ -19,6 +19,7 @@ func LoadPlugins() {
 	if err != nil {
 		logger.Println("Unable to load plugins:")
 		logger.Println(err)
+		return
 	}
 	for _, file := range entries {
 		if strings.Contains(file.Name(), ".so") {
