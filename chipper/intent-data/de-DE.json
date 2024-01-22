@@ -29,7 +29,7 @@
   },
   {
     "name": "intent_system_sleep",
-    "Keyphrasen": ["Schlaf", "schlafen gehen", "ins Bett", "ins Bett gehen", "ab ins Bett", "Bett", "gute nacht", "schlaf gut"]
+    "keyphrases": ["Schlaf", "schlafen gehen", "ins Bett", "ins Bett gehen", "ab ins Bett", "Bett", "gute nacht", "schlaf gut"]
   },
   {
     "name": "intent_greeting_goodmorning",
@@ -53,11 +53,11 @@
   },
   {
     "name": "intent_amazon_signin",
-    "Keyphrasen": ["Trete Alexa bei", "Registriere dich bei Alexa", "Alexa aktivieren", "Schalte Alexa ein", "aktiviere Alexa"]
+    "keyphrases": ["Trete Alexa bei", "Registriere dich bei Alexa", "Alexa aktivieren", "Schalte Alexa ein", "aktiviere Alexa"]
   },
   {
     "name": "intent_amazon_signin",
-    "Keyphrasen": ["Gehe aus Alexa raus", "Deaktiviere Alexa", "Schalte Alexa aus", "Beende Alexa", "Schließe Alexa"]
+    "keyphrases": ["Gehe aus Alexa raus", "Deaktiviere Alexa", "Schalte Alexa aus", "Beende Alexa", "Schließe Alexa"]
   },
   {
     "name": "intent_imperative_forward",
@@ -81,7 +81,7 @@
   },
   {
     "name": "intent_play_popawheelie",
-    "Keyphrasen": ["Pfeifen", "Pfeife", "Wheelie", "Handstand", "mache einen Handstand", "Kopfstand", "mache einen Kopfstand"]
+    "keyphrases": ["Pfeifen", "Pfeife", "Wheelie", "Handstand", "mache einen Handstand", "Kopfstand", "mache einen Kopfstand"]
   },
   {
     "name": "intent_play_fistbump",
@@ -149,7 +149,7 @@
   },
   {
     "name": "intent_imperative_love",
-    "Keyphrasen": ["Ich liebe dich", "Du bist meine Liebe", "Ich habe dich lieb"]
+    "keyphrases": ["Ich liebe dich", "Du bist meine Liebe", "Ich habe dich lieb"]
   },
   {
     "name": "intent_knowledge_promptquestion",
@@ -169,7 +169,7 @@
   },
   {
     "name": "intent_clock_time",
-    "Keyphrasen": ["Was ist jetzt", "Wie spät ist es", "Was ist die Zeit", "Wie viel Uhr ist es"]
+    "keyphrases": ["Was ist jetzt", "Wie spät ist es", "Was ist die Zeit", "Wie viel Uhr ist es"]
   },
   {
     "name": "intent_imperative_quiet",
@@ -177,7 +177,7 @@
   },
   {
     "name": "intent_imperative_dance",
-    "Keyphrasen": ["Balla", "Höre auf die Musik", "Höre der Musik zu", "Tanz", "Tanzen"]
+    "keyphrases": ["Balla", "Höre auf die Musik", "Höre der Musik zu", "Tanz", "Tanzen"]
   },
   {
     "name": "intent_play_pickupcube",
