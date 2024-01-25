@@ -75,7 +75,7 @@ func STT(sreq sr.SpeechRequest) (string, error) {
 	go func() {
 		for partial := range partialTranscripts {
 			if *partial.SafeToStopAudio {
-				fmt.Println("SafeToStopAudio recieved")
+				fmt.Println("SafeToStopAudio received")
 				done <- true
 				return
 			}
