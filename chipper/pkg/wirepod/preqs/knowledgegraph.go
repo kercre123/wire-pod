@@ -124,7 +124,7 @@ func openaiRequest(transcribedText string) string {
 }`
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(formData)))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+vars.APIConfig.Knowledge.Key)
+	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(vars.APIConfig.Knowledge.Key))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -154,6 +154,7 @@ func openaiRequest(transcribedText string) string {
 	err = json.Unmarshal(body, &openAIResponse)
 	if err != nil || len(openAIResponse.Choices) == 0 {
 		logger.Println("OpenAI returned no response.")
+		logger.Println(string(body))
 		return "OpenAI returned no response."
 	}
 	apiResponse := strings.TrimSpace(openAIResponse.Choices[0].Text)
