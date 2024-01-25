@@ -45,7 +45,7 @@ func StreamAudioToHoundify(sreq sr.SpeechRequest, client houndify.Client) string
 	go func() {
 		for partial := range partialTranscripts {
 			if *partial.SafeToStopAudio {
-				fmt.Println("SafeToStopAudio recieved")
+				fmt.Println("SafeToStopAudio received")
 				done <- true
 				return
 			}

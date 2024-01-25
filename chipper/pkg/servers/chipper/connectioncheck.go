@@ -38,7 +38,7 @@ receiveLoop:
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Println("Connection check expiration. Frames Recieved: " + strconv.Itoa(int(frames)))
+			logger.Println("Connection check expiration. Frames Received: " + strconv.Itoa(int(frames)))
 			toSend.Status = "Timeout"
 			break receiveLoop
 		default:
@@ -46,7 +46,7 @@ receiveLoop:
 
 			if suberr != nil || req == nil {
 				err = suberr
-				logger.Println("Connection check unexpected error. Frames Recieved: " + strconv.Itoa(int(frames)))
+				logger.Println("Connection check unexpected error. Frames Received: " + strconv.Itoa(int(frames)))
 				logger.Println(err)
 
 				toSend.Status = "Error"
