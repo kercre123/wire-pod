@@ -1,8 +1,9 @@
 ---
 name: Problem with setup
-about: Please follow this template if you are having issues setting wire-pod up.
-title: "[HELP]"
-labels: help wanted
+about: Please follow this template if you are having issues setting wire-pod up. I
+  (kercre123) will not be providing support for these.
+title: "[HELP] <describe issue here>"
+labels: ''
 assignees: ''
 
 ---
@@ -16,5 +17,3 @@ assignees: ''
 **Are you setting up a prod (regular) bot or a dev/OSKR (unlocked) bot?**
 
 **What steps have you tried?**
-
-(note: I will delete any issues which fit under this category but don't follow this template. I will not accept an "It's just not working!")

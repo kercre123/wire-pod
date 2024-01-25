@@ -3,7 +3,7 @@ name: Bug report
 about: Report a bug with the software (this is NOT for cases of "it's not working
   for me")
 title: "[BUG] "
-labels: bug
+labels: bug, help wanted
 assignees: ''
 
 ---
