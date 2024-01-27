@@ -3,7 +3,7 @@ FROM ubuntu
 WORKDIR /app
 COPY . /app
 
-RUN chmod +x /app/setup.sh && apt-get update && apt-get install -y dos2unix && dos2unix /app/setup.sh
+RUN chmod +x /app/setup.sh && apt-get update && apt-get install -y dos2unix && dos2unix /app/setup.sh && apt install avahi-daemon avahi-autoipd
 
 RUN ["/bin/sh", "-c", "STT=vosk ./setup.sh"]
 
