@@ -1,12 +1,12 @@
 FROM ubuntu
 
-WORKDIR /app
-COPY . /app
 
-RUN chmod +x /app/setup.sh && apt-get update && apt-get install -y dos2unix && dos2unix /app/setup.sh && apt-get install -y avahi-daemon avahi-autoipd
+COPY . .
+
+RUN chmod +x /setup.sh && apt-get update && apt-get install -y dos2unix && dos2unix /setup.sh && apt-get install -y avahi-daemon avahi-autoipd
 
 RUN ["/bin/sh", "-c", "STT=vosk ./setup.sh"]
 
-RUN chmod +x /app/chipper/start.sh && dos2unix /app/chipper/start.sh
+RUN chmod +x /chipper/start.sh && dos2unix /chipper/start.sh
 
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]

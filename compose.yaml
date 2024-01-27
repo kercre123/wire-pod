@@ -10,8 +10,8 @@ services:
       - 80:80
       - 8084:8084
     volumes:
-      - wire-pod-data:/app/chipper/
-      - wire-pod-model:/app/vosk/
+      - wire-pod-data:/chipper/
+      - wire-pod-model:/vosk/
 volumes:
   wire-pod-data:
     driver: local
