@@ -12,6 +12,29 @@ The installation guide exists on the wiki: [Installation guide](https://github.c
 
 Check out the [wiki](https://github.com/kercre123/wire-pod/wiki) for more information on what wire-pod is, a guide on how to install wire-pod, troubleshooting, how to develop for it, and for some generally helpful tips.
 
+## Docker compose
+
+`
+version: '3.8'
+services:
+  wire-pod:
+    image: ghcr.io/zippy-boy/wire-pod:main
+    restart: unless-stopped
+    ports:
+      - 443:443
+      - 8080:8080
+      - 80:80
+      - 8084:8084
+    volumes:
+      - wire-pod-data:/app/chipper/
+      - wire-pod-model:/app/vosk/
+volumes:
+  wire-pod-data:
+    driver: local
+  wire-pod-model:
+    driver: local
+`
+
 ## Donate
 
 If you want to :P
