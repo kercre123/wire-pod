@@ -4,6 +4,7 @@ services:
     hostname: escapepod
     image: ghcr.io/zippy-boy/wire-pod:main
     restart: unless-stopped
+    network_mode: host
     ports:
       - 443:443
       - 8080:8080
