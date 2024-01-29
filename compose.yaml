@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  wire-pod:
+    hostname: escapepod
+    image: ghcr.io/kercre123/wire-pod:main
+    restart: unless-stopped
+    network_mode: host
+    ports:
+      - 443:443
+      - 8080:8080
+      - 80:80
+      - 8084:8084
+    volumes:
+      - wire-pod-data:/chipper/
+      - wire-pod-model:/vosk/
+volumes:
+  wire-pod-data:
+    driver: local
+  wire-pod-model:
+    driver: local
