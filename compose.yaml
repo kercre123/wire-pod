@@ -2,7 +2,7 @@ version: '3.8'
 services:
   wire-pod:
     hostname: escapepod
-    image: ghcr.io/zippy-boy/wire-pod:main
+    image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
     network_mode: host
     ports:
