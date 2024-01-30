@@ -54,6 +54,8 @@ if [[ -f ./chipper/chipper ]]; then
 	echo "Unsupported STT ${STT_SERVICE}. You must build this manually. The code has been updated, though."
 	exit 1
     fi
+    echo "Syncing..."
+    sync
     sudo systemctl daemon-reload
     sudo systemctl start wire-pod
     echo "wire-pod is now running with the updated code!"
