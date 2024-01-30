@@ -4,7 +4,6 @@ services:
     hostname: escapepod
     image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
-    network_mode: host
     ports:
       - 443:443
       - 8080:8080
