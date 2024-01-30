@@ -552,6 +552,7 @@ function setupSystemd() {
         export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
         /usr/local/go/bin/go build cmd/coqui/main.go
     fi
+    sync
     mv main chipper
     echo
     echo "./chipper/chipper has been built!"
