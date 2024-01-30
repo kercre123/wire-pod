@@ -103,23 +103,38 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(jsonBytes))
 		return
 	case r.URL.Path == "/api-sdk/get_sdk_settings":
-		resp, err := robot.Conn.PullJdocs(ctx, &vectorpb.PullJdocsRequest{
-			JdocTypes: []vectorpb.JdocType{vectorpb.JdocType_ROBOT_SETTINGS},
-		})
-		if err != nil {
-			w.Write([]byte(err.Error()))
+		i := 0
+		for {
+			resp, err := robot.Conn.PullJdocs(ctx, &vectorpb.PullJdocsRequest{
+				JdocTypes: []vectorpb.JdocType{vectorpb.JdocType_ROBOT_SETTINGS},
+			})
+			if err != nil {
+				w.Write([]byte(err.Error()))
+				return
+			}
+			if strings.Contains(resp.NamedJdocs[0].Doc.JsonDoc, "BStat.ReactedToTriggerWord") {
+				time.Sleep(time.Second / 2)
+				if i > 3 {
+					logger.Println("Bot refuses to return RobotSettings jdoc...")
+					logger.Println("Returned Jdoc: ", resp.NamedJdocs[0].Doc.JsonDoc)
+					w.Write([]byte("error: bot refuses to return robotsettings"))
+					return
+				}
+				i = i + 1
+				continue
+			}
+			json := resp.NamedJdocs[0].Doc.JsonDoc
+			var ajdoc vars.AJdoc
+			ajdoc.DocVersion = resp.NamedJdocs[0].Doc.DocVersion
+			ajdoc.FmtVersion = resp.NamedJdocs[0].Doc.FmtVersion
+			ajdoc.JsonDoc = resp.NamedJdocs[0].Doc.JsonDoc
+			vars.AddJdoc("vic:"+robotObj.ESN, "vic.RobotSettings", ajdoc)
+			logger.Println("Updating vic.RobotSettings (source: sdkapp)")
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/octet-stream")
+			w.Write([]byte(json))
+			return
 		}
-		json := resp.NamedJdocs[0].Doc.JsonDoc
-		var ajdoc vars.AJdoc
-		ajdoc.DocVersion = resp.NamedJdocs[0].Doc.DocVersion
-		ajdoc.FmtVersion = resp.NamedJdocs[0].Doc.FmtVersion
-		ajdoc.JsonDoc = resp.NamedJdocs[0].Doc.JsonDoc
-		vars.AddJdoc("vic:"+robotObj.ESN, "vic.RobotSettings", ajdoc)
-		logger.Println("Updating vic.RobotSettings (source: sdkapp)")
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Write([]byte(json))
-		return
 	case r.URL.Path == "/api-sdk/time_format_12":
 		setSettingSDKintbool(robotObj, "clock_24_hour", "false")
 		fmt.Fprintf(w, "done")
