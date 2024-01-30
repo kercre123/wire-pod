@@ -34,13 +34,36 @@ if [[ ! -d ./chipper ]]; then
   exit 1
 fi
 
-if [[ $EUID != "0" ]]; then
-  echo "This must be run as root."
-  exit 1
-fi
-
 git fetch --all
 git reset --hard origin/main
+if [[ -f ./chipper/chipper ]]; then
+    cd chipper
+    source source.sh
+    sudo systemctl stop wire-pod
+    if [[ ${STT_SERVICE} == "leopard" ]]; then
+        echo "wire-pod.service created, building chipper with Picovoice STT service..."
+        sudo /usr/local/go/bin/go build cmd/leopard/main.go
+    elif [[ ${STT_SERVICE} == "vosk" ]]; then
+        echo "wire-pod.service created, building chipper with VOSK STT service..."
+        export CGO_ENABLED=1
+        export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
+        export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
+        export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
+        sudo /usr/local/go/bin/go build cmd/vosk/main.go
+    elif [[ ${STT_SERVICE} == "coqui" ]]; then
+        echo "wire-pod.service created, building chipper with Coqui STT service..."
+        export CGO_LDFLAGS="-L$HOME/.coqui/"
+        export CGO_CXXFLAGS="-I$HOME/.coqui/"
+        export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
+        sudo /usr/local/go/bin/go build cmd/coqui/main.go
+    else
+	echo "Unsupported STT ${STT_SERVICE}. You must build this manually. The code has been updated, though."
+	exit 1
+    fi
+    sudo systemctl daemon-reload
+    sudo systemctl start wire-pod
+    echo "wire-pod is now running with the updated code!"
+fi
 echo
-echo "Updated!"
+echo "Updated successfully!"
 echo
