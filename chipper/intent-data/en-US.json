@@ -177,7 +177,7 @@
 	},
 	{	
 		"name": "intent_imperative_dance", 
-		"keyphrases" : ["dance", "dancing", "thence", "dance to the beat", "the beat", "boogie" ]
+		"keyphrases" : ["dance", "dancing", "thence", "dance to the beat", "the beat", "boogie", "to the music" ]
 	},
 	{	
 		"name": "intent_play_pickupcube",
