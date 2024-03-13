@@ -179,7 +179,7 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 				if ping {
 					pingJdocs(robotTarget)
 				}
-			} else if vars.APIConfig.Server.EPConfig {
+			} else {
 				go RunMDNS(strings.Split(r.RemoteAddr, ":")[0])
 			}
 		}
@@ -230,10 +230,12 @@ func RunMDNS(botIP string) {
 			}
 		}
 		if !matched {
-			MDNSAlreadyRun = append(MDNSAlreadyRun, fmt.Sprint(entry.AddrIPv4[0]))
+			MDNSAlreadyRun = append(MDNSAlreadyRun, botIP)
 		}
 	}
 	fmt.Println("Done running mDNS")
 	// a new resolver seems to kill any proxy
-	mdnshandler.PostmDNSNow()
+	if vars.APIConfig.Server.EPConfig {
+		mdnshandler.PostmDNSNow()
+	}
 }
