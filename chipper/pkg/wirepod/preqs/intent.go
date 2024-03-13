@@ -27,7 +27,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		if err != nil {
 			if err.Error() == "inference not understood" {
 				logger.Println("No intent was matched")
-				ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
+				ttr.IntentPass(req, "intent_system_unmatched", "voice processing error", map[string]string{"error": err.Error()}, true)
 				return nil, nil
 			}
 			logger.Println(err)
@@ -44,7 +44,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 			sdkapp.KGSim(req.Device, resp)
 		}
 		logger.Println("No intent was matched.")
-		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false)
+		ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
 		return nil, nil
 	}
 	logger.Println("Bot " + speechReq.Device + " request served.")

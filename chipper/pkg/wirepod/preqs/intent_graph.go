@@ -26,7 +26,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 		if err != nil {
 			if err.Error() == "inference not understood" {
 				logger.Println("Bot " + speechReq.Device + " No intent was matched")
-				ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
+				ttr.IntentPass(req, "intent_system_unmatched", "voice processing error", map[string]string{"error": err.Error()}, true)
 				return nil, nil
 			}
 			logger.Println(err)
@@ -51,7 +51,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 			req.Stream.Send(response)
 			return nil, nil
 		}
-		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false)
+		ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
 		return nil, nil
 	}
 	logger.Println("Bot " + speechReq.Device + " request served.")

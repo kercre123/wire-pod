@@ -35,7 +35,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 
 	// intercept if not intent graph but intent graph is enabled
-	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && intentThing == "intent_system_noaudio" {
+	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && intentThing == "intent_system_unmatched" {
 		intentThing = "intent_greeting_hello"
 	}
 
