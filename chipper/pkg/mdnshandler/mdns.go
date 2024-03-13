@@ -3,6 +3,7 @@ package mdnshandler
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -58,6 +59,10 @@ func PostmDNSNow() {
 }
 
 func PostmDNS() {
+	if os.Getenv("DISABLE_MDNS") == "true" {
+		fmt.Println("mDNS is disabled")
+		return
+	}
 	if PostingmDNS {
 		return
 	}

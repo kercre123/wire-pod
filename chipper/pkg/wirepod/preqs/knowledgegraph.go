@@ -69,7 +69,7 @@ func houndifyKG(req sr.SpeechRequest) string {
 }
 
 func togetherRequest(transcribedText string) string {
-	sendString := "You are a helpful robot called Vector . You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
+	sendString := "You are a helpful robot called Vector. You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
 	url := "https://api.together.xyz/inference"
 	model := vars.APIConfig.Knowledge.Model
 	formData := `{
@@ -110,13 +110,25 @@ func togetherRequest(transcribedText string) string {
 }
 
 func openaiRequest(transcribedText string) string {
-	sendString := "You are a helpful robot called " + vars.APIConfig.Knowledge.RobotName + ". You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
+	var robName string
+	if vars.APIConfig.Knowledge.RobotName != "" {
+		robName = vars.APIConfig.Knowledge.RobotName
+	} else {
+		robName = "Vector"
+	}
+	defaultPrompt := "You are a helpful robot called " + robName + ". You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative."
+	sendString := " Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
+	if strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt) != "" {
+		sendString = strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt) + sendString
+	} else {
+		sendString = defaultPrompt + sendString
+	}
 	logger.Println("Making request to OpenAI...")
 	url := "https://api.openai.com/v1/completions"
 	formData := `{
 "model": "gpt-3.5-turbo-instruct",
 "prompt": "` + sendString + `",
-"temperature": 0.7,
+"temperature": 0.9,
 "max_tokens": 256,
 "top_p": 1,
 "frequency_penalty": 0.2,

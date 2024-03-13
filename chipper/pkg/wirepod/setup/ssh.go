@@ -43,6 +43,10 @@ func runCmd(client *ssh.Client, cmd string) (string, error) {
 	return string(output), nil
 }
 
+func setCPURAMfreq(client *ssh.Client, cpufreq string, ramfreq string, gov string) {
+	runCmd(client, "echo "+cpufreq+" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq && echo disabled > /sys/kernel/debug/msm_otg/bus_voting && echo 0 > /sys/kernel/debug/msm-bus-dbg/shell-client/update_request && echo 1 > /sys/kernel/debug/msm-bus-dbg/shell-client/mas && echo 512 > /sys/kernel/debug/msm-bus-dbg/shell-client/slv && echo 0 > /sys/kernel/debug/msm-bus-dbg/shell-client/ab && echo active clk2 0 1 max "+ramfreq+" > /sys/kernel/debug/rpm_send_msg/message && echo "+gov+" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor && echo 1 > /sys/kernel/debug/msm-bus-dbg/shell-client/update_request")
+}
+
 func SetupBotViaSSH(ip string, key []byte) error {
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		SetupScriptPath = vars.AndroidPath + "/static/pod-bot-install.sh"
@@ -83,6 +87,9 @@ func SetupBotViaSSH(ip string, key []byte) error {
 				return doErr(err, "initial commands")
 			}
 		}
+		setCPURAMfreq(client, "1267200", "800000", "performance")
+		SetupSSHStatus = "Waiting a few seconds for filesystem syncing"
+		time.Sleep(time.Second * 3)
 		SetupSSHStatus = "Transferring bot setup script and certs..."
 		scpClient, err := scp.NewClientBySSH(client)
 		if err != nil {
@@ -186,6 +193,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err, "generating new robot cert")
 		}
+		setCPURAMfreq(client, "733333", "500000", "interactive")
 		client.Close()
 		SetupSSHStatus = "done"
 	} else {

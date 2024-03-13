@@ -21,13 +21,14 @@ type apiConfig struct {
 		Unit     string `json:"unit"`
 	} `json:"weather"`
 	Knowledge struct {
-		Enable      bool   `json:"enable"`
-		Provider    string `json:"provider"`
-		Key         string `json:"key"`
-		ID          string `json:"id"`
-		Model       string `json:"model"`
-		IntentGraph bool   `json:"intentgraph"`
-		RobotName   string `json:"robotName"`
+		Enable       bool   `json:"enable"`
+		Provider     string `json:"provider"`
+		Key          string `json:"key"`
+		ID           string `json:"id"`
+		Model        string `json:"model"`
+		IntentGraph  bool   `json:"intentgraph"`
+		RobotName    string `json:"robotName"`
+		OpenAIPrompt string `json:"openai_prompt"`
 	} `json:"knowledge"`
 	STT struct {
 		Service  string `json:"provider"`

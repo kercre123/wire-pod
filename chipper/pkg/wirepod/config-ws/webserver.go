@@ -195,6 +195,13 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			vars.APIConfig.Knowledge.Model = kgModel
 			vars.APIConfig.Knowledge.ID = kgAPIID
 		}
+		if kgProvider == "openai" {
+			if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
+				vars.APIConfig.Knowledge.OpenAIPrompt = r.FormValue("openai_prompt")
+			} else {
+				vars.APIConfig.Knowledge.OpenAIPrompt = ""
+			}
+		}
 		if kgProvider == "openai" && kgIntent == "true" {
 			vars.APIConfig.Knowledge.IntentGraph = true
 			if r.FormValue("robot_name") == "" {
@@ -217,6 +224,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgModel := ""
 		kgIntent := false
 		kgRobotName := ""
+		kgOpenAIPrompt := ""
 		if vars.APIConfig.Knowledge.Enable {
 			kgEnabled = true
 			kgProvider = vars.APIConfig.Knowledge.Provider
@@ -225,6 +233,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			kgAPIID = vars.APIConfig.Knowledge.ID
 			kgIntent = vars.APIConfig.Knowledge.IntentGraph
 			kgRobotName = vars.APIConfig.Knowledge.RobotName
+			kgOpenAIPrompt = vars.APIConfig.Knowledge.OpenAIPrompt
 		}
 		fmt.Fprintf(w, "{ ")
 		fmt.Fprintf(w, "  \"kgEnabled\": %t,", kgEnabled)
@@ -233,7 +242,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"kgModel\": \"%s\",", kgModel)
 		fmt.Fprintf(w, "  \"kgApiID\": \"%s\",", kgAPIID)
 		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\",", kgIntent)
-		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\"", kgRobotName)
+		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\",", kgRobotName)
+		fmt.Fprintf(w, "  \"kgOpenAIPrompt\": \"%s\"", kgOpenAIPrompt)
 		fmt.Fprintf(w, "}")
 		return
 	case r.URL.Path == "/api/set_stt_info":

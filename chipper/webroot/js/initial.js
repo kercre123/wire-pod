@@ -89,6 +89,7 @@ function initWeatherAPIKey() {
 function initKGAPIKey() {
     updateSetupStatus("Setting knowledge graph settings...")
     var provider = document.getElementById("kgProvider").value
+    var openAIPrompt = ""
     var key = ""
     var id = ""
     var intentgraph = ""
@@ -96,6 +97,7 @@ function initKGAPIKey() {
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
+        openAIPrompt = document.getElementById("openAIPrompt").value
         if (document.getElementById("intentyes").checked == true) {
             intentgraph = "true"
             robotName = document.getElementById("openAIRobotName").value
@@ -112,7 +114,7 @@ function initKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName
+    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt
     fetch("/api/set_kg_api?" + data)
         .then(response => response.text())
         .then((response) => {
