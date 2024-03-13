@@ -584,6 +584,7 @@ function checkKG() {
 function sendKGAPIKey() {
     var provider = document.getElementById("kgProvider").value
     var key = ""
+    var openAIPrompt = ""
     var id = ""
     var intentgraph = ""
     var robotName = ""
@@ -591,7 +592,7 @@ function sendKGAPIKey() {
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
-        model = ""
+        openAIPrompt = document.getElementById("openAIPrompt").value
         if (document.getElementById("intentyes").checked == true) {
             intentgraph = "true"
             robotName = document.getElementById("openAIRobotName").value
@@ -614,7 +615,7 @@ function sendKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName
+    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt
     var result = document.getElementById('addKGProviderAPIStatus');
     const resultP = document.createElement('p');
     resultP.textContent =  "Saving...";
@@ -637,6 +638,7 @@ function updateKGAPI() {
             document.getElementById("kgProvider").value = obj.kgProvider;
             if (obj.kgProvider == "openai") {
                 document.getElementById("openAIKey").value = obj.kgApiKey;
+                document.getElementById("openAIPrompt").value = obj.kgOpenAIPrompt;
                 if (obj.kgIntentGraph == "true") {
                     document.getElementById("intentyes").checked = true;
                     document.getElementById("openAIRobotName").value = obj.kgRobotName;
