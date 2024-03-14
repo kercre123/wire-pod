@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -346,7 +347,7 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		esn := split[2]
-		fileBytes, err := os.ReadFile(vars.SessionCertPath + esn)
+		fileBytes, err := os.ReadFile(path.Join(vars.SessionCertPath, esn))
 		if err != nil {
 			fmt.Fprint(w, "error: cert does not exist")
 			return
