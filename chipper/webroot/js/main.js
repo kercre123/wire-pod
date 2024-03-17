@@ -662,9 +662,11 @@ function updateKGAPI() {
               document.getElementById("togetherAIPrompt").value = obj.kgOpenAIPrompt;
               if (obj.kgIntentGraph == "true") {
                   document.getElementById("intentyes").checked = true;
+                  document.getElementById("togetherintentyes").checked = true;
                   document.getElementById("togetherAIRobotName").value = obj.kgRobotName;
               } else {
                   document.getElementById("intentno").checked = true;
+                  document.getElementById("togetherintentyes").checked = true;
               }
             } else if (obj.kgProvider == "houndify") {
                 document.getElementById("houndKey").value = obj.kgApiKey;
