@@ -38,10 +38,10 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	}
 	if !successMatched {
 		if vars.APIConfig.Knowledge.IntentGraph {
-			logger.Println("Making OpenAI request for device " + req.Device + "...")
+			logger.Println("Making LLM request for device " + req.Device + "...")
 			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText)
 			if err != nil {
-				logger.Println("OpenAI error: " + err.Error())
+				logger.Println("LLM error: " + err.Error())
 			}
 			logger.Println("Bot " + speechReq.Device + " request served.")
 			return nil, nil

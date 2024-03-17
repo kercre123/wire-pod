@@ -104,6 +104,19 @@
               <input type="text" name="togetherModel" id="togetherModel"><br>
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey"><br>
+              <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br>
+              <small><label for="togetherAIPrompt">(default: "You are a helpful robot called Vector. You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative.)</label></small>
+              <input type="text" name="togetherAIPrompt" id="togetherAIPrompt"><br>
+              <small>Would you like to enable the intent graph feature? This forwards the request to Together if the regular intent processor didn't understand what you said.</small><br>
+              <label for="togetherintentyes">Yes</label>
+              <input type="radio" id="togetherintentyes" name="togetherintentgselect" value="yes" onclick="checkKG()"><br>
+              <label for="intentno">No</label>
+              <input type="radio" id="togetherintentno" name="togetherintentgselect" value="no" onclick="checkKG()">
+              <span id="togetherAIRobotNameInput" style="display:none">
+                <br>
+                <label for="togetherAIRobotName">Robot name:</label>
+                <input type="text" name="togetherAIRobotName" id="togetherAIRobotName" placeholder="Anki Vector">
+              </span>
             </span>
             <span id="openAIInput" style="display:none">
               <label for="openAIKey">OpenAI Key:</label>

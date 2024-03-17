@@ -196,21 +196,21 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			vars.APIConfig.Knowledge.Model = kgModel
 			vars.APIConfig.Knowledge.ID = kgAPIID
 		}
-		if kgProvider == "openai" {
+		if kgProvider == "openai" || kgProvider == "together" {
 			if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
 				vars.APIConfig.Knowledge.OpenAIPrompt = r.FormValue("openai_prompt")
 			} else {
 				vars.APIConfig.Knowledge.OpenAIPrompt = ""
 			}
 		}
-		if kgProvider == "openai" && kgIntent == "true" {
+		if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "true" {
 			vars.APIConfig.Knowledge.IntentGraph = true
 			if r.FormValue("robot_name") == "" {
 				vars.APIConfig.Knowledge.RobotName = "Vector"
 			} else {
 				vars.APIConfig.Knowledge.RobotName = r.FormValue("robot_name")
 			}
-		} else if kgProvider == "openai" && kgIntent == "false" {
+		} else if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "false" {
 			vars.APIConfig.Knowledge.IntentGraph = false
 			vars.APIConfig.Knowledge.RobotName = ""
 		}
