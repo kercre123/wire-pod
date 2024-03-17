@@ -71,7 +71,14 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	var fullRespText string
 	var fullRespSlice []string
 	var isDone bool
-	c := openai.NewClient(vars.APIConfig.Knowledge.Key)
+	var c *openai.Client
+	if vars.APIConfig.Knowledge.Provider == "together" {
+		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
+		conf.BaseURL = "https://api.together.xyz/v1"
+		c = openai.NewClientWithConfig(conf)
+	} else if vars.APIConfig.Knowledge.Provider == "openai" {
+		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
+	}
 	ctx := context.Background()
 	speakReady := make(chan string)
 
@@ -103,10 +110,16 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	})
 
 	aireq := openai.ChatCompletionRequest{
-		Model:     openai.GPT4Turbo1106,
 		MaxTokens: 2048,
 		Messages:  nChat,
 		Stream:    true,
+	}
+	if vars.APIConfig.Knowledge.Provider == "openai" {
+		logger.Println("Using " + openai.GPT4TurboPreview)
+		aireq.Model = openai.GPT4TurboPreview
+	} else {
+		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
+		aireq.Model = vars.APIConfig.Knowledge.Model
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
@@ -115,7 +128,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	}
 	//defer stream.Close()
 
-	fmt.Println("OpenAI stream response: ")
+	fmt.Println("LLM stream response: ")
 	go func() {
 		for {
 			response, err := stream.Recv()
@@ -129,8 +142,8 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 					newStr = newStr + " " + str
 				}
 				Remember(transcribedText, newStr, esn)
-				logger.LogUI("OpenAI response for " + esn + ": " + newStr)
-				fmt.Println("OpenAI stream finished")
+				logger.LogUI("LLM response for " + esn + ": " + newStr)
+				fmt.Println("LLM stream finished")
 				return
 			}
 

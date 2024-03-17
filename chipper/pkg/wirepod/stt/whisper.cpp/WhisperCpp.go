@@ -1,20 +1,19 @@
 package wirepod_whispercpp
 
 import (
+	"encoding/binary"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
-	"strings"
-	"math"
-	"encoding/binary"
 	"runtime"
-	
-	"github.com/ggerganov/whisper.cpp/bindings/go"
+	"strings"
+
+	whisper "github.com/ggerganov/whisper.cpp/bindings/go"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 )
-
 
 var Name string = "whisper.cpp"
 
@@ -25,7 +24,7 @@ func Init() error {
 	var sttLanguage string
 	if len(vars.APIConfig.STT.Language) == 0 {
 		sttLanguage = "en"
-	} else  {
+	} else {
 		sttLanguage = strings.Split(vars.APIConfig.STT.Language, "-")[0]
 	}
 
@@ -35,7 +34,7 @@ func Init() error {
 		return err
 	}
 	logger.Println("Opening Whisper model (" + modelPath + ")")
-	logger.Println(whisper.Whisper_print_system_info())
+	//logger.Println(whisper.Whisper_print_system_info())
 	context = whisper.Whisper_init(modelPath)
 	params = context.Whisper_full_default_params(whisper.SAMPLING_GREEDY)
 	params.SetTranslate(false)

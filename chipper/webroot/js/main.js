@@ -578,6 +578,11 @@ function checkKG() {
         document.getElementById("togetherInput").style.display = "block";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "none";
+        if (document.getElementById("togetherintentyes").checked == true) {
+          document.getElementById("togetherAIRobotNameInput").style.display = "block";
+        } else {
+          document.getElementById("togetherAIRobotNameInput").style.display = "none";
+        }
     }
 }
 
@@ -602,7 +607,13 @@ function sendKGAPIKey() {
     } else if (provider == "together") {
         key = document.getElementById("togetherKey").value
         model = document.getElementById("togetherModel").value
-        intentgraph = "false"
+        openAIPrompt = document.getElementById("togetherAIPrompt").value
+        if (document.getElementById("togetherintentyes").checked == true) {
+            intentgraph = "true"
+            robotName = document.getElementById("togetherAIRobotName").value
+        } else {
+            intentgraph = "false"
+        }
     } else if (provider == "houndify") {
         key = document.getElementById("houndKey").value
         model = ""
@@ -645,6 +656,16 @@ function updateKGAPI() {
                 } else {
                     document.getElementById("intentno").checked = true;
                 }
+            } else if (obj.kgProvider == "together") {
+              document.getElementById("togetherKey").value = obj.kgApiKey;
+              document.getElementById("togetherModel").value = obj.kgModel;
+              document.getElementById("togetherAIPrompt").value = obj.kgOpenAIPrompt;
+              if (obj.kgIntentGraph == "true") {
+                  document.getElementById("intentyes").checked = true;
+                  document.getElementById("togetherAIRobotName").value = obj.kgRobotName;
+              } else {
+                  document.getElementById("intentno").checked = true;
+              }
             } else if (obj.kgProvider == "houndify") {
                 document.getElementById("houndKey").value = obj.kgApiKey;
                 document.getElementById("houndID").value = obj.kgApiID;

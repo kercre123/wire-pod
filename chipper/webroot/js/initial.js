@@ -94,6 +94,7 @@ function initKGAPIKey() {
     var id = ""
     var intentgraph = ""
     var robotName = ""
+    var model = ""
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
@@ -101,6 +102,16 @@ function initKGAPIKey() {
         if (document.getElementById("intentyes").checked == true) {
             intentgraph = "true"
             robotName = document.getElementById("openAIRobotName").value
+        } else {
+            intentgraph = "false"
+        }
+    } else if (provider == "together") {
+        key = document.getElementById("togetherKey").value
+        openAIPrompt = document.getElementById("togetherAIPrompt").value
+        model = document.getElementById("togetherModel").value
+        if (document.getElementById("togetherintentyes").checked == true) {
+            intentgraph = "true"
+            robotName = document.getElementById("togetherAIRobotName").value
         } else {
             intentgraph = "false"
         }
@@ -114,7 +125,7 @@ function initKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt
+    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&model=" + model + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt
     fetch("/api/set_kg_api?" + data)
         .then(response => response.text())
         .then((response) => {
