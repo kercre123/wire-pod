@@ -4,7 +4,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
-	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 	ttr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/ttr"
 )
@@ -39,9 +38,13 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	}
 	if !successMatched {
 		if vars.APIConfig.Knowledge.IntentGraph {
-			resp := openaiRequest(transcribedText)
-			logger.LogUI("OpenAI response for device " + req.Device + ": " + resp)
-			sdkapp.KGSim(req.Device, resp)
+			logger.Println("Making OpenAI request for device " + req.Device + "...")
+			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText)
+			if err != nil {
+				logger.Println("OpenAI error: " + err.Error())
+			}
+			logger.Println("Bot " + speechReq.Device + " request served.")
+			return nil, nil
 		}
 		logger.Println("No intent was matched.")
 		ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
