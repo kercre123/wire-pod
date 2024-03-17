@@ -40,3 +40,4 @@
 /chipper/plugins/*.so
 /whisper.cpp
 .DS_Store
+/chipper/openaiChats.json

@@ -11,7 +11,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
-	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 )
 
 type systemIntentResponseStruct struct {
@@ -214,7 +213,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 					}
 					igr.Stream.Send(response)
 				} else if pluginResponse != "" {
-					sdkapp.KGSim(botSerial, pluginResponse)
+					KGSim(botSerial, pluginResponse)
 				} else {
 					IntentPass(req, intent, voiceText, make(map[string]string), false)
 				}

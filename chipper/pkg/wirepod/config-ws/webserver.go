@@ -349,6 +349,7 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 		esn := split[2]
 		fileBytes, err := os.ReadFile(path.Join(vars.SessionCertPath, esn))
 		if err != nil {
+			w.WriteHeader(404)
 			fmt.Fprint(w, "error: cert does not exist")
 			return
 		}
