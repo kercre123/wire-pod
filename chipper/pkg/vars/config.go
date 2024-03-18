@@ -29,6 +29,7 @@ type apiConfig struct {
 		IntentGraph  bool   `json:"intentgraph"`
 		RobotName    string `json:"robotName"`
 		OpenAIPrompt string `json:"openai_prompt"`
+		SaveChat     bool   `json:"save_chat"`
 	} `json:"knowledge"`
 	STT struct {
 		Service  string `json:"provider"`

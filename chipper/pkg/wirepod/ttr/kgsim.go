@@ -101,9 +101,12 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		smsg.Content = defaultPrompt
 	}
 
-	rchat := GetChat(esn)
 	nChat = append(nChat, smsg)
-	nChat = append(nChat, rchat.Chats...)
+	if vars.APIConfig.Knowledge.SaveChat {
+		rchat := GetChat(esn)
+		logger.Println("Using remembered chats, length of " + fmt.Sprint(len(rchat.Chats)) + " messages")
+		nChat = append(nChat, rchat.Chats...)
+	}
 	nChat = append(nChat, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
 		Content: transcribedText,
@@ -141,7 +144,9 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 					}
 					newStr = newStr + " " + str
 				}
-				Remember(transcribedText, newStr, esn)
+				if vars.APIConfig.Knowledge.SaveChat {
+					Remember(transcribedText, newStr, esn)
+				}
 				logger.LogUI("LLM response for " + esn + ": " + newStr)
 				fmt.Println("LLM stream finished")
 				return

@@ -107,6 +107,16 @@
               </span>
             </span>
           </form>
+          <span id="saveChatInput" style="display:none">
+            <small>Would you like chats to be saved and used in the context of future responses?</small><br>
+            <label for="saveChatYes">Yes</label>
+            <input type="radio" id="saveChatYes" name="saveChatselect" value="yes"><br>
+            <label for="saveChatNo">No</label>
+            <input type="radio" id="saveChatNo" name="saveChatselect" value="no">
+            <div class="center">
+              <button onclick="deleteSavedChats()">Delete Saved Chats</button>
+            </div>
+          </span>
 	  <div class="center">
             <button onclick="sendKGAPIKey()">Save</button>
           </div>

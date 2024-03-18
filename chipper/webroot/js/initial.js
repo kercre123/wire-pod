@@ -95,6 +95,7 @@ function initKGAPIKey() {
     var intentgraph = ""
     var robotName = ""
     var model = ""
+    var saveChat = ""
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
@@ -105,6 +106,11 @@ function initKGAPIKey() {
         } else {
             intentgraph = "false"
         }
+        if (document.getElementById("saveChatYes").checked == true) {
+            saveChat = "true"
+          } else {
+            saveChat = "false"
+          }
     } else if (provider == "together") {
         key = document.getElementById("togetherKey").value
         openAIPrompt = document.getElementById("togetherAIPrompt").value
@@ -114,6 +120,11 @@ function initKGAPIKey() {
             robotName = document.getElementById("togetherAIRobotName").value
         } else {
             intentgraph = "false"
+        }
+        if (document.getElementById("saveChatYes").checked == true) {
+            saveChat = "true"
+        } else {
+            saveChat = "false"
         }
     } else if (provider == "houndify") {
         key = document.getElementById("houndKey").value
@@ -125,7 +136,7 @@ function initKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&model=" + model + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt
+    var data = "provider=" + provider + "&api_key=" + key + "&api_id=" + id + "&model=" + model + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt + "&save_chat=" + saveChat
     fetch("/api/set_kg_api?" + data)
         .then(response => response.text())
         .then((response) => {
