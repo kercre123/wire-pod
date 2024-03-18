@@ -202,6 +202,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				vars.APIConfig.Knowledge.OpenAIPrompt = ""
 			}
+			if r.FormValue("save_chat") == "true" {
+				vars.APIConfig.Knowledge.SaveChat = true
+			} else {
+				vars.APIConfig.Knowledge.SaveChat = false
+			}
 		}
 		if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "true" {
 			vars.APIConfig.Knowledge.IntentGraph = true
@@ -226,6 +231,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgIntent := false
 		kgRobotName := ""
 		kgOpenAIPrompt := ""
+		kgSavePrompt := false
 		if vars.APIConfig.Knowledge.Enable {
 			kgEnabled = true
 			kgProvider = vars.APIConfig.Knowledge.Provider
@@ -235,6 +241,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			kgIntent = vars.APIConfig.Knowledge.IntentGraph
 			kgRobotName = vars.APIConfig.Knowledge.RobotName
 			kgOpenAIPrompt = vars.APIConfig.Knowledge.OpenAIPrompt
+			kgSavePrompt = vars.APIConfig.Knowledge.SaveChat
 		}
 		fmt.Fprintf(w, "{ ")
 		fmt.Fprintf(w, "  \"kgEnabled\": %t,", kgEnabled)
@@ -244,7 +251,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"kgApiID\": \"%s\",", kgAPIID)
 		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\",", kgIntent)
 		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\",", kgRobotName)
-		fmt.Fprintf(w, "  \"kgOpenAIPrompt\": \"%s\"", kgOpenAIPrompt)
+		fmt.Fprintf(w, "  \"kgOpenAIPrompt\": \"%s\",", kgOpenAIPrompt)
+		fmt.Fprintf(w, "  \"kgSaveChat\": \"%t\"", kgSavePrompt)
 		fmt.Fprintf(w, "}")
 		return
 	case r.URL.Path == "/api/set_stt_info":
@@ -327,6 +335,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api/is_running":
 		fmt.Fprintf(w, "true")
+		return
+	case r.URL.Path == "/api/delete_chats":
+		os.Remove(vars.SavedChatsPath)
+		vars.RememberedChats = []vars.RememberedChat{}
+		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api/generate_certs":
 		err := botsetup.CreateCertCombo()

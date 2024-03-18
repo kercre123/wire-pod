@@ -557,16 +557,19 @@ function checkKG() {
         document.getElementById("houndifyInput").style.display = "none";
         document.getElementById("togetherInput").style.display = "none";
         document.getElementById("openAIInput").style.display = "none";
+        document.getElementById("saveChatInput").style.display = "none";
         document.getElementById("openAIRobotNameInput").style.display = "none";
     } else if (document.getElementById("kgProvider").value=="houndify") {
         document.getElementById("openAIRobotNameInput").style.display = "none";  
         document.getElementById("togetherInput").style.display = "none";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "block";
+        document.getElementById("saveChatInput").style.display = "none";
     } else if (document.getElementById("kgProvider").value=="openai") {
         document.getElementById("openAIInput").style.display = "block";
         document.getElementById("togetherInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "none";
+        document.getElementById("saveChatInput").style.display = "block";
 
         if (document.getElementById("intentyes").checked == true) {
             document.getElementById("openAIRobotNameInput").style.display = "block";
@@ -578,6 +581,7 @@ function checkKG() {
         document.getElementById("togetherInput").style.display = "block";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "none";
+        document.getElementById("saveChatInput").style.display = "block";
         if (document.getElementById("togetherintentyes").checked == true) {
           document.getElementById("togetherAIRobotNameInput").style.display = "block";
         } else {
@@ -594,6 +598,7 @@ function sendKGAPIKey() {
     var intentgraph = ""
     var robotName = ""
     var model = ""
+    var saveChat = ""
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
@@ -604,6 +609,11 @@ function sendKGAPIKey() {
         } else {
             intentgraph = "false"
         }
+        if (document.getElementById("saveChatYes").checked == true) {
+          saveChat = "true"
+        } else {
+          saveChat = "false"
+        }
     } else if (provider == "together") {
         key = document.getElementById("togetherKey").value
         model = document.getElementById("togetherModel").value
@@ -613,6 +623,11 @@ function sendKGAPIKey() {
             robotName = document.getElementById("togetherAIRobotName").value
         } else {
             intentgraph = "false"
+        }
+        if (document.getElementById("saveChatYes").checked == true) {
+          saveChat = "true"
+        } else {
+          saveChat = "false"
         }
     } else if (provider == "houndify") {
         key = document.getElementById("houndKey").value
@@ -626,7 +641,7 @@ function sendKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt
+    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt + "&save_chat=" + saveChat
     var result = document.getElementById('addKGProviderAPIStatus');
     const resultP = document.createElement('p');
     resultP.textContent =  "Saving...";
@@ -639,6 +654,17 @@ function sendKGAPIKey() {
             result.innerHTML = '';
             result.appendChild(resultP);
         })
+}
+
+function deleteSavedChats() {
+  if(confirm("Are you sure? This will delete all saved chats.")){
+    fetch("/api/delete_chats")
+      .then(response => response.text())
+      .then((response) => {
+          //console.log(response)
+          alert("Successfully deleted all saved chats.")
+    })
+  }
 }
 
 function updateKGAPI() {
@@ -656,6 +682,11 @@ function updateKGAPI() {
                 } else {
                     document.getElementById("intentno").checked = true;
                 }
+                if (obj.kgSaveChat == "true") {
+                  document.getElementById("saveChatYes").checked = true;
+                } else {
+                  document.getElementById("saveChatNo").checked = true;
+                }
             } else if (obj.kgProvider == "together") {
               document.getElementById("togetherKey").value = obj.kgApiKey;
               document.getElementById("togetherModel").value = obj.kgModel;
@@ -667,6 +698,11 @@ function updateKGAPI() {
               } else {
                   document.getElementById("intentno").checked = true;
                   document.getElementById("togetherintentyes").checked = true;
+              }
+              if (obj.kgSaveChat == "true") {
+                document.getElementById("saveChatYes").checked = true;
+              } else {
+                document.getElementById("saveChatNo").checked = true;
               }
             } else if (obj.kgProvider == "houndify") {
                 document.getElementById("houndKey").value = obj.kgApiKey;
