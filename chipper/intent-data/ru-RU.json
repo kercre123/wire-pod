@@ -1,0 +1,218 @@
+[
+	{
+		"name" : "intent_names_username_extend",
+		"keyphrases": ["имена", "назови имена" ]
+	},
+	{
+		"name": "intent_weather_extend",
+		"keyphrases" : ["погода", "погода завтра", "какая погода" ]
+	},
+	{
+		"name": "intent_names_ask",
+		"keyphrases" : ["как меня зовут", "моё имя", "кто я"]
+	},
+	{
+		"name": "intent_imperative_eyecolor",
+		"keyphrases" : ["глаз", "глаза", "измени цвет глаз", "поменяй цвет"]
+	},
+	{
+		"name": "intent_character_age",
+		"keyphrases" : ["сколько тебе лет" ]
+	},
+	{
+		"name": "intent_explore_start",
+		"keyphrases" : ["начни исследовать"]
+	},
+	{
+		"name": "intent_system_charger",
+		"keyphrases" : ["зарядка", "дом", "база", "найди зарядку", "найди базу", "иди на зарядку", "иди на базу"]
+	},
+		{
+		"name": "intent_system_sleep",
+		"keyphrases" : ["спать", "иди спать" ]
+	},
+	{
+		"name": "intent_greeting_goodmorning",
+		"keyphrases" : ["доброе утро", "утро" ]
+	},
+		{
+		"name": "intent_greeting_goodnight",
+		"keyphrases" : ["спокойной ночи", "пора спать" ]
+	},
+		{
+		"name": "intent_greeting_goodbye",
+		"keyphrases" : ["пока", "досвидание", "я ушёл" ]
+	},
+	{
+		"name": "intent_seasonal_happynewyear",
+		"keyphrases" : ["фейрверк", "новый год", "салют" ]
+	},
+	{
+		"name": "intent_seasonal_happyholidays",
+		"keyphrases" : ["праздник" ]
+	},
+	{
+		"name": "intent_amazon_signin",
+		"keyphrases" : ["алекса" ]
+	},
+	{
+		"name": "intent_amazon_signin",
+		"keyphrases" : ["алекса" ]
+	},
+	{
+		"name": "intent_imperative_forward",
+		"keyphrases" : ["вперед", "едь вперёд", "двигайся вперёд" ]
+	},
+	{
+		"name": "intent_imperative_turnaround",
+		"keyphrases" : ["повернись", "обернись", "оглянись", "развернись" ]
+	},
+	{
+		"name": "intent_imperative_turnleft",
+		"keyphrases" : ["налево", "лево", "влево"]
+	},
+	{
+		"name": "intent_imperative_turnright",
+		"keyphrases" : ["направо", "право", "вправо" ]
+	},
+	{
+		"name": "intent_play_rollcube",
+		"keyphrases" : ["кати куб", "кати кубик", "покатай куб", "покатай кубик" ]
+	},
+	{
+		"name": "intent_play_popawheelie",
+		"keyphrases" : ["встань на куб", "встань на кубик" ]
+	},
+	{
+		"name": "intent_play_fistbump",
+		"keyphrases" : ["дай пять", "пятюня", "дай кулачок" ]
+	},
+		{
+		"name": "intent_play_blackjack",
+		"keyphrases" : ["карты", "играть", "играем в карты", "давай играть", "давай сыграем" ]
+	},
+		{
+		"name": "intent_imperative_affirmative",
+		"keyphrases" : ["да", "давай", "конечно" ]
+	},
+	{
+		"name": "intent_imperative_negative",
+		"keyphrases" : ["нет" ]
+	},
+	{
+		"name": "intent_photo_take_extend",
+		"keyphrases" : ["фото", "селфи", "сделай фото", "сфотографируй" ]
+	},
+	{
+		"name": "intent_imperative_praise",
+		"keyphrases" : ["красавчик", "молодец", "хороший робот" ]
+	},
+	{
+		"name": "intent_imperative_abuse",
+		"keyphrases" : ["это плохо", "отстой", "плохой робот" ]
+	},
+	{
+		"name": "intent_imperative_apologize",
+		"keyphrases" : ["извини", "прошу прощения", "мне жаль" ]
+	},
+	{
+		"name": "intent_imperative_backup",
+		"keyphrases" : ["назад", "двигайся назад", "едь назад" ]
+	},
+	{
+		"name": "intent_imperative_volumedown",
+		"keyphrases" : ["убавь звук", "убавь громкость", "тише громкость" ]
+	},
+	{
+		"name": "intent_imperative_volumeup",
+		"keyphrases" : ["прибавь звук", "прибавь громкось", "громче" ]
+	},
+	{
+		"name": "intent_imperative_lookatme",
+		"keyphrases" : ["смотри на меня", "посмотри на меня", "взгляни на меня" ]
+	},
+	{
+		"name": "intent_imperative_volumelevel_extend",
+		"keyphrases" : ["громкость", "уровень громкости" ]
+	},
+	{
+		"name": "intent_imperative_shutup",
+		"keyphrases" : ["заткнись" ]
+	},
+	{
+		"name": "intent_greeting_hello",
+		"keyphrases" : ["привет", "здравствуй", "рад тебя видеть" ]
+	},
+	{
+		"name": "intent_imperative_come",
+		"keyphrases" : ["ко мне", "иди ко мне", "иди сюда" ]
+	},
+	{
+		"name": "intent_imperative_love",
+		"keyphrases" : ["люблю тебя" ]
+	},
+	{
+		"name": "intent_knowledge_promptquestion",
+		"keyphrases" : ["вопрос", "у меня есть вопрос" ]
+	},
+	{
+		"name": "intent_clock_checktimer",
+		"keyphrases" : ["проверь таймер" ]
+	},
+	{
+		"name": "intent_global_stop_extend",
+		"keyphrases" : ["останови таймер", "отмени таймер", "выключи таймер" ]
+	},
+	{
+		"name": "intent_clock_settimer_extend",
+		"keyphrases" : ["таймер", "поставь таймер", "установи таймер" ]
+	},
+	{
+		"name": "intent_clock_time",
+		"keyphrases" : ["время", "который час", "сколько время", "который сейчас час" ]
+	},
+	{
+		"name": "intent_imperative_quiet",
+		"keyphrases" : ["тихо", "прекрати", "будь тише" ]
+	},
+	{
+		"name": "intent_imperative_dance",
+		"keyphrases" : ["танец", "танцуй", "давай танцевать" ]
+	},
+	{
+		"name": "intent_play_pickupcube",
+		"keyphrases" : ["возьми кубик", "подбери кубик", "поднеми кубик" ]
+	},
+	{
+		"name": "intent_imperative_fetchcube",
+		"keyphrases" : ["дай кубик", "принеси мне", "неси мне", "принеси свой кубик" ]
+	},
+	{
+		"name": "intent_imperative_findcube",
+		"keyphrases" : ["если кубик", "найди кубик", "ищи кубик", "где твой кубик", "найди свой кубик" ]
+	},
+	{
+		"name": "intent_play_anytrick",
+		"keyphrases" : ["трюк", "сделай трюк" ]
+	},
+	{
+		"name": "intent_message_recordmessage_extend",
+		"keyphrases" : ["запиши" ]
+	},
+	{
+		"name": "intent_message_playmessage_extend",
+		"keyphrases" : ["воспроизведи сообщение" ]
+	},
+		{
+		"name": "intent_blackjack_hit",
+		"keyphrases" : ["ещё", "ещё карту"]
+	},
+	{
+		"name": "intent_blackjack_stand",
+		"keyphrases" : ["хватит" ]
+	},
+	{
+		"name": "intent_play_keepaway",
+		"keyphrases": ["расстояние", "расстоянии", "состояние" ]
+	}
+]
