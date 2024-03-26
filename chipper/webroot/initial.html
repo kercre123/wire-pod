@@ -35,7 +35,6 @@
       <div class="center" id="languageStatus"></div>
       <div id="languageSelectionDiv">
          <select name="languageSelection" id="languageSelection">
-            <option value="ru-RU">Russian (RU)</option>
             <option value="en-US">English (US)</option>
             <option value="it-IT">Italian (IT)</option>
             <option value="es-ES">Spanish (ES)</option>
@@ -101,10 +100,24 @@
             </span>
             <span id="togetherInput" style="display:none">
               <small>To use Together, create an account at <a href="https://www.together.xyz">together.com</a>, create a free domain, and enter the Model Name and Together Key here.</small><br>
-              <label for="togetherModel">Together Model Name: e.g. togethercomputer/llama-2-7b-chat</label>
+              <label for="togetherModel">Together Model Name: e.g. meta-llama/Llama-2-70b-chat-hf</label>
               <input type="text" name="togetherModel" id="togetherModel"><br>
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey"><br>
+              <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br>
+              <small><label for="togetherAIPrompt">(default: "You are a helpful robot called Vector. You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative.)</label></small>
+              <input type="text" name="togetherAIPrompt" id="togetherAIPrompt"><br>
+              <small>Would you like to enable the intent graph feature? This forwards the request to Together if the regular intent processor didn't understand what you said.</small><br>
+              <label for="togetherintentyes">Yes</label>
+              <input type="radio" id="togetherintentyes" name="togetherintentgselect" value="yes" onclick="checkKG()"><br>
+              <label for="intentno">No</label>
+              <input type="radio" id="togetherintentno" name="togetherintentgselect" value="no" onclick="checkKG()">
+              <span id="togetherAIRobotNameInput" style="display:none">
+                <br>
+                <label for="togetherAIRobotName">Robot name:</label>
+                <input type="text" name="togetherAIRobotName" id="togetherAIRobotName" placeholder="Anki Vector">
+              </span>
+
             </span>
             <span id="openAIInput" style="display:none">
               <label for="openAIKey">OpenAI Key:</label>
@@ -122,6 +135,14 @@
                 <label for="openAIRobotName">Robot name:</label>
                 <input type="text" name="openAIRobotName" id="openAIRobotName" placeholder="Anki Vector">
               </span>
+            </span>
+
+            <span id="saveChatInput" style="display:none">
+              <small>Would you like chats to be saved and used in the context of future responses?</small><br>
+              <label for="saveChatYes">Yes</label>
+              <input type="radio" id="saveChatYes" name="saveChatselect" value="yes"><br>
+              <label for="saveChatNo">No</label>
+              <input type="radio" id="saveChatNo" name="saveChatselect" value="no">
             </span>
           </form>
         </p>
