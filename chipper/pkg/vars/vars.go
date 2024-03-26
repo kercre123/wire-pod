@@ -22,6 +22,8 @@ var VarsInited bool
 // if compiled into an installation package. wire-pod will use os.UserConfigDir()
 var Packaged bool
 
+var IsPackagedLinux bool
+
 var AndroidPath string
 
 var (

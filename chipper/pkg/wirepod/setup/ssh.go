@@ -51,6 +51,9 @@ func SetupBotViaSSH(ip string, key []byte) error {
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		SetupScriptPath = vars.AndroidPath + "/static/pod-bot-install.sh"
 	}
+	if vars.IsPackagedLinux {
+		SetupScriptPath = "./pod-bot-install.sh"
+	}
 	if !SSHSettingUp {
 		logger.Println("Setting up " + ip + " via SSH")
 		SetupSSHStatus = "Setting up SSH connection..."
