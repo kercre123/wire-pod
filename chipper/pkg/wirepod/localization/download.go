@@ -24,9 +24,9 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
-var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
+// var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
 
-//var URLPrefix string = "https://alphacephei.com/vosk/models/"
+var URLPrefix string = "https://alphacephei.com/vosk/models/"
 
 var DownloadStatus string = "not downloading"
 
@@ -50,6 +50,8 @@ func DownloadVoskModel(language string) {
 		filename = filename + "cn-0.22.zip"
 	} else if language == "tr-TR" {
 		filename = filename + "tr-0.3.zip"
+	} else if language == "ru-RU" {
+		filename = filename + "ru-0.22.zip"
 	} else {
 		logger.Println("Language not valid? " + language)
 		return
