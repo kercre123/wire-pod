@@ -120,7 +120,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(err, "copying server-config.json")
 		}
 		scpClient.Session.Close()
-		if runtime.GOOS != "android" || !vars.Packaged {
+		if runtime.GOOS != "android" && !vars.Packaged {
 			cloud, err := os.Open("../vector-cloud/build/vic-cloud")
 			if err != nil {
 				return doErr(err, "transferring new vic-cloud")
