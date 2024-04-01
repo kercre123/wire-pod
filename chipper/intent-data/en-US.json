@@ -117,7 +117,7 @@
 	},
 	{	
 		"name": "intent_imperative_backup", 
-		"keyphrases" : ["back", "back up", "backwards" ]
+		"keyphrases" : ["back", "back up", "backwards","beck"]
 	},
 	{	
 		"name": "intent_imperative_volumedown",
