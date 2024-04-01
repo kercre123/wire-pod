@@ -29,7 +29,7 @@
 	},
 		{	
 		"name": "intent_system_sleep",
-		"keyphrases" : ["dormir", "vai dormi" ]
+		"keyphrases" : ["dormir", "vai dormi", "dorme"]
 	},
 	{	
 		"name": "intent_greeting_goodmorning", 
@@ -45,7 +45,7 @@
 	},
 	{	
 		"name": "intent_seasonal_happynewyear",
-		"keyphrases" : ["soltar fogos", "ano novo", "feliz ano", "feliz anivérsario" ]
+		"keyphrases" : ["soltar fogos", "ano novo", "feliz ano", "feliz anivérsario", "é meu anivérsario" ]
 	},
 	{	
 		"name": "intent_seasonal_happyholidays", 
@@ -117,7 +117,7 @@
 	},
 	{	
 		"name": "intent_imperative_backup", 
-		"keyphrases" : ["back" ]
+		"keyphrases" : ["para trás","vai pra trás"]
 	},
 	{	
 		"name": "intent_imperative_volumedown",
