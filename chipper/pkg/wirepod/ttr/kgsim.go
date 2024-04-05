@@ -118,8 +118,8 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		Stream:    true,
 	}
 	if vars.APIConfig.Knowledge.Provider == "openai" {
-		logger.Println("Using " + openai.GPT4TurboPreview)
-		aireq.Model = openai.GPT4TurboPreview
+		logger.Println("Using " + openai.GPT4Turbo1106)
+		aireq.Model = openai.GPT4Turbo1106
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
 		aireq.Model = vars.APIConfig.Knowledge.Model
