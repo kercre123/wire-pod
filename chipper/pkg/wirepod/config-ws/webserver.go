@@ -333,6 +333,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
 		return
+	case r.URL.Path == "/api/get_debug_logs":
+		fmt.Fprintf(w, logger.LogTrayList)
+		return
 	case r.URL.Path == "/api/is_running":
 		fmt.Fprintf(w, "true")
 		return
