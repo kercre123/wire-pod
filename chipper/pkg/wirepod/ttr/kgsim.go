@@ -73,6 +73,10 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	var isDone bool
 	var c *openai.Client
 	if vars.APIConfig.Knowledge.Provider == "together" {
+		if vars.APIConfig.Knowledge.Model == "" {
+			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-2-70b-chat-hf"
+			vars.WriteConfigToDisk()
+		}
 		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
 		conf.BaseURL = "https://api.together.xyz/v1"
 		c = openai.NewClientWithConfig(conf)
@@ -128,8 +132,10 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
+			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			aireq.Model = openai.GPT3Dot5Turbo
 			logger.Println("Falling back to " + aireq.Model)
+			logger.LogUI("Falling back to " + aireq.Model)
 			stream, err = c.CreateChatCompletionStream(ctx, aireq)
 			if err != nil {
 				logger.Println("OpenAI still not returning a response even after falling back. Erroring.")

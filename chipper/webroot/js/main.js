@@ -422,6 +422,7 @@ function showLog() {
 
     GetLog = true
     logDivArea = document.getElementById("botTranscriptedTextArea")
+    document.getElementById("logscrollbottom").checked = true
     logP = document.createElement("p")
     interval = setInterval(function() {
         if (GetLog == false) {
@@ -429,7 +430,11 @@ function showLog() {
             return
         }
         let xhr = new XMLHttpRequest();
-        xhr.open("GET", "/api/get_logs");
+        if (document.getElementById("logdebug").checked) {
+          xhr.open("GET", "/api/get_debug_logs");
+        } else {
+          xhr.open("GET", "/api/get_logs");
+        }
         xhr.send();
         xhr.onload = function() {
             logDivArea.innerHTML = ""
@@ -438,9 +443,14 @@ function showLog() {
             } else {
                 logP.innerHTML = xhr.response
             }
-	    logDivArea.value = logP.innerHTML; 
+            if (document.getElementById("logscrollbottom").checked) {
+              logDivArea.value = logP.innerHTML; 
+              logDivArea.scrollTop = logDivArea.scrollHeight;
+            } else {
+              logDivArea.value = logP.innerHTML;
+            }
         }
-    }, 1000)
+    }, 500)
 }
 
 function showLanguage() {

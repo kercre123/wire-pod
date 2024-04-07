@@ -157,7 +157,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			vars.APIConfig.Weather.Enable = false
 		} else {
 			vars.APIConfig.Weather.Enable = true
-			vars.APIConfig.Weather.Key = weatherAPIKey
+			vars.APIConfig.Weather.Key = strings.TrimSpace(weatherAPIKey)
 			vars.APIConfig.Weather.Provider = weatherProvider
 		}
 		vars.WriteConfigToDisk()
@@ -192,9 +192,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			vars.APIConfig.Knowledge.Enable = true
 			vars.APIConfig.Knowledge.Provider = kgProvider
-			vars.APIConfig.Knowledge.Key = kgAPIKey
-			vars.APIConfig.Knowledge.Model = kgModel
-			vars.APIConfig.Knowledge.ID = kgAPIID
+			vars.APIConfig.Knowledge.Key = strings.TrimSpace(kgAPIKey)
+			vars.APIConfig.Knowledge.Model = strings.TrimSpace(kgModel)
+			vars.APIConfig.Knowledge.ID = strings.TrimSpace(kgAPIID)
 		}
 		if kgModel == "" && kgProvider == "together" {
 			logger.Println("Together model wasn't provided, using default meta-llama/Llama-2-70b-chat-hf")
@@ -217,7 +217,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			if r.FormValue("robot_name") == "" {
 				vars.APIConfig.Knowledge.RobotName = "Vector"
 			} else {
-				vars.APIConfig.Knowledge.RobotName = r.FormValue("robot_name")
+				vars.APIConfig.Knowledge.RobotName = strings.TrimSpace(r.FormValue("robot_name"))
 			}
 		} else if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "false" {
 			vars.APIConfig.Knowledge.IntentGraph = false
