@@ -196,6 +196,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			vars.APIConfig.Knowledge.Model = kgModel
 			vars.APIConfig.Knowledge.ID = kgAPIID
 		}
+		if kgModel == "" && kgProvider == "together" {
+			logger.Println("Together model wasn't provided, using default meta-llama/Llama-2-70b-chat-hf")
+			kgModel = "meta-llama/Llama-2-70b-chat-hf"
+		}
 		if kgProvider == "openai" || kgProvider == "together" {
 			if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
 				vars.APIConfig.Knowledge.OpenAIPrompt = r.FormValue("openai_prompt")
