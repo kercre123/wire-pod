@@ -88,7 +88,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	} else {
 		robName = "Vector"
 	}
-	defaultPrompt := "You are a helpful robot called " + robName + ". You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative."
+	defaultPrompt := "You are a helpful robot called " + robName + ". The prompt may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative."
 
 	var nChat []openai.ChatCompletionMessage
 
@@ -118,16 +118,26 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		Stream:    true,
 	}
 	if vars.APIConfig.Knowledge.Provider == "openai" {
-		logger.Println("Using " + openai.GPT4Turbo1106)
 		aireq.Model = openai.GPT4Turbo1106
+		logger.Println("Using " + aireq.Model)
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
 		aireq.Model = vars.APIConfig.Knowledge.Model
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
-		fmt.Printf("ChatCompletionStream error: %v\n", err)
-		return "", err
+		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
+			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
+			aireq.Model = openai.GPT3Dot5Turbo
+			logger.Println("Falling back to " + aireq.Model)
+			stream, err = c.CreateChatCompletionStream(ctx, aireq)
+			if err != nil {
+				logger.Println("OpenAI still not returning a response even after falling back. Erroring.")
+				return "", err
+			}
+		} else {
+			return "", err
+		}
 	}
 	//defer stream.Close()
 
@@ -148,12 +158,12 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 					Remember(transcribedText, newStr, esn)
 				}
 				logger.LogUI("LLM response for " + esn + ": " + newStr)
-				fmt.Println("LLM stream finished")
+				logger.Println("LLM stream finished")
 				return
 			}
 
 			if err != nil {
-				fmt.Printf("Stream error: %v\n", err)
+				logger.Println("Stream error: " + err.Error())
 				return
 			}
 
@@ -255,7 +265,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 						},
 					},
 				); err != nil {
-					log.Println(err)
+					logger.Println(err)
 					return
 				}
 				return
@@ -310,7 +320,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 					break
 				}
 			}
-			fmt.Println(respSlice[numInResp])
+			logger.Println(respSlice[numInResp])
 			_, err := robot.Conn.SayText(
 				ctx,
 				&vectorpb.SayTextRequest{
