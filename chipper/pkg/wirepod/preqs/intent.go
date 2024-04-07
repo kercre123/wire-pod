@@ -42,6 +42,9 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText)
 			if err != nil {
 				logger.Println("LLM error: " + err.Error())
+				logger.LogUI("LLM error: " + err.Error())
+				ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
+				ttr.KGSim(req.Device, "There was an error getting a response from the L L M. Check the logs in the web interface.")
 			}
 			logger.Println("Bot " + speechReq.Device + " request served.")
 			return nil, nil
