@@ -230,6 +230,8 @@ function getSTT() {
             mkdir whisper.cpp
             cd whisper.cpp
             git clone https://github.com/ggerganov/whisper.cpp.git .
+        else
+            cd whisper.cpp
         fi
         function whichWhisperModel() {
             availableModels="tiny, base, small, medium, large"
@@ -244,7 +246,7 @@ function getSTT() {
                 echo "You must enter a key."
                 whichWhisperModel
             fi
-            if [[ ! ${whispermodel} == *"$availableModels"* ]]; then
+            if [[ ! ${availableModels} == *"${whispermodel}"* ]]; then
                 echo
                 echo "Invalid model."
                 whichWhisperModel
