@@ -1,6 +1,8 @@
 package wirepod_ttr
 
 import (
+	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -32,7 +34,37 @@ func basicspeechText2num(speechText string) int {
 	return 0
 }
 
+func whisperSpeechtoNum(input string) string {
+	// whisper returns actual numbers in its response
+	// ex. "set a timer for 10 minutes and 11 seconds"
+	totalSeconds := 0
+
+	minutePattern := regexp.MustCompile(`(\d+)\s*minute`)
+	secondPattern := regexp.MustCompile(`(\d+)\s*second`)
+
+	minutesMatches := minutePattern.FindStringSubmatch(input)
+	secondsMatches := secondPattern.FindStringSubmatch(input)
+
+	if len(minutesMatches) > 1 {
+		minutes, err := strconv.Atoi(minutesMatches[1])
+		if err == nil {
+			totalSeconds += minutes * 60
+		}
+	}
+	if len(secondsMatches) > 1 {
+		seconds, err := strconv.Atoi(secondsMatches[1])
+		if err == nil {
+			totalSeconds += seconds
+		}
+	}
+
+	return strconv.Itoa(totalSeconds)
+}
+
 func words2num(speechText string) string {
+	if os.Getenv("STT_SERVICE") == "whisper.cpp" {
+		return whisperSpeechtoNum(speechText)
+	}
 	number = basicspeechText2num(speechText)
 	if number == 0 {
 		number = 1

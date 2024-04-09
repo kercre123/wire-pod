@@ -22,6 +22,7 @@ func ParamChecker(req interface{}, intent string, speechText string, botSerial s
 	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
+	var DoWeatherError bool = false
 
 	// see if jdoc exists
 	botJdoc, jdocExists := vars.GetJdoc("vic:"+botSerial, "vic.RobotSettings")
@@ -139,7 +140,13 @@ func ParamChecker(req interface{}, intent string, speechText string, botSerial s
 		isParam = true
 		newIntent = intent
 		condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
-		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
+		if local_datetime == "test" {
+			newIntent = "intent_system_unmatched"
+			isParam = false
+			DoWeatherError = true
+		} else {
+			intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
+		}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
 		newIntent = intent
@@ -307,6 +314,15 @@ func ParamChecker(req interface{}, intent string, speechText string, botSerial s
 		}
 	}
 	IntentPass(req, newIntent, speechText, intentParams, isParam)
+	if DoWeatherError {
+		if vars.APIConfig.Weather.Enable {
+			logger.Println("The weather API is not configured properly.")
+			KGSim(botSerial, "The weather API is not configured properly. Please check the wire pod logs for more details.")
+		} else {
+			logger.Println("The weather API is not configured.")
+			KGSim(botSerial, "The weather API is not configured.")
+		}
+	}
 }
 
 // stintent
