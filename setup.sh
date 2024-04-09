@@ -254,10 +254,10 @@ function getSTT() {
         }
         whichWhisperModel
         ./models/download-ggml-model.sh $whispermodel
-        echo "export WHISPER_MODEL=$whispermodel" >> ./chipper/source.sh
         cd bindings/go
         make whisper
         cd ${origDir}
+        echo "export WHISPER_MODEL=$whispermodel" >> ./chipper/source.sh
     else
     echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then
