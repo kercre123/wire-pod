@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
@@ -92,6 +93,21 @@ type openWeatherMapAPIResponseStruct struct {
 */
 
 //2.5 API
+
+func removeEndPunctuation(s string) string {
+	if s == "" {
+		return s
+	}
+
+	runes := []rune(s)
+	lastIndex := len(runes) - 1
+
+	if unicode.IsPunct(runes[lastIndex]) {
+		return string(runes[:lastIndex])
+	}
+
+	return s
+}
 
 type WeatherStruct struct {
 	Id          int    `json:"id"`
@@ -362,20 +378,22 @@ func weatherParser(speechText string, botLocation string, botUnits string) (stri
 	var speechLocation string
 	var hoursFromNow int
 	if strings.Contains(speechText, lcztn.GetText(lcztn.STR_WEATHER_IN)) {
-		splitPhrase := strings.SplitAfter(speechText, lcztn.GetText(lcztn.STR_WEATHER_IN))
+		splitPhrase := strings.SplitAfter(removeEndPunctuation(speechText), lcztn.GetText(lcztn.STR_WEATHER_IN))
 		speechLocation = strings.TrimSpace(splitPhrase[1])
-		if len(splitPhrase) == 3 {
-			speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2])
-		} else if len(splitPhrase) == 4 {
-			speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
-		} else if len(splitPhrase) > 4 {
-			speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
-		}
-		splitLocation := strings.Split(speechLocation, " ")
-		if len(splitLocation) == 2 {
-			speechLocation = splitLocation[0] + ", " + splitLocation[1]
-		} else if len(splitLocation) == 3 {
-			speechLocation = splitLocation[0] + " " + splitLocation[1] + ", " + splitLocation[2]
+		if os.Getenv("STT_SERVICE") != "whisper.cpp" {
+			if len(splitPhrase) == 3 {
+				speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2])
+			} else if len(splitPhrase) == 4 {
+				speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
+			} else if len(splitPhrase) > 4 {
+				speechLocation = speechLocation + " " + strings.TrimSpace(splitPhrase[2]) + " " + strings.TrimSpace(splitPhrase[3])
+			}
+			splitLocation := strings.Split(speechLocation, " ")
+			if len(splitLocation) == 2 {
+				speechLocation = splitLocation[0] + ", " + splitLocation[1]
+			} else if len(splitLocation) == 3 {
+				speechLocation = splitLocation[0] + " " + splitLocation[1] + ", " + splitLocation[2]
+			}
 		}
 		logger.Println("Location parsed from speech: " + "`" + speechLocation + "`")
 		specificLocation = true

@@ -42,9 +42,9 @@
           <input type="text" name="paramnameAdd" id="paramnameAdd"><br>
           <label for="paramvalueAdd">Intent parameter value (not required):</label>
           <input type="text" name="paramvalueAdd" id="paramvalueAdd"><br>
-          <label for="execAdd">Path to script/program to execute after sending intent:</label>
+          <label for="execAdd">Path to script/program to execute after sending intent (not required):</label>
           <input type="text" name="execAdd" id="execAdd"><br>
-          <label for="execAdd">Arguments for program (seperated by ,)</label>
+          <label for="execAdd">Arguments for program (seperated by ,) (not required)</label>
           <input type="text" name="execAddArgs" id="execAddArgs" size="50"><br>
         </form>
         <div class="center">
@@ -74,7 +74,7 @@
 
 
     <div id="section-botauth" style="display: none;">
-      <h2>Bot Authentication</h2>
+      <h2>Authenticate a regular robot</h2>
       <div class="center">
           <div id="disconnectButton"></div>
       </div>
@@ -83,10 +83,11 @@
       </div>
       <hr>
       <div class="center">
-        <h3>Set up OSKR/dev bot</h3>
+        <h3>Authenticate an OSKR/dev-unlocked robot</h3>
+        <small>Works with firmware 1.4 and above</small>
         <div id="oskrSetupProgress"></div>
         <div id="oskrSetup">
-          <small>If you have an OSKR/dev-unlocked bot; enter the bot's IP address and upload the bot's SSH key here, then click "Set up bot". After that, use the above instructions to continue setup. If you have a production bot, don't do this.</small></br>
+          <small><b>If you have an OSKR/dev-unlocked bot;</b> enter the bot's IP address and upload the bot's SSH key here, then click "Set up bot". After that, head to <a href="https://keriganc.com/vector-epod-setup">https://keriganc.com/vector-epod-setup</a> and follow the instructions.</small></br>
           <input type="type" id="sshIp" name="sshIp" placeholder="Bot IP address">
           <input type="file" id="sshKeyFile" name="sshKeyFile">
         <div class="center">
@@ -99,7 +100,11 @@
 
     <div id="section-log" style="display: none;">
       <h2>Log</h2>
-      <textarea id="botTranscriptedTextArea" rows="4" cols="50">
+      <label for="logdebug">Show all logs</label>
+      <input id="logdebug" name="logdebug" type="checkbox"><br>
+      <label for="logscrollbottom">Scroll to bottom</label>
+      <input id="logscrollbottom" name="logscrollbottom" type="checkbox">
+      <textarea id="botTranscriptedTextArea" rows="7" cols="50">
          loading log...
       </textarea>
       <hr>
@@ -118,7 +123,9 @@
             <option value="de-DE">German (DE)</option>
             <option value="pt-BR">Portuguese (BR)</option>
             <option value="pl-PL">Polish (PL)</option>
-            <option value="zh-CN">Chinese (CN)</option>            
+            <option value="tr-TR">Turkish (TR)</option>
+            <option value="zh-CN">Chinese (CN)</option>
+            <option value="ru-RU">Russian (RU)</option>
           </select>
           </div>
           <div class="center">
@@ -127,7 +134,7 @@
       </div>
       <hr>
     </div>
-    
+
   </div>
 </body>
 

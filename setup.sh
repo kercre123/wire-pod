@@ -230,11 +230,34 @@ function getSTT() {
             mkdir whisper.cpp
             cd whisper.cpp
             git clone https://github.com/ggerganov/whisper.cpp.git .
-            ./models/download-ggml-model.sh tiny
-            cd bindings/go
-            make whisper
-            cd ${origDir}
+        else
+            cd whisper.cpp
         fi
+        function whichWhisperModel() {
+            availableModels="tiny, base, small, medium, large"
+            echo
+            echo "Which Whisper model would you like to use?"
+            echo "Options: $availableModels"
+            echo '(tiny is recommended)'
+            echo
+            read -p "Enter preferred model: " whispermodel
+            if [[ ! -n ${whispermodel} ]]; then
+                echo
+                echo "You must enter a key."
+                whichWhisperModel
+            fi
+            if [[ ! ${availableModels} == *"${whispermodel}"* ]]; then
+                echo
+                echo "Invalid model."
+                whichWhisperModel
+            fi
+        }
+        whichWhisperModel
+        ./models/download-ggml-model.sh $whispermodel
+        cd bindings/go
+        make whisper
+        cd ${origDir}
+        echo "export WHISPER_MODEL=$whispermodel" >> ./chipper/source.sh
     else
     echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then

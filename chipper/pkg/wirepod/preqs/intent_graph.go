@@ -1,7 +1,6 @@
 package processreqs
 
 import (
-	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
@@ -26,7 +25,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 		if err != nil {
 			if err.Error() == "inference not understood" {
 				logger.Println("Bot " + speechReq.Device + " No intent was matched")
-				ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
+				ttr.IntentPass(req, "intent_system_unmatched", "voice processing error", map[string]string{"error": err.Error()}, true)
 				return nil, nil
 			}
 			logger.Println(err)
@@ -36,22 +35,39 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 		ttr.ParamCheckerSlotsEnUS(req, intent, slots, speechReq.IsOpus, speechReq.Device)
 		return nil, nil
 	}
+	// if !successMatched {
+	// 	logger.Println("No intent was matched.")
+	// 	if vars.APIConfig.Knowledge.Enable && vars.APIConfig.Knowledge.Provider == "openai" && len([]rune(transcribedText)) >= 8 {
+	// 		apiResponse := openaiRequest(transcribedText)
+	// 		response := &pb.IntentGraphResponse{
+	// 			Session:      req.Session,
+	// 			DeviceId:     req.Device,
+	// 			ResponseType: pb.IntentGraphMode_KNOWLEDGE_GRAPH,
+	// 			SpokenText:   apiResponse,
+	// 			QueryText:    transcribedText,
+	// 			IsFinal:      true,
+	// 		}
+	// 		req.Stream.Send(response)
+	// 		return nil, nil
+	// 	}
+	// 	ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
+	// 	return nil, nil
+	// }
 	if !successMatched {
-		logger.Println("No intent was matched.")
-		if vars.APIConfig.Knowledge.Enable && vars.APIConfig.Knowledge.Provider == "openai" && len([]rune(transcribedText)) >= 8 {
-			apiResponse := openaiRequest(transcribedText)
-			response := &pb.IntentGraphResponse{
-				Session:      req.Session,
-				DeviceId:     req.Device,
-				ResponseType: pb.IntentGraphMode_KNOWLEDGE_GRAPH,
-				SpokenText:   apiResponse,
-				QueryText:    transcribedText,
-				IsFinal:      true,
+		if vars.APIConfig.Knowledge.IntentGraph {
+			logger.Println("Making LLM request for device " + req.Device + "...")
+			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText)
+			if err != nil {
+				logger.Println("LLM error: " + err.Error())
+				logger.LogUI("LLM error: " + err.Error())
+				ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
+				ttr.KGSim(req.Device, "There was an error getting a response from the L L M. Check the logs in the web interface.")
 			}
-			req.Stream.Send(response)
+			logger.Println("Bot " + speechReq.Device + " request served.")
 			return nil, nil
 		}
-		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false)
+		logger.Println("No intent was matched.")
+		ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
 		return nil, nil
 	}
 	logger.Println("Bot " + speechReq.Device + " request served.")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -156,7 +157,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			vars.APIConfig.Weather.Enable = false
 		} else {
 			vars.APIConfig.Weather.Enable = true
-			vars.APIConfig.Weather.Key = weatherAPIKey
+			vars.APIConfig.Weather.Key = strings.TrimSpace(weatherAPIKey)
 			vars.APIConfig.Weather.Provider = weatherProvider
 		}
 		vars.WriteConfigToDisk()
@@ -191,18 +192,34 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			vars.APIConfig.Knowledge.Enable = true
 			vars.APIConfig.Knowledge.Provider = kgProvider
-			vars.APIConfig.Knowledge.Key = kgAPIKey
-			vars.APIConfig.Knowledge.Model = kgModel
-			vars.APIConfig.Knowledge.ID = kgAPIID
+			vars.APIConfig.Knowledge.Key = strings.TrimSpace(kgAPIKey)
+			vars.APIConfig.Knowledge.Model = strings.TrimSpace(kgModel)
+			vars.APIConfig.Knowledge.ID = strings.TrimSpace(kgAPIID)
 		}
-		if kgProvider == "openai" && kgIntent == "true" {
+		if kgModel == "" && kgProvider == "together" {
+			logger.Println("Together model wasn't provided, using default meta-llama/Llama-2-70b-chat-hf")
+			kgModel = "meta-llama/Llama-2-70b-chat-hf"
+		}
+		if kgProvider == "openai" || kgProvider == "together" {
+			if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
+				vars.APIConfig.Knowledge.OpenAIPrompt = r.FormValue("openai_prompt")
+			} else {
+				vars.APIConfig.Knowledge.OpenAIPrompt = ""
+			}
+			if r.FormValue("save_chat") == "true" {
+				vars.APIConfig.Knowledge.SaveChat = true
+			} else {
+				vars.APIConfig.Knowledge.SaveChat = false
+			}
+		}
+		if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "true" {
 			vars.APIConfig.Knowledge.IntentGraph = true
 			if r.FormValue("robot_name") == "" {
 				vars.APIConfig.Knowledge.RobotName = "Vector"
 			} else {
-				vars.APIConfig.Knowledge.RobotName = r.FormValue("robot_name")
+				vars.APIConfig.Knowledge.RobotName = strings.TrimSpace(r.FormValue("robot_name"))
 			}
-		} else if kgProvider == "openai" && kgIntent == "false" {
+		} else if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "false" {
 			vars.APIConfig.Knowledge.IntentGraph = false
 			vars.APIConfig.Knowledge.RobotName = ""
 		}
@@ -217,6 +234,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgModel := ""
 		kgIntent := false
 		kgRobotName := ""
+		kgOpenAIPrompt := ""
+		kgSavePrompt := false
 		if vars.APIConfig.Knowledge.Enable {
 			kgEnabled = true
 			kgProvider = vars.APIConfig.Knowledge.Provider
@@ -225,6 +244,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			kgAPIID = vars.APIConfig.Knowledge.ID
 			kgIntent = vars.APIConfig.Knowledge.IntentGraph
 			kgRobotName = vars.APIConfig.Knowledge.RobotName
+			kgOpenAIPrompt = vars.APIConfig.Knowledge.OpenAIPrompt
+			kgSavePrompt = vars.APIConfig.Knowledge.SaveChat
 		}
 		fmt.Fprintf(w, "{ ")
 		fmt.Fprintf(w, "  \"kgEnabled\": %t,", kgEnabled)
@@ -233,7 +254,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"kgModel\": \"%s\",", kgModel)
 		fmt.Fprintf(w, "  \"kgApiID\": \"%s\",", kgAPIID)
 		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\",", kgIntent)
-		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\"", kgRobotName)
+		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\",", kgRobotName)
+		fmt.Fprintf(w, "  \"kgOpenAIPrompt\": \"%s\",", kgOpenAIPrompt)
+		fmt.Fprintf(w, "  \"kgSaveChat\": \"%t\"", kgSavePrompt)
 		fmt.Fprintf(w, "}")
 		return
 	case r.URL.Path == "/api/set_stt_info":
@@ -314,8 +337,16 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/api/get_logs":
 		fmt.Fprintf(w, logger.LogList)
 		return
+	case r.URL.Path == "/api/get_debug_logs":
+		fmt.Fprintf(w, logger.LogTrayList)
+		return
 	case r.URL.Path == "/api/is_running":
 		fmt.Fprintf(w, "true")
+		return
+	case r.URL.Path == "/api/delete_chats":
+		os.Remove(vars.SavedChatsPath)
+		vars.RememberedChats = []vars.RememberedChat{}
+		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api/generate_certs":
 		err := botsetup.CreateCertCombo()
@@ -336,8 +367,9 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		esn := split[2]
-		fileBytes, err := os.ReadFile(vars.SessionCertPath + esn)
+		fileBytes, err := os.ReadFile(path.Join(vars.SessionCertPath, esn))
 		if err != nil {
+			w.WriteHeader(404)
 			fmt.Fprint(w, "error: cert does not exist")
 			return
 		}

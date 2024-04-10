@@ -1,20 +1,18 @@
 package wirepod_whispercpp
 
 import (
-	"fmt"
+	"encoding/binary"
+	"math"
 	"os"
 	"path/filepath"
-	"strings"
-	"math"
-	"encoding/binary"
 	"runtime"
-	
-	"github.com/ggerganov/whisper.cpp/bindings/go"
+	"strings"
+
+	whisper "github.com/ggerganov/whisper.cpp/bindings/go"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 )
-
 
 var Name string = "whisper.cpp"
 
@@ -22,20 +20,27 @@ var context *whisper.Context
 var params whisper.Params
 
 func Init() error {
+	whispModel := os.Getenv("WHISPER_MODEL")
+	if whispModel == "" {
+		logger.Println("WHISPER_MODEL not defined, assuming tiny")
+		whispModel = "tiny"
+	} else {
+		whispModel = strings.TrimSpace(whispModel)
+	}
 	var sttLanguage string
 	if len(vars.APIConfig.STT.Language) == 0 {
 		sttLanguage = "en"
-	} else  {
+	} else {
 		sttLanguage = strings.Split(vars.APIConfig.STT.Language, "-")[0]
 	}
 
-	modelPath := filepath.Join(vars.WhisperModelPath, "ggml-tiny.bin")
+	modelPath := filepath.Join(vars.WhisperModelPath, "ggml-"+whispModel+".bin")
 	if _, err := os.Stat(modelPath); err != nil {
-		fmt.Println("Path does not exist: " + modelPath)
+		logger.Println("Model does not exist: " + modelPath)
 		return err
 	}
 	logger.Println("Opening Whisper model (" + modelPath + ")")
-	logger.Println(whisper.Whisper_print_system_info())
+	//logger.Println(whisper.Whisper_print_system_info())
 	context = whisper.Whisper_init(modelPath)
 	params = context.Whisper_full_default_params(whisper.SAMPLING_GREEDY)
 	params.SetTranslate(false)

@@ -39,7 +39,7 @@ function checkBLECapability() {
     m2.text = vectorEpodSetup
     m2.href = vectorEpodSetup
     m2.target = "_blank"
-    m3.innerHTML = "Note: if you have an OSKR/dev-unlocked robot, follow the instructions in the section below this one BEFORE using the web setup."
+    m3.innerHTML = "Note: if you have an OSKR/dev-unlocked robot, do NOT use this site. Follow the instructions in the section below this one."
     m1.class = "center"
     m2.class = "center"
     m3.class = "center"

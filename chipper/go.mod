@@ -21,6 +21,7 @@ require (
 	github.com/ncruces/zenity v0.10.10
 	github.com/orcaman/writerseeker v0.0.0-20200621085525-1d3f536ff85e
 	github.com/pkg/errors v0.9.1
+	github.com/sashabaranov/go-openai v1.20.4
 	github.com/soheilhy/cmux v0.1.5
 	github.com/soundhound/houndify-sdk-go v0.3.5
 	github.com/wlynxg/anet v0.0.1
@@ -30,42 +31,28 @@ require (
 )
 
 require (
-	github.com/PerformLine/go-stockutil v1.9.3 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/alphacep/vosk-api/go v0.3.46 // indirect
-	github.com/bregydoc/gtranslate v0.0.0-20200913051839-1bd07f6c1fc5 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect
-	github.com/fatih/structs v1.1.0 // indirect
-	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
-	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/grd/ogg v0.0.0-20130623210630-0dae53159b70 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.3.0 // indirect
-	github.com/hajimehoshi/go-mp3 v0.3.3 // indirect
-	github.com/hajimehoshi/oto/v2 v2.2.0 // indirect
-	github.com/hashicorp/errwrap v1.0.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hegedustibor/htgo-tts v0.0.0-20220821045517-04f3cda7a12f // indirect
-	github.com/jbenet/go-base58 v0.0.0-20150317085156-6237cf65f3a6 // indirect
-	github.com/jdkato/prose v1.2.1 // indirect
 	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
 	github.com/kercre123/vosk-api v1.0.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/miekg/dns v1.1.41 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
-	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/randall77/makefat v0.0.0-20210315173500-7ddd0e42c844 // indirect
-	github.com/robertkrimen/otto v0.0.0-20221127200954-e92282a6bb0d // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
@@ -83,9 +70,5 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/hraban/opus.v2 v2.0.0-20201025103112-d779bb1cc5a2 // indirect
-	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
-	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/apimachinery v0.23.4 // indirect
-	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 )

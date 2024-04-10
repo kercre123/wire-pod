@@ -4,7 +4,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
-	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 	ttr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/ttr"
 )
@@ -27,7 +26,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		if err != nil {
 			if err.Error() == "inference not understood" {
 				logger.Println("No intent was matched")
-				ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
+				ttr.IntentPass(req, "intent_system_unmatched", "voice processing error", map[string]string{"error": err.Error()}, true)
 				return nil, nil
 			}
 			logger.Println(err)
@@ -39,12 +38,19 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	}
 	if !successMatched {
 		if vars.APIConfig.Knowledge.IntentGraph {
-			resp := openaiRequest(transcribedText)
-			logger.LogUI("OpenAI response for device " + req.Device + ": " + resp)
-			sdkapp.KGSim(req.Device, resp)
+			logger.Println("Making LLM request for device " + req.Device + "...")
+			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText)
+			if err != nil {
+				logger.Println("LLM error: " + err.Error())
+				logger.LogUI("LLM error: " + err.Error())
+				ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
+				ttr.KGSim(req.Device, "There was an error getting a response from the L L M. Check the logs in the web interface.")
+			}
+			logger.Println("Bot " + speechReq.Device + " request served.")
+			return nil, nil
 		}
 		logger.Println("No intent was matched.")
-		ttr.IntentPass(req, "intent_system_noaudio", transcribedText, map[string]string{"": ""}, false)
+		ttr.IntentPass(req, "intent_system_unmatched", transcribedText, map[string]string{"": ""}, false)
 		return nil, nil
 	}
 	logger.Println("Bot " + speechReq.Device + " request served.")

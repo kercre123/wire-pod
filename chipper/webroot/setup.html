@@ -71,14 +71,30 @@
             </span>
             <span id="togetherInput" style="display:none">
               <small>To use Together, create an account at <a href="https://www.together.xyz">together.com</a>, create a free domain, and enter the Model Name and Together Key here.</small><br>
-              <label for="togetherModel">Together Model Name: e.g. togethercomputer/llama-2-7b-chat</label>
+              <label for="togetherModel">Together Model Name: (leave blank for default: meta-llama/Llama-2-70b-chat-hf)</label>
               <input type="text" name="togetherModel" id="togetherModel"><br>
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey"><br>
+              <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br>
+              <small><label for="togetherAIPrompt">(default: "You are a helpful robot called Vector. The prompt may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative.")</label></small>
+              <input type="text" name="togetherAIPrompt" id="togetherAIPrompt"><br>
+              <small>Would you like to enable the intent graph feature? This forwards the request to Together if the regular intent processor didn't understand what you said.</small><br>
+              <label for="togetherintentyes">Yes</label>
+              <input type="radio" id="togetherintentyes" name="togetherintentgselect" value="yes" onclick="checkKG()"><br>
+              <label for="intentno">No</label>
+              <input type="radio" id="togetherintentno" name="togetherintentgselect" value="no" onclick="checkKG()">
+              <span id="togetherAIRobotNameInput" style="display:none">
+                <br>
+                <label for="togetherAIRobotName">Robot name:</label>
+                <input type="text" name="togetherAIRobotName" id="togetherAIRobotName" placeholder="Anki Vector">
+              </span>
             </span>
             <span id="openAIInput" style="display:none">
-              <label for="openAIKey">Knowledge Graph API Key:</label>
+              <label for="openAIKey">OpenAI Key:</label>
               <input type="text" name="openAIKey" id="openAIKey"><br>
+              <label for="openAIPrompt">GPT Prompt (leave blank for default):</label><br>
+              <small><label for="openAIPrompt">(default: "You are a helpful robot called Vector. The prompt may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative.")</label></small>
+              <input type="text" name="openAIPrompt" id="openAIPrompt"><br>
               <small>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</small><br>
               <label for="intentyes">Yes</label>
               <input type="radio" id="intentyes" name="intentgselect" value="yes" onclick="checkKG()"><br>
@@ -91,6 +107,16 @@
               </span>
             </span>
           </form>
+          <span id="saveChatInput" style="display:none">
+            <small>Would you like chats to be saved and used in the context of future responses?</small><br>
+            <label for="saveChatYes">Yes</label>
+            <input type="radio" id="saveChatYes" name="saveChatselect" value="yes"><br>
+            <label for="saveChatNo">No</label>
+            <input type="radio" id="saveChatNo" name="saveChatselect" value="no">
+            <div class="center">
+              <button onclick="deleteSavedChats()">Delete Saved Chats</button>
+            </div>
+          </span>
 	  <div class="center">
             <button onclick="sendKGAPIKey()">Save</button>
           </div>
@@ -115,7 +141,9 @@
               <option value="de-DE">German</option>
               <option value="pt-BR">Portuguese</option>
               <option value="pl-PL">Polish</option>
-              <option value="pl-PL">Chinese</option>              
+              <option value="tr-TR">Turkish</option>
+              <option value="pl-PL">Chinese</option>
+              <option value="ru-RU">Russian</option>
             </select><br>
           </form>
 	  <div class="center">
@@ -155,7 +183,9 @@
             <option value="de-DE">German (DE)</option>
             <option value="pt-BR">Portuguese (BR)</option>
             <option value="pl-PL">Polish (PL)</option>
-            <option value="zh-CN">Chinese (CN)</option>            
+            <option value="tr-TR">Turkish (TR)</option>
+            <option value="zh-CN">Chinese (CN)</option>
+            <option value="ru-RU">Russian (RU)</option>
           </select>
           </div>
           <div class="center">

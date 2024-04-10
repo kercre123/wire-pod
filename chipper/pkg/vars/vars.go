@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/sashabaranov/go-openai"
 )
 
 // initialize variables so they don't have to be found during runtime
@@ -20,6 +21,8 @@ var VarsInited bool
 
 // if compiled into an installation package. wire-pod will use os.UserConfigDir()
 var Packaged bool
+
+var IsPackagedLinux bool
 
 var AndroidPath string
 
@@ -34,6 +37,7 @@ var (
 	VoskModelPath     string = "../vosk/models/"
 	WhisperModelPath  string = "../whisper.cpp/models/"
 	SessionCertPath   string = "./session-certs/"
+	SavedChatsPath    string = "./openaiChats.json"
 )
 
 var (
@@ -65,6 +69,13 @@ var ChipperKey []byte
 var ChipperKeysLoaded bool
 
 var RecurringInfo []RecurringInfoStore
+
+type RememberedChat struct {
+	ESN   string                         `json:"esn"`
+	Chats []openai.ChatCompletionMessage `json:"chats"`
+}
+
+var RememberedChats []RememberedChat
 
 type RobotInfoStore struct {
 	GlobalGUID string `json:"global_guid"`
@@ -156,6 +167,7 @@ func Init() {
 		ServerConfigPath = join(podDir, "./certs/server_config.json")
 		Certs = join(podDir, "./certs")
 		SessionCertPath = join(podDir, SessionCertPath)
+		SavedChatsPath = join(podDir, SavedChatsPath)
 		os.Mkdir(JdocsDir, 0777)
 		os.Mkdir(SessionCertPath, 0777)
 		os.Mkdir(Certs, 0777)
@@ -203,6 +215,9 @@ func Init() {
 
 	// load api config (config.go)
 	ReadConfig()
+
+	// load openai chats
+	LoadChats()
 
 	// check models folder, add all models to DownloadedVoskModels
 	if APIConfig.STT.Service == "vosk" {
@@ -388,4 +403,17 @@ func AddToRInfo(esn string, id string, ip string) {
 	rinfo.ID = id
 	rinfo.IP = ip
 	RecurringInfo = append(RecurringInfo, rinfo)
+}
+
+func SaveChats() {
+	marshalled, _ := json.Marshal(RememberedChats)
+	os.WriteFile(SavedChatsPath, marshalled, 0777)
+}
+
+func LoadChats() {
+	file, err := os.ReadFile(SavedChatsPath)
+	if err != nil {
+		return
+	}
+	json.Unmarshal(file, &RememberedChats)
 }

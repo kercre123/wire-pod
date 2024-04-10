@@ -192,9 +192,9 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 	secondaryGUID := ""
 	secondaryHash := ""
 
-	// figure out current time and the time in one day
+	// figure out current time and the time in one month
 	currentTime := time.Now().Format(TimeFormat)
-	expiresAt := time.Now().Add(ExpirationTime).Format(TimeFormat)
+	expiresAt := time.Now().AddDate(0, 1, 0).Format(TimeFormat)
 	logger.Println("Current time: " + currentTime)
 	logger.Println("Token expires: " + expiresAt)
 

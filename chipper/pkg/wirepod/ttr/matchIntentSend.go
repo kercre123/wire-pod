@@ -11,7 +11,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
-	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 )
 
 type systemIntentResponseStruct struct {
@@ -35,7 +34,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 
 	// intercept if not intent graph but intent graph is enabled
-	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && intentThing == "intent_system_noaudio" {
+	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && intentThing == "intent_system_unmatched" {
 		intentThing = "intent_greeting_hello"
 	}
 
@@ -214,7 +213,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 					}
 					igr.Stream.Send(response)
 				} else if pluginResponse != "" {
-					sdkapp.KGSim(botSerial, pluginResponse)
+					KGSim(botSerial, pluginResponse)
 				} else {
 					IntentPass(req, intent, voiceText, make(map[string]string), false)
 				}
