@@ -12,9 +12,11 @@ services:
     volumes:
       - wire-pod-data:/chipper/
       - wire-pod-model:/vosk/
-      - wire-pob-model:/images/
+      - wire-pob-images:/images/
 volumes:
   wire-pod-data:
     driver: local
   wire-pod-model:
+    driver: local
+  wire-pod-images:
     driver: local
