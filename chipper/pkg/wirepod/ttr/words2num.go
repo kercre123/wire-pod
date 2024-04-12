@@ -9,31 +9,6 @@ import (
 
 // This file contains words2num. It is given the spoken text and returns a string which contains the true number.
 
-var number int = 0
-
-func basicspeechText2num(speechText string) int {
-	if strings.Contains(speechText, "one") && !strings.Contains(speechText, "one hundred") {
-		return 1
-	} else if strings.Contains(speechText, "two") && !strings.Contains(speechText, "two hundred") {
-		return 2
-	} else if strings.Contains(speechText, "three") && !strings.Contains(speechText, "three hundred") {
-		return 3
-	} else if strings.Contains(speechText, "four") && !strings.Contains(speechText, "four hundred") {
-		return 4
-	} else if strings.Contains(speechText, "five") && !strings.Contains(speechText, "five hundred") {
-		return 5
-	} else if strings.Contains(speechText, "six ") && !strings.Contains(speechText, "six hundred") {
-		return 6
-	} else if strings.Contains(speechText, "seven ") && !strings.Contains(speechText, "seven hundred") {
-		return 7
-	} else if strings.Contains(speechText, "eight ") && !strings.Contains(speechText, "eight hundred") {
-		return 8
-	} else if strings.Contains(speechText, "nine ") && !strings.Contains(speechText, "nine hundred") {
-		return 9
-	}
-	return 0
-}
-
 func whisperSpeechtoNum(input string) string {
 	// whisper returns actual numbers in its response
 	// ex. "set a timer for 10 minutes and 11 seconds"
@@ -61,60 +36,60 @@ func whisperSpeechtoNum(input string) string {
 	return strconv.Itoa(totalSeconds)
 }
 
-func words2num(speechText string) string {
+var textToNumber = map[string]int{
+	"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+	"six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+	"eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
+	"sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20,
+	"thirty": 30, "forty": 40, "fifty": 50, "sixty": 60,
+}
+
+func words2num(input string) string {
 	if os.Getenv("STT_SERVICE") == "whisper.cpp" {
-		return whisperSpeechtoNum(speechText)
+		return whisperSpeechtoNum(input)
 	}
-	number = basicspeechText2num(speechText)
-	if number == 0 {
-		number = 1
+	totalSeconds := 0
+
+	input = strings.ToLower(input)
+	if strings.Contains(input, "one hour") || strings.Contains(input, "an hour") {
+		return "3600"
 	}
-	if strings.Contains(speechText, "teen") {
-		number = 10
-		if strings.Contains(speechText, "thir") {
-			number = 14
-		} else if strings.Contains(speechText, "four") {
-			number = 14
-		} else if strings.Contains(speechText, "fif") {
-			number = 15
-		} else if strings.Contains(speechText, "six") {
-			number = 16
-		} else if strings.Contains(speechText, "seven") {
-			number = 17
-		} else if strings.Contains(speechText, "eight") {
-			number = 18
-		} else if strings.Contains(speechText, "nine") {
-			number = 19
+
+	timePattern := regexp.MustCompile(`(\d+|\w+(?:-\w+)?)\s*(minute|second|hour)s?`)
+
+	matches := timePattern.FindAllStringSubmatch(input, -1)
+	for _, match := range matches {
+		unit := match[2]
+		number := match[1]
+
+		value, err := strconv.Atoi(number)
+		if err != nil {
+			value = mapTextToNumber(number)
 		}
-	} else if strings.Contains(speechText, "ten") {
-		number = 10
-	} else if strings.Contains(speechText, "eleven") {
-		number = 11
-	} else if strings.Contains(speechText, "twelve") {
-		number = 12
+
+		switch unit {
+		case "minute":
+			totalSeconds += value * 60
+		case "second":
+			totalSeconds += value
+		case "hour":
+			totalSeconds += value * 3600
+		}
 	}
-	if strings.Contains(speechText, "twenty") {
-		number = 20 + basicspeechText2num(speechText)
-	} else if strings.Contains(speechText, "thirty") {
-		number = 30 + basicspeechText2num(speechText)
-	} else if strings.Contains(speechText, "forty") {
-		number = 40 + basicspeechText2num(speechText)
-	} else if strings.Contains(speechText, "fifty") {
-		number = 50 + basicspeechText2num(speechText)
-	} else if strings.Contains(speechText, "sixty") {
-		number = 60 + basicspeechText2num(speechText)
-	} else if strings.Contains(speechText, "seventy") {
-		number = 70 + basicspeechText2num(speechText)
-	} else if strings.Contains(speechText, "eighty") {
-		number = 80 + basicspeechText2num(speechText)
-	} else if strings.Contains(speechText, "ninety") {
-		number = 90 + basicspeechText2num(speechText)
+
+	return strconv.Itoa(totalSeconds)
+}
+
+func mapTextToNumber(text string) int {
+	if val, ok := textToNumber[text]; ok {
+		return val
 	}
-	if strings.Contains(speechText, "hundred") {
-		number = number + 100
+	parts := strings.Split(text, "-")
+	sum := 0
+	for _, part := range parts {
+		if val, ok := textToNumber[part]; ok {
+			sum += val
+		}
 	}
-	if strings.Contains(speechText, "minute") {
-		number = number * 60
-	}
-	return strconv.Itoa(number)
+	return sum
 }
