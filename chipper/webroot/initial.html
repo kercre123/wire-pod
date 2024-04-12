@@ -106,7 +106,7 @@
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey"><br>
               <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br>
-              <small><label for="togetherAIPrompt">(default: "You are a helpful robot called Vector. The prompt may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative.")</label></small>
+              <small><label for="togetherAIPrompt">(default: "You are a helpful, animated robot called " + robName + ". Keep the response concise yet informative.")</label></small>
               <input type="text" name="togetherAIPrompt" id="togetherAIPrompt"><br>
               <small>Would you like to enable the intent graph feature? This forwards the request to Together if the regular intent processor didn't understand what you said.</small><br>
               <label for="togetherintentyes">Yes</label>
@@ -124,7 +124,7 @@
               <label for="openAIKey">OpenAI Key:</label>
               <input type="text" name="openAIKey" id="openAIKey"><br>
               <label for="openAIKey">GPT Prompt (leave blank for default):</label><br>
-              <small><label for="openAIKey">(default: "You are a helpful robot called Vector. The prompt may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative.")</label></small>
+              <small><label for="openAIKey">(default: "You are a helpful, animated robot called " + robName + ". Keep the response concise yet informative.")</label></small>
               <input type="text" name="openAIPrompt" id="openAIPrompt"><br>
               <small>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</small><br>
               <label for="intentyes">Yes</label>

@@ -92,7 +92,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	} else {
 		robName = "Vector"
 	}
-	defaultPrompt := "You are a helpful robot called " + robName + ". The prompt may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative."
+	defaultPrompt := "You are a helpful, animated robot called " + robName + ". Keep the response concise yet informative."
 
 	var nChat []openai.ChatCompletionMessage
 
@@ -104,6 +104,10 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	} else {
 		smsg.Content = defaultPrompt
 	}
+
+	smsg.Content = CreatePrompt(smsg.Content)
+
+	logger.Println("Full prompt: " + smsg.Content)
 
 	nChat = append(nChat, smsg)
 	if vars.APIConfig.Knowledge.SaveChat {
@@ -122,7 +126,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		Stream:    true,
 	}
 	if vars.APIConfig.Knowledge.Provider == "openai" {
-		aireq.Model = openai.GPT4Turbo1106
+		aireq.Model = "gpt-4-turbo"
 		logger.Println("Using " + aireq.Model)
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
@@ -239,19 +243,19 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			ctx,
 		)
 		if err != nil {
-			log.Println(err)
+			logger.Println(err)
 			return
 		}
 
 		if err := r.Send(controlRequest); err != nil {
-			log.Println(err)
+			logger.Println(err)
 			return
 		}
 
 		for {
 			ctrlresp, err := r.Recv()
 			if err != nil {
-				log.Println(err)
+				logger.Println(err)
 				return
 			}
 			if ctrlresp.GetControlGrantedResponse() != nil {
@@ -282,8 +286,8 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		// * end - modified from official vector-go-sdk
 	}()
 
-	var stopTTSLoop bool
-	TTSLoopStopped := make(chan bool)
+	//var stopTTSLoop bool
+	//TTSLoopStopped := make(chan bool)
 	for range start {
 		time.Sleep(time.Millisecond * 300)
 		robot.Conn.PlayAnimation(
@@ -295,29 +299,29 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 				Loops: 1,
 			},
 		)
-		go func() {
-			for {
-				if stopTTSLoop {
-					TTSLoopStopped <- true
-					break
-				}
-				robot.Conn.PlayAnimation(
-					ctx,
-					&vectorpb.PlayAnimationRequest{
-						Animation: &vectorpb.Animation{
-							Name: "anim_tts_loop_02",
-						},
-						Loops: 1,
-					},
-				)
-			}
-		}()
+		// go func() {
+		// 	for {
+		// 		if stopTTSLoop {
+		// 			TTSLoopStopped <- true
+		// 			break
+		// 		}
+		// 		robot.Conn.PlayAnimation(
+		// 			ctx,
+		// 			&vectorpb.PlayAnimationRequest{
+		// 				Animation: &vectorpb.Animation{
+		// 					Name: "anim_tts_loop_02",
+		// 				},
+		// 				Loops: 1,
+		// 			},
+		// 		)
+		// 	}
+		// }()
 		numInResp := 0
 		for {
 			respSlice := fullRespSlice
 			if len(respSlice)-1 < numInResp {
 				if !isDone {
-					fmt.Println("waiting...")
+					logger.Println("Waiting for more content from LLM...")
 					for range speakReady {
 						respSlice = fullRespSlice
 						break
@@ -327,36 +331,25 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 				}
 			}
 			logger.Println(respSlice[numInResp])
-			_, err := robot.Conn.SayText(
-				ctx,
-				&vectorpb.SayTextRequest{
-					Text:           respSlice[numInResp],
-					UseVectorVoice: true,
-					DurationScalar: 1.0,
-				},
-			)
-			if err != nil {
-				logger.Println("KG SayText error: " + err.Error())
-				stop <- true
-				break
-			}
+			acts := GetActionsFromString(respSlice[numInResp])
+			PerformActions(acts, robot)
 			numInResp = numInResp + 1
 		}
-		stopTTSLoop = true
-		for range TTSLoopStopped {
-			time.Sleep(time.Millisecond * 100)
-			robot.Conn.PlayAnimation(
-				ctx,
-				&vectorpb.PlayAnimationRequest{
-					Animation: &vectorpb.Animation{
-						Name: "anim_knowledgegraph_success_01",
-					},
-					Loops: 1,
+		//stopTTSLoop = true
+		// for range TTSLoopStopped {
+		time.Sleep(time.Millisecond * 100)
+		robot.Conn.PlayAnimation(
+			ctx,
+			&vectorpb.PlayAnimationRequest{
+				Animation: &vectorpb.Animation{
+					Name: "anim_knowledgegraph_success_01",
 				},
-			)
-			//time.Sleep(time.Millisecond * 3300)
-			stop <- true
-		}
+				Loops: 1,
+			},
+		)
+		//time.Sleep(time.Millisecond * 3300)
+		stop <- true
+		//}
 	}
 	return "", nil
 }
