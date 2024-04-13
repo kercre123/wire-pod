@@ -7,6 +7,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
 const (
@@ -109,11 +110,13 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 }
 
 func CreatePrompt(origPrompt string) string {
-	prompt := origPrompt + "\n\n" + "IMPORTANT INSTRUCTIONS YOU MUST FOLLOW: The user input might not be spelt/puntuated correctly as it is coming from speech-to-text software. Do not include special characters in your answer. This includes the following characters (not including the quotes): '& ^ * # @ -'. If you want to use a hyphen, Use it like this: 'something something -- something -- something something'. DO NOT USE EMOJIS! Use the playAnimaion or playAnimationWI commands if you want to express emotion! IF YOU DO NOT ABIDE BY THESE RULES, I WILL CANCEL YOUR RESPONSE AND WILL MAKE YOU START OVER. Also, don't start your answer with 'Well, well, well', it's getting old.  You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response. When you are told NOT to do something, you don't do it (it's so simple)."
-	prompt = prompt + "\n\n" + "ALSO IMPORTANT: You are running ON an Anki Vector robot. You have a set of commands. YOU ARE TO USE THESE. DO NOT BE AFRAID TO LITTER YOUR RESPONSE WITH THEM. Your response MUST include THREE OF THESE COMMANDS OR MORE. You are going to litter your response with them. If you include just one, I will make you start over. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\"\n\nHere is every valid command:"
-	for _, cmd := range ValidLLMCommands {
-		promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
-		prompt = prompt + promptAppendage
+	prompt := origPrompt + "\n\n" + "The user input might not be spelt/puntuated correctly as it is coming from speech-to-text software. Do not include special characters in your answer. This includes the following characters (not including the quotes): '& ^ * # @ -'. If you want to use a hyphen, Use it like this: 'something something -- something -- something something'."
+	if vars.APIConfig.Knowledge.CommandsEnable {
+		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. YOU ARE TO USE THESE. DO NOT BE AFRAID TO LITTER YOUR RESPONSE WITH THEM. Your response MUST include THREE OF THESE COMMANDS OR MORE. You are going to litter your response with them. If you include just one, I will make you start over. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\"\n\nDO NOT USE EMOJIS! Use the playAnimation or playAnimationWI commands if you want to express emotion! IF YOU DO NOT ABIDE BY THESE RULES, I WILL CANCEL YOUR RESPONSE AND WILL MAKE YOU START OVER. You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
+		for _, cmd := range ValidLLMCommands {
+			promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
+			prompt = prompt + promptAppendage
+		}
 	}
 	return prompt
 }

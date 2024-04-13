@@ -568,9 +568,7 @@ function checkKG() {
         document.getElementById("togetherInput").style.display = "none";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("saveChatInput").style.display = "none";
-        document.getElementById("openAIRobotNameInput").style.display = "none";
     } else if (document.getElementById("kgProvider").value=="houndify") {
-        document.getElementById("openAIRobotNameInput").style.display = "none";  
         document.getElementById("togetherInput").style.display = "none";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "block";
@@ -581,22 +579,11 @@ function checkKG() {
         document.getElementById("houndifyInput").style.display = "none";
         document.getElementById("saveChatInput").style.display = "block";
 
-        if (document.getElementById("intentyes").checked == true) {
-            document.getElementById("openAIRobotNameInput").style.display = "block";
-        } else {
-            document.getElementById("openAIRobotNameInput").style.display = "none";
-        }
     } else if (document.getElementById("kgProvider").value=="together") {
-        document.getElementById("openAIRobotNameInput").style.display = "none";
         document.getElementById("togetherInput").style.display = "block";
         document.getElementById("openAIInput").style.display = "none";
         document.getElementById("houndifyInput").style.display = "none";
         document.getElementById("saveChatInput").style.display = "block";
-        if (document.getElementById("togetherintentyes").checked == true) {
-          document.getElementById("togetherAIRobotNameInput").style.display = "block";
-        } else {
-          document.getElementById("togetherAIRobotNameInput").style.display = "none";
-        }
     }
 }
 
@@ -609,13 +596,18 @@ function sendKGAPIKey() {
     var robotName = ""
     var model = ""
     var saveChat = ""
+    var doCommands = ""
 
     if (provider == "openai") {
         key = document.getElementById("openAIKey").value
         openAIPrompt = document.getElementById("openAIPrompt").value
+        if (document.getElementById("commandYes").checked == true) {
+          doCommands = "true"
+        } else {
+          doCommands = "false"
+        }
         if (document.getElementById("intentyes").checked == true) {
             intentgraph = "true"
-            robotName = document.getElementById("openAIRobotName").value
         } else {
             intentgraph = "false"
         }
@@ -630,7 +622,6 @@ function sendKGAPIKey() {
         openAIPrompt = document.getElementById("togetherAIPrompt").value
         if (document.getElementById("togetherintentyes").checked == true) {
             intentgraph = "true"
-            robotName = document.getElementById("togetherAIRobotName").value
         } else {
             intentgraph = "false"
         }
@@ -651,7 +642,7 @@ function sendKGAPIKey() {
         intentgraph = "false"
     }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt + "&save_chat=" + saveChat
+    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt + "&save_chat=" + saveChat + "&commands_enable=" + doCommands
     var result = document.getElementById('addKGProviderAPIStatus');
     const resultP = document.createElement('p');
     resultP.textContent =  "Saving...";
@@ -663,6 +654,7 @@ function sendKGAPIKey() {
             resultP.innerHTML = response
             result.innerHTML = '';
             result.appendChild(resultP);
+            alert(response);
         })
 }
 
@@ -686,9 +678,13 @@ function updateKGAPI() {
             if (obj.kgProvider == "openai") {
                 document.getElementById("openAIKey").value = obj.kgApiKey;
                 document.getElementById("openAIPrompt").value = obj.kgOpenAIPrompt;
+                if (obj.kgCommandsEnable == "true") {
+                    document.getElementById("commandYes").checked = true;
+                } else {
+                    document.getElementById("commandNo").checked = true;
+                }
                 if (obj.kgIntentGraph == "true") {
                     document.getElementById("intentyes").checked = true;
-                    document.getElementById("openAIRobotName").value = obj.kgRobotName;
                 } else {
                     document.getElementById("intentno").checked = true;
                 }
@@ -704,7 +700,6 @@ function updateKGAPI() {
               if (obj.kgIntentGraph == "true") {
                   document.getElementById("intentyes").checked = true;
                   document.getElementById("togetherintentyes").checked = true;
-                  document.getElementById("togetherAIRobotName").value = obj.kgRobotName;
               } else {
                   document.getElementById("intentno").checked = true;
                   document.getElementById("togetherintentyes").checked = true;

@@ -198,7 +198,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if kgModel == "" && kgProvider == "together" {
 			logger.Println("Together model wasn't provided, using default meta-llama/Llama-2-70b-chat-hf")
-			kgModel = "meta-llama/Llama-2-70b-chat-hf"
+			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-2-70b-chat-hf"
 		}
 		if kgProvider == "openai" || kgProvider == "together" {
 			if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
@@ -210,6 +210,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				vars.APIConfig.Knowledge.SaveChat = true
 			} else {
 				vars.APIConfig.Knowledge.SaveChat = false
+			}
+			if r.FormValue("commands_enable") == "true" {
+				vars.APIConfig.Knowledge.CommandsEnable = true
+			} else {
+				vars.APIConfig.Knowledge.CommandsEnable = false
 			}
 		}
 		if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "true" {
@@ -236,6 +241,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgRobotName := ""
 		kgOpenAIPrompt := ""
 		kgSavePrompt := false
+		kgCommandsEnable := false
 		if vars.APIConfig.Knowledge.Enable {
 			kgEnabled = true
 			kgProvider = vars.APIConfig.Knowledge.Provider
@@ -246,6 +252,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			kgRobotName = vars.APIConfig.Knowledge.RobotName
 			kgOpenAIPrompt = vars.APIConfig.Knowledge.OpenAIPrompt
 			kgSavePrompt = vars.APIConfig.Knowledge.SaveChat
+			kgCommandsEnable = vars.APIConfig.Knowledge.CommandsEnable
 		}
 		fmt.Fprintf(w, "{ ")
 		fmt.Fprintf(w, "  \"kgEnabled\": %t,", kgEnabled)
@@ -256,7 +263,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\",", kgIntent)
 		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\",", kgRobotName)
 		fmt.Fprintf(w, "  \"kgOpenAIPrompt\": \"%s\",", kgOpenAIPrompt)
-		fmt.Fprintf(w, "  \"kgSaveChat\": \"%t\"", kgSavePrompt)
+		fmt.Fprintf(w, "  \"kgSaveChat\": \"%t\",", kgSavePrompt)
+		fmt.Fprintf(w, "  \"kgCommandsEnable\": \"%t\"", kgCommandsEnable)
 		fmt.Fprintf(w, "}")
 		return
 	case r.URL.Path == "/api/set_stt_info":

@@ -86,13 +86,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	ctx := context.Background()
 	speakReady := make(chan string)
 
-	var robName string
-	if vars.APIConfig.Knowledge.RobotName != "" {
-		robName = vars.APIConfig.Knowledge.RobotName
-	} else {
-		robName = "Vector"
-	}
-	defaultPrompt := "You are a helpful, animated robot called " + robName + ". Keep the response concise yet informative."
+	defaultPrompt := "You are a helpful, animated robot called Vector. Keep the response concise yet informative."
 
 	var nChat []openai.ChatCompletionMessage
 
@@ -106,8 +100,6 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	}
 
 	smsg.Content = CreatePrompt(smsg.Content)
-
-	logger.Println("Full prompt: " + smsg.Content)
 
 	nChat = append(nChat, smsg)
 	if vars.APIConfig.Knowledge.SaveChat {
@@ -286,8 +278,8 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		// * end - modified from official vector-go-sdk
 	}()
 
-	//var stopTTSLoop bool
-	//TTSLoopStopped := make(chan bool)
+	var stopTTSLoop bool
+	TTSLoopStopped := make(chan bool)
 	for range start {
 		time.Sleep(time.Millisecond * 300)
 		robot.Conn.PlayAnimation(
@@ -299,23 +291,25 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 				Loops: 1,
 			},
 		)
-		// go func() {
-		// 	for {
-		// 		if stopTTSLoop {
-		// 			TTSLoopStopped <- true
-		// 			break
-		// 		}
-		// 		robot.Conn.PlayAnimation(
-		// 			ctx,
-		// 			&vectorpb.PlayAnimationRequest{
-		// 				Animation: &vectorpb.Animation{
-		// 					Name: "anim_tts_loop_02",
-		// 				},
-		// 				Loops: 1,
-		// 			},
-		// 		)
-		// 	}
-		// }()
+		if !vars.APIConfig.Knowledge.CommandsEnable {
+			go func() {
+				for {
+					if stopTTSLoop {
+						TTSLoopStopped <- true
+						break
+					}
+					robot.Conn.PlayAnimation(
+						ctx,
+						&vectorpb.PlayAnimationRequest{
+							Animation: &vectorpb.Animation{
+								Name: "anim_tts_loop_02",
+							},
+							Loops: 1,
+						},
+					)
+				}
+			}()
+		}
 		numInResp := 0
 		for {
 			respSlice := fullRespSlice
@@ -335,8 +329,12 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			PerformActions(acts, robot)
 			numInResp = numInResp + 1
 		}
-		//stopTTSLoop = true
-		// for range TTSLoopStopped {
+		if !vars.APIConfig.Knowledge.CommandsEnable {
+			stopTTSLoop = true
+			for range TTSLoopStopped {
+				break
+			}
+		}
 		time.Sleep(time.Millisecond * 100)
 		robot.Conn.PlayAnimation(
 			ctx,
@@ -349,7 +347,6 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		)
 		//time.Sleep(time.Millisecond * 3300)
 		stop <- true
-		//}
 	}
 	return "", nil
 }

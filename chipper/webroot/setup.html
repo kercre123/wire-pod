@@ -40,7 +40,7 @@
             </span>
           </form>
 	  <div class="center">
-            <button onclick="sendWeatherAPIKey()">Save</button>
+            <button onclick="sendWeatherAPIKey()">Apply Weather Settings</button>
           </div>
         </p>
         <div id="addWeatherProviderAPIStatus"></div>
@@ -76,41 +76,37 @@
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey"><br>
               <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br>
-              <small><label for="togetherAIPrompt">(default: "You are a helpful, animated robot called " + robName + ". Keep the response concise yet informative.")</label></small>
+              <small><label for="togetherAIPrompt">(default: "You are a helpful, animated robot called Vector. Keep the response concise yet informative.")</label></small>
               <input type="text" name="togetherAIPrompt" id="togetherAIPrompt"><br>
-              <small>Would you like to enable the intent graph feature? This forwards the request to Together if the regular intent processor didn't understand what you said.</small><br>
+              <p>Would you like to enable the intent graph feature? This forwards the request to Together if the regular intent processor didn't understand what you said.</p>
               <label for="togetherintentyes">Yes</label>
-              <input type="radio" id="togetherintentyes" name="togetherintentgselect" value="yes" onclick="checkKG()"><br>
+              <input type="radio" id="togetherintentyes" name="togetherintentgselect" value="yes" onclick="checkKG()">
               <label for="intentno">No</label>
-              <input type="radio" id="togetherintentno" name="togetherintentgselect" value="no" onclick="checkKG()">
-              <span id="togetherAIRobotNameInput" style="display:none">
-                <br>
-                <label for="togetherAIRobotName">Robot name:</label>
-                <input type="text" name="togetherAIRobotName" id="togetherAIRobotName" placeholder="Anki Vector">
-              </span>
+              <input type="radio" id="togetherintentno" name="togetherintentgselect" value="no" onclick="checkKG()"><br><br>
             </span>
             <span id="openAIInput" style="display:none">
+              <br>
               <label for="openAIKey">OpenAI Key:</label>
               <input type="text" name="openAIKey" id="openAIKey"><br>
               <label for="openAIPrompt">GPT Prompt (leave blank for default):</label><br>
-              <small><label for="openAIPrompt">(default: "You are a helpful, animated robot called " + robName + ". Keep the response concise yet informative.")</label></small>
+              <small><label for="openAIPrompt">(default: "You are a helpful, animated robot called Vector. Keep the response concise yet informative.")</label></small>
               <input type="text" name="openAIPrompt" id="openAIPrompt"><br>
-              <small>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</small><br>
+              <p>Would you like to enable the intent graph feature? This forwards the request to OpenAI if the regular intent processor didn't understand what you said.</p>
               <label for="intentyes">Yes</label>
-              <input type="radio" id="intentyes" name="intentgselect" value="yes" onclick="checkKG()"><br>
+              <input type="radio" id="intentyes" name="intentgselect" value="yes" onclick="checkKG()">
               <label for="intentno">No</label>
-              <input type="radio" id="intentno" name="intentgselect" value="no" onclick="checkKG()">
-              <span id="openAIRobotNameInput" style="display:none">
-                <br>
-                <label for="openAIRobotName">Robot name:</label>
-                <input type="text" name="openAIRobotName" id="openAIRobotName" placeholder="Anki Vector">
-              </span>
+              <input type="radio" id="intentno" name="intentgselect" value="no" onclick="checkKG()"><br><br>
+              <p>Enable LLM commands (allows the LLM to play animations on the robot)? (BETA)</p>
+              <label for="commandYes">Yes</label>
+              <input type="radio" id="commandYes" name="commandDoselect" value="yes">
+              <label for="commandNo">No</label>
+              <input type="radio" id="commandNo" name="commandDoselect" value="no"><br><br>
             </span>
           </form>
           <span id="saveChatInput" style="display:none">
-            <small>Would you like chats to be saved and used in the context of future responses?</small><br>
+            <p>Would you like chats to be saved and used in the context of future responses?</p>
             <label for="saveChatYes">Yes</label>
-            <input type="radio" id="saveChatYes" name="saveChatselect" value="yes"><br>
+            <input type="radio" id="saveChatYes" name="saveChatselect" value="yes">
             <label for="saveChatNo">No</label>
             <input type="radio" id="saveChatNo" name="saveChatselect" value="no">
             <div class="center">
@@ -118,7 +114,7 @@
             </div>
           </span>
 	  <div class="center">
-            <button onclick="sendKGAPIKey()">Save</button>
+            <button onclick="sendKGAPIKey()">Apply Settings</button>
           </div>
         </p>
         <div id="addKGProviderAPIStatus"></div>
@@ -147,7 +143,7 @@
             </select><br>
           </form>
 	  <div class="center">
-            <button onclick="sendSTTLanguage()">Save</button>
+            <button onclick="sendSTTLanguage()">Apply Language</button>
           </div>
         </p>
         <div id="addSTTStatus"></div>
