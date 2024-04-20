@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,6 +16,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/sashabaranov/go-openai"
+	"github.com/wlynxg/anet"
 )
 
 // initialize variables so they don't have to be found during runtime
@@ -440,4 +442,31 @@ func GetRobot(esn string) (*vector.Vector, error) {
 		return nil, err
 	}
 	return robot, nil
+}
+
+func GetOutboundIP() net.IP {
+	if runtime.GOOS == "android" {
+		ifaces, _ := anet.Interfaces()
+		for _, iface := range ifaces {
+			if iface.Name == "wlan0" {
+				adrs, err := anet.InterfaceAddrsByInterface(&iface)
+				if err != nil {
+					logger.Println(err)
+					break
+				}
+				if len(adrs) > 0 {
+					localAddr := adrs[0].(*net.IPNet)
+					return localAddr.IP
+				}
+			}
+		}
+	}
+	conn, err := net.Dial("udp", OutboundIPTester)
+	if err != nil {
+		logger.Println("not connected to a network: ", err)
+		return net.IPv4(0, 0, 0, 0)
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP
 }
