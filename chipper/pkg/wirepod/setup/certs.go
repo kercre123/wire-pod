@@ -11,12 +11,10 @@ import (
 	"math/big"
 	"net"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
-	"github.com/wlynxg/anet"
 )
 
 type ClientServerConfig struct {
@@ -28,37 +26,10 @@ type ClientServerConfig struct {
 	Appkey   string `json:"appkey"`
 }
 
-func GetOutboundIP() net.IP {
-	if runtime.GOOS == "android" {
-		ifaces, _ := anet.Interfaces()
-		for _, iface := range ifaces {
-			if iface.Name == "wlan0" {
-				adrs, err := anet.InterfaceAddrsByInterface(&iface)
-				if err != nil {
-					logger.Println(err)
-					break
-				}
-				if len(adrs) > 0 {
-					localAddr := adrs[0].(*net.IPNet)
-					return localAddr.IP
-				}
-			}
-		}
-	}
-	conn, err := net.Dial("udp", vars.OutboundIPTester)
-	if err != nil {
-		logger.Println("not connected to a network: ", err)
-		return net.IPv4(0, 0, 0, 0)
-	}
-	defer conn.Close()
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-	return localAddr.IP
-}
-
 // creates and exports a priv/pub key combo generated with IP address
 func CreateCertCombo() error {
 	// get preferred IP address of machine
-	ipAddr := GetOutboundIP()
+	ipAddr := vars.GetOutboundIP()
 
 	// ca certificate
 	ca := &x509.Certificate{
@@ -138,7 +109,7 @@ func CreateServerConfig() {
 		config.Logfiles = "s3://anki-device-logs-prod/victor"
 		config.Appkey = "oDoa0quieSeir6goowai7f"
 	} else {
-		ip := GetOutboundIP()
+		ip := vars.GetOutboundIP()
 		ipString := ip.String()
 		url := ipString + ":" + vars.APIConfig.Server.Port
 		config.Jdocs = url

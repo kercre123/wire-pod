@@ -14,40 +14,34 @@ function showBotAuth() {
     document.getElementById("section-botauth").style.display = "block";
     updateColor("icon-BotAuth");
     checkBLECapability()
-
 }
 
 function checkBLECapability() {
-    // fetch("/api-ble/init")
-    //     .then(response => response.text())
-    //     .then((response) => {
-    //         if (response.includes("success")) {
-    //             BeginBLESetup()
-    //         } else if (response.includes("error")) {
-    //             statusP.innerHTML = "Error initializing bluetooth on the device running wire-pod. Use the following site on any machine with Bluetooth for setup:"
-    //             authEl.innerHTML = ""
-    //             authEl.appendChild(statusP)
-    //             authEl.appendChild(document.createElement("br"))
-    //             authEl.appendChild(externalSetup)
-    //         }
-    //     })
-    authEl.innerHTML = ""
-    m1 = document.createElement("p")
-    m2 = document.createElement("a")
-    m3 = document.createElement("small")
-    m1.innerHTML = "Head to the following site on any device with Bluetooth support to set up your Vector."
-    m2.text = vectorEpodSetup
-    m2.href = vectorEpodSetup
-    m2.target = "_blank"
-    m3.innerHTML = "Note: if you have an OSKR/dev-unlocked robot, do NOT use this site. Follow the instructions in the section below this one."
-    m1.class = "center"
-    m2.class = "center"
-    m3.class = "center"
-    authEl.appendChild(m1)
-    //authEl.appendChild(document.createElement("br"))
-    authEl.appendChild(m2)
-    authEl.appendChild(document.createElement("br"))
-    authEl.appendChild(m3)
+    fetch("/api-ble/init")
+        .then(response => response.text())
+        .then((response) => {
+            if (response.includes("success")) {
+                BeginBLESetup()
+            } else if (response.includes("error")) {
+                authEl.innerHTML = ""
+                m1 = document.createElement("p")
+                m2 = document.createElement("a")
+                m3 = document.createElement("small")
+                m1.innerHTML = "Head to the following site on any device with Bluetooth support to set up your Vector."
+                m2.text = vectorEpodSetup
+                m2.href = vectorEpodSetup
+                m2.target = "_blank"
+                m3.innerHTML = "Note: if you have an OSKR/dev-unlocked robot, do NOT use this site. Follow the instructions in the section below this one."
+                m1.class = "center"
+                m2.class = "center"
+                m3.class = "center"
+                authEl.appendChild(m1)
+                //authEl.appendChild(document.createElement("br"))
+                authEl.appendChild(m2)
+                authEl.appendChild(document.createElement("br"))
+                authEl.appendChild(m3)
+            }
+        })
 }
 
 function BeginBLESetup() {
@@ -254,7 +248,7 @@ function WifiCheck() {
     .then((response) => {
         console.log(response)
         if (response == "1") {
-            DoAuth()
+            WhatToDo()
         } else {
             ScanWifi()
         }
@@ -273,6 +267,7 @@ function ScanWifi() {
         xhr.onreadystatechange = function() {
           if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
             authEl.innerHTML = ""
+            updateAuthel("Select a Wi-Fi network to connect Vector to.")
             // create scan again button
             var scanAgain = document.createElement("button")
             scanAgain.innerHTML = "Scan Again"
@@ -339,11 +334,7 @@ function ConnectWifi(ssid, authtype) {
             alert("Error connecting, likely incorrect password")
             CreateWiFiPassEntry(ssid, authtype)
         } else {
-            authEl.innerHTML = ""
-            button = document.createElement("button")
-            button.innerHTML = "Click to authenticate"
-            button.onclick = function(){DoAuth()}
-            authEl.appendChild(button)
+            WhatToDo()
         }
     })
 }
@@ -357,24 +348,100 @@ function CheckFirmware() {
     })
 }
 
-function DoAuth() {
+function WhatToDo() {
+    fetch("/api-ble/get_robot_status")
+    .then(response => response.text())
+    .then ((response) => {
+        if (response == "in_recovery_prod") {
+            DoOTA("http://wpsetup.keriganc.com:81/vicos-2.0.1.6076ep.ota")
+        } else if (response == "in_recovery_dev") {
+            DoOTA("http://wpsetup.keriganc.com:81/1.6.0.3331.ota")
+        } else if (response == "in_firmware_nonep") {
+            authEl.innerHTML = ""
+            m1 = document.createElement("p")
+            m1.innerHTML = "1. Place Vector on the charger."
+            m2 = document.createElement("p")
+            m2.innerHTML = "2. Hold the button for 15 seconds. He will turn off - keep holding it until he turns back on."
+            m3 = document.createElement("p")
+            m3.innerHTML = "3. Click 'Begin Scanning' and pair with your Vector."
+            button = document.createElement("button")
+            button.innerHTML = "Begin Scanning"
+            button.onclick = function(){ScanRobots(false)}
+            authEl.appendChild(m1)
+            authEl.appendChild(m2)
+            authEl.appendChild(m3)
+            authEl.appendChild(button)
+            alert("Your bot is not on the correct firmware for wire-pod. Follow the directions to put him in recovery mode.")
+        } else if (response == "in_firmware_dev") {
+            authEl.innerHTML = ""
+            button = document.createElement("button")
+            button.innerHTML = "Click to complete authentication"
+            button.onclick = function(){DoAuth()}
+            authEl.appendChild(button)
+        } else if (response == "in_firmware_ep") {
+            authEl.innerHTML = ""
+            button = document.createElement("button")
+            button.innerHTML = "Click to complete authentication"
+            button.onclick = function(){DoAuth()}
+            authEl.appendChild(button)
+        }
+    })
+}
+
+function DoOTA(url) {
+    updateAuthel("Starting OTA update...")
+    fetch("/api-ble/do_ota?url=" + url)
+    .then(response => response.text())
+    .then((response) => {
+        if (response.includes("success")) {
+            inte = setInterval(function(){
+                fetch("/api-ble/get_ota_status")
+                .then(otaresp => otaresp.text())
+                .then ((otaresp) => {
+                    updateAuthel(otaresp)
+                    if (otaresp.includes("complete")) {
+                        checkBLECapability()
+                        alert("The OTA update is complete. When the bot reboots, follow the steps to re-pair the bot with wire-pod. wire-pod will then authenticate the robot and setup will be complete.")
+                        clearInterval(inte)
+                    }
+                })
+            }, 2000)
+        } else {
+            WhatToDo()
+        }
+    })
+}
+
+function updateAuthel(update) {
     authEl.innerHTML = ""
     authP = document.createElement("p")
-    authP.innerHTML = "Authenticating your Vector..."
+    authP.innerHTML = update
     authEl.appendChild(authP)
+}
+
+function DoAuth() {
+    updateAuthel("Authenticating your Vector...")
     fetch("/api-ble/do_auth")
     .then(response => response.text())
     .then((response) => {
         console.log(response)
-        authEl.innerHTML = ""
-        authP.innerHTML = "Authentication complete!"
-        authEl.appendChild(authP)
-        fetch("/api-ble/disconnect")
-        disconnectButtonDiv = document.getElementById("disconnectButton")
-        disconnectButtonDiv.innerHTML = ""
-        disconnectButton = document.createElement("button")
-        disconnectButton.onclick = function(){checkBLECapability()}
-        disconnectButton.innerHTML = "Back to setup"
-        disconnectButtonDiv.appendChild(disconnectButton)
+        if (response.includes("error")) {
+            updateAuthel("Authentication failure. Try again in ~20 seconds. If it happens again, check the troubleshooting guide:")
+            m2 = document.createElement("a")
+            m2.text = "https://github.com/kercre123/wire-pod/wiki/Troubleshooting"
+            m2.href = "https://github.com/kercre123/wire-pod/wiki/Troubleshooting#error-logging-in-the-bot-is-likely-unable-to-communicate-with-your-wire-pod-instance"
+            m2.target = "_blank"
+            authEl.appendChild(document.createElement("br"))
+            authEl.appendChild(m2)
+        } else {
+            updateAuthel("Authentication complete! Setup is now done.")
+            fetch("/api-ble/disconnect")
+            disconnectButtonDiv = document.getElementById("disconnectButton")
+            disconnectButtonDiv.innerHTML = ""
+            disconnectButton = document.createElement("button")
+            disconnectButton.onclick = function(){checkBLECapability()}
+            disconnectButton.innerHTML = "Back to setup"
+            disconnectButtonDiv.appendChild(disconnectButton)
+        }
     })
 }
