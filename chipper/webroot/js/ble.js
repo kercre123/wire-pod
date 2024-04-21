@@ -17,6 +17,7 @@ function showBotAuth() {
 }
 
 function checkBLECapability() {
+    updateAuthel("Checking if wire-pod can use BLE directly...")
     fetch("/api-ble/init")
         .then(response => response.text())
         .then((response) => {
