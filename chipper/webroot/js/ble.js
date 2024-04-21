@@ -23,7 +23,7 @@ function checkBLECapability() {
         .then((response) => {
             if (response.includes("success")) {
                 BeginBLESetup()
-            } else if (response.includes("error")) {
+            } else {
                 authEl.innerHTML = ""
                 m1 = document.createElement("p")
                 m2 = document.createElement("a")
@@ -350,11 +350,11 @@ function WhatToDo() {
 
 function DoOTA(url) {
     updateAuthel("Starting OTA update...")
-    fetch("/api-ble/do_ota?url=" + url)
+    fetch("/api-ble/start_ota?url=" + url)
     .then(response => response.text())
     .then((response) => {
         if (response.includes("success")) {
-            inte = setInterval(function(){
+            inte = setInterval(function() {
                 fetch("/api-ble/get_ota_status")
                 .then(otaresp => otaresp.text())
                 .then ((otaresp) => {
