@@ -59,19 +59,22 @@ function BeginBLESetup() {
     authEl.appendChild(m2)
     authEl.appendChild(m3)
     authEl.appendChild(button)
-
 }
 
-var Scanning = false
-var IsScanning = false
+function ReInitBLE() {
+    fetch("/api-ble/disconnect")
+    .then(() => 
+        fetch("/api-ble/init"))
+}
+
 
 function ScanRobots(returning) {
     disconnectButtonDiv = document.getElementById("disconnectButton")
+    disconnectButtonDiv.innerHTML = ""
     disconnectButton = document.createElement("button")
     disconnectButton.onclick = function(){Disconnect()}
     disconnectButton.innerHTML = "Disconnect"
     disconnectButtonDiv.appendChild(disconnectButton)
-    Scanning = true
     authEl.innerHTML = ""
     statusDiv = document.createElement("div")
     buttonsDiv = document.createElement("div")
@@ -79,25 +82,19 @@ function ScanRobots(returning) {
     statusDiv.class = "center"
     if (returning) {
         incorrectPin = document.createElement("p")
-        incorrectPin.innerHTML = "Incorrect PIN was entered, scanning again"
+        incorrectPin.innerHTML = "Incorrect PIN was entered, scanning again..."
         statusDiv.appendChild(incorrectPin)
     }
     scanNotice = document.createElement("small")
     scanNotice.innerHTML = "Scanning..."
     statusDiv.appendChild(scanNotice)
     authEl.appendChild(statusDiv)
-    IsScanning = true
-    let xhr = new XMLHttpRequest();
+    var xhr = new XMLHttpRequest();
     xhr.open("POST", "/api-ble/scan");
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send();
     xhr.onload = function() {
             response = xhr.response
-            IsScanning = false
-            if (!Scanning) {
-                clearInterval(interval)
-                return
-            }
             console.log(response)
             parsed = JSON.parse(response)
             buttonsDiv.innerHTML = ""
@@ -106,69 +103,26 @@ function ScanRobots(returning) {
                 button = document.createElement("button")
                 id = parsed[i]["id"]
                 button.innerHTML = parsed[i]["name"]
-                button.onclick = function(){Scanning = false; ConnectRobot(id);}
+                button.onclick = function(){
+                    ConnectRobot(id);
+                }
                 buttonsDiv.appendChild(button)
             }
+            rescanB = document.createElement("button")
+            rescanB.innerHTML = "Re-scan"
+            rescanB.onclick = function(){
+                updateAuthel("Reiniting BLE then scanning...")
+                fetch("/api-ble/disconnect")
+                .then(() => 
+                    fetch("/api-ble/init")
+                    .then(() =>
+                    ScanRobots(false)
+                ))
+            }
+            updateAuthel("Click on the robot you would like to pair with.")
+            authEl.appendChild(rescanB)
             authEl.appendChild(buttonsDiv)
         }
-    interval = setInterval(function(){
-        if (!Scanning) {
-            clearInterval(interval)
-            return
-        }
-        scanNotice.innerHTML = "Scanning..."
-        statusDiv.innerHTML = ""
-        statusDiv.appendChild(scanNotice)
-        IsScanning = true
-        let xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api-ble/scan");
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.send();
-        xhr.onload = function() {
-            response = xhr.response
-            IsScanning = false
-            if (!Scanning) {
-                clearInterval(interval)
-                return
-            }
-            console.log(response)
-            parsed = JSON.parse(response)
-            buttonsDiv.innerHTML = ""
-            authEl.innerHTML = ""
-            for (var i = 0; i < parsed.length; i++) {
-                button = document.createElement("button")
-                id = parsed[i]["id"]
-                button.innerHTML = parsed[i]["name"]
-                button.onclick = (function(id) {
-                    return function() {
-                        Scanning = false;
-                        ConnectRobotBuffer(id);
-                    };
-                  })(id);
-                buttonsDiv.appendChild(button)
-            }
-            authEl.appendChild(buttonsDiv)
-        }
-    }, 5000)
-}
-
-function ConnectRobotBuffer(id) {
-    authEl.innerHTML = ""
-    statusP.innerHTML = "Connecting to robot..."
-    authEl.appendChild(statusP)
-    // if scanning, dont make connection request
-    if (IsScanning) {
-        console.log("Scan request being made, wait to connect robot...")
-        inte = setInterval(function(){
-            if (!IsScanning) {
-                setTimeout(function(){
-                    clearInterval(inte)
-                    console.log("connecting robot...")
-                    ConnectRobot(id)
-                }, 1000)
-            }
-        }, 500)
-    }
 }
 
 function Disconnect() {
@@ -186,13 +140,11 @@ function Disconnect() {
 }
 
 function ConnectRobot(id) {
+    updateAuthel("Connecting to robot...")
     fetch("/api-ble/connect?id=" + id)
     .then(response => response.text())
     .then((response) => {
         if (response.includes("success")) {
-            statusP.innerHTML = "Connected to robot! Loading pin screen..."
-            authEl.innerHTML = ""
-            authEl.appendChild(statusP)
             CreatePinEntry()
             return
         }
@@ -216,7 +168,7 @@ function CreatePinEntry() {
     pinEntry.placeholder = "Enter PIN here"
     pinEntry.setAttribute("type", "text");
     pinEntry.setAttribute("maxlength", "6");
-    pinEntry.setAttribute("oninput", "validateInput(this)");
+    pinEntry.setAttribute("oninput", function(){validateInput(this)});
     button = document.createElement("button")
     button.onclick = function(){SendPin()}
     button.innerHTML = "Send PIN"
@@ -228,12 +180,19 @@ function CreatePinEntry() {
 
 function SendPin() {
     pin = document.getElementById("pinEntry").value
-    authEl.innerHTML = ""
+    updateAuthel("Sending PIN...")
     fetch("/api-ble/send_pin?pin=" + pin)
     .then(response => response.text())
     .then((response) => {
-        if (response.includes("incorrect pin")) {
-            ScanRobots(true)
+        console.log(response)
+        if (response.includes("incorrect pin") || response.includes("length of pin")) {
+            updateAuthel("Wrong PIN... Reiniting BLE then scanning...")
+            fetch("/api-ble/disconnect")
+            .then(() => 
+                fetch("/api-ble/init")
+                .then(() =>
+                ScanRobots(true)
+            ))
         } else {
             // create auth button
             WifiCheck()

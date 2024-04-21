@@ -74,25 +74,23 @@
 
 
     <div id="section-botauth" style="display: none;">
-      <h2>Authenticate a regular robot</h2>
-      <div class="center">
+      <h2>Authentication</h2>
+      <div>
           <div id="disconnectButton"></div>
       </div>
-      <div class="center">
+      <div>
         <div id="botAuth"></div>
       </div>
       <hr>
       <div class="center">
-        <h3>Authenticate an OSKR/dev-unlocked robot</h3>
+        <h3>Configure an OSKR/dev-unlocked robot</h3>
         <small>Works with firmware 1.4 and above</small>
         <div id="oskrSetupProgress"></div>
         <div id="oskrSetup">
           <small><b>If you have an OSKR/dev-unlocked bot;</b> enter the bot's IP address and upload the bot's SSH key here, then click "Set up bot". After that, use the above section to finish setting up your bot.</small></br>
           <input type="type" id="sshIp" name="sshIp" placeholder="Bot IP address">
           <input type="file" id="sshKeyFile" name="sshKeyFile">
-        <div class="center">
           <button onclick="doSSHSetup()">Set up bot</button>
-        </div>
         </div>
       </div>
       <hr>
