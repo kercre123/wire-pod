@@ -31,7 +31,7 @@ function checkBLECapability() {
                 m2.text = vectorEpodSetup
                 m2.href = vectorEpodSetup
                 m2.target = "_blank"
-                m3.innerHTML = "Note: if you have an OSKR/dev-unlocked robot, do NOT use this site. Follow the instructions in the section below this one."
+                m3.innerHTML = "Note: with OSKR/dev robots, it might give a warning about firmware. This can be ignored."
                 m1.class = "center"
                 m2.class = "center"
                 m3.class = "center"
