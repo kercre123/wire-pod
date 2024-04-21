@@ -7,7 +7,6 @@ import (
 	"archive/tar"
 	"compress/bzip2"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -115,17 +114,8 @@ func InitBle() (*ble.VectorBLE, error) {
 	select {
 	case <-done:
 		if err != nil {
-			if strings.Contains(err.Error(), "hci0: can't down device: no such device") {
-				logger.Println("BLE driver has broken. Removing then inserting bluetooth kernel modules")
-				modList := []string{"btrtl", "btmtk", "btintel", "btbcm", "btusb"}
-				for _, mod := range modList {
-					exec.Command("/bin/rmmod", mod).Run()
-				}
-				time.Sleep(time.Second / 3)
-				for _, mod := range modList {
-					exec.Command("/bin/modprobe", mod).Run()
-				}
-				time.Sleep(time.Second / 2)
+			if strings.Contains(err.Error(), "hci0: can't down device") || strings.Contains(err.Error(), "hci0: can't up device") {
+				FixBLEDriver()
 				client, err = ble.New(
 					ble.WithStatusChan(BleStatusChan),
 					ble.WithLogDirectory(os.TempDir()),
@@ -135,8 +125,26 @@ func InitBle() (*ble.VectorBLE, error) {
 		}
 		return client, err
 	case <-time.After(5 * time.Second):
-		return nil, errors.New("took more than 5 seconds to create client")
+		FixBLEDriver()
+		client, err = ble.New(
+			ble.WithStatusChan(BleStatusChan),
+			ble.WithLogDirectory(os.TempDir()),
+		)
+		return client, err
 	}
+}
+
+func FixBLEDriver() {
+	logger.Println("BLE driver has broken. Removing then inserting bluetooth kernel modules")
+	modList := []string{"btrtl", "btmtk", "btintel", "btbcm", "btusb"}
+	for _, mod := range modList {
+		exec.Command("/bin/rmmod", mod).Run()
+	}
+	time.Sleep(time.Second / 3)
+	for _, mod := range modList {
+		exec.Command("/bin/modprobe", mod).Run()
+	}
+	time.Sleep(time.Second / 2)
 }
 
 func ScanForVectors(client *ble.VectorBLE) ([]VectorsBle, error) {
@@ -265,6 +273,8 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				fmt.Fprint(w, "incorrect pin")
+			} else {
+				fmt.Fprint(w, "error: "+err.Error())
 			}
 			return
 		}
