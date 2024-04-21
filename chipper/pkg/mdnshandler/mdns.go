@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
-	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
+	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/zeroconf"
 )
 
@@ -76,7 +76,7 @@ func PostmDNS() {
 	PostingmDNS = true
 	logger.Println("Registering escapepod.local on network (loop)")
 	for {
-		ipAddr := botsetup.GetOutboundIP().String()
+		ipAddr := vars.GetOutboundIP().String()
 		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
 		for {
 			if MDNSTimeBeforeNextRegister >= 30 {
