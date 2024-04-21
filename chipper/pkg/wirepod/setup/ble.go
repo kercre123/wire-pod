@@ -176,8 +176,20 @@ func ScanForVectors(client *ble.VectorBLE) ([]VectorsBle, error) {
 }
 
 func ConnectVector(client *ble.VectorBLE, device int) error {
-	err := client.Connect(device)
-	return err
+	done := make(chan bool)
+	var err error
+	go func() {
+		err = client.Connect(device)
+		done <- true
+	}()
+
+	select {
+	case <-done:
+		return err
+	case <-time.After(5 * time.Second):
+		FixBLEDriver()
+		return errors.New("error: took more than 5 seconds")
+	}
 }
 
 func SendPin(pin string, client *ble.VectorBLE) error {
