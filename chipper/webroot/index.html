@@ -1,146 +1,266 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Wire-Pod Interface</title>
-  <link rel="stylesheet" type="text/css" href="css/style.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
-</head>
-<body>
-  <div id="outer">
-    <div id="content" class="">
-    <h1>Wire-Pod Interface</h1>
-    <hr>
+  <head>
+    <title>Wire-Pod Interface</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/8cdc8cbed9.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div id="outer">
+      <div id="content" class="">
+        <h1>Wire-Pod Interface</h1>
+        <hr />
 
-    <div class="main-nav-parent">
-      <div class="main-nav-child"><a href="setup.html"><i class="fa-solid fa-gear"></i><br/>Server Settings</a></div>
-      <div class="main-nav-child"><a href="/sdkapp"><i class="fa solid fa-toolbox"></i><br/>Bot Settings</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showBotAuth(); return false;"><i class="fa-solid fa-robot" id="icon-BotAuth" name="icon"></i><br/>Bot Setup</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showIntents(); return false;"><i class="fa-solid fa-microphone-lines" id="icon-Intents" name="icon"></i><br/>Custom Intents</a></div>
-      <div class="main-nav-child"><a href="#" onclick="showLog(); return false;"><i class="fa-solid fa-file-lines" id="icon-Logs" name="icon"></i><br/>Log</a></div>
-    </div>
-    <hr>
-
-
-    <div id="section-intents" style="display:none;">
-      <h2 id="foldable-add" onclick="toggleSection('content-add', 'content-edit')">
-        <span>+</span>
-        Add a custom intent
-      </h2>
-      <div class="content" id="content-add">
-        <p>It is recommended you read <a href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#web-interface" target="_blank">the wiki</a></p>
-        <div id="addIntentStatus"></div>
-        <form id="intentAddForm">
-          <label for="nameAdd">Custom intent name:</label>
-          <input type="text" name="nameAdd" id="nameAdd"><br>
-          <label for="descriptionAdd">Custom intent description:</label>
-          <input type="text" name="descriptionAdd" id="descriptionAdd"><br>
-          <label for="utterancesAdd">Utterances that will trigger the intent (separated by ,):</label>
-          <input type="text" name="utterancesAdd" id="utterancesAdd"><br>
-          <div id="intentAddSelect"></div>
-          <label for="paramnameAdd">Intent parameter name (not required):</label>
-          <input type="text" name="paramnameAdd" id="paramnameAdd"><br>
-          <label for="paramvalueAdd">Intent parameter value (not required):</label>
-          <input type="text" name="paramvalueAdd" id="paramvalueAdd"><br>
-          <label for="execAdd">Path to script/program to execute after sending intent (not required):</label>
-          <input type="text" name="execAdd" id="execAdd"><br>
-          <label for="execAdd">Arguments for program (seperated by ,) (not required)</label>
-          <input type="text" name="execAddArgs" id="execAddArgs" size="50"><br>
-        </form>
-        <div class="center">
-          <button onclick="sendIntentAdd()">Add intent</button>
-        </div>
-        <hr>
-      </div>
-
-      <h2 id="foldable-edit" onclick="toggleSection('content-edit', 'content-add')">
-        <span>+</span>
-        Edit/delete a custom intent
-      </h2>
-      <div class="content" id="content-edit">
-        <div id="editSelect"></div>
-        <div id="editIntentStatus"></div>
-        <div id="deleteIntentStatus"></div>
-	<div class="center">
-	  <div>
-            <button onclick="editFormCreate()">Edit selected intent</button>
-            <button onclick="deleteSelectedIntent()">Delete selected intent</button>
-	  </div>
-	</div>
-        <div id="editIntentForm"></div>
-        <hr>
-      </div>
-    </div>
-
-
-    <div id="section-botauth" style="display: none;">
-      <h2>Authentication</h2>
-      <div>
-          <div id="disconnectButton"></div>
-      </div>
-      <div>
-        <div id="botAuth"></div>
-      </div>
-      <hr>
-      <div class="center">
-        <h3>Configure an OSKR/dev-unlocked robot</h3>
-        <small>Works with firmware 1.4 and above</small>
-        <div id="oskrSetupProgress"></div>
-        <div id="oskrSetup">
-          <small><b>If you have an OSKR/dev-unlocked bot;</b> enter the bot's IP address and upload the bot's SSH key here, then click "Set up bot". After that, use the above section to finish setting up your bot.</small></br>
-          <input type="type" id="sshIp" name="sshIp" placeholder="Bot IP address">
-          <input type="file" id="sshKeyFile" name="sshKeyFile">
-          <button onclick="doSSHSetup()">Set up bot</button>
-        </div>
-      </div>
-      <hr>
-    </div>
-
-    <div id="section-log" style="display: none;">
-      <h2>Log</h2>
-      <label for="logdebug">Show all logs</label>
-      <input id="logdebug" name="logdebug" type="checkbox"><br>
-      <label for="logscrollbottom">Scroll to bottom</label>
-      <input id="logscrollbottom" name="logscrollbottom" type="checkbox">
-      <textarea id="botTranscriptedTextArea" rows="7" cols="50">
-         loading log...
-      </textarea>
-      <hr>
-    </div>
-
-    <div id="section-language" style="display: none;">
-      <h2>STT Language</h2>
-      <div class="center" id="languageStatus"></div>
-      <div id="languageSelectionDiv">
-        <div class="center">
-         <select name="languageSelection" id="languageSelection">
-            <option value="en-US">English (US)</option>
-            <option value="it-IT">Italian (IT)</option>
-            <option value="es-ES">Spanish (ES)</option>
-            <option value="fr-FR">French (FR)</option>
-            <option value="de-DE">German (DE)</option>
-            <option value="pt-BR">Portuguese (BR)</option>
-            <option value="pl-PL">Polish (PL)</option>
-            <option value="tr-TR">Turkish (TR)</option>
-            <option value="zh-CN">Chinese (CN)</option>
-            <option value="ru-RU">Russian (RU)</option>
-          </select>
+        <div class="main-nav-parent">
+          <!--WP settings-->
+          <div class="main-nav-child">
+            <a href="setup.html"
+              ><i class="fa-solid fa-gear"></i><br />Server Settings</a
+            >
           </div>
+          <!--Bot Settings-->
+          <div class="main-nav-child">
+            <a href="/sdkapp"
+              ><i class="fa solid fa-toolbox"></i><br />Bot Settings</a
+            >
+          </div>
+          <!--Bot Setup-->
+          <div class="main-nav-child">
+            <a href="#" onclick="showBotAuth(); return false;"
+              ><i class="fa-solid fa-robot" id="icon-BotAuth" name="icon"></i
+              ><br />Bot Setup</a
+            >
+          </div>
+          <!--Custom Intents-->
+          <div class="main-nav-child">
+            <a href="#" onclick="showIntents(); return false;"
+              ><i
+                class="fa-solid fa-microphone-lines"
+                id="icon-Intents"
+                name="icon"
+              ></i
+              ><br />Custom Intents</a
+            >
+          </div>
+          <!--Logs-->
+          <div class="main-nav-child">
+            <a href="#" onclick="showLog(); return false;"
+              ><i class="fa-solid fa-file-lines" id="icon-Logs" name="icon"></i
+              ><br />Log</a
+            >
+          </div>
+          <!--Version-->
+          <div class="main-nav-child">
+            <a href="#" onclick="showVersion(); return false;"
+              ><i
+                class="fa-solid fa-code-compare"
+                id="icon-Version"
+                name="icon"
+              ></i
+              ><br />Version Info</a
+            >
+          </div>
+        </div>
+        <hr />
+
+        <div id="section-intents" style="display: none">
+          <h2
+            id="foldable-add"
+            onclick="toggleSection('content-add', 'content-edit')"
+          >
+            <span>+</span>
+            Add a custom intent
+          </h2>
+          <div class="content" id="content-add">
+            <p>
+              It is recommended you read
+              <a
+                href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#web-interface"
+                target="_blank"
+                >the wiki</a
+              >
+            </p>
+            <div id="addIntentStatus"></div>
+            <form id="intentAddForm">
+              <label for="nameAdd">Custom intent name:</label>
+              <input type="text" name="nameAdd" id="nameAdd" /><br />
+              <label for="descriptionAdd">Custom intent description:</label>
+              <input
+                type="text"
+                name="descriptionAdd"
+                id="descriptionAdd"
+              /><br />
+              <label for="utterancesAdd"
+                >Utterances that will trigger the intent (separated by
+                ,):</label
+              >
+              <input
+                type="text"
+                name="utterancesAdd"
+                id="utterancesAdd"
+              /><br />
+              <div id="intentAddSelect"></div>
+              <label for="paramnameAdd"
+                >Intent parameter name (not required):</label
+              >
+              <input type="text" name="paramnameAdd" id="paramnameAdd" /><br />
+              <label for="paramvalueAdd"
+                >Intent parameter value (not required):</label
+              >
+              <input
+                type="text"
+                name="paramvalueAdd"
+                id="paramvalueAdd"
+              /><br />
+              <label for="execAdd"
+                >Path to script/program to execute after sending intent (not
+                required):</label
+              >
+              <input type="text" name="execAdd" id="execAdd" /><br />
+              <label for="execAdd"
+                >Arguments for program (seperated by ,) (not required)</label
+              >
+              <input
+                type="text"
+                name="execAddArgs"
+                id="execAddArgs"
+                size="50"
+              /><br />
+            </form>
+            <div class="center">
+              <button onclick="sendIntentAdd()">Add intent</button>
+            </div>
+            <hr />
+          </div>
+
+          <h2
+            id="foldable-edit"
+            onclick="toggleSection('content-edit', 'content-add')"
+          >
+            <span>+</span>
+            Edit/delete a custom intent
+          </h2>
+          <div class="content" id="content-edit">
+            <div id="editSelect"></div>
+            <div id="editIntentStatus"></div>
+            <div id="deleteIntentStatus"></div>
+            <div class="center">
+              <div>
+                <button onclick="editFormCreate()">Edit selected intent</button>
+                <button onclick="deleteSelectedIntent()">
+                  Delete selected intent
+                </button>
+              </div>
+            </div>
+            <div id="editIntentForm"></div>
+            <hr />
+          </div>
+        </div>
+
+        <div id="section-botauth" style="display: none">
+          <h2>Authentication</h2>
+          <div>
+            <div id="disconnectButton"></div>
+          </div>
+          <div>
+            <div id="botAuth"></div>
+          </div>
+          <hr />
           <div class="center">
-          <button onclick="setSTTLanguage()" type="submit">Set Language</button>
+            <h3>Configure an OSKR/dev-unlocked robot</h3>
+            <small>Works with firmware 1.4 and above</small>
+            <div id="oskrSetupProgress"></div>
+            <div id="oskrSetup">
+              <small
+                ><b>If you have an OSKR/dev-unlocked bot;</b> enter the bot's IP
+                address and upload the bot's SSH key here, then click "Set up
+                bot". After that, use the above section to finish setting up
+                your bot.</small
+              ><br />
+              <input
+                type="type"
+                id="sshIp"
+                name="sshIp"
+                placeholder="Bot IP address"
+              />
+              <input type="file" id="sshKeyFile" name="sshKeyFile" />
+              <button onclick="doSSHSetup()">Set up bot</button>
+            </div>
           </div>
+          <hr />
+        </div>
+
+        <div id="section-log" style="display: none">
+          <h2>Log</h2>
+          <label for="logdebug">Show all logs</label>
+          <input id="logdebug" name="logdebug" type="checkbox" /><br />
+          <label for="logscrollbottom">Scroll to bottom</label>
+          <input id="logscrollbottom" name="logscrollbottom" type="checkbox" />
+          <textarea id="botTranscriptedTextArea" rows="7" cols="50">
+         loading log...
+      </textarea
+          >
+          <hr />
+        </div>
+
+        <div id="section-language" style="display: none">
+          <h2>STT Language</h2>
+          <div class="center" id="languageStatus"></div>
+          <div id="languageSelectionDiv">
+            <div class="center">
+              <select name="languageSelection" id="languageSelection">
+                <option value="en-US">English (US)</option>
+                <option value="it-IT">Italian (IT)</option>
+                <option value="es-ES">Spanish (ES)</option>
+                <option value="fr-FR">French (FR)</option>
+                <option value="de-DE">German (DE)</option>
+                <option value="pt-BR">Portuguese (BR)</option>
+                <option value="pl-PL">Polish (PL)</option>
+                <option value="tr-TR">Turkish (TR)</option>
+                <option value="zh-CN">Chinese (CN)</option>
+                <option value="ru-RU">Russian (RU)</option>
+              </select>
+            </div>
+            <div class="center">
+              <button onclick="setSTTLanguage()" type="submit">
+                Set Language
+              </button>
+            </div>
+          </div>
+          <hr />
+        </div>
+
+        <div id="section-version" style="display: none">
+          <h2>Version</h2>
+          <div class="center" id="versionDiv">
+            <button onclick="checkUpdate()" type="submit">
+              Check For Update
+            </button>
+            <p id="cVersion"></p>
+            <p id="aUpdate"></p>
+            <a
+              id="updateGuideLink"
+              style="display: none"
+              target="_blank"
+              href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#updating-wire-pod"
+              >Update Guide</a
+            >
+          </div>
+          <hr />
+        </div>
       </div>
-      <hr>
     </div>
+  </body>
 
-  </div>
-</body>
-
-<script src="./js/main.js"></script>
-<script src="./js/ble.js"></script>
-<script src="./js/ssh.js"></script>
-<script src="./sdkapp/js/main.js"></script>
-<script>
-  checkInited();
-</script>
+  <script src="./js/main.js"></script>
+  <script src="./js/ble.js"></script>
+  <script src="./js/ssh.js"></script>
+  <script src="./sdkapp/js/main.js"></script>
+  <script>
+    checkInited();
+  </script>
 </html>

@@ -42,6 +42,7 @@ var (
 	WhisperModelPath  string = "../whisper.cpp/models/"
 	SessionCertPath   string = "./session-certs/"
 	SavedChatsPath    string = "./openaiChats.json"
+	VersionFile       string = "./version"
 )
 
 var (
@@ -172,6 +173,7 @@ func Init() {
 		Certs = join(podDir, "./certs")
 		SessionCertPath = join(podDir, SessionCertPath)
 		SavedChatsPath = join(podDir, SavedChatsPath)
+		VersionFile = join(podDir, VersionFile)
 		os.Mkdir(JdocsDir, 0777)
 		os.Mkdir(SessionCertPath, 0777)
 		os.Mkdir(Certs, 0777)
