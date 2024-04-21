@@ -7,6 +7,7 @@ import (
 	"archive/tar"
 	"compress/bzip2"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -125,23 +126,34 @@ func InitBle() (*ble.VectorBLE, error) {
 		}
 		return client, err
 	case <-time.After(5 * time.Second):
+		done2 := make(chan bool)
 		FixBLEDriver()
-		client, err = ble.New(
-			ble.WithStatusChan(BleStatusChan),
-			ble.WithLogDirectory(os.TempDir()),
-		)
-		return client, err
+		go func() {
+			client, err = ble.New(
+				ble.WithStatusChan(BleStatusChan),
+				ble.WithLogDirectory(os.TempDir()),
+			)
+			done2 <- true
+		}()
+
+		select {
+		case <-done2:
+			return client, err
+		case <-time.After(5 * time.Second):
+			return nil, errors.New("error: took more than 5 seconds")
+		}
 	}
 }
 
 func FixBLEDriver() {
 	logger.Println("BLE driver has broken. Removing then inserting bluetooth kernel modules")
-	modList := []string{"btrtl", "btmtk", "btintel", "btbcm", "btusb"}
-	for _, mod := range modList {
+	rmmodList := []string{"btusb", "btrtl", "btmtk", "btintel", "btbcm"}
+	modprobeList := []string{"btrtl", "btmtk", "btintel", "btbcm", "btusb"}
+	for _, mod := range rmmodList {
 		exec.Command("/bin/rmmod", mod).Run()
 	}
-	time.Sleep(time.Second / 3)
-	for _, mod := range modList {
+	time.Sleep(time.Second / 2)
+	for _, mod := range modprobeList {
 		exec.Command("/bin/modprobe", mod).Run()
 	}
 	time.Sleep(time.Second / 2)
@@ -311,6 +323,11 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api-ble/start_ota":
 		otaUrl := r.FormValue("url")
+		if strings.TrimSpace(otaUrl) == "local" {
+			logger.Println("Starting proxy download from archive.org")
+			otaUrl = "http://" + vars.GetOutboundIP().String() + ":" + vars.WebPort + "/api/get_ota/vicos-2.0.1.6076ep.ota"
+			logger.Println("(" + otaUrl + ")")
+		}
 		if strings.Contains(otaUrl, "https://") {
 			fmt.Fprint(w, "error: ota URL must be http")
 			return
@@ -428,16 +445,6 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			}
 			if resp {
 				time.Sleep(time.Second)
-				logger.Println("BLE authentication successful")
-				BleClient.SDKProxy(&ble.SDKProxyRequest{
-					URLPath: "/v1/send_onboarding_input",
-					Body:    `{"onboarding_mark_complete_and_exit": {}}`,
-				},
-				)
-				go func() {
-					time.Sleep(time.Second * 2)
-					mdnshandler.PostmDNSNow()
-				}()
 				fmt.Fprint(w, "success")
 				return
 			} else {
@@ -456,6 +463,31 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 		logger.Println("BLE authentication attempts exhausted")
 		fmt.Fprint(w, "error authenticating")
 		return
+	case r.URL.Path == "/api-ble/reset_onboarding":
+		BleClient.SDKProxy(
+			&ble.SDKProxyRequest{
+				URLPath: "/v1/send_onboarding_input",
+				Body:    `{"onboarding_set_phase_request": {"phase": 2}}`,
+			},
+		)
+	case r.URL.Path == "/api-ble/onboard":
+		wAnim := r.FormValue("with_anim")
+		if wAnim == "true" {
+			BleClient.SDKProxy(
+				&ble.SDKProxyRequest{
+					URLPath: "/v1/send_onboarding_input",
+					Body:    `{"onboarding_wake_up_request": {}}`,
+				},
+			)
+			time.Sleep(time.Second * 21)
+		}
+		BleClient.SDKProxy(
+			&ble.SDKProxyRequest{
+				URLPath: "/v1/send_onboarding_input",
+				Body:    `{"onboarding_mark_complete_and_exit": {}}`,
+			},
+		)
+		fmt.Fprint(w, "done")
 	case r.URL.Path == "/api-ble/disconnect":
 		err := BleClient.Close()
 		if err != nil {
