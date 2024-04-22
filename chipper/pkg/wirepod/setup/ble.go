@@ -275,7 +275,10 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 		err = ConnectVector(BleClient, id)
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
-			return
+			if err.Error() == "error: took more than 5 seconds" {
+				logger.Println("It took too long to connect to Vector. Quitting and letting systemd restart")
+				os.Exit(1)
+			}
 		}
 		fmt.Fprint(w, "success")
 		return

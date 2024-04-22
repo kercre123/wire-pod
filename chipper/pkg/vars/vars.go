@@ -173,6 +173,9 @@ func Init() {
 		Certs = join(podDir, "./certs")
 		SessionCertPath = join(podDir, SessionCertPath)
 		SavedChatsPath = join(podDir, SavedChatsPath)
+		if runtime.GOOS == "android" {
+			VersionFile = AndroidPath + "/static/version"
+		}
 		os.Mkdir(JdocsDir, 0777)
 		os.Mkdir(SessionCertPath, 0777)
 		os.Mkdir(Certs, 0777)

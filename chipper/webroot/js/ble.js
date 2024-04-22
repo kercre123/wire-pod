@@ -18,6 +18,7 @@ function showBotAuth() {
 }
 
 function checkBLECapability() {
+  document.getElementById("disconnectButton").innerHTML = "";
   updateAuthel("Checking if wire-pod can use BLE directly...");
   fetch("/api-ble/init")
     .then((response) => response.text())
@@ -161,6 +162,14 @@ function ConnectRobot(id) {
       if (response.includes("success")) {
         CreatePinEntry();
         return;
+      } else {
+        alert(
+          "There was an error connecting. WirePod will restart and this will return to the first screen of setup."
+        );
+        updateAuthel("Waiting for WirePod to restart...");
+        setTimeout(function () {
+          checkBLECapability();
+        }, 3000);
       }
     });
 }
@@ -447,37 +456,41 @@ function DoAuth() {
         authEl.appendChild(document.createElement("br"));
         authEl.appendChild(m2);
       } else {
-        updateAuthel("Authentication was successful! How would you like to wake Vector up?");
+        updateAuthel(
+          "Authentication was successful! How would you like to wake Vector up?"
+        );
         wakeWithAnim = document.createElement("button");
         wakeWithAnim.onclick = function () {
-          DoOnboard(true)
+          DoOnboard(true);
         };
         wakeWithAnim.innerHTML = "Wake with wake-up animation (recommended)";
         wakeWithoutAnim = document.createElement("button");
-        wakeWithoutAnim.innerHTML = "Wake immediately, without wake-up animation";
+        wakeWithoutAnim.innerHTML =
+          "Wake immediately, without wake-up animation";
         wakeWithoutAnim.onclick = function () {
-          DoOnboard(false)
+          DoOnboard(false);
         };
-        authEl.appendChild(wakeWithAnim)
-        authEl.appendChild(document.createElement("br"))
-        authEl.appendChild(wakeWithoutAnim)
+        authEl.appendChild(wakeWithAnim);
+        authEl.appendChild(document.createElement("br"));
+        authEl.appendChild(wakeWithoutAnim);
       }
     });
 }
 
 function DoOnboard(wAnim) {
-  updateAuthel("Onboarding robot...")
-  fetch("/api-ble/onboard?with_anim=" + wAnim)
-  .then(() => {
-  fetch("/api-ble/disconnect");
-  updateAuthel("Vector is now fully set up! Use the Bot Settings tab to further configure your bot.");
-  disconnectButtonDiv = document.getElementById("disconnectButton");
-  disconnectButtonDiv.innerHTML = "";
-  disconnectButton = document.createElement("button");
-  disconnectButton.onclick = function () {
-    checkBLECapability();
-  };
-  disconnectButton.innerHTML = "Return to pair instructions";
-  disconnectButtonDiv.appendChild(disconnectButton);
-})
+  updateAuthel("Onboarding robot...");
+  fetch("/api-ble/onboard?with_anim=" + wAnim).then(() => {
+    fetch("/api-ble/disconnect");
+    updateAuthel(
+      "Vector is now fully set up! Use the Bot Settings tab to further configure your bot."
+    );
+    disconnectButtonDiv = document.getElementById("disconnectButton");
+    disconnectButtonDiv.innerHTML = "";
+    disconnectButton = document.createElement("button");
+    disconnectButton.onclick = function () {
+      checkBLECapability();
+    };
+    disconnectButton.innerHTML = "Return to pair instructions";
+    disconnectButtonDiv.appendChild(disconnectButton);
+  });
 }
