@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -112,7 +113,11 @@ func runTest() {
 		withGrm = false
 	}
 	rec, recind := getRec(withGrm)
-	pcmBytes, _ := os.ReadFile("./stttest.pcm")
+	sttTestPath := "./stttest.pcm"
+	if runtime.GOOS == "android" {
+		sttTestPath = vars.AndroidPath + "/static/stttest.pcm"
+	}
+	pcmBytes, _ := os.ReadFile(sttTestPath)
 	var micData [][]byte
 	cTime := time.Now()
 	micData = sr.SplitVAD(pcmBytes)
