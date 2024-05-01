@@ -32,6 +32,7 @@ require (
 )
 
 require (
+	github.com/Picovoice/leopard/binding/go/v2 v2.0.2 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
