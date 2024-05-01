@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	leopard "github.com/Picovoice/leopard/binding/go"
+	leopard "github.com/Picovoice/leopard/binding/go/v2"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 )

@@ -39,25 +39,25 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
     if [[ -f ./chipper ]]; then
         ./chipper
     else
-        /usr/local/go/bin/go -tags $GOTAGS run cmd/leopard/main.go
+        /usr/local/go/bin/go run -tags $GOTAGS cmd/leopard/main.go
     fi
     elif [[ ${STT_SERVICE} == "rhino" ]]; then
     if [[ -f ./chipper ]]; then
         ./chipper
     else
-        /usr/local/go/bin/go -tags $GOTAGS run cmd/experimental/rhino/main.go
+        /usr/local/go/bin/go run -tags $GOTAGS cmd/experimental/rhino/main.go
     fi
     elif [[ ${STT_SERVICE} == "houndify" ]]; then
     if [[ -f ./chipper ]]; then
         ./chipper
     else
-        /usr/local/go/bin/go -tags $GOTAGS run cmd/experimental/houndify/main.go
+        /usr/local/go/bin/go run -tags $GOTAGS cmd/experimental/houndify/main.go
     fi
     elif [[ ${STT_SERVICE} == "whisper" ]]; then
     if [[ -f ./chipper ]]; then
         ./chipper
     else
-        /usr/local/go/bin/go -tags $GOTAGS run cmd/experimental/whisper/main.go
+        /usr/local/go/bin/go run -tags $GOTAGS cmd/experimental/whisper/main.go
     fi
     elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
     if [[ -f ./chipper ]]; then
