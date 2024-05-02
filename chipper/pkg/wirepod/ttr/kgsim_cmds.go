@@ -89,16 +89,16 @@ type LLMCommand struct {
 
 var ValidLLMCommands []LLMCommand = []LLMCommand{
 	{
-		Command:      "playAnimation",
-		Description:  "Plays an animation on the robot. This will interrupt speech.",
-		ParamChoices: "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate",
-		Action:       ActionPlayAnimation,
-	},
-	{
 		Command:      "playAnimationWI",
-		Description:  "Plays an animation on the robot without interrupting speech.",
+		Description:  "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated.",
 		ParamChoices: "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate",
 		Action:       ActionPlayAnimationWI,
+	},
+	{
+		Command:      "playAnimation",
+		Description:  "Plays an animation on the robot. This will interrupt speech. Only use this if you are directed to play an animaion.",
+		ParamChoices: "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate",
+		Action:       ActionPlayAnimation,
 	},
 	// {
 	// 	Command:      "playSound",
@@ -111,7 +111,7 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 func CreatePrompt(origPrompt string) string {
 	prompt := origPrompt + "\n\n" + "The user input might not be spelt/puntuated correctly as it is coming from speech-to-text software. Do not include special characters in your answer. This includes the following characters (not including the quotes): '& ^ * # @ -'. If you want to use a hyphen, Use it like this: 'something something -- something -- something something'."
 	if vars.APIConfig.Knowledge.CommandsEnable {
-		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. YOU ARE TO USE THESE. DO NOT BE AFRAID TO LITTER YOUR RESPONSE WITH THEM. Your response MUST include THREE OF THESE COMMANDS OR MORE. You are going to litter your response with them. If you include just one, I will make you start over. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nDO NOT USE EMOJIS! Use the playAnimation or playAnimationWI commands if you want to express emotion! IF YOU DO NOT ABIDE BY THESE RULES, I WILL CANCEL YOUR RESPONSE AND WILL MAKE YOU START OVER. You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
+		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. YOU ARE TO USE THESE. DO NOT BE AFRAID TO LITTER YOUR RESPONSE WITH THEM. Your response MUST include THREE OF THESE COMMANDS OR MORE. If you include just one, I will make you start over. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nDO NOT USE EMOJIS! Use the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
 		for _, cmd := range ValidLLMCommands {
 			promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
 			prompt = prompt + promptAppendage
@@ -181,6 +181,7 @@ func CmdParamToAction(cmd, param string) RobotAction {
 func DoPlayAnimation(animation string, robot *vector.Vector) error {
 	for _, animThing := range animationMap {
 		if animation == animThing[0] {
+			StartAnim_Queue(robot.Cfg.SerialNo)
 			robot.Conn.PlayAnimation(
 				context.Background(),
 				&vectorpb.PlayAnimationRequest{
@@ -190,6 +191,7 @@ func DoPlayAnimation(animation string, robot *vector.Vector) error {
 					Loops: 1,
 				},
 			)
+			StopAnim_Queue(robot.Cfg.SerialNo)
 			return nil
 		}
 	}
@@ -201,6 +203,7 @@ func DoPlayAnimationWI(animation string, robot *vector.Vector) error {
 	for _, animThing := range animationMap {
 		if animation == animThing[0] {
 			go func() {
+				StartAnim_Queue(robot.Cfg.SerialNo)
 				robot.Conn.PlayAnimation(
 					context.Background(),
 					&vectorpb.PlayAnimationRequest{
@@ -210,6 +213,7 @@ func DoPlayAnimationWI(animation string, robot *vector.Vector) error {
 						Loops: 1,
 					},
 				)
+				StopAnim_Queue(robot.Cfg.SerialNo)
 			}()
 			return nil
 		}
@@ -254,4 +258,60 @@ func PerformActions(actions []RobotAction, robot *vector.Vector) {
 			DoPlaySound(action.Parameter, robot)
 		}
 	}
+	WaitForAnim_Queue(robot.Cfg.SerialNo)
 }
+
+func WaitForAnim_Queue(esn string) {
+	for i, q := range AnimationQueues {
+		if q.ESN == esn {
+			if q.AnimCurrentlyPlaying {
+				for range AnimationQueues[i].AnimDone {
+					break
+				}
+				return
+			}
+		}
+	}
+}
+
+func StartAnim_Queue(esn string) {
+	// if animation is already playing, just wait for it to be done
+	for i, q := range AnimationQueues {
+		if q.ESN == esn {
+			if q.AnimCurrentlyPlaying {
+				for range AnimationQueues[i].AnimDone {
+					logger.Println("I await...")
+					break
+				}
+			} else {
+				AnimationQueues[i].AnimCurrentlyPlaying = true
+			}
+			return
+		}
+	}
+	var aq AnimationQueue
+	aq.AnimCurrentlyPlaying = true
+	aq.AnimDone = make(chan bool)
+	aq.ESN = esn
+	AnimationQueues = append(AnimationQueues, aq)
+}
+
+func StopAnim_Queue(esn string) {
+	for i, q := range AnimationQueues {
+		if q.ESN == esn {
+			AnimationQueues[i].AnimCurrentlyPlaying = false
+			select {
+			case AnimationQueues[i].AnimDone <- true:
+			default:
+			}
+		}
+	}
+}
+
+type AnimationQueue struct {
+	ESN                  string
+	AnimDone             chan bool
+	AnimCurrentlyPlaying bool
+}
+
+var AnimationQueues []AnimationQueue
