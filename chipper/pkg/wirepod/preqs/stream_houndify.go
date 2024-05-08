@@ -28,7 +28,7 @@ func StreamAudioToHoundify(sreq sr.SpeechRequest, client houndify.Client) string
 			default:
 				var chunk []byte
 				chunk, err = sreq.GetNextStreamChunkOpus()
-				speechDone = sreq.DetectEndOfSpeech()
+				speechDone, _ = sreq.DetectEndOfSpeech()
 				if err != nil {
 					fmt.Println("End of stream")
 					return

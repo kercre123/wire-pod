@@ -70,7 +70,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 			return "", err
 		}
 		coquiStream.FeedAudioContent(sr.BytesToSamples(chunk))
-		speechIsDone = req.DetectEndOfSpeech()
+		speechIsDone, _ = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}

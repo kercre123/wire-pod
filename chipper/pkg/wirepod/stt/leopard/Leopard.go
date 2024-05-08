@@ -77,7 +77,7 @@ func STT(req sr.SpeechRequest) (transcribedText string, err error) {
 			BotNumMu.Unlock()
 			return "", err
 		}
-		speechIsDone = req.DetectEndOfSpeech()
+		speechIsDone, _ = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}
