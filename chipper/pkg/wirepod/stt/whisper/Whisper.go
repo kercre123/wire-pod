@@ -120,7 +120,7 @@ func STT(req sr.SpeechRequest) (string, error) {
 			return "", err
 		}
 		// has to be split into 320 []byte chunks for VAD
-		speechIsDone = req.DetectEndOfSpeech()
+		speechIsDone, _ = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}
