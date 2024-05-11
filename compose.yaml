@@ -2,6 +2,7 @@ services:
   wire-pod:
     hostname: escapepod
     build: .
+    network_mode: host
     image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
     ports:
