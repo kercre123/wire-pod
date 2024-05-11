@@ -1,7 +1,7 @@
-version: '3.8'
 services:
   wire-pod:
     hostname: escapepod
+    build: .
     image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
     ports:
