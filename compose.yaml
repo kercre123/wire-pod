@@ -16,7 +16,7 @@ services:
       # - wire-pod-data:/chipper/
       - wire-pod-model:/vosk/
 volumes:
-  wire-pod-data:
-    driver: local
+  # wire-pod-data:
+  #   driver: local
   wire-pod-model:
     driver: local
