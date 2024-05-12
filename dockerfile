@@ -16,6 +16,7 @@ RUN ["/bin/sh", "-c", "STT=vosk ./setup.sh"]
 # TODO figure out if anything gets clobbered that was created by setup.sh (i.e. ./chipper/source.sh which is created by setup.sh)
 COPY . .
 
+# TODO do we really need dos2unix? can't we use editorconfig or something else to enforce line endings? and/or force git checkout to have LF endings always? SAME with setup.sh above too
 RUN dos2unix /chipper/start.sh
 
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]
