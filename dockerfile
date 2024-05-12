@@ -20,6 +20,10 @@ RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true SETUP_STAGE=getSTT ./setup.sh"]
 # *** END PACKAGE INSTALLS ***
 
 # TODO figure out if anything gets clobbered that was created by setup.sh (i.e. ./chipper/source.sh which is created by setup.sh)
+# TODO can we only copy:
+#  COPY chipper images /
+#    IIAC docker doesn't need update.sh (b/c instead just rebuild image, IIAC)
+#    IIUC vector-cloud isn't part of the server (gh issue mentions possibly removing it - is it part of custom ep firmeware that runs on vector?)
 COPY . .
 RUN dos2unix /chipper/start.sh
 # TODO do we really need dos2unix? can't we use editorconfig or something else to enforce line endings? and/or force git checkout to have LF endings always? SAME with setup.sh above too
