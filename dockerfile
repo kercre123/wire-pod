@@ -15,7 +15,7 @@ RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true SETUP_STAGE=getPackages ./setup
 
 # so we can install go deps (IIUC for vosk install in setup.sh/getSTT)
 COPY ./chipper/go.sum ./chipper/go.mod /chipper/
-# PRN caching of downloaded modules?
+# FYI setup.sh generates /chipper/source.sh: contains env vars for STT_SERVICE & DEBUG_LOGGING for vosk setup.sh:
 RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true SETUP_STAGE=getSTT ./setup.sh"]
 # *** END PACKAGE INSTALLS ***
 
