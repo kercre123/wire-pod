@@ -651,6 +651,15 @@ if [[ $1 == "-f" ]] && [[ $2 == "scp" ]]; then
     exit 0
 fi
 
+# TODO container detect and break up stages so we can avoid re-run everything?
+
+# check IMAGE_BUILD env var is set to determine if building image
+if [[ -n "${IMAGE_BUILD}" ]]; then
+    echo "Detected container build env..."
+    exit 1
+fi
+
+
 # echo "What would you like to do?"
 # echo "1: Full Setup (recommended) (builds chipper, gets STT stuff, generates certs, creates source.sh file, and creates server_config.json for your bot"
 # echo "2: Just build vic-cloud"
