@@ -4,7 +4,6 @@
 # For more help, visit the .dockerignore file reference guide at
 # https://docs.docker.com/go/build-context-dockerignore/
 #
-# TODO assess if anything that is ignored here needs to be removed... this is from `docker init` and select general type
 
 **/.DS_Store
 **/__pycache__
