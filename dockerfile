@@ -28,6 +28,7 @@ RUN cd /chipper && go mod download
 # vector-cloud deps are normally downloaded after initial web server Submit Settings page:
 RUN cd /vector-cloud && go mod download
 # PRN IIUC vector-cloud has some vosk model download/setup, can I add it to this image build too?
+#     Downloading https://github.com/kercre123/vosk-models/raw/main/vosk-model-small-en-us-0.15.zip to /tmp/vosk-model-small-en-us-0.15.zip
 # *** END go download deps ***
 
 # PRN copy specific files only: # COPY chipper images vector-cloud /
