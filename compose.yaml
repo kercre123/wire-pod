@@ -17,11 +17,11 @@ services:
       #   A /certs
       #   A /certs/server_config.json
       #   C /chipper
-      #   A /chipper/apiConfig.json
+      #   A /chipper/apiConfig.json    # stores config for first Submit Settings page (i.e. openai api key, weather api key, etc.)
       #   C /chipper/jdocs
-      #   A /chipper/jdocs/botSdkInfo.json
+      #   A /chipper/jdocs/botSdkInfo.json # stores vector IP, etc
       #   A /chipper/jdocs/jdocs.json
-      #   A /vosk
+      #   A /vosk # vosk model extracted here.. would like to move this into image build too (very early on)
       # TODO this is a problem to use a volume for /chipper in terms of updates, can we split out just the part that has the database we need to preserve and not cache the codebase? otherwise once created it will never update if image contents change...  admittedly the compose file here does not appear designed for the use case of updating at all (neither via a volume nor via the image...?)
       #  /root/.anki_vector/* ??? is this the path? if so make a volume for this
       # - wire-pod-data:/chipper/
