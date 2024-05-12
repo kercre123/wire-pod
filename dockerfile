@@ -19,19 +19,14 @@ COPY ./chipper/go.sum ./chipper/go.mod /chipper/
 RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true SETUP_STAGE=getSTT ./setup.sh"]
 # *** END PACKAGE INSTALLS ***
 
-# TODO figure out if anything gets clobbered that was created by setup.sh (i.e. ./chipper/source.sh which is created by setup.sh)
-# TODO can we only copy:
-#  COPY chipper images /
-#    IIAC docker doesn't need update.sh (b/c instead just rebuild image, IIAC)
-#    IIUC vector-cloud isn't part of the server (gh issue mentions possibly removing it - is it part of custom ep firmeware that runs on vector?)
+# PRN copy specific files only: # COPY chipper images vector-cloud /
 COPY . .
 RUN dos2unix /chipper/start.sh
 # TODO do we really need dos2unix? can't we use editorconfig or something else to enforce line endings? and/or force git checkout to have LF endings always? SAME with setup.sh above too
 
 # TODO now look into moving this higher in build (next)
 RUN cd /chipper && go mod download
-# TODO web server initial setup page => after submit settings => downloads vosk model smth? then more go modules are downloaded
-#   Are these the vector-cloud deps?
+# vector-cloud is setup/installed after initial web server Submit Settings page
 RUN cd /vector-cloud && go mod download
 
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]
