@@ -20,11 +20,14 @@ RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true SETUP_STAGE=getSTT ./setup.sh"]
 # *** END PACKAGE INSTALLS ***
 
 # *** go download deps ***
+#
+# PRN build + cache deps:  # RUN --mount=type=cache,target=/root/go/pkg/mod cd /chipper && go mod download
+#
 COPY ./vector-cloud/go.sum ./vector-cloud/go.mod /vector-cloud/
 RUN cd /chipper && go mod download
 # vector-cloud deps are normally downloaded after initial web server Submit Settings page:
-  RUN cd /vector-cloud && go mod download
-  # PRN IIUC vector-cloud has some vosk model download/setup, can I add it to this image build too?
+RUN cd /vector-cloud && go mod download
+# PRN IIUC vector-cloud has some vosk model download/setup, can I add it to this image build too?
 # *** END go download deps ***
 
 # PRN copy specific files only: # COPY chipper images vector-cloud /
