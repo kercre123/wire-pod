@@ -12,7 +12,8 @@ services:
       - 80:80
       - 8084:8084
     volumes:
-      - wire-pod-data:/chipper/
+      # get rid of caching the chipper dir, this should be baked into the image IMHO, and is a problem b/c rebuilding image and copying changes into /chipper is masked by an already UP'd volume mount...
+      # - wire-pod-data:/chipper/
       - wire-pod-model:/vosk/
 volumes:
   wire-pod-data:
