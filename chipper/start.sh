@@ -93,7 +93,6 @@ elif [[ ${STT_SERVICE} == "vosk" ]]; then
         export CGO_CFLAGS="-I/root/.vosk/libvosk"
         export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
         export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
-        # GO_COMMAND=="build"
         if [[ ${GO_COMMAND} == "build" ]]; then
             # TLDR to download go deps... can I just run this in the Dockerfile? when I copy in go.mod/sum?
             /usr/local/go/bin/go $GO_COMMAND -tags $GOTAGS -o chipper cmd/vosk/main.go
