@@ -1,3 +1,7 @@
+# manual ignores:
+**/.github
+**/dockerfile*
+
 # Include any files or directories that you don't want to be copied to your
 # container here (e.g., local build artifacts, temporary files, etc.).
 #
