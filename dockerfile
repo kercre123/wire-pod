@@ -28,11 +28,7 @@ COPY . .
 RUN dos2unix /chipper/start.sh
 # TODO do we really need dos2unix? can't we use editorconfig or something else to enforce line endings? and/or force git checkout to have LF endings always? SAME with setup.sh above too
 
-# TODO step 1 - add go get/install for runtime modules into a last layer
-#   setup 2 - ascertain if I can move go get/install earlier in the Dockerfile (if that has any benefit)
-# go build to pull further go deps:
-# RUN ["/bin/sh", "-c", "GO_COMMAND=build ./chipper/start.sh"]
+# TODO now look into moving this higher in build (next)
 RUN cd /chipper && go mod download
-#
-# runtime:
-CMD ["/bin/sh", "-c", "GO_COMMAND=run ./chipper/start.sh"]
+
+CMD ["/bin/sh", "-c", "./chipper/start.sh"]
