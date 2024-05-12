@@ -12,7 +12,7 @@ services:
       - 80:80
       - 8084:8084
     volumes:
-      # get rid of caching the chipper dir, this should be baked into the image IMHO, and is a problem b/c rebuilding image and copying changes into /chipper is masked by an already UP'd volume mount...
+      # TODO this is a problem to use a volume for /chipper in terms of updates, can we split out just the part that has the database we need to preserve and not cache the codebase? otherwise once created it will never update if image contents change...  admittedly the compose file here does not appear designed for the use case of updating at all (neither via a volume nor via the image...?)
       # - wire-pod-data:/chipper/
       - wire-pod-model:/vosk/
 volumes:
