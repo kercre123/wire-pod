@@ -7,10 +7,10 @@ RUN apt-get update && \
 
 COPY . .
 
-RUN chmod +x /setup.sh && apt-get update && dos2unix /setup.sh
+RUN apt-get update && dos2unix /setup.sh
 
 RUN ["/bin/sh", "-c", "STT=vosk ./setup.sh"]
 
-RUN chmod +x /chipper/start.sh && dos2unix /chipper/start.sh
+RUN dos2unix /chipper/start.sh
 
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]
