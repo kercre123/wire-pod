@@ -11,7 +11,8 @@ RUN apt-get update && \
 COPY setup.sh /setup.sh
 # PRN part of what setup.sh does is to install golang and other deps... why not extract those deps here for the Dockerfile and not use setup.sh inside the container build? AND why not find a golang base image to build on top of instead of installing it here?
 RUN dos2unix /setup.sh && mkdir /chipper && mkdir /vector-cloud
-RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true ./setup.sh"]
+RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true BUILD_STAGE=getPackages ./setup.sh"]
+RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true BUILD_STAGE=getSTT ./setup.sh"]
 # *** END PACKAGE INSTALLS ***
 
 # TODO figure out if anything gets clobbered that was created by setup.sh (i.e. ./chipper/source.sh which is created by setup.sh)

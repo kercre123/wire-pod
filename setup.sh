@@ -654,14 +654,20 @@ fi
 if [[ -n "${IMAGE_BUILD}" ]]; then
     echo "Detected container build env..."
     # break up stages so we can avoid re-run everything?
-    echo
-    getPackages
-    getSTT
-    echo
-    echo "wire-pod is ready to run! You are ready to move to the next step and run sudo ./chipper/start.sh" 
+    # if env var BUILD_STAGE == getPackages
+    if [[ "${BUILD_STAGE}" == "getPackages" ]]; then
+        getPackages
+        exit 0
+    fi
+    # TODO add stage to install golang too and move it to first stage? or use base image with golang already installed
+    if [[ "${BUILD_STAGE}" == "getSTT" ]]; then
+        getSTT
+        echo "wire-pod is ready to run! You are ready to move to the next step and run sudo ./chipper/start.sh" 
+        exit 0
+    fi
+    echo "Please provide a valid BUILD_STAGE env var, the current value is '${BUILD_STAGE}' is not recognized"
     exit 1
 fi
-
 
 # echo "What would you like to do?"
 # echo "1: Full Setup (recommended) (builds chipper, gets STT stuff, generates certs, creates source.sh file, and creates server_config.json for your bot"
