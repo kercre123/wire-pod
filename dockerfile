@@ -30,4 +30,8 @@ RUN dos2unix /chipper/start.sh
 
 # TODO step 1 - add go get/install for runtime modules into a last layer
 #   setup 2 - ascertain if I can move go get/install earlier in the Dockerfile (if that has any benefit)
-CMD ["/bin/sh", "-c", "./chipper/start.sh"]
+# go build to pull further go deps:
+RUN ["/bin/sh", "-c", "GO_COMMAND=build ./chipper/start.sh"]
+#
+# runtime:
+CMD ["/bin/sh", "-c", "GO_COMMAND=run ./chipper/start.sh"]
