@@ -93,7 +93,11 @@ elif [[ ${STT_SERVICE} == "vosk" ]]; then
         export CGO_CFLAGS="-I/root/.vosk/libvosk"
         export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
         export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go run -tags $GOTAGS -exec "env DYLD_LIBRARY_PATH=$HOME/.vosk/libvosk" cmd/vosk/main.go
+        if [[ ${DO_GO_BUILD} == "true" ]]; then
+            /usr/local/go/bin/go build -tags $GOTAGS -o chipper cmd/vosk/main.go
+        else
+            /usr/local/go/bin/go run -tags $GOTAGS -exec "env DYLD_LIBRARY_PATH=$HOME/.vosk/libvosk" cmd/vosk/main.go
+        fi
     fi
 else
     if [[ -f ./chipper ]]; then
