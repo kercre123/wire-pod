@@ -3,6 +3,7 @@ services:
     hostname: escapepod
     build: .
     network_mode: host
+    platform: linux/arm64
     image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
     ports:
