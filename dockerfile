@@ -31,5 +31,7 @@ RUN dos2unix /chipper/start.sh
 # TODO now look into moving this higher in build (next)
 RUN cd /chipper && go mod download
 # TODO web server initial setup page => after submit settings => downloads vosk model smth? then more go modules are downloaded
+#   Are these the vector-cloud deps?
+RUN cd /vector-cloud && go mod download
 
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]
