@@ -651,11 +651,14 @@ if [[ $1 == "-f" ]] && [[ $2 == "scp" ]]; then
     exit 0
 fi
 
-# TODO container detect and break up stages so we can avoid re-run everything?
-
-# check IMAGE_BUILD env var is set to determine if building image
 if [[ -n "${IMAGE_BUILD}" ]]; then
     echo "Detected container build env..."
+    # break up stages so we can avoid re-run everything?
+    echo
+    getPackages
+    getSTT
+    echo
+    echo "wire-pod is ready to run! You are ready to move to the next step and run sudo ./chipper/start.sh" 
     exit 1
 fi
 
