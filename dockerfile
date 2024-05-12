@@ -34,6 +34,11 @@ RUN cd /vector-cloud && go mod download
 COPY . .
 RUN dos2unix /chipper/start.sh
 # TODO do we really need dos2unix? can't we use editorconfig or something else to enforce line endings? and/or force git checkout to have LF endings always? SAME with setup.sh above too
+#
+# build chipper during image build:
+#   reuse start.sh so we keep logic for changing env vars (i.e. for whipser instead of vosk)
 RUN ["/bin/sh", "-c", "DO_GO_BUILD=true ./chipper/start.sh"]
-# TODO go build chipper&vector-cloud - bake into this image (perhaps modify start.sh to do this (sep build param) or just inline go build here)
+# PRN build vector-cloud during image build too?
+# PRN use multi-stage build - with builder image (w/ cached modules) separate of runtime image (final executables only)?
+
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]
