@@ -32,5 +32,5 @@ COPY . .
 RUN dos2unix /chipper/start.sh
 # TODO do we really need dos2unix? can't we use editorconfig or something else to enforce line endings? and/or force git checkout to have LF endings always? SAME with setup.sh above too
 
-
+# TODO go build chipper&vector-cloud - bake into this image (perhaps modify start.sh to do this (sep build param) or just inline go build here)
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]
