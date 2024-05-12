@@ -3,6 +3,7 @@ FROM ubuntu
 
 COPY . .
 
+# TODO move some or all package installs before copying code
 RUN chmod +x /setup.sh && apt-get update && apt-get install -y dos2unix && dos2unix /setup.sh && apt-get install -y avahi-daemon avahi-autoipd
 
 RUN ["/bin/sh", "-c", "STT=vosk ./setup.sh"]

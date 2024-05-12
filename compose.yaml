@@ -2,7 +2,7 @@ services:
   wire-pod:
     hostname: escapepod
     build: .
-    network_mode: host
+    network_mode: host # b/c mDNS escapepod.local broadcast... why use mDNS? people hosting a custom vector "server" are clearly capable of setting up a DNS record...
     platform: linux/arm64
     image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
