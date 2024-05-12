@@ -25,6 +25,7 @@ if [[ ! -f ./source.sh ]]; then
     exit 0
 fi
 
+# sets env vars: (i.e. STT_SERVICE)
 source source.sh
 
 # set go tags
