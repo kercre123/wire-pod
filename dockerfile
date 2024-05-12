@@ -19,14 +19,18 @@ COPY ./chipper/go.sum ./chipper/go.mod /chipper/
 RUN ["/bin/sh", "-c", "STT=vosk IMAGE_BUILD=true SETUP_STAGE=getSTT ./setup.sh"]
 # *** END PACKAGE INSTALLS ***
 
+# *** go download deps ***
+COPY ./vector-cloud/go.sum ./vector-cloud/go.mod /vector-cloud/
+RUN cd /chipper && go mod download
+# vector-cloud deps are normally downloaded after initial web server Submit Settings page:
+  RUN cd /vector-cloud && go mod download
+  # PRN IIUC vector-cloud has some vosk model download/setup, can I add it to this image build too?
+# *** END go download deps ***
+
 # PRN copy specific files only: # COPY chipper images vector-cloud /
 COPY . .
 RUN dos2unix /chipper/start.sh
 # TODO do we really need dos2unix? can't we use editorconfig or something else to enforce line endings? and/or force git checkout to have LF endings always? SAME with setup.sh above too
 
-# TODO now look into moving this higher in build (next)
-RUN cd /chipper && go mod download
-# vector-cloud is setup/installed after initial web server Submit Settings page
-RUN cd /vector-cloud && go mod download
 
 CMD ["/bin/sh", "-c", "./chipper/start.sh"]
