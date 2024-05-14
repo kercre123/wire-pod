@@ -141,15 +141,15 @@
 	},
 	{	
 		"name": "intent_greeting_hello", 
-		"keyphrases" : ["hello", "our you", "high", "below", "little", "follow", "for you", "far you", "how about you", "how are you", "the low", "the loo", "our are you" ]
+		"keyphrases" : ["hello", "our you", "follow", "for you", "far you", "how about you", "how are you", "the low", "the loo", "our are you" ]
 	},
 	{	
 		"name": "intent_imperative_come", 
-		"keyphrases" : ["come", "to me", "come here" ]
+		"keyphrases" : ["come to me", "come here" ]
 	},
 	{	
 		"name": "intent_imperative_love",
-		"keyphrases" : ["love", "dove", "i love you" ]
+		"keyphrases" : ["love you", "dove you", "i love you" ]
 	},
 	{	
 		"name": "intent_knowledge_promptquestion", 

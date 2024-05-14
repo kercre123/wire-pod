@@ -64,6 +64,10 @@ var animationMap [][2]string = [][2]string{
 		"celebrate",
 		"anim_pounce_success_03",
 	},
+	{
+		"love",
+		"anim_feedback_iloveyou_02",
+	},
 }
 
 var soundMap [][2]string = [][2]string{
@@ -90,7 +94,7 @@ type LLMCommand struct {
 var ValidLLMCommands []LLMCommand = []LLMCommand{
 	{
 		Command:      "playAnimationWI",
-		Description:  "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated.",
+		Description:  "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated. Don't put two of these right next to each other.",
 		ParamChoices: "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate",
 		Action:       ActionPlayAnimationWI,
 	},
@@ -111,7 +115,7 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 func CreatePrompt(origPrompt string) string {
 	prompt := origPrompt + "\n\n" + "The user input might not be spelt/puntuated correctly as it is coming from speech-to-text software. Do not include special characters in your answer. This includes the following characters (not including the quotes): '& ^ * # @ -'. If you want to use a hyphen, Use it like this: 'something something -- something -- something something'."
 	if vars.APIConfig.Knowledge.CommandsEnable {
-		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. YOU ARE TO USE THESE. DO NOT BE AFRAID TO LITTER YOUR RESPONSE WITH THEM. Your response MUST include THREE OF THESE COMMANDS OR MORE. If you include just one, I will make you start over. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nDO NOT USE EMOJIS! Use the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
+		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. YOU ARE TO USE THESE. DO NOT BE AFRAID TO LITTER YOUR RESPONSE WITH THEM. Your response MUST include THREE OF THESE COMMANDS OR MORE. If you include just one, I will make you start over. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nUse the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
 		for _, cmd := range ValidLLMCommands {
 			promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
 			prompt = prompt + promptAppendage
