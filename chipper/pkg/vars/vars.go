@@ -66,8 +66,11 @@ var VoskGrammerEnable bool = false
 
 // here to prevent import cycle (localization restructure)
 var SttInitFunc func() error
-var MatchListList [][]string
-var IntentsList = []string{}
+
+var IntentList []JsonIntent
+
+//var MatchListList [][]string
+// var IntentsList = []string{}
 
 var ChipperCert []byte
 var ChipperKey []byte
@@ -103,8 +106,9 @@ type RecurringInfoStore struct {
 }
 
 type JsonIntent struct {
-	Name       string   `json:"name"`
-	Keyphrases []string `json:"keyphrases"`
+	Name              string   `json:"name"`
+	Keyphrases        []string `json:"keyphrases"`
+	RequireExactMatch bool     `json:"requiresexact"`
 }
 
 type IntentsStruct []struct {
@@ -278,7 +282,7 @@ func LoadCustomIntents() {
 	}
 }
 
-func LoadIntents() ([][]string, []string, error) {
+func LoadIntents() ([]JsonIntent, error) {
 	var path string
 	if runtime.GOOS == "darwin" && Packaged {
 		appPath, _ := os.Executable()
@@ -290,24 +294,23 @@ func LoadIntents() ([][]string, []string, error) {
 	}
 	jsonFile, err := os.ReadFile(path + "intent-data/" + APIConfig.STT.Language + ".json")
 
-	var matches [][]string
-	var intents []string
-
+	// var matches [][]string
+	// var intents []string
+	var jsonIntents []JsonIntent
 	if err == nil {
-		var jsonIntents []JsonIntent
 		err = json.Unmarshal(jsonFile, &jsonIntents)
-		if err != nil {
-			logger.Println("Failed to load intents: " + err.Error())
-		}
+		// if err != nil {
+		// 	logger.Println("Failed to load intents: " + err.Error())
+		// }
 
-		for _, element := range jsonIntents {
-			//logger.Println("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
-			intents = append(intents, element.Name)
-			matches = append(matches, element.Keyphrases)
-		}
-		logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + APIConfig.STT.Language + ")")
+		// for _, element := range jsonIntents {
+		// 	//logger.Println("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
+		// 	intents = append(intents, element.Name)
+		// 	matches = append(matches, element.Keyphrases)
+		// }
+		// logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + APIConfig.STT.Language + ")")
 	}
-	return matches, intents, err
+	return jsonIntents, err
 }
 
 func WriteJdocs() {
@@ -414,7 +417,10 @@ func AddToRInfo(esn string, id string, ip string) {
 }
 
 func SaveChats() {
-	marshalled, _ := json.Marshal(RememberedChats)
+	marshalled, err := json.Marshal(RememberedChats)
+	if err != nil {
+		logger.Println(err)
+	}
 	os.WriteFile(SavedChatsPath, marshalled, 0777)
 }
 

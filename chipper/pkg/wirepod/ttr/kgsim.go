@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -31,6 +32,7 @@ func PlaceChat(chat vars.RememberedChat) {
 	for i, achat := range vars.RememberedChats {
 		if achat.ESN == chat.ESN {
 			vars.RememberedChats[i] = chat
+			vars.SaveChats()
 			return
 		}
 	}
@@ -39,16 +41,10 @@ func PlaceChat(chat vars.RememberedChat) {
 }
 
 // remember last 16 lines of chat
-func Remember(user, ai, esn string) {
+func Remember(user, ai openai.ChatCompletionMessage, esn string) {
 	chatAppend := []openai.ChatCompletionMessage{
-		{
-			Role:    openai.ChatMessageRoleUser,
-			Content: user,
-		},
-		{
-			Role:    openai.ChatMessageRoleAssistant,
-			Content: ai,
-		},
+		user,
+		ai,
 	}
 	currentChat := GetChat(esn)
 	if len(currentChat.Chats) == 16 {
@@ -67,8 +63,16 @@ func Remember(user, ai, esn string) {
 	PlaceChat(currentChat)
 }
 
+func removeSpecialCharacters(str string) string {
+	// Define the regular expression to match special characters
+	re := regexp.MustCompile(`[&^*#@]`)
+	// Replace special characters with an empty string
+	return re.ReplaceAllString(str, "")
+}
+
 func StreamingKGSim(req interface{}, esn string, transcribedText string) (string, error) {
 	var fullRespText string
+	var fullfullRespText string
 	var fullRespSlice []string
 	var isDone bool
 	var c *openai.Client
@@ -113,9 +117,13 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	})
 
 	aireq := openai.ChatCompletionRequest{
-		MaxTokens: 2048,
-		Messages:  nChat,
-		Stream:    true,
+		MaxTokens:        2048,
+		Temperature:      1,
+		TopP:             1,
+		FrequencyPenalty: 0,
+		PresencePenalty:  0,
+		Messages:         nChat,
+		Stream:           true,
 	}
 	if vars.APIConfig.Knowledge.Provider == "openai" {
 		aireq.Model = openai.GPT4o
@@ -141,6 +149,9 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			return "", err
 		}
 	}
+	nChat = append(nChat, openai.ChatCompletionMessage{
+		Role: openai.ChatMessageRoleAssistant,
+	})
 	//defer stream.Close()
 
 	fmt.Println("LLM stream response: ")
@@ -148,6 +159,8 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
+				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
+
 				isDone = true
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {
@@ -156,8 +169,21 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 					}
 					newStr = newStr + " " + str
 				}
+				if strings.TrimSpace(newStr) != strings.TrimSpace(fullfullRespText) {
+					logger.Println("LLM debug: there is content after the last punctuation mark")
+					extraBit := strings.TrimPrefix(fullRespText, newStr)
+					fullRespSlice = append(fullRespSlice, extraBit)
+				}
 				if vars.APIConfig.Knowledge.SaveChat {
-					Remember(transcribedText, newStr, esn)
+					Remember(openai.ChatCompletionMessage{
+						Role:    openai.ChatMessageRoleUser,
+						Content: transcribedText,
+					},
+						openai.ChatCompletionMessage{
+							Role:    openai.ChatMessageRoleAssistant,
+							Content: newStr,
+						},
+						esn)
 				}
 				logger.LogUI("LLM response for " + esn + ": " + newStr)
 				logger.Println("LLM stream finished")
@@ -169,7 +195,8 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 				return
 			}
 
-			fullRespText = fullRespText + response.Choices[0].Delta.Content
+			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
+			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
 				var sepStr string
 				if strings.Contains(fullRespText, "...") {
@@ -188,7 +215,6 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
 				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
 				fullRespText = splitResp[1]
-				//fmt.Println("FROM OPENAI: " + splitResp[0])
 				select {
 				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
 				default:
@@ -310,6 +336,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 				}
 			}()
 		}
+		var disconnect bool
 		numInResp := 0
 		for {
 			respSlice := fullRespSlice
@@ -326,7 +353,11 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			}
 			logger.Println(respSlice[numInResp])
 			acts := GetActionsFromString(respSlice[numInResp])
-			PerformActions(acts, robot)
+			nChat[len(nChat)-1].Content = fullRespText
+			disconnect = PerformActions(nChat, acts, robot)
+			if disconnect {
+				break
+			}
 			numInResp = numInResp + 1
 		}
 		if !vars.APIConfig.Knowledge.CommandsEnable {

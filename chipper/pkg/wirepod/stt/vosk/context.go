@@ -24,8 +24,8 @@ func GetGrammerList(lang string) string {
 	var wordsList []string
 	var grammer string
 	// add words in intent json
-	for _, words := range vars.MatchListList {
-		for _, word := range words {
+	for _, words := range vars.IntentList {
+		for _, word := range words.Keyphrases {
 			wors := strings.Split(word, " ")
 			for _, wor := range wors {
 				found := model.FindWord(wor)
