@@ -639,21 +639,25 @@ function checkKG() {
     document.getElementById("togetherInput").style.display = "none";
     document.getElementById("openAIInput").style.display = "none";
     document.getElementById("saveChatInput").style.display = "none";
+    document.getElementById("llmCommandInput").style.display = "none";
   } else if (document.getElementById("kgProvider").value == "houndify") {
     document.getElementById("togetherInput").style.display = "none";
     document.getElementById("openAIInput").style.display = "none";
     document.getElementById("houndifyInput").style.display = "block";
     document.getElementById("saveChatInput").style.display = "none";
+    document.getElementById("llmCommandInput").style.display = "none";
   } else if (document.getElementById("kgProvider").value == "openai") {
     document.getElementById("openAIInput").style.display = "block";
     document.getElementById("togetherInput").style.display = "none";
     document.getElementById("houndifyInput").style.display = "none";
     document.getElementById("saveChatInput").style.display = "block";
+    document.getElementById("llmCommandInput").style.display = "block";
   } else if (document.getElementById("kgProvider").value == "together") {
     document.getElementById("togetherInput").style.display = "block";
     document.getElementById("openAIInput").style.display = "none";
     document.getElementById("houndifyInput").style.display = "none";
     document.getElementById("saveChatInput").style.display = "block";
+    document.getElementById("llmCommandInput").style.display = "block";
   }
 }
 
@@ -690,6 +694,11 @@ function sendKGAPIKey() {
     key = document.getElementById("togetherKey").value;
     model = document.getElementById("togetherModel").value;
     openAIPrompt = document.getElementById("togetherAIPrompt").value;
+    if (document.getElementById("commandYes").checked == true) {
+      doCommands = "true";
+    } else {
+      doCommands = "false";
+    }
     if (document.getElementById("togetherintentyes").checked == true) {
       intentgraph = "true";
     } else {
@@ -785,6 +794,11 @@ function updateKGAPI() {
         document.getElementById("togetherKey").value = obj.kgApiKey;
         document.getElementById("togetherModel").value = obj.kgModel;
         document.getElementById("togetherAIPrompt").value = obj.kgOpenAIPrompt;
+        if (obj.kgCommandsEnable == "true") {
+          document.getElementById("commandYes").checked = true;
+        } else {
+          document.getElementById("commandNo").checked = true;
+        }
         if (obj.kgIntentGraph == "true") {
           document.getElementById("intentyes").checked = true;
           document.getElementById("togetherintentyes").checked = true;

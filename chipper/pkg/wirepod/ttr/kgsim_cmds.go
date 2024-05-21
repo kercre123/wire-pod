@@ -91,33 +91,37 @@ type RobotAction struct {
 }
 
 type LLMCommand struct {
-	Command      string
-	Description  string
-	ParamChoices string
-	Action       int
+	Command         string
+	Description     string
+	ParamChoices    string
+	Action          int
+	SupportedModels []string
 }
 
 // create function which parses from LLM and makes a struct of RobotActions
 
 var ValidLLMCommands []LLMCommand = []LLMCommand{
 	{
-		Command:      "playAnimationWI",
-		Description:  "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated. Don't put two of these right next to each other. Use this MANY times.",
-		ParamChoices: "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate, love",
-		Action:       ActionPlayAnimationWI,
+		Command:         "playAnimationWI",
+		Description:     "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated. Don't put two of these right next to each other. Use this MANY times.",
+		ParamChoices:    "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate, love",
+		Action:          ActionPlayAnimationWI,
+		SupportedModels: []string{"all"},
 	},
 	{
-		Command:      "playAnimation",
-		Description:  "Plays an animation on the robot. This will interrupt speech. Only use this if you are directed to play an animaion.",
-		ParamChoices: "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate, love",
-		Action:       ActionPlayAnimation,
+		Command:         "playAnimation",
+		Description:     "Plays an animation on the robot. This will interrupt speech. Only use this if you are directed to play an animaion.",
+		ParamChoices:    "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate, love",
+		Action:          ActionPlayAnimation,
+		SupportedModels: []string{"all"},
 	},
 	{
 		Command:     "getImage",
 		Description: "Gets an image from the robot's camera and places it in the next message. If you want to do this, tell the user what you are about to do THEN use the command. This command should END a sentence. If a user says 'what am i holding now', imply that 'now' means that they have a new object they want you to analyze, so you need to get another image.",
 		// not impl yet
-		ParamChoices: "front, lookingUp",
-		Action:       ActionGetImage,
+		ParamChoices:    "front, lookingUp",
+		Action:          ActionGetImage,
+		SupportedModels: []string{openai.GPT4o},
 	},
 	// {
 	// 	Command:      "playSound",
@@ -127,13 +131,24 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 	// },
 }
 
-func CreatePrompt(origPrompt string) string {
+func ModelIsSupported(cmd LLMCommand, model string) bool {
+	for _, str := range cmd.SupportedModels {
+		if str == "all" || str == model {
+			return true
+		}
+	}
+	return false
+}
+
+func CreatePrompt(origPrompt string, model string) string {
 	prompt := origPrompt + "\n\n" + "The user input might not be spelt/punctuated correctly as it is coming from speech-to-text software. Do not include special characters in your answer. This includes the following characters (not including the quotes): '& ^ * # @ -'. DON'T INCLUDE THESE. DON'T MAKE LISTS WITH FORMATTING. THINK OF THE SPEECH-TO-TEXT ENGINE. If you want to use a hyphen, Use it like this: 'something something -- something -- something something'."
 	if vars.APIConfig.Knowledge.CommandsEnable {
 		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nUse the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
 		for _, cmd := range ValidLLMCommands {
-			promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
-			prompt = prompt + promptAppendage
+			if ModelIsSupported(cmd, model) {
+				promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
+				prompt = prompt + promptAppendage
+			}
 		}
 	}
 	return prompt
@@ -370,6 +385,7 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 				return
 			}
 		} else {
+			logger.Println("LLM error: " + err.Error())
 			return
 		}
 	}

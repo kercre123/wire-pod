@@ -118,6 +118,12 @@ func ReadConfig() {
 				APIConfig.PastInitialSetup = true
 			}
 		}
+
+		if APIConfig.Knowledge.Model == "meta-llama/Llama-2-70b-chat-hf" {
+			logger.Println("Setting Together model to Llama3")
+			APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
+		}
+
 		writeBytes, _ := json.Marshal(APIConfig)
 		os.WriteFile(ApiConfigPath, writeBytes, 0644)
 		logger.Println("API config successfully read")

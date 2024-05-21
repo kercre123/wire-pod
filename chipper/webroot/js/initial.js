@@ -124,6 +124,11 @@ function initKGAPIKey() {
     key = document.getElementById("togetherKey").value;
     openAIPrompt = document.getElementById("togetherAIPrompt").value;
     model = document.getElementById("togetherModel").value;
+    if (document.getElementById("commandYes").checked == true) {
+      doCommands = "true";
+    } else {
+      doCommands = "false";
+    }
     if (document.getElementById("togetherintentyes").checked == true) {
       intentgraph = "true";
     } else {

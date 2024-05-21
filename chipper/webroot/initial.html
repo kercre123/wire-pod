@@ -156,8 +156,8 @@
                     here.</small
                   ><br />
                   <label for="togetherModel"
-                    >Together Model Name: e.g.
-                    meta-llama/Llama-2-70b-chat-hf</label
+                    >Together Model Name: (leave blank for default
+                    meta-llama/Llama-3-70b-chat-hf)</label
                   >
                   <input
                     type="text"
@@ -247,6 +247,9 @@
                     value="no"
                     onclick="checkKG()"
                   />
+                </span>
+
+                <span id="llmCommandInput" style="display: none">
                   <p>
                     Enable LLM commands (allows the LLM to run commands on the
                     robot)? (BETA)
@@ -266,7 +269,7 @@
                     value="no"
                   />
                 </span>
-
+                <br />
                 <span id="saveChatInput" style="display: none">
                   <p>
                     Would you like chats to be saved and used in the context of

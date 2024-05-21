@@ -126,7 +126,7 @@
                 ><br />
                 <label for="togetherModel"
                   >Together Model Name: (leave blank for default:
-                  meta-llama/Llama-2-70b-chat-hf)</label
+                  meta-llama/Llama-3-70b-chat-hf)</label
                 >
                 <input
                   type="text"
@@ -210,26 +210,29 @@
                   value="no"
                   onclick="checkKG()"
                 /><br /><br />
-                <p>
-                  Enable LLM commands (allows the LLM to play animations on the
-                  robot)? (BETA)
-                </p>
-                <label for="commandYes">Yes</label>
-                <input
-                  type="radio"
-                  id="commandYes"
-                  name="commandDoselect"
-                  value="yes"
-                />
-                <label for="commandNo">No</label>
-                <input
-                  type="radio"
-                  id="commandNo"
-                  name="commandDoselect"
-                  value="no"
-                /><br /><br />
               </span>
             </form>
+            <span id="llmCommandInput" style="display: none">
+              <p>
+                Enable LLM commands (allows the LLM to run commands on the
+                robot)? (BETA)
+              </p>
+              <label for="commandYes">Yes</label>
+              <input
+                type="radio"
+                id="commandYes"
+                name="commandDoselect"
+                value="yes"
+              />
+              <label for="commandNo">No</label>
+              <input
+                type="radio"
+                id="commandNo"
+                name="commandDoselect"
+                value="no"
+              />
+            </span>
+            <br />
             <span id="saveChatInput" style="display: none">
               <p>
                 Would you like chats to be saved and used in the context of
