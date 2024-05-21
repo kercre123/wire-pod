@@ -25,6 +25,7 @@ if [[ ! -f ./source.sh ]]; then
     exit 0
 fi
 
+# sets env vars: (i.e. STT_SERVICE)
 source source.sh
 
 # set go tags
@@ -41,25 +42,25 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
     else
         /usr/local/go/bin/go run -tags $GOTAGS cmd/leopard/main.go
     fi
-    elif [[ ${STT_SERVICE} == "rhino" ]]; then
+elif [[ ${STT_SERVICE} == "rhino" ]]; then
     if [[ -f ./chipper ]]; then
         ./chipper
     else
         /usr/local/go/bin/go run -tags $GOTAGS cmd/experimental/rhino/main.go
     fi
-    elif [[ ${STT_SERVICE} == "houndify" ]]; then
+elif [[ ${STT_SERVICE} == "houndify" ]]; then
     if [[ -f ./chipper ]]; then
         ./chipper
     else
         /usr/local/go/bin/go run -tags $GOTAGS cmd/experimental/houndify/main.go
     fi
-    elif [[ ${STT_SERVICE} == "whisper" ]]; then
+elif [[ ${STT_SERVICE} == "whisper" ]]; then
     if [[ -f ./chipper ]]; then
         ./chipper
     else
         /usr/local/go/bin/go run -tags $GOTAGS cmd/experimental/whisper/main.go
     fi
-    elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
+elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
     if [[ -f ./chipper ]]; then
         export C_INCLUDE_PATH="../whisper.cpp"
         export LIBRARY_PATH="../whisper.cpp"
@@ -80,7 +81,7 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
             /usr/local/go/bin/go run -tags $GOTAGS cmd/experimental/whisper.cpp/main.go
         fi
     fi
-    elif [[ ${STT_SERVICE} == "vosk" ]]; then
+elif [[ ${STT_SERVICE} == "vosk" ]]; then
     if [[ -f ./chipper ]]; then
         export CGO_ENABLED=1
         export CGO_CFLAGS="-I/root/.vosk/libvosk"
@@ -92,7 +93,11 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
         export CGO_CFLAGS="-I/root/.vosk/libvosk"
         export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
         export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go run -tags $GOTAGS -exec "env DYLD_LIBRARY_PATH=$HOME/.vosk/libvosk" cmd/vosk/main.go
+        if [[ ${DO_GO_BUILD} == "true" ]]; then
+            /usr/local/go/bin/go build -tags $GOTAGS -o chipper cmd/vosk/main.go
+        else
+            /usr/local/go/bin/go run -tags $GOTAGS -exec "env DYLD_LIBRARY_PATH=$HOME/.vosk/libvosk" cmd/vosk/main.go
+        fi
     fi
 else
     if [[ -f ./chipper ]]; then

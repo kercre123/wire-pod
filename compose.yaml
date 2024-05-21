@@ -1,7 +1,9 @@
-version: '3.8'
 services:
   wire-pod:
     hostname: escapepod
+    build: .
+    network_mode: host # b/c mDNS escapepod.local broadcast... why use mDNS? people hosting a custom vector "server" are clearly capable of setting up a DNS record...
+    platform: linux/arm64
     image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
     ports:
@@ -10,10 +12,22 @@ services:
       - 80:80
       - 8084:8084
     volumes:
-      - wire-pod-data:/chipper/
+      # FYI after setup new server and join vector to it... diff shows only these changed files:
+      # $ docker container diff wire-pod-wire-pod-run-b2a5f3d4bf75
+      #   A /certs
+      #   A /certs/server_config.json
+      #   C /chipper
+      #   A /chipper/apiConfig.json    # stores config for first Submit Settings page (i.e. openai api key, weather api key, etc.)
+      #   C /chipper/jdocs
+      #   A /chipper/jdocs/botSdkInfo.json # stores vector IP, etc
+      #   A /chipper/jdocs/jdocs.json
+      #   A /vosk # vosk model extracted here.. would like to move this into image build too (very early on)
+      # TODO this is a problem to use a volume for /chipper in terms of updates, can we split out just the part that has the database we need to preserve and not cache the codebase? otherwise once created it will never update if image contents change...  admittedly the compose file here does not appear designed for the use case of updating at all (neither via a volume nor via the image...?) ... appears that update.sh uses git to pull latest code?! from this repo... so my dockerignore on .git is not gonna be so helpful then :)
+      #  /root/.anki_vector/* ??? is this the path? if so make a volume for this
+      # - wire-pod-data:/chipper/
       - wire-pod-model:/vosk/
 volumes:
-  wire-pod-data:
-    driver: local
+  # wire-pod-data:
+  #   driver: local
   wire-pod-model:
     driver: local
