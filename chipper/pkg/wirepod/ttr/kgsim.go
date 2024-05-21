@@ -70,26 +70,7 @@ func removeSpecialCharacters(str string) string {
 	return re.ReplaceAllString(str, "")
 }
 
-func StreamingKGSim(req interface{}, esn string, transcribedText string) (string, error) {
-	var fullRespText string
-	var fullfullRespText string
-	var fullRespSlice []string
-	var isDone bool
-	var c *openai.Client
-	if vars.APIConfig.Knowledge.Provider == "together" {
-		if vars.APIConfig.Knowledge.Model == "" {
-			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-2-70b-chat-hf"
-			vars.WriteConfigToDisk()
-		}
-		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
-		conf.BaseURL = "https://api.together.xyz/v1"
-		c = openai.NewClientWithConfig(conf)
-	} else if vars.APIConfig.Knowledge.Provider == "openai" {
-		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
-	}
-	ctx := context.Background()
-	speakReady := make(chan string)
-
+func CreateAIReq(transcribedText, esn string, gpt3tryagain bool) openai.ChatCompletionRequest {
 	defaultPrompt := "You are a helpful, animated robot called Vector. Keep the response concise yet informative."
 
 	var nChat []openai.ChatCompletionMessage
@@ -103,7 +84,19 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		smsg.Content = defaultPrompt
 	}
 
-	smsg.Content = CreatePrompt(smsg.Content)
+	var model string
+
+	if gpt3tryagain {
+		model = openai.GPT3Dot5Turbo
+	} else if vars.APIConfig.Knowledge.Provider == "openai" {
+		model = openai.GPT4o
+		logger.Println("Using " + model)
+	} else {
+		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
+		model = vars.APIConfig.Knowledge.Model
+	}
+
+	smsg.Content = CreatePrompt(smsg.Content, model)
 
 	nChat = append(nChat, smsg)
 	if vars.APIConfig.Knowledge.SaveChat {
@@ -117,6 +110,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	})
 
 	aireq := openai.ChatCompletionRequest{
+		Model:            model,
 		MaxTokens:        2048,
 		Temperature:      1,
 		TopP:             1,
@@ -125,19 +119,37 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		Messages:         nChat,
 		Stream:           true,
 	}
-	if vars.APIConfig.Knowledge.Provider == "openai" {
-		aireq.Model = openai.GPT4o
-		logger.Println("Using " + aireq.Model)
-	} else {
-		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
-		aireq.Model = vars.APIConfig.Knowledge.Model
+	return aireq
+}
+
+func StreamingKGSim(req interface{}, esn string, transcribedText string) (string, error) {
+	var fullRespText string
+	var fullfullRespText string
+	var fullRespSlice []string
+	var isDone bool
+	var c *openai.Client
+	if vars.APIConfig.Knowledge.Provider == "together" {
+		if vars.APIConfig.Knowledge.Model == "" {
+			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
+			vars.WriteConfigToDisk()
+		}
+		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
+		conf.BaseURL = "https://api.together.xyz/v1"
+		c = openai.NewClientWithConfig(conf)
+	} else if vars.APIConfig.Knowledge.Provider == "openai" {
+		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
 	}
+	ctx := context.Background()
+	speakReady := make(chan string)
+
+	aireq := CreateAIReq(transcribedText, esn, false)
+
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
-			aireq.Model = openai.GPT3Dot5Turbo
+			aireq := CreateAIReq(transcribedText, esn, true)
 			logger.Println("Falling back to " + aireq.Model)
 			logger.LogUI("Falling back to " + aireq.Model)
 			stream, err = c.CreateChatCompletionStream(ctx, aireq)
@@ -149,18 +161,16 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			return "", err
 		}
 	}
+	nChat := aireq.Messages
 	nChat = append(nChat, openai.ChatCompletionMessage{
 		Role: openai.ChatMessageRoleAssistant,
 	})
-	//defer stream.Close()
-
 	fmt.Println("LLM stream response: ")
 	go func() {
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
 				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
-
 				isDone = true
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {
@@ -367,15 +377,15 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			}
 		}
 		time.Sleep(time.Millisecond * 100)
-		robot.Conn.PlayAnimation(
-			ctx,
-			&vectorpb.PlayAnimationRequest{
-				Animation: &vectorpb.Animation{
-					Name: "anim_knowledgegraph_success_01",
-				},
-				Loops: 1,
-			},
-		)
+		// robot.Conn.PlayAnimation(
+		// 	ctx,
+		// 	&vectorpb.PlayAnimationRequest{
+		// 		Animation: &vectorpb.Animation{
+		// 			Name: "anim_knowledgegraph_success_01",
+		// 		},
+		// 		Loops: 1,
+		// 	},
+		// )
 		//time.Sleep(time.Millisecond * 3300)
 		stop <- true
 	}
