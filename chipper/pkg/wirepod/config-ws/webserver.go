@@ -3,7 +3,9 @@ package webserver
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -197,8 +199,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			vars.APIConfig.Knowledge.ID = strings.TrimSpace(kgAPIID)
 		}
 		if kgModel == "" && kgProvider == "together" {
-			logger.Println("Together model wasn't provided, using default meta-llama/Llama-2-70b-chat-hf")
-			kgModel = "meta-llama/Llama-2-70b-chat-hf"
+			logger.Println("Together model wasn't provided, using default meta-llama/Llama-3-70b-chat-hf")
+			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
 		}
 		if kgProvider == "openai" || kgProvider == "together" {
 			if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
@@ -210,6 +212,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				vars.APIConfig.Knowledge.SaveChat = true
 			} else {
 				vars.APIConfig.Knowledge.SaveChat = false
+			}
+			if r.FormValue("commands_enable") == "true" {
+				vars.APIConfig.Knowledge.CommandsEnable = true
+			} else {
+				vars.APIConfig.Knowledge.CommandsEnable = false
 			}
 		}
 		if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "true" {
@@ -236,6 +243,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		kgRobotName := ""
 		kgOpenAIPrompt := ""
 		kgSavePrompt := false
+		kgCommandsEnable := false
 		if vars.APIConfig.Knowledge.Enable {
 			kgEnabled = true
 			kgProvider = vars.APIConfig.Knowledge.Provider
@@ -246,6 +254,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			kgRobotName = vars.APIConfig.Knowledge.RobotName
 			kgOpenAIPrompt = vars.APIConfig.Knowledge.OpenAIPrompt
 			kgSavePrompt = vars.APIConfig.Knowledge.SaveChat
+			kgCommandsEnable = vars.APIConfig.Knowledge.CommandsEnable
 		}
 		fmt.Fprintf(w, "{ ")
 		fmt.Fprintf(w, "  \"kgEnabled\": %t,", kgEnabled)
@@ -256,7 +265,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "  \"kgIntentGraph\": \"%t\",", kgIntent)
 		fmt.Fprintf(w, "  \"kgRobotName\": \"%s\",", kgRobotName)
 		fmt.Fprintf(w, "  \"kgOpenAIPrompt\": \"%s\",", kgOpenAIPrompt)
-		fmt.Fprintf(w, "  \"kgSaveChat\": \"%t\"", kgSavePrompt)
+		fmt.Fprintf(w, "  \"kgSaveChat\": \"%t\",", kgSavePrompt)
+		fmt.Fprintf(w, "  \"kgCommandsEnable\": \"%t\"", kgCommandsEnable)
 		fmt.Fprintf(w, "}")
 		return
 	case r.URL.Path == "/api/set_stt_info":
@@ -348,6 +358,67 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		vars.RememberedChats = []vars.RememberedChat{}
 		fmt.Fprintf(w, "done")
 		return
+	case strings.Contains(r.URL.Path, "/api/get_ota"):
+		otaName := strings.Split(r.URL.Path, "/")[3]
+		//https://archive.org/download/vector-pod-firmware/vicos-2.0.1.6076ep.ota
+		targetURL, err := url.Parse("https://archive.org/download/vector-pod-firmware/" + strings.TrimSpace(otaName))
+		if err != nil {
+			http.Error(w, "Failed to parse URL", http.StatusInternalServerError)
+			return
+		}
+		req, err := http.NewRequest(r.Method, targetURL.String(), nil)
+		if err != nil {
+			http.Error(w, "Failed to create request", http.StatusInternalServerError)
+			return
+		}
+		for key, values := range r.Header {
+			for _, value := range values {
+				req.Header.Add(key, value)
+			}
+		}
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			http.Error(w, "Failed to perform request", http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+		for key, values := range resp.Header {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
+		}
+		//w.WriteHeader(resp.StatusCode)
+		_, err = io.Copy(w, resp.Body)
+		if err != nil {
+			http.Error(w, "failed to copy response body", http.StatusInternalServerError)
+			return
+		}
+	case r.URL.Path == "/api/get_version_info":
+		type VerInfo struct {
+			Installed       string `json:"installed"`
+			Current         string `json:"current"`
+			UpdateAvailable bool   `json:"avail"`
+		}
+		var verInfo VerInfo
+		ver, err := os.ReadFile(vars.VersionFile)
+		if err != nil {
+			fmt.Fprint(w, "error: version file doesn't exist")
+			return
+		}
+		installedVer := strings.TrimSpace(string(ver))
+		currentVer, err := GetLatestReleaseTag("kercre123", "WirePod")
+		if err != nil {
+			fmt.Fprint(w, "error comming with github: "+err.Error())
+			return
+		}
+		verInfo.Installed = installedVer
+		verInfo.Current = strings.TrimSpace(currentVer)
+		if installedVer != strings.TrimSpace(currentVer) {
+			verInfo.UpdateAvailable = true
+		}
+		marshalled, _ := json.Marshal(verInfo)
+		w.Write(marshalled)
 	case r.URL.Path == "/api/generate_certs":
 		err := botsetup.CreateCertCombo()
 		if err != nil {
@@ -356,6 +427,30 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "done")
 		return
 	}
+}
+
+func GetLatestReleaseTag(owner, repo string) (string, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	type Release struct {
+		TagName string `json:"tag_name"`
+	}
+	var release Release
+	if err := json.Unmarshal(body, &release); err != nil {
+		return "", err
+	}
+
+	return release.TagName, nil
 }
 
 func certHandler(w http.ResponseWriter, r *http.Request) {
@@ -380,6 +475,7 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 
 func StartWebServer() {
 	botsetup.RegisterSSHAPI()
+	botsetup.RegisterBLEAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
 	var webRoot http.Handler

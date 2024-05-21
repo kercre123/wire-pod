@@ -263,14 +263,56 @@
       <div id="section-timezone" class="toggleable-section" style="display:none;">
         <h2 class="center">Set Time Zone</h2>
         <div id="currentTimeZone" class="center"></div>
-        <small class="center">Example: America/Chicago</small>
-        <div class="center">
-            <input class="tinput" id="tzInput" name="tzInput" type="text" placeholder="Put time zone here">
+            <div class="center">
+              <!--<input class="tinput" id="tzInput" name="tzInput" type="text" placeholder="Put time zone here">-->
+              <select id="tzInput" value="" class="vec-field">
+                <option value="Pacific/Honolulu">Pacific/Honolulu</option>
+                <option value="America/Juneau">America/Juneau</option>
+                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                <option value="America/Phoenix">America/Phoenix</option>
+                <option value="America/Denver">America/Denver</option>
+                <option value="America/Lima">America/Lima</option>
+                <option value="America/Chicago">America/Chicago</option>
+                <option value="America/Bogota">America/Bogota</option>
+                <option value="America/New_York">America/New_York</option>
+                <option value="America/Argentina/Buenos_Aires">America/Argentina/Buenos_A>
+                <option value="America/Santiago">America/Santiago</option>
+                <option value="America/Sao_Paolo">America/Sao_Paolo</option>
+                <option value="America/St_Johns">America/St_Johns</option>
+                <option value="GMT">GMT</option>
+                <option value="Europe/Lisbon">Europe/Lisbon</option>
+                <option value="Europe/London">Europe/London</option>
+                <option value="Europe/Paris">Europe/Paris</option>
+                <option value="Europe/Athens">Europe/Athens</option>
+                <option value="Europe/Istanbul">Europe/Istanbul</option>
+                <option value="Europe/Moscow">Europe/Moscow</option>
+                <option value="Africa/Lagos">Africa/Lagos</option>
+                <option value="Africa/Harare">Africa/Harare</option>
+                <option value="Africa/Addis_Ababa">Africa/Addis_Ababa</option>
+                <option value="Asia/Dubai">Asia/Dubai</option>
+                <option value="Asia/Tehran">Asia/Tehran</option>
+                <option value="Asia/Karachi">Asia/Karachi</option>
+                <option value="Asia/Kolkata">Asia/Kolkata</option>
+                <option value="Asia/Dhaka">Asia/Dhaka</option>
+                <option value="Asia/Bangkok">Asia/Bangkok</option>
+                <option value="Asia/Jakarta">Asia/Jakarta</option>
+                <option value="Asia/Hong_Kong">Asia/Hong_Kong</option>
+                <option value="Asia/Singapore">Asia/Singapore</option>
+                <option value="Asia/Manila">Asia/Manila</option>
+                <option value="Asia/Seoul">Asia/Seoul</option>
+                <option value="Asia/Tokyo">Asia/Tokyo</option>
+                <option value="Australia/Perth">Australia/Perth</option>
+                <option value="Australia/Darwin">Australia/Darwin</option>
+                <option value="Australia/Adelaide">Australia/Adelaide</option>
+                <option value="Australia/Brisbane">Australia/Brisbane</option>
+                <option value="Australia/Sydney">Australia/Sydney</option>
+                <option value="Australia/Auckland">Australia/Auckland</option>
+              </select>
             </div>
             <div class="center">
-            <button onclick="sendTimeZone()">Submit Time Zone</button>
-        </div>
-	<hr>
+              <button onclick="sendTimeZone()">Submit Time Zone</button>
+            </div>
+	      <hr>
       </div>
 
     </div>

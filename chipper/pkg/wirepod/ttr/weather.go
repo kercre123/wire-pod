@@ -247,7 +247,7 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 		} else if weatherAPIProvider == "openweathermap.org" {
 			// First use geocoding api to convert location into coordinates
 			// E.G. http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
-			url := "http://api.openweathermap.org/geo/1.0/direct?q=" + location + "&limit=1&appid=" + weatherAPIKey
+			url := "http://api.openweathermap.org/geo/1.0/direct?q=" + url.QueryEscape(location) + "&limit=1&appid=" + weatherAPIKey
 			resp, err := http.Get(url)
 			if err != nil {
 				logger.Println(err)
@@ -261,6 +261,7 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			err = json.Unmarshal([]byte(geoCodingResponse), &geoCodingInfoStruct)
 			if err != nil {
 				logger.Println(err)
+				logger.Println("Geolocation API error: " + geoCodingResponse)
 			}
 			if len(geoCodingInfoStruct) == 0 {
 				logger.Println("Geo provided no response.")

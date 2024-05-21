@@ -101,7 +101,7 @@ func BytesToIntVAD(stream opus.OggStream, data []byte, die bool, isOpus bool) []
 }
 
 // Uses VAD to detect when the user stops speaking
-func (req *SpeechRequest) DetectEndOfSpeech() bool {
+func (req *SpeechRequest) DetectEndOfSpeech() (bool, bool) {
 	// changes InactiveFrames and ActiveFrames in req
 	inactiveNumMax := 23
 	vad := req.VADInst
@@ -111,7 +111,7 @@ func (req *SpeechRequest) DetectEndOfSpeech() bool {
 		if err != nil {
 			logger.Println("VAD err:")
 			logger.Println(err)
-			return true
+			return true, false
 		}
 		if active {
 			req.ActiveFrames = req.ActiveFrames + 1
@@ -121,10 +121,13 @@ func (req *SpeechRequest) DetectEndOfSpeech() bool {
 		}
 		if req.InactiveFrames >= inactiveNumMax && req.ActiveFrames > 18 {
 			logger.Println("(Bot " + req.Device + ") End of speech detected.")
-			return true
+			return true, true
 		}
 	}
-	return false
+	if req.ActiveFrames < 5 {
+		return false, false
+	}
+	return false, true
 }
 
 // Converts a vtt.*Request to a SpeechRequest, which allows functions like DetectEndOfSpeech to work

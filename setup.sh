@@ -13,26 +13,26 @@ if [[ ${UNAME} == *"Darwin"* ]]; then
         ROOT="$HOME"
         echo "macOS detected."
         if [[ ! -f /usr/local/go/bin/go ]]; then
-	    if [[ -f /usr/local/bin/go ]]; then
-		mkdir -p /usr/local/go/bin
-		ln -s /usr/local/bin/go /usr/local/go/bin/go
-	    else
-            	echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
-            	exit 1
-	    fi
+            if [[ -f /usr/local/bin/go ]]; then
+                mkdir -p /usr/local/go/bin
+                ln -s /usr/local/bin/go /usr/local/go/bin/go
+            else
+                echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
+                exit 1
+            fi
         fi
     else
         echo "macOS detected, but 'brew' was not found. Install it with the following command and try running setup.sh again:"
         echo '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
         exit 1
     fi
-elif [[ -f /usr/bin/apt ]]; then
+    elif [[ -f /usr/bin/apt ]]; then
     TARGET="debian"
     echo "Debian-based Linux detected."
-elif [[ -f /usr/bin/pacman ]]; then
+    elif [[ -f /usr/bin/pacman ]]; then
     TARGET="arch"
     echo "Arch Linux detected."
-elif [[ -f /usr/bin/dnf ]]; then
+    elif [[ -f /usr/bin/dnf ]]; then
     TARGET="fedora"
     echo "Fedora/openSUSE detected."
 else
@@ -47,10 +47,10 @@ fi
 if [[ "${UNAME}" == *"x86_64"* ]]; then
     ARCH="x86_64"
     echo "amd64 architecture confirmed."
-elif [[ "${UNAME}" == *"aarch64"* ]] || [[ "${UNAME}" == *"arm64"* ]]; then
+    elif [[ "${UNAME}" == *"aarch64"* ]] || [[ "${UNAME}" == *"arm64"* ]]; then
     ARCH="aarch64"
     echo "aarch64 architecture confirmed."
-elif [[ "${UNAME}" == *"armv7l"* ]]; then
+    elif [[ "${UNAME}" == *"armv7l"* ]]; then
     ARCH="armv7l"
     echo "armv7l (32-bit) WARN: The Coqui and VOSK bindings are broken for this platform at the moment, so please choose Picovoice when the script asks. wire-pod is designed for 64-bit systems."
     STT=""
@@ -91,13 +91,13 @@ function getPackages() {
     if [[ ${TARGET} == "debian" ]]; then
         apt update -y
         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev
-    elif [[ ${TARGET} == "arch" ]]; then
+        elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
         sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config
-    elif [[ ${TARGET} == "fedora" ]]; then
+        elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
-    elif [[ ${TARGET} == "darwin" ]]; then
+        elif [[ ${TARGET} == "darwin" ]]; then
         sudo -u $SUDO_USER brew update
         sudo -u $SUDO_USER brew install wget pkg-config opus opusfile
     fi
@@ -111,10 +111,10 @@ function getPackages() {
             if [[ ${ARCH} == "x86_64" ]]; then
                 wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
                 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
-            elif [[ ${ARCH} == "aarch64" ]]; then
+                elif [[ ${ARCH} == "aarch64" ]]; then
                 wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-arm64.tar.gz
                 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-arm64.tar.gz
-            elif [[ ${ARCH} == "armv7l" ]]; then
+                elif [[ ${ARCH} == "armv7l" ]]; then
                 wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-armv6l.tar.gz
                 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-armv6l.tar.gz
             fi
@@ -122,10 +122,10 @@ function getPackages() {
         fi
     else
         echo "This is a macOS or arch target, assuming Go is installed already"
-	if [[ ${TARGET} == "arch" ]] && [[ ! -d /usr/local/go/bin ]]; then
-		mkdir -p /usr/local/go/bin
-		ln -s /usr/bin/go /usr/local/go/bin/go
-	fi
+        if [[ ${TARGET} == "arch" ]] && [[ ! -d /usr/local/go/bin ]]; then
+            mkdir -p /usr/local/go/bin
+            ln -s /usr/bin/go /usr/local/go/bin/go
+        fi
     fi
     cd ..
     rm -rf golang
@@ -146,18 +146,18 @@ function getSTT() {
         read -p "Enter a number (3): " sttServiceNum
         if [[ ! -n ${sttServiceNum} ]]; then
             sttService="vosk"
-        elif [[ ${sttServiceNum} == "1" ]]; then
+            elif [[ ${sttServiceNum} == "1" ]]; then
             if [[ ${TARGET} == "darwin" ]]; then
                 echo "Coqui is not supported for macOS. Please select another option."
                 sttServicePrompt
             else
-            sttService="coqui"
+                sttService="coqui"
             fi
-        elif [[ ${sttServiceNum} == "2" ]]; then
+            elif [[ ${sttServiceNum} == "2" ]]; then
             sttService="leopard"
-        elif [[ ${sttServiceNum} == "3" ]]; then
+            elif [[ ${sttServiceNum} == "3" ]]; then
             sttService="vosk"
-        elif [[ ${sttServiceNum} == "4" ]]; then
+            elif [[ ${sttServiceNum} == "4" ]]; then
             sttService="whisper"
         else
             echo
@@ -185,9 +185,9 @@ function getSTT() {
         }
         picoApiPrompt
         echo "export STT_SERVICE=leopard" >> ./chipper/source.sh
-	echo "export PICOVOICE_APIKEY=${picoKey}" >> ./chipper/source.sh
+        echo "export PICOVOICE_APIKEY=${picoKey}" >> ./chipper/source.sh
         echo "export PICOVOICE_APIKEY=${picoKey}" > ./chipper/pico.key
-    elif [[ ${sttService} == "vosk" ]]; then
+        elif [[ ${sttService} == "vosk" ]]; then
         echo "export STT_SERVICE=vosk" >> ./chipper/source.sh
         origDir="$(pwd)"
         if [[ ! -f ./vosk/completed ]]; then
@@ -199,11 +199,11 @@ function getSTT() {
             if [[ ${TARGET} == "darwin" ]]; then
                 VOSK_VER="0.3.42"
                 VOSK_DIR="vosk-osx-${VOSK_VER}"
-            elif [[ ${ARCH} == "x86_64" ]]; then
+                elif [[ ${ARCH} == "x86_64" ]]; then
                 VOSK_DIR="vosk-linux-x86_64-${VOSK_VER}"
-            elif [[ ${ARCH} == "aarch64" ]]; then
+                elif [[ ${ARCH} == "aarch64" ]]; then
                 VOSK_DIR="vosk-linux-aarch64-${VOSK_VER}"
-            elif [[ ${ARCH} == "armv7l" ]]; then
+                elif [[ ${ARCH} == "armv7l" ]]; then
                 VOSK_DIR="vosk-linux-armv7l-${VOSK_VER}"
             fi
             VOSK_ARCHIVE="$VOSK_DIR.zip"
@@ -211,7 +211,7 @@ function getSTT() {
             unzip "$VOSK_ARCHIVE"
             mv "$VOSK_DIR" libvosk
             rm -fr "$VOSK_ARCHIVE"
-
+            
             cd ${origDir}/chipper
             export CGO_ENABLED=1
             export CGO_CFLAGS="-I${ROOT}/.vosk/libvosk"
@@ -222,7 +222,7 @@ function getSTT() {
             /usr/local/go/bin/go install github.com/kercre123/vosk-api/go
             cd ${origDir}
         fi
-    elif [[ ${sttService} == "whisper" ]]; then
+        elif [[ ${sttService} == "whisper" ]]; then
         echo "export STT_SERVICE=whisper.cpp" >> ./chipper/source.sh
         origDir="$(pwd)"
         echo "Getting Whisper assets"
@@ -259,7 +259,7 @@ function getSTT() {
         cd ${origDir}
         echo "export WHISPER_MODEL=$whispermodel" >> ./chipper/source.sh
     else
-    echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
+        echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then
             echo "Getting STT assets"
             if [[ -d /root/.coqui ]]; then
@@ -276,11 +276,11 @@ function getSTT() {
                 fi
                 tar -xf native_client.tflite.Linux.tar.xz
                 rm -f ./native_client.tflite.Linux.tar.xz
-            elif [[ ${ARCH} == "aarch64" ]]; then
+                elif [[ ${ARCH} == "aarch64" ]]; then
                 wget -q --show-progress --no-check-certificate https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.aarch64.tar.xz
                 tar -xf native_client.tflite.linux.aarch64.tar.xz
                 rm -f ./native_client.tflite.linux.aarch64.tar.xz
-            elif [[ ${ARCH} == "armv7l" ]]; then
+                elif [[ ${ARCH} == "armv7l" ]]; then
                 wget -q --show-progress --no-check-certificate https://github.com/coqui-ai/STT/releases/download/v1.3.0/native_client.tflite.linux.armv7.tar.xz
                 tar -xf native_client.tflite.linux.armv7.tar.xz
                 rm -f ./native_client.tflite.linux.armv7.tar.xz
@@ -304,9 +304,9 @@ function getSTT() {
                 read -p "Enter a number (1): " sttModelNum
                 if [[ ! -n ${sttModelNum} ]]; then
                     sttModel="large_vocabulary"
-                elif [[ ${sttModelNum} == "1" ]]; then
+                    elif [[ ${sttModelNum} == "1" ]]; then
                     sttModel="large_vocabulary"
-                elif [[ ${sttModelNum} == "2" ]]; then
+                    elif [[ ${sttModelNum} == "2" ]]; then
                     sttModel="huge_vocabulary"
                 else
                     echo
@@ -323,7 +323,7 @@ function getSTT() {
                 wget -O model.tflite -q --show-progress --no-check-certificate https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/model.tflite
                 echo "Getting STT scorer..."
                 wget -O model.scorer -q --show-progress --no-check-certificate https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-large-vocab/large_vocabulary.scorer
-            elif [[ ${sttModel} == "huge_vocabulary" ]]; then
+                elif [[ ${sttModel} == "huge_vocabulary" ]]; then
                 echo "Getting STT model..."
                 wget -O model.tflite -q --show-progress --no-check-certificate https://coqui.gateway.scarf.sh/english/coqui/v1.0.0-huge-vocab/model.tflite
                 echo "Getting STT scorer..."
@@ -353,7 +353,7 @@ function IPDNSPrompt() {
         *)
             echo "Please answer with 1, 2, 3, or 4."
             IPDNSPrompt
-            ;;
+        ;;
     esac
 }
 
@@ -487,7 +487,7 @@ function scpToBot() {
                 *)
                     echo "Please answer with 1 or 2."
                     rsaAddPrompt
-                    ;;
+                ;;
             esac
         }
         rsaAddPrompt
@@ -558,22 +558,35 @@ function setupSystemd() {
     cat wire-pod.service
     echo
     cd chipper
+    export GOTAGS="nolibopusfile"
+    if [[ ${USE_INBUILT_BLE} == "true" ]]; then
+        export GOTAGS="nolibopusfile,inbuiltble"
+    fi
     if [[ ${STT_SERVICE} == "leopard" ]]; then
         echo "wire-pod.service created, building chipper with Picovoice STT service..."
-        /usr/local/go/bin/go build cmd/leopard/main.go
-    elif [[ ${STT_SERVICE} == "vosk" ]]; then
+        /usr/local/go/bin/go build -tags $GOTAGS cmd/leopard/main.go
+        elif [[ ${STT_SERVICE} == "vosk" ]]; then
         echo "wire-pod.service created, building chipper with VOSK STT service..."
         export CGO_ENABLED=1
-        export CGO_CFLAGS="-I$HOME/.vosk/libvosk"
-        export CGO_LDFLAGS="-L $HOME/.vosk/libvosk -lvosk -ldl -lpthread"
-        export LD_LIBRARY_PATH="$HOME/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build cmd/vosk/main.go
+        export CGO_CFLAGS="-I/root/.vosk/libvosk"
+        export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
+        export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
+        /usr/local/go/bin/go build -tags $GOTAGS cmd/vosk/main.go
+        elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
+        echo "wire-pod.service created, building chipper with Whisper.CPP STT service..."
+        export CGO_ENABLED=1
+        export C_INCLUDE_PATH="../whisper.cpp"
+        export LIBRARY_PATH="../whisper.cpp"
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp"
+        export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
+        export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
+        /usr/local/go/bin/go build -tags $GOTAGS cmd/experimental/whisper.cpp/main.go
     else
         echo "wire-pod.service created, building chipper with Coqui STT service..."
-        export CGO_LDFLAGS="-L$HOME/.coqui/"
-        export CGO_CXXFLAGS="-I$HOME/.coqui/"
-        export LD_LIBRARY_PATH="$HOME/.coqui/:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build cmd/coqui/main.go
+        export CGO_LDFLAGS="-L/root/.coqui/"
+        export CGO_CXXFLAGS="-I/root/.coqui/"
+        export LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH"
+        /usr/local/go/bin/go build -tags $GOTAGS cmd/coqui/main.go
     fi
     sync
     mv main chipper

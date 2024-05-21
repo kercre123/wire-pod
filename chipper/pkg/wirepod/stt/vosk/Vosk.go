@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
+	"time"
 
 	vosk "github.com/kercre123/vosk-api/go"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -94,8 +96,49 @@ func Init() error {
 		}
 		modelLoaded = true
 		logger.Println("VOSK initiated successfully")
+		runTest()
 	}
 	return nil
+}
+
+func runTest() {
+	// make sure recognizer is all loaded into RAM
+	logger.Println("Running recognizer test")
+	var withGrm bool
+	if GrammerEnable {
+		logger.Println("Using grammer-optimized recognizer")
+		withGrm = true
+	} else {
+		logger.Println("Using general recognizer")
+		withGrm = false
+	}
+	rec, recind := getRec(withGrm)
+	sttTestPath := "./stttest.pcm"
+	if runtime.GOOS == "android" {
+		sttTestPath = vars.AndroidPath + "/static/stttest.pcm"
+	}
+	pcmBytes, _ := os.ReadFile(sttTestPath)
+	var micData [][]byte
+	cTime := time.Now()
+	micData = sr.SplitVAD(pcmBytes)
+	for _, sample := range micData {
+		rec.AcceptWaveform(sample)
+	}
+	var jres map[string]interface{}
+	json.Unmarshal([]byte(rec.FinalResult()), &jres)
+	if withGrm {
+		grmRecs[recind].InUse = false
+	} else {
+		gpRecs[recind].InUse = false
+	}
+	transcribedText := jres["text"].(string)
+	tTime := time.Now().Sub(cTime)
+	logger.Println("Text (from test):", transcribedText)
+	if tTime.Seconds() > 3 {
+		logger.Println("Vosk test took a while, performance may be degraded. (" + fmt.Sprint(tTime) + ")")
+	}
+	logger.Println("Vosk test successful! (Took " + fmt.Sprint(tTime) + ")")
+
 }
 
 func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
@@ -142,7 +185,6 @@ func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 
 func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + req.Device + ", Vosk) Processing...")
-	speechIsDone := false
 	var withGrm bool
 	if (vars.APIConfig.Knowledge.IntentGraph || req.IsKG) || !GrammerEnable {
 		logger.Println("Using general recognizer")
@@ -160,9 +202,10 @@ func STT(req sr.SpeechRequest) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		rec.AcceptWaveform(chunk)
-		// has to be split into 320 []byte chunks for VAD
-		speechIsDone = req.DetectEndOfSpeech()
+		speechIsDone, doProcess := req.DetectEndOfSpeech()
+		if doProcess {
+			rec.AcceptWaveform(chunk)
+		}
 		if speechIsDone {
 			break
 		}

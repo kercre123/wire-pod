@@ -4,15 +4,19 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/sashabaranov/go-openai"
+	"github.com/wlynxg/anet"
 )
 
 // initialize variables so they don't have to be found during runtime
@@ -38,6 +42,7 @@ var (
 	WhisperModelPath  string = "../whisper.cpp/models/"
 	SessionCertPath   string = "./session-certs/"
 	SavedChatsPath    string = "./openaiChats.json"
+	VersionFile       string = "./version"
 )
 
 var (
@@ -61,8 +66,11 @@ var VoskGrammerEnable bool = false
 
 // here to prevent import cycle (localization restructure)
 var SttInitFunc func() error
-var MatchListList [][]string
-var IntentsList = []string{}
+
+var IntentList []JsonIntent
+
+//var MatchListList [][]string
+// var IntentsList = []string{}
 
 var ChipperCert []byte
 var ChipperKey []byte
@@ -98,8 +106,9 @@ type RecurringInfoStore struct {
 }
 
 type JsonIntent struct {
-	Name       string   `json:"name"`
-	Keyphrases []string `json:"keyphrases"`
+	Name              string   `json:"name"`
+	Keyphrases        []string `json:"keyphrases"`
+	RequireExactMatch bool     `json:"requiresexact"`
 }
 
 type IntentsStruct []struct {
@@ -168,6 +177,9 @@ func Init() {
 		Certs = join(podDir, "./certs")
 		SessionCertPath = join(podDir, SessionCertPath)
 		SavedChatsPath = join(podDir, SavedChatsPath)
+		if runtime.GOOS == "android" {
+			VersionFile = AndroidPath + "/static/version"
+		}
 		os.Mkdir(JdocsDir, 0777)
 		os.Mkdir(SessionCertPath, 0777)
 		os.Mkdir(Certs, 0777)
@@ -270,7 +282,7 @@ func LoadCustomIntents() {
 	}
 }
 
-func LoadIntents() ([][]string, []string, error) {
+func LoadIntents() ([]JsonIntent, error) {
 	var path string
 	if runtime.GOOS == "darwin" && Packaged {
 		appPath, _ := os.Executable()
@@ -282,24 +294,23 @@ func LoadIntents() ([][]string, []string, error) {
 	}
 	jsonFile, err := os.ReadFile(path + "intent-data/" + APIConfig.STT.Language + ".json")
 
-	var matches [][]string
-	var intents []string
-
+	// var matches [][]string
+	// var intents []string
+	var jsonIntents []JsonIntent
 	if err == nil {
-		var jsonIntents []JsonIntent
 		err = json.Unmarshal(jsonFile, &jsonIntents)
-		if err != nil {
-			logger.Println("Failed to load intents: " + err.Error())
-		}
+		// if err != nil {
+		// 	logger.Println("Failed to load intents: " + err.Error())
+		// }
 
-		for _, element := range jsonIntents {
-			//logger.Println("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
-			intents = append(intents, element.Name)
-			matches = append(matches, element.Keyphrases)
-		}
-		logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + APIConfig.STT.Language + ")")
+		// for _, element := range jsonIntents {
+		// 	//logger.Println("Loading intent " + strconv.Itoa(index) + " --> " + element.Name + "( " + strconv.Itoa(len(element.Keyphrases)) + " keyphrases )")
+		// 	intents = append(intents, element.Name)
+		// 	matches = append(matches, element.Keyphrases)
+		// }
+		// logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + APIConfig.STT.Language + ")")
 	}
-	return matches, intents, err
+	return jsonIntents, err
 }
 
 func WriteJdocs() {
@@ -406,7 +417,10 @@ func AddToRInfo(esn string, id string, ip string) {
 }
 
 func SaveChats() {
-	marshalled, _ := json.Marshal(RememberedChats)
+	marshalled, err := json.Marshal(RememberedChats)
+	if err != nil {
+		logger.Println(err)
+	}
 	os.WriteFile(SavedChatsPath, marshalled, 0777)
 }
 
@@ -416,4 +430,53 @@ func LoadChats() {
 		return
 	}
 	json.Unmarshal(file, &RememberedChats)
+}
+
+func GetRobot(esn string) (*vector.Vector, error) {
+	var guid string
+	var target string
+	matched := false
+	for _, bot := range BotInfo.Robots {
+		if esn == bot.Esn {
+			guid = bot.GUID
+			target = bot.IPAddress + ":443"
+			matched = true
+			break
+		}
+	}
+	if !matched {
+		return nil, errors.New("robot not in botsdkinfo")
+	}
+	robot, err := vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
+	if err != nil {
+		return nil, err
+	}
+	return robot, nil
+}
+
+func GetOutboundIP() net.IP {
+	if runtime.GOOS == "android" {
+		ifaces, _ := anet.Interfaces()
+		for _, iface := range ifaces {
+			if iface.Name == "wlan0" {
+				adrs, err := anet.InterfaceAddrsByInterface(&iface)
+				if err != nil {
+					logger.Println(err)
+					break
+				}
+				if len(adrs) > 0 {
+					localAddr := adrs[0].(*net.IPNet)
+					return localAddr.IP
+				}
+			}
+		}
+	}
+	conn, err := net.Dial("udp", OutboundIPTester)
+	if err != nil {
+		logger.Println("not connected to a network: ", err)
+		return net.IPv4(0, 0, 0, 0)
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP
 }

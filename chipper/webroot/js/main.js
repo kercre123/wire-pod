@@ -1,55 +1,54 @@
-var eventListenerAdded = false
+var eventListenerAdded = false;
 
-intentsJson = '["intent_greeting_hello", "intent_names_ask", "intent_imperative_eyecolor", "intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep", "intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear", "intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward", "intent_imperative_turnaround", "intent_imperative_turnleft", "intent_imperative_turnright", "intent_play_rollcube", "intent_play_popawheelie", "intent_play_fistbump", "intent_play_blackjack", "intent_imperative_affirmative", "intent_imperative_negative", "intent_photo_take_extend", "intent_imperative_praise", "intent_imperative_abuse", "intent_weather_extend", "intent_imperative_apologize", "intent_imperative_backup", "intent_imperative_volumedown", "intent_imperative_volumeup", "intent_imperative_lookatme", "intent_imperative_volumelevel_extend", "intent_imperative_shutup", "intent_names_username_extend", "intent_imperative_come", "intent_imperative_love", "intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend", "intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube", "intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend", "intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"]'
+intentsJson =
+  '["intent_greeting_hello", "intent_names_ask", "intent_imperative_eyecolor", "intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep", "intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear", "intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward", "intent_imperative_turnaround", "intent_imperative_turnleft", "intent_imperative_turnright", "intent_play_rollcube", "intent_play_popawheelie", "intent_play_fistbump", "intent_play_blackjack", "intent_imperative_affirmative", "intent_imperative_negative", "intent_photo_take_extend", "intent_imperative_praise", "intent_imperative_abuse", "intent_weather_extend", "intent_imperative_apologize", "intent_imperative_backup", "intent_imperative_volumedown", "intent_imperative_volumeup", "intent_imperative_lookatme", "intent_imperative_volumelevel_extend", "intent_imperative_shutup", "intent_names_username_extend", "intent_imperative_come", "intent_imperative_love", "intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend", "intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube", "intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend", "intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"]';
 
 function updateIntentSelection(element) {
   let xhr = new XMLHttpRequest();
   xhr.open("GET", "/api/get_custom_intents_json");
   xhr.setRequestHeader("Content-Type", "application/json");
   xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
-  xhr.responseType = 'json';
+  xhr.responseType = "json";
   xhr.send();
-  xhr.onload = function() {
+  xhr.onload = function () {
     document.getElementById("editIntentStatus").innerHTML = "";
     document.getElementById("deleteIntentStatus").innerHTML = "";
-    var listResponse = xhr.response
+    var listResponse = xhr.response;
     var listNum = 0;
     if (listResponse != null) {
-      listNum = Object.keys(listResponse).length
+      listNum = Object.keys(listResponse).length;
     }
     if (listResponse != null && listNum != 0) {
-      console.log(listNum)
+      console.log(listNum);
       var select = document.createElement("select");
-      document.getElementById(element).innerHTML = ""
+      document.getElementById(element).innerHTML = "";
       select.name = element + "intents";
-      select.id = element + "intents"
+      select.id = element + "intents";
       for (const name in listResponse) {
-        if (false==listResponse[name]["issystem"]) {
-          console.log(listResponse[name]["name"])
+        if (false == listResponse[name]["issystem"]) {
+          console.log(listResponse[name]["name"]);
           var option = document.createElement("option");
           option.value = listResponse[name]["name"];
-          option.text = listResponse[name]["name"]
+          option.text = listResponse[name]["name"];
           select.appendChild(option);
         }
       }
       var label = document.createElement("label");
-      label.innerHTML = "Choose the intent: "
+      label.innerHTML = "Choose the intent: ";
       label.htmlFor = element + "intents";
       document.getElementById(element).appendChild(label).appendChild(select);
 
-      select.addEventListener("change", function() {
-         if (select.value) {
-            hideEditIntents();
-	 }
+      select.addEventListener("change", function () {
+        if (select.value) {
+          hideEditIntents();
+        }
       });
-
-
     } else {
-      console.log("No intents founda")
+      console.log("No intents founda");
       var error1 = document.createElement("p");
       var error2 = document.createElement("p");
-      error1.innerHTML = "No intents found, you must add one first"
-      error2.innerHTML = "No intents found, you must add one first"
+      error1.innerHTML = "No intents found, you must add one first";
+      error2.innerHTML = "No intents found, you must add one first";
       document.getElementById("editIntentForm").innerHTML = "";
       document.getElementById("editIntentStatus").innerHTML = "";
       document.getElementById("deleteIntentStatus").innerHTML = "";
@@ -62,33 +61,39 @@ function updateIntentSelection(element) {
 }
 
 function checkInited() {
-  fetch("/api/get_config")
-  .then(response => response.text())
+  fetch("/api/get_version_info")
   .then((response) => {
-      parsed = JSON.parse(response)
-      console.log(parsed)
-      console.log(parsed["pastinitialsetup"])
-      if (parsed["pastinitialsetup"] == false) {
-        window.location.href = "/initial.html"
-      }
+    if (!response.ok) {
+      alert("This webroot does not match with the wire-pod binary. Some functionality will be broken. There was either an error during the last update, or you did not precisely follow the update guide.")
+    }
   })
+  fetch("/api/get_config")
+    .then((response) => response.text())
+    .then((response) => {
+      parsed = JSON.parse(response);
+      console.log(parsed);
+      console.log(parsed["pastinitialsetup"]);
+      if (parsed["pastinitialsetup"] == false) {
+        window.location.href = "/initial.html";
+      }
+    });
 }
 
 // function that creates select from intentsJson
 function createIntentSelect(element) {
   var select = document.createElement("select");
-  document.getElementById(element).innerHTML = ""
+  document.getElementById(element).innerHTML = "";
   select.name = element + "intents";
-  select.id = element + "intents"
-  var intents = JSON.parse(intentsJson)
+  select.id = element + "intents";
+  var intents = JSON.parse(intentsJson);
   for (const name in intents) {
     var option = document.createElement("option");
     option.value = intents[name];
-    option.text = intents[name]
+    option.text = intents[name];
     select.appendChild(option);
   }
   var label = document.createElement("label");
-  label.innerHTML = "Intent to send to robot after script executed:"
+  label.innerHTML = "Intent to send to robot after script executed:";
   label.htmlFor = element + "intents";
   document.getElementById(element).appendChild(label).appendChild(select);
 }
@@ -96,188 +101,184 @@ function createIntentSelect(element) {
 // get intent from editSelect element and create a form in div#editIntentForm to edit it
 // options are: name, description, utterances, intent, paramname, paramvalue, exec
 function editFormCreate() {
-    var intentNumber = document.getElementById("editSelectintents").selectedIndex;
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/api/get_custom_intents_json");
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
-    xhr.responseType = 'json';
-    xhr.send();
-    xhr.onload = function() {
-        var intentResponse = xhr.response[intentNumber];
-        if (intentResponse != null) {
-            console.log(intentResponse)
-            var form = document.createElement("form");
-            form.id = "editIntentForm";
-            form.name = "editIntentForm";
+  var intentNumber = document.getElementById("editSelectintents").selectedIndex;
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/api/get_custom_intents_json");
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+  xhr.responseType = "json";
+  xhr.send();
+  xhr.onload = function () {
+    var intentResponse = xhr.response[intentNumber];
+    if (intentResponse != null) {
+      console.log(intentResponse);
+      var form = document.createElement("form");
+      form.id = "editIntentForm";
+      form.name = "editIntentForm";
 
-            var editIntentFrame = document.createElement("div");
-	    editIntentFrame.id = "editIntentFrame";
-	    editIntentFrame.name = "editIntentFrame";
+      var editIntentFrame = document.createElement("div");
+      editIntentFrame.id = "editIntentFrame";
+      editIntentFrame.name = "editIntentFrame";
 
-	    // name
-            var name = document.createElement("input");
-            name.type = "text";
-            name.name = "name";
-            name.id = "name";
-	    // create label for name
-            var nameLabel = document.createElement("label");
-            nameLabel.innerHTML = "Name: <br>"
-            nameLabel.htmlFor = "name";
-            name.value = intentResponse["name"];
+      // name
+      var name = document.createElement("input");
+      name.type = "text";
+      name.name = "name";
+      name.id = "name";
+      // create label for name
+      var nameLabel = document.createElement("label");
+      nameLabel.innerHTML = "Name: <br>";
+      nameLabel.htmlFor = "name";
+      name.value = intentResponse["name"];
 
-	    // description
-	    var description = document.createElement("input");
-            description.type = "text";
-            description.name = "description";
-            description.id = "description";
-	    // create label for description
-            var descriptionLabel = document.createElement("label");
-            descriptionLabel.innerHTML = "Description: <br>"
-            descriptionLabel.htmlFor = "description";
-            description.value = intentResponse["description"];
-            
-	    // utterances
-	    var utterances = document.createElement("input");
-            utterances.type = "text";
-            utterances.name = "utterances";
-            utterances.id = "utterances";
-	    // create label for utterances
-            var utterancesLabel = document.createElement("label");
-            utterancesLabel.innerHTML = "Utterances: <br>"
-            utterancesLabel.htmlFor = "utterances";
-            utterances.value = intentResponse["utterances"];
-            
-	    // intent
-	    var intent = document.createElement("select");
-            var intents = JSON.parse(intentsJson)
-            for (const name in intents)
-            {
-                var option = document.createElement("option");
-                option.value = intents[name];
-                option.text = intents[name]
-                intent.appendChild(option);
-            }
-            intent.type = "text";
-            intent.name = "intent";
-            intent.id = "intent";
-            // create label for intent
-            var intentLabel = document.createElement("label");
-            intentLabel.innerHTML = "Intent: <br>"
-            intentLabel.htmlFor = "intent";
-            intent.value = intentResponse["intent"];
-            
-	    // paramname
-	    var paramname = document.createElement("input");
-            paramname.type = "text";
-            paramname.name = "paramname";
-            paramname.id = "paramname";
-	    // create label for paramname
-            var paramnameLabel = document.createElement("label");
-            paramnameLabel.innerHTML = "Param Name: <br>"
-            paramnameLabel.htmlFor = "paramname";
-            paramname.value = intentResponse["params"]["paramname"];
-            
-	    // paramvalue
-	    var paramvalue = document.createElement("input");
-            paramvalue.type = "text";
-            paramvalue.name = "paramvalue";
-            paramvalue.id = "paramvalue";
-	    // create label for paramvalue
-            var paramvalueLabel = document.createElement("label");
-            paramvalueLabel.innerHTML = "Param Value: <br>"
-            paramvalueLabel.htmlFor = "paramvalue";
-            paramvalue.value = intentResponse["params"]["paramvalue"];
-            
-	    // exec
-	    var exec = document.createElement("input");
-            exec.type = "text";
-            exec.name = "exec";
-            exec.id = "exec";
-	    // create label for exec
-            var execLabel = document.createElement("label");
-            execLabel.innerHTML = "Exec: <br>"
-            execLabel.htmlFor = "exec";
-            exec.value = intentResponse["exec"];
-            
-	    // execargs
-            var execargs = document.createElement("input");
-            execargs.type = "text";
-            execargs.name = "execargs";
-            execargs.id = "execargs";
-            // create label for execargs
-            var execargsLabel = document.createElement("label");
-            execargsLabel.innerHTML = "Exec Args: <br>"
-            execargsLabel.htmlFor = "execargs";
-            execargs.value = intentResponse["execargs"];
-            
-	    // create button that launches function
-            var submit = document.createElement("button");
-            submit.type = "button";
-            submit.id = "submit";
-            submit.innerHTML = "Submit";
-            submit.onclick = function() {
-                editIntent(intentNumber);
-            }
-	    submit.style.position = "relative";
-	    submit.style.left = "50%";
-	    submit.style.top = "15px";
-	    submit.style.transform = "translate(-50%, -50%)";
+      // description
+      var description = document.createElement("input");
+      description.type = "text";
+      description.name = "description";
+      description.id = "description";
+      // create label for description
+      var descriptionLabel = document.createElement("label");
+      descriptionLabel.innerHTML = "Description: <br>";
+      descriptionLabel.htmlFor = "description";
+      description.value = intentResponse["description"];
 
+      // utterances
+      var utterances = document.createElement("input");
+      utterances.type = "text";
+      utterances.name = "utterances";
+      utterances.id = "utterances";
+      // create label for utterances
+      var utterancesLabel = document.createElement("label");
+      utterancesLabel.innerHTML = "Utterances: <br>";
+      utterancesLabel.htmlFor = "utterances";
+      utterances.value = intentResponse["utterances"];
 
-		
-            form.appendChild(nameLabel).appendChild(name);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(descriptionLabel).appendChild(description);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(utterancesLabel).appendChild(utterances);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(intentLabel).appendChild(intent);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(paramnameLabel).appendChild(paramname);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(paramvalueLabel).appendChild(paramvalue);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(execLabel).appendChild(exec);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(execargsLabel).appendChild(execargs);
-            form.appendChild(document.createElement("br"));
-            form.appendChild(submit);
-            document.getElementById("editIntentForm").innerHTML = "";
-            document.getElementById("editIntentForm").appendChild(form);
+      // intent
+      var intent = document.createElement("select");
+      var intents = JSON.parse(intentsJson);
+      for (const name in intents) {
+        var option = document.createElement("option");
+        option.value = intents[name];
+        option.text = intents[name];
+        intent.appendChild(option);
+      }
+      intent.type = "text";
+      intent.name = "intent";
+      intent.id = "intent";
+      // create label for intent
+      var intentLabel = document.createElement("label");
+      intentLabel.innerHTML = "Intent: <br>";
+      intentLabel.htmlFor = "intent";
+      intent.value = intentResponse["intent"];
 
-            //editIntentFrame.appendChild(nameLabel);
-            //editIntentFrame.appendChild(descriptionLabel);
-            //editIntentFrame.appendChild(utterancesLabel);
-            //editIntentFrame.appendChild(form);
+      // paramname
+      var paramname = document.createElement("input");
+      paramname.type = "text";
+      paramname.name = "paramname";
+      paramname.id = "paramname";
+      // create label for paramname
+      var paramnameLabel = document.createElement("label");
+      paramnameLabel.innerHTML = "Param Name: <br>";
+      paramnameLabel.htmlFor = "paramname";
+      paramname.value = intentResponse["params"]["paramname"];
 
-	    //document.body.appendChild(editIntentFrame);
-	    showEditIntents();
+      // paramvalue
+      var paramvalue = document.createElement("input");
+      paramvalue.type = "text";
+      paramvalue.name = "paramvalue";
+      paramvalue.id = "paramvalue";
+      // create label for paramvalue
+      var paramvalueLabel = document.createElement("label");
+      paramvalueLabel.innerHTML = "Param Value: <br>";
+      paramvalueLabel.htmlFor = "paramvalue";
+      paramvalue.value = intentResponse["params"]["paramvalue"];
 
-        } else {
-            console.log("No intents founda")
-            var error1 = document.createElement("p");
-            var error2 = document.createElement("p");
-            error1.innerHTML = "No intents found, you must add one first"
-            error2.innerHTML = "No intents found, you must add one first"
-            document.getElementById("editIntentForm").innerHTML = "";
-            document.getElementById("editIntentStatus").innerHTML = "";
-            document.getElementById("deleteIntentStatus").innerHTML = "";
-            document.getElementById("editSelect").innerHTML = "";
-            document.getElementById("deleteSelect").innerHTML = "";
-            document.getElementById("deleteIntentStatus").appendChild(error1);
-            document.getElementById("editIntentStatus").appendChild(error2);
-        }
-    };
+      // exec
+      var exec = document.createElement("input");
+      exec.type = "text";
+      exec.name = "exec";
+      exec.id = "exec";
+      // create label for exec
+      var execLabel = document.createElement("label");
+      execLabel.innerHTML = "Exec: <br>";
+      execLabel.htmlFor = "exec";
+      exec.value = intentResponse["exec"];
+
+      // execargs
+      var execargs = document.createElement("input");
+      execargs.type = "text";
+      execargs.name = "execargs";
+      execargs.id = "execargs";
+      // create label for execargs
+      var execargsLabel = document.createElement("label");
+      execargsLabel.innerHTML = "Exec Args: <br>";
+      execargsLabel.htmlFor = "execargs";
+      execargs.value = intentResponse["execargs"];
+
+      // create button that launches function
+      var submit = document.createElement("button");
+      submit.type = "button";
+      submit.id = "submit";
+      submit.innerHTML = "Submit";
+      submit.onclick = function () {
+        editIntent(intentNumber);
+      };
+      submit.style.position = "relative";
+      submit.style.left = "50%";
+      submit.style.top = "15px";
+      submit.style.transform = "translate(-50%, -50%)";
+
+      form.appendChild(nameLabel).appendChild(name);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(descriptionLabel).appendChild(description);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(utterancesLabel).appendChild(utterances);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(intentLabel).appendChild(intent);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(paramnameLabel).appendChild(paramname);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(paramvalueLabel).appendChild(paramvalue);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(execLabel).appendChild(exec);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(execargsLabel).appendChild(execargs);
+      form.appendChild(document.createElement("br"));
+      form.appendChild(submit);
+      document.getElementById("editIntentForm").innerHTML = "";
+      document.getElementById("editIntentForm").appendChild(form);
+
+      //editIntentFrame.appendChild(nameLabel);
+      //editIntentFrame.appendChild(descriptionLabel);
+      //editIntentFrame.appendChild(utterancesLabel);
+      //editIntentFrame.appendChild(form);
+
+      //document.body.appendChild(editIntentFrame);
+      showEditIntents();
+    } else {
+      console.log("No intents founda");
+      var error1 = document.createElement("p");
+      var error2 = document.createElement("p");
+      error1.innerHTML = "No intents found, you must add one first";
+      error2.innerHTML = "No intents found, you must add one first";
+      document.getElementById("editIntentForm").innerHTML = "";
+      document.getElementById("editIntentStatus").innerHTML = "";
+      document.getElementById("deleteIntentStatus").innerHTML = "";
+      document.getElementById("editSelect").innerHTML = "";
+      document.getElementById("deleteSelect").innerHTML = "";
+      document.getElementById("deleteIntentStatus").appendChild(error1);
+      document.getElementById("editIntentStatus").appendChild(error2);
+    }
+  };
 }
 
 // create editIntent function that sends post to /api/edit_custom_intent, get index of intent to edit
 // form data should include the intent number, name, description, utterances, intent, paramname, paramvalue, exec
 function editIntent(intentNumber) {
-  console.log(intentNumber)
-  
+  console.log(intentNumber);
+
   var formData = new FormData();
-  formData.append("number", intentNumber+1);
+  formData.append("number", intentNumber + 1);
   formData.append("name", document.getElementById("name").value);
   formData.append("description", document.getElementById("description").value);
   formData.append("utterances", document.getElementById("utterances").value);
@@ -289,80 +290,93 @@ function editIntent(intentNumber) {
   var xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/edit_custom_intent");
   xhr.send(formData);
-  xhr.onload = function() {
+  xhr.onload = function () {
     var response = xhr.response;
     console.log(response);
-    console.log("Intent edited")
+    console.log("Intent edited");
     var success = document.createElement("p");
-    success.innerHTML = "Intent edited successfully"
+    success.innerHTML = "Intent edited successfully";
     document.getElementById("editIntentStatus").innerHTML = "";
     document.getElementById("editIntentStatus").appendChild(success);
-  }   
+  };
 }
 
-updateIntentSelection("editSelect")
-updateIntentSelection("deleteSelect")
-createIntentSelect("intentAddSelect")
+updateIntentSelection("editSelect");
+updateIntentSelection("deleteSelect");
+createIntentSelect("intentAddSelect");
 
-var HttpClient = function() {
-  this.get = function(aUrl, aCallback) {
-  var anHttpRequest = new XMLHttpRequest();
-  anHttpRequest.onreadystatechange = function() { 
-    if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
-      aCallback(anHttpRequest.responseText);
-    }
-    anHttpRequest.open( "GET", aUrl, true );            
-    anHttpRequest.send( null );
-  }
-}
+var HttpClient = function () {
+  this.get = function (aUrl, aCallback) {
+    var anHttpRequest = new XMLHttpRequest();
+    anHttpRequest.onreadystatechange = function () {
+      if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+        aCallback(anHttpRequest.responseText);
+    };
+    anHttpRequest.open("GET", aUrl, true);
+    anHttpRequest.send(null);
+  };
+};
 
 function deleteSelectedIntent() {
   var intentNumber = document.getElementById("editSelectintents").selectedIndex;
-  
+
   var formData = new FormData();
-  formData.append("number", intentNumber+1);
-  console.log(intentNumber+1)
+  formData.append("number", intentNumber + 1);
+  console.log(intentNumber + 1);
   var xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/remove_custom_intent");
   xhr.send(formData);
-  xhr.onload = function() {
+  xhr.onload = function () {
     var response = xhr.response;
     console.log(response);
-    console.log("Intent deleted")
-    hideEditIntents()
-    updateIntentSelection("editSelect")
-    updateIntentSelection("deleteSelect")
-  }
+    console.log("Intent deleted");
+    hideEditIntents();
+    updateIntentSelection("editSelect");
+    updateIntentSelection("deleteSelect");
+  };
 }
 
 function sendIntentAdd() {
-  const form = document.getElementById('intentAddForm');
-  var data = "name=" + form.elements['nameAdd'].value + "&description=" + form.elements['descriptionAdd'].value + "&utterances=" + form.elements['utterancesAdd'].value + "&intent=" + form.elements['intentAddSelectintents'].value + "&paramname=" + form.elements['paramnameAdd'].value + "&paramvalue=" + form.elements['paramvalueAdd'].value + "&exec=" + form.elements['execAdd'].value + "&execargs=" + form.elements['execAddArgs'].value;
+  const form = document.getElementById("intentAddForm");
+  var data =
+    "name=" +
+    form.elements["nameAdd"].value +
+    "&description=" +
+    form.elements["descriptionAdd"].value +
+    "&utterances=" +
+    form.elements["utterancesAdd"].value +
+    "&intent=" +
+    form.elements["intentAddSelectintents"].value +
+    "&paramname=" +
+    form.elements["paramnameAdd"].value +
+    "&paramvalue=" +
+    form.elements["paramvalueAdd"].value +
+    "&exec=" +
+    form.elements["execAdd"].value +
+    "&execargs=" +
+    form.elements["execAddArgs"].value;
   var client = new HttpClient();
-  var result = document.getElementById('addIntentStatus');
-  const resultP = document.createElement('p');
-  resultP.textContent =  "Adding...";
-  result.innerHTML = '';
+  var result = document.getElementById("addIntentStatus");
+  const resultP = document.createElement("p");
+  resultP.textContent = "Adding...";
+  result.innerHTML = "";
   result.appendChild(resultP);
   fetch("/api/add_custom_intent?" + data)
-  .then(response => response.text())
-  .then((response) => {
-    resultP.innerHTML = response
-    result.innerHTML = '';
-    result.appendChild(resultP);
-    updateIntentSelection("editSelect")
-    updateIntentSelection("deleteSelect")
-  })
+    .then((response) => response.text())
+    .then((response) => {
+      resultP.innerHTML = response;
+      result.innerHTML = "";
+      result.appendChild(resultP);
+      updateIntentSelection("editSelect");
+      updateIntentSelection("deleteSelect");
+    });
 }
-
-
-
 
 // Toggle Headllines
 function toggleSection(sectionToToggle, sectionToClose, foldableID) {
   const toggleSect = document.getElementById(sectionToToggle);
   const closeSect = document.getElementById(sectionToClose);
-  
+
   if (toggleSect.style.display === "block") {
     closeSection(toggleSect, foldableID);
   } else {
@@ -378,7 +392,6 @@ function openSection(sectionID, foldableID) {
 function closeSection(sectionID, foldableID) {
   sectionID.style.display = "none";
 }
-
 
 /*
 function togglePlusMinusSymbols() {
@@ -398,391 +411,477 @@ function togglePlusMinusSymbols() {
 
 // Changes color of the clicked icon
 function updateColor(id) {
-
-  let body_styles = window.getComputedStyle(document.getElementsByTagName("body")[0]);
+  let body_styles = window.getComputedStyle(
+    document.getElementsByTagName("body")[0]
+  );
   let fgColor = body_styles.getPropertyValue("--fg-color");
   let bgColorAlt = body_styles.getPropertyValue("--bg-color-alt");
 
-  l_id = id.replace("section","icon");
+  l_id = id.replace("section", "icon");
   let elements = document.getElementsByName("icon");
   for (let i = 0; i < elements.length; i++) {
-      document.getElementById(elements[i].id).style.color = bgColorAlt;
+    document.getElementById(elements[i].id).style.color = bgColorAlt;
   }
   document.getElementById(l_id).style.color = fgColor;
 }
 
-GetLog = false
+GetLog = false;
 
 function showLog() {
-    document.getElementById("section-intents").style.display = "none";
-    document.getElementById("section-language").style.display = "none";
-    document.getElementById("section-log").style.display = "block";
-    document.getElementById("section-botauth").style.display = "none";
-    updateColor("icon-Logs");
+  document.getElementById("section-intents").style.display = "none";
+  document.getElementById("section-language").style.display = "none";
+  document.getElementById("section-log").style.display = "block";
+  document.getElementById("section-botauth").style.display = "none";
+  document.getElementById("section-version").style.display = "none";
+  updateColor("icon-Logs");
 
-    GetLog = true
-    logDivArea = document.getElementById("botTranscriptedTextArea")
-    document.getElementById("logscrollbottom").checked = true
-    logP = document.createElement("p")
-    interval = setInterval(function() {
-        if (GetLog == false) {
-            clearInterval(interval)
-            return
-        }
-        let xhr = new XMLHttpRequest();
-        if (document.getElementById("logdebug").checked) {
-          xhr.open("GET", "/api/get_debug_logs");
+  GetLog = true;
+  logDivArea = document.getElementById("botTranscriptedTextArea");
+  document.getElementById("logscrollbottom").checked = true;
+  logP = document.createElement("p");
+  interval = setInterval(function () {
+    if (GetLog == false) {
+      clearInterval(interval);
+      return;
+    }
+    let xhr = new XMLHttpRequest();
+    if (document.getElementById("logdebug").checked) {
+      xhr.open("GET", "/api/get_debug_logs");
+    } else {
+      xhr.open("GET", "/api/get_logs");
+    }
+    xhr.send();
+    xhr.onload = function () {
+      logDivArea.innerHTML = "";
+      if (xhr.response == "") {
+        logP.innerHTML =
+          "No logs yet, you must say a command to Vector. (this updates automatically)";
+      } else {
+        logP.innerHTML = xhr.response;
+      }
+      if (document.getElementById("logscrollbottom").checked) {
+        logDivArea.value = logP.innerHTML;
+        logDivArea.scrollTop = logDivArea.scrollHeight;
+      } else {
+        logDivArea.value = logP.innerHTML;
+      }
+    };
+  }, 500);
+}
+
+// <p id="cVersion"></p>
+// <p id="aUpdate"></p>
+
+function checkUpdate() {
+  cVersion = document.getElementById("cVersion");
+  aUpdate = document.getElementById("aUpdate");
+  cVersion.innerHTML = "Checking for updates...";
+  aUpdate.innerHTML = "";
+  fetch("/api/get_version_info")
+    .then((response) => response.text())
+    .then((response) => {
+      if (response.includes("error")) {
+        cVersion.innerHTML =
+          "There was an error. This is likely because this version of wire-pod was compiled from source, and this section only works with official WirePod releases.";
+          document.getElementById("updateGuideLink").style.display = "none";
+      } else {
+        parsed = JSON.parse(response);
+        cVersion.innerHTML = "Current Version: " + parsed.installed;
+        if (parsed.avail) {
+          aUpdate.innerHTML =
+            "A newer version of WirePod (" +
+            parsed.current +
+            ") is available! Use this guide to update WirePod: ";
+          document.getElementById("updateGuideLink").style.display = "block";
         } else {
-          xhr.open("GET", "/api/get_logs");
+          aUpdate.innerHTML = "You are on the latest version.";
+          document.getElementById("updateGuideLink").style.display = "none";
         }
-        xhr.send();
-        xhr.onload = function() {
-            logDivArea.innerHTML = ""
-            if (xhr.response == "") {
-                logP.innerHTML = "No logs yet, you must say a command to Vector. (this updates automatically)"
-            } else {
-                logP.innerHTML = xhr.response
-            }
-            if (document.getElementById("logscrollbottom").checked) {
-              logDivArea.value = logP.innerHTML; 
-              logDivArea.scrollTop = logDivArea.scrollHeight;
-            } else {
-              logDivArea.value = logP.innerHTML;
-            }
-        }
-    }, 500)
+      }
+    });
 }
 
 function showLanguage() {
-  GetLog = false
+  GetLog = false;
   document.getElementById("section-weather").style.display = "none";
   document.getElementById("section-stt").style.display = "none";
   document.getElementById("section-restart").style.display = "none";
   document.getElementById("section-kg").style.display = "none";
   document.getElementById("section-language").style.display = "block";
   updateColor("icon-Language");
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", "/api/get_stt_info");
-    xhr.send();
-    xhr.onload = function() {
-        parsed = JSON.parse(xhr.response)
-        if (parsed["sttProvider"] != "vosk" && parsed["sttProvider"] != "whisper.cpp") {
-          error = document.createElement("p")
-          error.innerHTML = "To set the STT language, the provider must be Vosk or Whisper. The current one is '" + parsed["sttProvider"] + "'."
-          document.getElementById("languageStatus").appendChild(error)
-          document.getElementById("languageSelectionDiv").style.display = "none"
-        } else {
-          document.getElementById("languageSelectionDiv").style.display = "block"
-          console.log(parsed["sttLanguage"])
-          document.getElementById("languageSelection").value = parsed["sttLanguage"]
-        }
+  let xhr = new XMLHttpRequest();
+  xhr.open("GET", "/api/get_stt_info");
+  xhr.send();
+  xhr.onload = function () {
+    parsed = JSON.parse(xhr.response);
+    if (
+      parsed["sttProvider"] != "vosk" &&
+      parsed["sttProvider"] != "whisper.cpp"
+    ) {
+      error = document.createElement("p");
+      error.innerHTML =
+        "To set the STT language, the provider must be Vosk or Whisper. The current one is '" +
+        parsed["sttProvider"] +
+        "'.";
+      document.getElementById("languageStatus").appendChild(error);
+      document.getElementById("languageSelectionDiv").style.display = "none";
+    } else {
+      document.getElementById("languageSelectionDiv").style.display = "block";
+      console.log(parsed["sttLanguage"]);
+      document.getElementById("languageSelection").value =
+        parsed["sttLanguage"];
     }
+  };
+}
+
+function showVersion() {
+  GetLog = false;
+  checkUpdate();
+  document.getElementById("section-log").style.display = "none";
+  document.getElementById("section-language").style.display = "none";
+  document.getElementById("section-botauth").style.display = "none";
+  document.getElementById("section-intents").style.display = "none";
+  document.getElementById("section-version").style.display = "block";
+  updateColor("icon-Version");
 }
 
 function showIntents() {
-    GetLog = false
-    document.getElementById("section-log").style.display = "none";
-    document.getElementById("section-language").style.display = "none";
-    document.getElementById("section-botauth").style.display = "none";
-    document.getElementById("section-intents").style.display = "block";
-    updateColor("icon-Intents");
+  GetLog = false;
+  document.getElementById("section-log").style.display = "none";
+  document.getElementById("section-language").style.display = "none";
+  document.getElementById("section-botauth").style.display = "none";
+  document.getElementById("section-intents").style.display = "block";
+  document.getElementById("section-version").style.display = "none";
+  updateColor("icon-Intents");
 }
 
 function showWeather() {
-    document.getElementById("section-weather").style.display = "block";
-    document.getElementById("section-stt").style.display = "none";
-    document.getElementById("section-restart").style.display = "none";
-    document.getElementById("section-language").style.display = "none";
-    document.getElementById("section-kg").style.display = "none";
-    updateColor("icon-Weather");
+  document.getElementById("section-weather").style.display = "block";
+  document.getElementById("section-stt").style.display = "none";
+  document.getElementById("section-restart").style.display = "none";
+  document.getElementById("section-language").style.display = "none";
+  document.getElementById("section-kg").style.display = "none";
+  document.getElementById("section-version").style.display = "none";
+  updateColor("icon-Weather");
 }
 
 function showKG() {
-    document.getElementById("section-weather").style.display = "none";
-    document.getElementById("section-stt").style.display = "none";
-    document.getElementById("section-restart").style.display = "none";
-    document.getElementById("section-language").style.display = "none";
-    document.getElementById("section-kg").style.display = "block";
-    updateColor("icon-KG");
+  document.getElementById("section-weather").style.display = "none";
+  document.getElementById("section-stt").style.display = "none";
+  document.getElementById("section-restart").style.display = "none";
+  document.getElementById("section-language").style.display = "none";
+  document.getElementById("section-kg").style.display = "block";
+  document.getElementById("section-version").style.display = "none";
+  updateColor("icon-KG");
 }
 
 function showSTT() {
-    document.getElementById("section-weather").style.display = "none";
-    document.getElementById("section-kg").style.display = "none";
-    document.getElementById("section-stt").style.display = "block";
-    document.getElementById("section-restart").style.display = "none";
-    updateColor("icon-STT");
+  document.getElementById("section-weather").style.display = "none";
+  document.getElementById("section-kg").style.display = "none";
+  document.getElementById("section-stt").style.display = "block";
+  document.getElementById("section-restart").style.display = "none";
+  document.getElementById("section-version").style.display = "none";
+  updateColor("icon-STT");
 }
 
 function showRestart() {
-    document.getElementById("section-weather").style.display = "none";
-    document.getElementById("section-kg").style.display = "none";
-    document.getElementById("section-stt").style.display = "none";
-    document.getElementById("section-restart").style.display = "block";
-    updateColor("icon-Restart");
+  document.getElementById("section-weather").style.display = "none";
+  document.getElementById("section-kg").style.display = "none";
+  document.getElementById("section-stt").style.display = "none";
+  document.getElementById("section-restart").style.display = "block";
+  document.getElementById("section-version").style.display = "none";
+  updateColor("icon-Restart");
 }
 
 function checkWeather() {
-    if (document.getElementById("weatherProvider").value=="") {
-        document.getElementById("apiKey").value = "";
-        document.getElementById("apiKeySpan").style.display = "none";
-    }
-    else {
-        document.getElementById("apiKeySpan").style.display = "block";
-    }
+  if (document.getElementById("weatherProvider").value == "") {
+    document.getElementById("apiKey").value = "";
+    document.getElementById("apiKeySpan").style.display = "none";
+  } else {
+    document.getElementById("apiKeySpan").style.display = "block";
+  }
 }
 
 function sendWeatherAPIKey() {
-    var form = document.getElementById("weatherAPIAddForm");
-    var provider = document.getElementById("weatherProvider").value;
+  var form = document.getElementById("weatherAPIAddForm");
+  var provider = document.getElementById("weatherProvider").value;
 
-    var data = "provider=" + provider + "&api_key=" + form.elements["apiKey"].value;
-    var result = document.getElementById('addWeatherProviderAPIStatus');
-    const resultP = document.createElement('p');
-    resultP.textContent =  "Saving...";
-    result.innerHTML = '';
-    result.appendChild(resultP);
-    fetch("/api/set_weather_api?" + data)
-        .then(response => response.text())
-        .then((response) => {
-            resultP.innerHTML = response
-            result.innerHTML = '';
-            result.appendChild(resultP);
-        })
+  var data =
+    "provider=" + provider + "&api_key=" + form.elements["apiKey"].value;
+  var result = document.getElementById("addWeatherProviderAPIStatus");
+  const resultP = document.createElement("p");
+  resultP.textContent = "Saving...";
+  result.innerHTML = "";
+  result.appendChild(resultP);
+  fetch("/api/set_weather_api?" + data)
+    .then((response) => response.text())
+    .then((response) => {
+      resultP.innerHTML = response;
+      result.innerHTML = "";
+      result.appendChild(resultP);
+    });
 }
 
 function updateWeatherAPI() {
-    fetch("/api/get_weather_api")
-        .then(response => response.text())
-        .then((response) => {
-            obj = JSON.parse(response);
-            document.getElementById("weatherProvider").value = obj.weatherProvider;
-            document.getElementById("apiKey").value = obj.weatherApiKey;
-            checkWeather();
-        })
+  fetch("/api/get_weather_api")
+    .then((response) => response.text())
+    .then((response) => {
+      obj = JSON.parse(response);
+      document.getElementById("weatherProvider").value = obj.weatherProvider;
+      document.getElementById("apiKey").value = obj.weatherApiKey;
+      checkWeather();
+    });
 }
 
 function checkKG() {
-    if (document.getElementById("kgProvider").value=="") {
-        document.getElementById("houndifyInput").style.display = "none";
-        document.getElementById("togetherInput").style.display = "none";
-        document.getElementById("openAIInput").style.display = "none";
-        document.getElementById("saveChatInput").style.display = "none";
-        document.getElementById("openAIRobotNameInput").style.display = "none";
-    } else if (document.getElementById("kgProvider").value=="houndify") {
-        document.getElementById("openAIRobotNameInput").style.display = "none";  
-        document.getElementById("togetherInput").style.display = "none";
-        document.getElementById("openAIInput").style.display = "none";
-        document.getElementById("houndifyInput").style.display = "block";
-        document.getElementById("saveChatInput").style.display = "none";
-    } else if (document.getElementById("kgProvider").value=="openai") {
-        document.getElementById("openAIInput").style.display = "block";
-        document.getElementById("togetherInput").style.display = "none";
-        document.getElementById("houndifyInput").style.display = "none";
-        document.getElementById("saveChatInput").style.display = "block";
-
-        if (document.getElementById("intentyes").checked == true) {
-            document.getElementById("openAIRobotNameInput").style.display = "block";
-        } else {
-            document.getElementById("openAIRobotNameInput").style.display = "none";
-        }
-    } else if (document.getElementById("kgProvider").value=="together") {
-        document.getElementById("openAIRobotNameInput").style.display = "none";
-        document.getElementById("togetherInput").style.display = "block";
-        document.getElementById("openAIInput").style.display = "none";
-        document.getElementById("houndifyInput").style.display = "none";
-        document.getElementById("saveChatInput").style.display = "block";
-        if (document.getElementById("togetherintentyes").checked == true) {
-          document.getElementById("togetherAIRobotNameInput").style.display = "block";
-        } else {
-          document.getElementById("togetherAIRobotNameInput").style.display = "none";
-        }
-    }
+  if (document.getElementById("kgProvider").value == "") {
+    document.getElementById("houndifyInput").style.display = "none";
+    document.getElementById("togetherInput").style.display = "none";
+    document.getElementById("openAIInput").style.display = "none";
+    document.getElementById("saveChatInput").style.display = "none";
+    document.getElementById("llmCommandInput").style.display = "none";
+  } else if (document.getElementById("kgProvider").value == "houndify") {
+    document.getElementById("togetherInput").style.display = "none";
+    document.getElementById("openAIInput").style.display = "none";
+    document.getElementById("houndifyInput").style.display = "block";
+    document.getElementById("saveChatInput").style.display = "none";
+    document.getElementById("llmCommandInput").style.display = "none";
+  } else if (document.getElementById("kgProvider").value == "openai") {
+    document.getElementById("openAIInput").style.display = "block";
+    document.getElementById("togetherInput").style.display = "none";
+    document.getElementById("houndifyInput").style.display = "none";
+    document.getElementById("saveChatInput").style.display = "block";
+    document.getElementById("llmCommandInput").style.display = "block";
+  } else if (document.getElementById("kgProvider").value == "together") {
+    document.getElementById("togetherInput").style.display = "block";
+    document.getElementById("openAIInput").style.display = "none";
+    document.getElementById("houndifyInput").style.display = "none";
+    document.getElementById("saveChatInput").style.display = "block";
+    document.getElementById("llmCommandInput").style.display = "block";
+  }
 }
 
 function sendKGAPIKey() {
-    var provider = document.getElementById("kgProvider").value
-    var key = ""
-    var openAIPrompt = ""
-    var id = ""
-    var intentgraph = ""
-    var robotName = ""
-    var model = ""
-    var saveChat = ""
+  var provider = document.getElementById("kgProvider").value;
+  var key = "";
+  var openAIPrompt = "";
+  var id = "";
+  var intentgraph = "";
+  var robotName = "";
+  var model = "";
+  var saveChat = "";
+  var doCommands = "";
 
-    if (provider == "openai") {
-        key = document.getElementById("openAIKey").value
-        openAIPrompt = document.getElementById("openAIPrompt").value
-        if (document.getElementById("intentyes").checked == true) {
-            intentgraph = "true"
-            robotName = document.getElementById("openAIRobotName").value
-        } else {
-            intentgraph = "false"
-        }
-        if (document.getElementById("saveChatYes").checked == true) {
-          saveChat = "true"
-        } else {
-          saveChat = "false"
-        }
-    } else if (provider == "together") {
-        key = document.getElementById("togetherKey").value
-        model = document.getElementById("togetherModel").value
-        openAIPrompt = document.getElementById("togetherAIPrompt").value
-        if (document.getElementById("togetherintentyes").checked == true) {
-            intentgraph = "true"
-            robotName = document.getElementById("togetherAIRobotName").value
-        } else {
-            intentgraph = "false"
-        }
-        if (document.getElementById("saveChatYes").checked == true) {
-          saveChat = "true"
-        } else {
-          saveChat = "false"
-        }
-    } else if (provider == "houndify") {
-        key = document.getElementById("houndKey").value
-        model = ""
-        id = document.getElementById("houndID").value
-        intentgraph = "false"
+  if (provider == "openai") {
+    key = document.getElementById("openAIKey").value;
+    openAIPrompt = document.getElementById("openAIPrompt").value;
+    if (document.getElementById("commandYes").checked == true) {
+      doCommands = "true";
     } else {
-        key = ""
-        id = ""
-        model = ""
-        intentgraph = "false"
+      doCommands = "false";
     }
+    if (document.getElementById("intentyes").checked == true) {
+      intentgraph = "true";
+    } else {
+      intentgraph = "false";
+    }
+    if (document.getElementById("saveChatYes").checked == true) {
+      saveChat = "true";
+    } else {
+      saveChat = "false";
+    }
+  } else if (provider == "together") {
+    key = document.getElementById("togetherKey").value;
+    model = document.getElementById("togetherModel").value;
+    openAIPrompt = document.getElementById("togetherAIPrompt").value;
+    if (document.getElementById("commandYes").checked == true) {
+      doCommands = "true";
+    } else {
+      doCommands = "false";
+    }
+    if (document.getElementById("togetherintentyes").checked == true) {
+      intentgraph = "true";
+    } else {
+      intentgraph = "false";
+    }
+    if (document.getElementById("saveChatYes").checked == true) {
+      saveChat = "true";
+    } else {
+      saveChat = "false";
+    }
+  } else if (provider == "houndify") {
+    key = document.getElementById("houndKey").value;
+    model = "";
+    id = document.getElementById("houndID").value;
+    intentgraph = "false";
+  } else {
+    key = "";
+    id = "";
+    model = "";
+    intentgraph = "false";
+  }
 
-    var data = "provider=" + provider + "&api_key=" + key + "&model=" + model + "&api_id=" + id + "&intent_graph=" + intentgraph + "&robot_name=" + robotName + "&openai_prompt=" + openAIPrompt + "&save_chat=" + saveChat
-    var result = document.getElementById('addKGProviderAPIStatus');
-    const resultP = document.createElement('p');
-    resultP.textContent =  "Saving...";
-    result.innerHTML = '';
-    result.appendChild(resultP);
-    fetch("/api/set_kg_api?" + data)
-        .then(response => response.text())
-        .then((response) => {
-            resultP.innerHTML = response
-            result.innerHTML = '';
-            result.appendChild(resultP);
-        })
+  var data =
+    "provider=" +
+    provider +
+    "&api_key=" +
+    key +
+    "&model=" +
+    model +
+    "&api_id=" +
+    id +
+    "&intent_graph=" +
+    intentgraph +
+    "&robot_name=" +
+    robotName +
+    "&openai_prompt=" +
+    openAIPrompt +
+    "&save_chat=" +
+    saveChat +
+    "&commands_enable=" +
+    doCommands;
+  var result = document.getElementById("addKGProviderAPIStatus");
+  const resultP = document.createElement("p");
+  resultP.textContent = "Saving...";
+  result.innerHTML = "";
+  result.appendChild(resultP);
+  fetch("/api/set_kg_api?" + data)
+    .then((response) => response.text())
+    .then((response) => {
+      resultP.innerHTML = response;
+      result.innerHTML = "";
+      result.appendChild(resultP);
+      alert(response);
+    });
 }
 
 function deleteSavedChats() {
-  if(confirm("Are you sure? This will delete all saved chats.")){
+  if (confirm("Are you sure? This will delete all saved chats.")) {
     fetch("/api/delete_chats")
-      .then(response => response.text())
+      .then((response) => response.text())
       .then((response) => {
-          //console.log(response)
-          alert("Successfully deleted all saved chats.")
-    })
+        //console.log(response)
+        alert("Successfully deleted all saved chats.");
+      });
   }
 }
 
 function updateKGAPI() {
-    fetch("/api/get_kg_api")
-        .then(response => response.text())
-        .then((response) => {
-            obj = JSON.parse(response);
-            document.getElementById("kgProvider").value = obj.kgProvider;
-            if (obj.kgProvider == "openai") {
-                document.getElementById("openAIKey").value = obj.kgApiKey;
-                document.getElementById("openAIPrompt").value = obj.kgOpenAIPrompt;
-                if (obj.kgIntentGraph == "true") {
-                    document.getElementById("intentyes").checked = true;
-                    document.getElementById("openAIRobotName").value = obj.kgRobotName;
-                } else {
-                    document.getElementById("intentno").checked = true;
-                }
-                if (obj.kgSaveChat == "true") {
-                  document.getElementById("saveChatYes").checked = true;
-                } else {
-                  document.getElementById("saveChatNo").checked = true;
-                }
-            } else if (obj.kgProvider == "together") {
-              document.getElementById("togetherKey").value = obj.kgApiKey;
-              document.getElementById("togetherModel").value = obj.kgModel;
-              document.getElementById("togetherAIPrompt").value = obj.kgOpenAIPrompt;
-              if (obj.kgIntentGraph == "true") {
-                  document.getElementById("intentyes").checked = true;
-                  document.getElementById("togetherintentyes").checked = true;
-                  document.getElementById("togetherAIRobotName").value = obj.kgRobotName;
-              } else {
-                  document.getElementById("intentno").checked = true;
-                  document.getElementById("togetherintentyes").checked = true;
-              }
-              if (obj.kgSaveChat == "true") {
-                document.getElementById("saveChatYes").checked = true;
-              } else {
-                document.getElementById("saveChatNo").checked = true;
-              }
-            } else if (obj.kgProvider == "houndify") {
-                document.getElementById("houndKey").value = obj.kgApiKey;
-                document.getElementById("houndID").value = obj.kgApiID;
-            }
-            checkKG();
-        })
+  fetch("/api/get_kg_api")
+    .then((response) => response.text())
+    .then((response) => {
+      obj = JSON.parse(response);
+      document.getElementById("kgProvider").value = obj.kgProvider;
+      if (obj.kgProvider == "openai") {
+        document.getElementById("openAIKey").value = obj.kgApiKey;
+        document.getElementById("openAIPrompt").value = obj.kgOpenAIPrompt;
+        if (obj.kgCommandsEnable == "true") {
+          document.getElementById("commandYes").checked = true;
+        } else {
+          document.getElementById("commandNo").checked = true;
+        }
+        if (obj.kgIntentGraph == "true") {
+          document.getElementById("intentyes").checked = true;
+        } else {
+          document.getElementById("intentno").checked = true;
+        }
+        if (obj.kgSaveChat == "true") {
+          document.getElementById("saveChatYes").checked = true;
+        } else {
+          document.getElementById("saveChatNo").checked = true;
+        }
+      } else if (obj.kgProvider == "together") {
+        document.getElementById("togetherKey").value = obj.kgApiKey;
+        document.getElementById("togetherModel").value = obj.kgModel;
+        document.getElementById("togetherAIPrompt").value = obj.kgOpenAIPrompt;
+        if (obj.kgCommandsEnable == "true") {
+          document.getElementById("commandYes").checked = true;
+        } else {
+          document.getElementById("commandNo").checked = true;
+        }
+        if (obj.kgIntentGraph == "true") {
+          document.getElementById("intentyes").checked = true;
+          document.getElementById("togetherintentyes").checked = true;
+        } else {
+          document.getElementById("intentno").checked = true;
+          document.getElementById("togetherintentyes").checked = true;
+        }
+        if (obj.kgSaveChat == "true") {
+          document.getElementById("saveChatYes").checked = true;
+        } else {
+          document.getElementById("saveChatNo").checked = true;
+        }
+      } else if (obj.kgProvider == "houndify") {
+        document.getElementById("houndKey").value = obj.kgApiKey;
+        document.getElementById("houndID").value = obj.kgApiID;
+      }
+      checkKG();
+    });
 }
 
 function setSTTLanguage() {
-    var language = document.getElementById("languageSelection").value;
-    var data = "language=" + language;
-    document.getElementById("languageSelectionDiv").style.display = "none"
-    var result = document.getElementById('languageStatus');
-    var resultP = document.createElement('p');
-    resultP.textContent =  "Setting...";
-    result.innerHTML = '';
-    result.appendChild(resultP);
-    fetch("/api/set_stt_info?" + data)
-        .then(response => response.text())
-        .then((response) => {
-            resultP.innerHTML = response
-            result.innerHTML = '';
-            if (response.includes("success")) {
-              resultP.innerHTML = "Language switched successfully."
-              document.getElementById("languageSelectionDiv").style.display = "block"
-            } else if (response.includes("downloading")) {
-              resultP.innerHTML = "Downloading model..."
-              result.appendChild(resultP);
-              updateSTTLanguageDownload()
-              return
-            } else if (response.includes("error")) {
-              document.getElementById("languageSelectionDiv").style.display = "block"
-              resultP.innerHTML = response
-            }
-            result.appendChild(resultP);
-        })
+  var language = document.getElementById("languageSelection").value;
+  var data = "language=" + language;
+  document.getElementById("languageSelectionDiv").style.display = "none";
+  var result = document.getElementById("languageStatus");
+  var resultP = document.createElement("p");
+  resultP.textContent = "Setting...";
+  result.innerHTML = "";
+  result.appendChild(resultP);
+  fetch("/api/set_stt_info?" + data)
+    .then((response) => response.text())
+    .then((response) => {
+      resultP.innerHTML = response;
+      result.innerHTML = "";
+      if (response.includes("success")) {
+        resultP.innerHTML = "Language switched successfully.";
+        document.getElementById("languageSelectionDiv").style.display = "block";
+      } else if (response.includes("downloading")) {
+        resultP.innerHTML = "Downloading model...";
+        result.appendChild(resultP);
+        updateSTTLanguageDownload();
+        return;
+      } else if (response.includes("error")) {
+        document.getElementById("languageSelectionDiv").style.display = "block";
+        resultP.innerHTML = response;
+      }
+      result.appendChild(resultP);
+    });
 }
 
 function updateSTTLanguageDownload() {
-  var resultP = document.createElement('p');
-  var result = document.getElementById('languageStatus');
-  interval = setInterval(function(){
+  var resultP = document.createElement("p");
+  var result = document.getElementById("languageStatus");
+  interval = setInterval(function () {
     fetch("/api/get_download_status")
-      .then(response => response.text())
-      .then((response => {
-        statusText = response
+      .then((response) => response.text())
+      .then((response) => {
+        statusText = response;
         if (response.includes("success")) {
-          statusText = "Language switched successfully."
-          resultP.textContent = statusText
-          result.innerHTML = '';
+          statusText = "Language switched successfully.";
+          resultP.textContent = statusText;
+          result.innerHTML = "";
           result.appendChild(resultP);
-          document.getElementById("languageSelectionDiv").style.display = "block"
-          clearInterval(interval)
-          return
+          document.getElementById("languageSelectionDiv").style.display =
+            "block";
+          clearInterval(interval);
+          return;
         } else if (response.includes("error")) {
-          resultP.textContent = statusText
-          result.innerHTML = '';
+          resultP.textContent = statusText;
+          result.innerHTML = "";
           result.appendChild(resultP);
-          document.getElementById("languageSelectionDiv").style.display = "block"
-          clearInterval(interval)
-          return
+          document.getElementById("languageSelectionDiv").style.display =
+            "block";
+          clearInterval(interval);
+          return;
         } else if (response.includes("not downloading")) {
-          statusText = "Initiating download..."
+          statusText = "Initiating download...";
         }
-        resultP.textContent = statusText
-        result.innerHTML = '';
+        resultP.textContent = statusText;
+        result.innerHTML = "";
         result.appendChild(resultP);
-      }))
-  }, 500)
+      });
+  }, 500);
 }
 
 // function updateSTTLanguage() {
@@ -796,20 +895,20 @@ function updateSTTLanguageDownload() {
 // }
 
 function sendRestart() {
-    fetch("/api/reset")
-        .then(response => response.text())
-        .then((response) => {
-            resultP.innerHTML = response
-            result.innerHTML = '';
-            result.appendChild(resultP);
-        })
+  fetch("/api/reset")
+    .then((response) => response.text())
+    .then((response) => {
+      resultP.innerHTML = response;
+      result.innerHTML = "";
+      result.appendChild(resultP);
+    });
 }
 
 function hideEditIntents() {
-   document.getElementById("editIntentForm").style.display = "none";
-   document.getElementById("editIntentStatus").innerHTML = "";
+  document.getElementById("editIntentForm").style.display = "none";
+  document.getElementById("editIntentStatus").innerHTML = "";
 }
 
 function showEditIntents() {
-   document.getElementById("editIntentForm").style.display = "block";
+  document.getElementById("editIntentForm").style.display = "block";
 }

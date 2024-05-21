@@ -21,15 +21,16 @@ type apiConfig struct {
 		Unit     string `json:"unit"`
 	} `json:"weather"`
 	Knowledge struct {
-		Enable       bool   `json:"enable"`
-		Provider     string `json:"provider"`
-		Key          string `json:"key"`
-		ID           string `json:"id"`
-		Model        string `json:"model"`
-		IntentGraph  bool   `json:"intentgraph"`
-		RobotName    string `json:"robotName"`
-		OpenAIPrompt string `json:"openai_prompt"`
-		SaveChat     bool   `json:"save_chat"`
+		Enable         bool   `json:"enable"`
+		Provider       string `json:"provider"`
+		Key            string `json:"key"`
+		ID             string `json:"id"`
+		Model          string `json:"model"`
+		IntentGraph    bool   `json:"intentgraph"`
+		RobotName      string `json:"robotName"`
+		OpenAIPrompt   string `json:"openai_prompt"`
+		SaveChat       bool   `json:"save_chat"`
+		CommandsEnable bool   `json:"commands_enable"`
 	} `json:"knowledge"`
 	STT struct {
 		Service  string `json:"provider"`
@@ -117,6 +118,12 @@ func ReadConfig() {
 				APIConfig.PastInitialSetup = true
 			}
 		}
+
+		if APIConfig.Knowledge.Model == "meta-llama/Llama-2-70b-chat-hf" {
+			logger.Println("Setting Together model to Llama3")
+			APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
+		}
+
 		writeBytes, _ := json.Marshal(APIConfig)
 		os.WriteFile(ApiConfigPath, writeBytes, 0644)
 		logger.Println("API config successfully read")

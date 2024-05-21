@@ -1,6 +1,8 @@
 package processreqs
 
 import (
+	"strings"
+
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
@@ -16,10 +18,14 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 		var err error
 		transcribedText, err = sttHandler(speechReq)
 		if err != nil {
-			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error", map[string]string{"error": err.Error()}, true)
+			ttr.IntentPass(req, "intent_system_noaudio", "voice processing error: "+err.Error(), map[string]string{"error": err.Error()}, true)
 			return nil, nil
 		}
-		successMatched = ttr.ProcessTextAll(req, transcribedText, vars.MatchListList, vars.IntentsList, speechReq.IsOpus)
+		if strings.TrimSpace(transcribedText) == "" {
+			ttr.IntentPass(req, "intent_system_noaudio", "", map[string]string{}, false)
+			return nil, nil
+		}
+		successMatched = ttr.ProcessTextAll(req, transcribedText, vars.IntentList, speechReq.IsOpus)
 	} else {
 		intent, slots, err := stiHandler(speechReq)
 		if err != nil {
