@@ -105,7 +105,7 @@
       </div>
 
       <div id="section-botauth" style="display: none">
-        <h2 style="margin-bottom:0px;">Authentication</h2>
+        <h2>Authentication</h2>
         <hr class="small-hr">
         <div>
           <div id="disconnectButton"></div>
@@ -115,7 +115,7 @@
         </div>
         <hr />
         <div>
-          <h3 style="margin-bottom:0px;"">Configure an OSKR/dev-unlocked robot</h3>
+          <h3>Configure an OSKR/dev-unlocked robot</h3>
           <hr class="small-hr">
           <small class="desc">Works with firmware 1.4 and above.</small>
           <div id="oskrSetupProgress"></div>
@@ -135,16 +135,20 @@
       </div>
 
       <div id="section-log" style="display: none">
-        <h2 style="margin-bottom:0px;">Log</h2>
+        <h2>Log</h2>
         <hr class="small-hr">
-        <label for="logdebug">Show all logs</label>
-        <input id="logdebug" name="logdebug" type="checkbox" /><br />
-        <label for="logscrollbottom">Scroll to bottom</label>
-        <input id="logscrollbottom" name="logscrollbottom" type="checkbox" />
+        <div class="center">
+          <div style="text-align:left">
+            <input id="logdebug" name="logdebug" type="checkbox" />
+            <label class="checkbox-label" for="logdebug">Show all logs</label><br />
+            <input id="logscrollbottom" name="logscrollbottom" type="checkbox" />
+            <label class="checkbox-label" for="logscrollbottom">Scroll to bottom</label>
+          </div>
+        </div>
         <textarea id="botTranscriptedTextArea" rows="7" cols="50">
          loading log...
       </textarea>
-        <hr />
+        <hr class="log-hr" />
       </div>
 
       <div id="section-language" style="display: none">
@@ -175,7 +179,7 @@
       </div>
 
       <div id="section-version" style="display: none">
-        <h2 style="margin-bottom:0px;">Version</h2>
+        <h2>Version</h2>
         <hr class="small-hr">
         <div id="versionDiv">
           <button onclick="checkUpdate()" type="submit">

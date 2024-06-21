@@ -23,6 +23,7 @@
       <div id="config-options" style="display: block">
         <div id="section-conn" style="display: block">
           <h3>Connection Option</h3>
+          <hr class="small-hr">
           <div class="center" id="connStatus"></div>
           <select onchange="checkConn()" name="connSelection" id="connSelection">
             <option value="ep">
@@ -41,6 +42,7 @@
 
         <div id="section-language" style="display: none">
           <h3>STT Language</h3>
+          <hr class="small-hr">
           <div class="center" id="languageStatus"></div>
           <div id="languageSelectionDiv">
             <select name="languageSelection" id="languageSelection">
@@ -61,11 +63,13 @@
 
         <div id="section-weather" style="display: block">
           <h3>Weather API</h3>
+          <hr class="small-hr">
           <div>
             <p>
               Select the weather provider you would like to use, then enter
               the required information.
             </p>
+            <hr class="small-hr">
             <small>
               <ul>
                 <li class="desc">
@@ -82,7 +86,7 @@
                 </li>
               </ul>
             </small>
-            <br />
+            <hr class="small-hr">
             <div id="addWeatherProviderAPI"></div>
             <form id="weatherAPIAddForm">
               <label for="weatherProvider">Weather API Provider:</label>
@@ -103,8 +107,10 @@
 
         <div id="section-kg" style="display: block">
           <h3>Knowledge Graph Setup</h3>
+          <hr class="small-hr">
           <div>
             <p>Select the knowledge provider you would like to use, then enter the required information.</p>
+            <hr class="small-hr">
             <div id="addKGProviderAPI"></div>
             <form id="kgAPIAddForm">
               <label for="kgProvider">Knowledge Graph API Provider:</label>
@@ -135,16 +141,10 @@
                 <label for="togetherKey">Together Key:</label>
                 <input type="text" name="togetherKey" id="togetherKey" /><br />
                 <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br />
-                <small><label for="togetherAIPrompt">(default: "You are a helpful, animated robot called
+                <small><label class="desc" for="togetherAIPrompt">(default: "You are a helpful, animated robot called
                     Vector. Keep the response concise yet
                     informative.")</label></small>
                 <input type="text" name="togetherAIPrompt" id="togetherAIPrompt" /><br />
-                <input type="checkbox" id="togetherintentyes" name="togetherintentgselect" onclick="checkKG()" />
-                <label for="togetherintentyes">
-                  Enable intent-graph. This
-                  forwards the request to the LLM if the regular intent
-                  processor didn't understand what you said.
-                </label>
               </span>
               <span id="openAIInput" style="display: none">
                 <label for="openAIKey">OpenAI Key:</label>
@@ -154,33 +154,37 @@
                     Vector. Keep the response concise yet
                     informative.")</label></small>
                 <input type="text" name="openAIPrompt" id="openAIPrompt" /><br />
-                <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
-                <label for="intentyes">
-                  Enable intent-graph. This
-                  forwards the request to the LLM if the regular intent
-                  processor didn't understand what you said.
-                </label>
               </span>
+              <div style="text-align: left;">
+                <span id="intentGraphInput" style="display: none;">
+                  <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
+                  <label class="checkbox-label" for="intentyes">
+                    Enable intent-graph. This
+                    forwards the request to the LLM if the regular intent
+                    processor didn't understand what you said.
+                  </label>
+                </span>
 
-              <span id="llmCommandInput" style="display: none">
-                <input type="checkbox" id="commandYes" name="commandDoselect" />
-                <label for="commandYes">
-                  Allow the LLM to run commands on the robot?
-                </label>
-              </span>
-              <span id="saveChatInput" style="display: none">
-                <input type="checkbox" id="saveChatYes" name="saveChatselect" />
-                <label for="saveChatYes">
-                  Save chats to be used in the context of future responses.
-                </label>
-              </span>
+                <span id="llmCommandInput" style="display: none">
+                  <input type="checkbox" id="commandYes" name="commandDoselect" />
+                  <label class="checkbox-label" for="commandYes">
+                    Allow the LLM to run commands on the robot, such as play animations.
+                  </label>
+                </span>
+                <span id="saveChatInput" style="display: none">
+                  <input type="checkbox" id="saveChatYes" name="saveChatselect" />
+                  <label class="checkbox-label" for="saveChatYes">
+                    Save chats to be used in the context of future responses.
+                  </label>
+                </span>
+              </div>
             </form>
             <hr />
           </div>
         </div>
-          <button onclick="sendSetupInfo()" type="submit">
-            Submit Settings
-          </button>
+        <button onclick="sendSetupInfo()" type="submit">
+          Submit Settings
+        </button>
       </div>
     </div>
   </div>

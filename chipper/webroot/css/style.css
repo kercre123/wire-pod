@@ -84,6 +84,10 @@ input[type="text"], input[type="file"], select {
   width: 30%;
 }
 
+.log-hr {
+  margin-bottom: 50px;
+}
+
 input[type="file"] {
   width: auto;
 }
@@ -117,7 +121,7 @@ h1, h2, h3, h4, small, p, li, label {
 
 h2, h3 {
   margin-top: 0px;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .desc {
@@ -235,7 +239,7 @@ input[type='radio']:checked:after {
 }
 
 #content {
-  width: 900px !important;
+  width: 950px !important;
   /* word-break:break-all !important; */
   /* word-wrap: break-all !important; */
   white-space:normal !important;
@@ -248,28 +252,26 @@ input[type='radio']:checked:after {
 
 .main-nav-parent {
   display: flex;
-  flex-wrap: wrap;  /* enables wrapping */
   justify-content: center;
-  align-items: center;
+  flex-wrap: wrap;
+  /*border: 1px solid black;*/
   margin: 1rem;
-  padding: 2rem 2rem;
+  padding: 1rem 2rem;
   text-align: center;
 }
-
-/* .main-nav-parent {
-  border: 1px solid black;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 1rem;
-  padding: 2rem 2rem;
-  text-align: center;
-} */
 
 .main-nav-child {
   display: inline-block;
   /*border: 1px solid white;*/
-  margin-bottom: 0px;
+  padding: 1.2rem 2rem 1.4rem 0rem;
+  vertical-align: top;
+  width: 85px;
+}
+
+.main-nav-child {
+  display: inline-block;
+  /*border: 1px solid white;*/
+  /* margin-bottom: 0px; */
   padding: 1.2rem 2rem 1.4rem 0rem;
   vertical-align: top;
   width: 85px;
@@ -295,4 +297,39 @@ input[type='radio']:checked:after {
 
 .main-nav-child a img {
   width:50%;
+}
+
+input[type='checkbox'] {
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background-color: var(--button-color);
+  border: 2px solid var(--button-color-alt);
+  border-radius: 5px;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle; 
+}
+
+input[type='checkbox']:checked {
+  background-color: var(--fg-color);
+}
+
+input[type='checkbox']:checked:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 12px;
+  border: solid var(--text-color);
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
+.checkbox-label {
+  padding-top: 3px;
+  margin-left: 5px;
+  word-break: break-word;
 }

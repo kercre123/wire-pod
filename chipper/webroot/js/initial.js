@@ -129,7 +129,7 @@ function initKGAPIKey() {
     } else {
       doCommands = "false";
     }
-    if (document.getElementById("togetherintentyes").checked == true) {
+    if (document.getElementById("intentyes").checked == true) {
       intentgraph = "true";
     } else {
       intentgraph = "false";
