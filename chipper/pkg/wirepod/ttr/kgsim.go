@@ -64,9 +64,7 @@ func Remember(user, ai openai.ChatCompletionMessage, esn string) {
 }
 
 func removeSpecialCharacters(str string) string {
-	// Define the regular expression to match special characters
 	re := regexp.MustCompile(`[&^*#@]`)
-	// Replace special characters with an empty string
 	return re.ReplaceAllString(str, "")
 }
 
