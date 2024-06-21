@@ -2,8 +2,8 @@
 
 @font-face{ 
   font-family: 'IBMVGA';
-  src: url('IBMVGA.woff') format('woff');
-  /* TODO: find licenses */
+  src: url('PxPlus_IBM_VGA_8x16.ttf') format('truetype');
+  /* VileR's old school font pack - int10h.org */
 }
 
 @font-face{ 
@@ -73,8 +73,8 @@ button {
 input[type="text"], input[type="file"], select {
   background-color: #2d2d2d;
   color: #ffffff;
-  font-family: 'IBMVGA', sans-serif;
-  font-size: 0.9em;
+  font-family: 'IBMVGA', monospace;
+  font-size: 1.0em;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
@@ -99,7 +99,7 @@ select {
 body {
   background-color: var(--bg-color);
   font-family: "IBMVGA", sans-serif;
-  font-size: 1.7em;
+  font-size: 1.8em;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -111,7 +111,7 @@ body {
 
 
 h1, h2, h3, h4, small, p, li, label {
-  font-family: "IBMVGA";
+  font-family: "IBMVGA", monospace;
   color: var(--text-color);
 }
 
