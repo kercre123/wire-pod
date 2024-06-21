@@ -50,7 +50,8 @@
       <hr>
 
       <div id="section-volume" class="toggleable-section" style="display:none;">
-        <h2 class="center">Volume</h2>
+        <h2 style="margin-bottom:0px;" class="center">Volume</h2>
+        <hr class="small-hr">
         <div id="currentVolume" class="center"></div>
         <div style="text-align: left;" class="center">
           <label>
@@ -80,8 +81,9 @@
       </div>
 
       <div id="section-eyes" class="toggleable-section" style="display:none;">
-        <h2 style="margin-bottom: -10px;">Eye Color</h2>
-        <h4 style="margin-bottom: 0px;">Preset Eye Colors:</h4>
+        <h2 style="margin-bottom: 0px;">Eye Color</h2>
+        <hr class="small-hr">
+        <h4 style="margin-bottom: 0px; margin-top:0px;">Preset Eye Colors:</h4>
         <div style="text-align: left;" class="center">
           <label>
             <input type="radio" name="eye" id="Teal" value="Teal"
@@ -112,8 +114,9 @@
               onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
           </label>
         </div>
-
-        <h4 class="center">Custom Eye Color:</h4>
+        <br />
+        <hr class="small-hr">
+        <h4 style="margin-top: 0px;" class="center">Custom Eye Color:</h4>
         <div class="center" id="picker"></div><br />
         <div class="center">
           <button class="settings" onclick="sendCustomColor()">Submit</button>
@@ -122,8 +125,8 @@
       </div>
 
       <div id="section-face" class="toggleable-section" style="display:none;">
-        <h2 class="center">Face Manager</h2>
-
+        <h2 style="margin-bottom:0px;" class="center">Face Manager</h2>
+        <hr class="small-hr">
         <h3 class="center">Modify existing faces:</h3>
         <p class="center">Choose the face you would like to modify.</p>
         <div class="center">
@@ -138,7 +141,7 @@
             <button onclick="renameFace()" type="submit">Rename</button>
           </div>
         </div>
-
+        <hr class="small-hr">
         <h3 class="center">Add a new face:</h3>
         <p class="center">Enter a name you'd like to add:</p>
         <div class="center">
@@ -151,7 +154,8 @@
       </div>
 
       <div id="section-actions" class="toggleable-section" style="display:none;">
-        <h2 class="center">Quick Actions</h2>
+        <h2 style="margin-bottom:0px;" class="center">Quick Actions</h2>
+        <hr class="small-hr">
         <div class="center">
           <button onclick="sendForm('/api-sdk/cloud_intent?intent=explore_start')" type="submit">Explore
             Start</button>
@@ -168,7 +172,8 @@
       </div>
 
       <div id="section-stim" class="toggleable-section" style="display:none;">
-        <h2 class="center">Stimulation</h2>
+        <h2 style="margin-bottom:0px;" class="center">Stimulation</h2>
+        <hr class="small-hr">
         <div class="center">
           <canvas id="stimChart"></canvas>
         </div>
@@ -176,14 +181,16 @@
       </div>
 
       <div id="section-stats" class="toggleable-section" style="display:none;">
-        <h2 class="center">Statistics</h2>
-          <button onclick="updateStats()" type="submit">Refresh</button><br>
-          <div id="statsSection"></div>
+        <h2 style="margin-bottom:0px;" class="center">Statistics</h2>
+        <hr class="small-hr">
+        <button onclick="updateStats()" type="submit">Refresh</button><br>
+        <div id="statsSection"></div>
         <hr>
       </div>
 
       <div id="section-photos" class="toggleable-section" style="display:none;">
-        <h2 class="center">Photos</h2>
+        <h2 style="margin-bottom:0px;" class="center">Photos</h2>
+        <hr class="small-hr">
         <div class="center">
           <button onclick="getPhotos()" type="submit">Refresh List</button>
         </div>
@@ -194,7 +201,8 @@
       </div>
 
       <div id="section-locale" class="toggleable-section" style="display:none;">
-        <h2 class="center">Locale</h2>
+        <h2 style="margin-bottom:0px;" class="center">Locale</h2>
+        <hr class="small-hr">
         <div id="currentLocale" class="center"></div>
         <div style="text-align: left;" class="center">
           <label>
@@ -227,7 +235,8 @@
       </div>
 
       <div id="section-time" class="toggleable-section" style="display:none;">
-        <h2 class="center">Time Format</h2>
+        <h2 style="margin-bottom:0px;" class="center">Time Format</h2>
+        <hr class="small-hr">
         <div id="currentTimeSet" class="center"></div>
         <div style="text-align: left;" class="center">
           <label>
@@ -244,7 +253,8 @@
       </div>
 
       <div id="section-temp" class="toggleable-section" style="display:none;">
-        <h2 class="center">Temp Format</h2>
+        <h2 style="margin-bottom:0px;" class="center">Temp Format</h2>
+        <hr class="small-hr">
         <div id="currentTempFormat" class="center"></div>
         <div style="text-align: left;" class="center">
           <label>
@@ -261,7 +271,8 @@
       </div>
 
       <div id="section-button" class="toggleable-section" style="display:none;">
-        <h2 class="center">Button Action</h2>
+        <h2 style="margin-bottom:0px;" class="center">Button Action</h2>
+        <hr class="small-hr">
         <div id="currentButton" class="center"></div>
         <div style="text-align: left;" class="center">
           <label>
@@ -278,10 +289,12 @@
       </div>
 
       <div id="section-alexa" class="toggleable-section" style="display:none;">
-        <h2 class="center">Alexa</h2>
+        <h2 style="margin-bottom:0px;" class="center">Alexa</h2>
+        <hr class="small-hr">
         <div id="alexaStatus" class="center"></div>
         <a class="center" target="_blank" rel="noopener noreferrer"
           href="https://amazon.com/code">https://amazon.com/code</a>
+        <hr class="small-hr">
         <div class="center">
           <button onclick="sendForm('/api-sdk/alexa_sign_in')" type="submit">Signin Alexa</button>
           <button onclick="sendForm('/api-sdk/alexa_sign_out')" type="submit">Signout Alexa</button>
@@ -290,20 +303,21 @@
       </div>
 
       <div id="section-location" class="toggleable-section" style="display:none;">
-        <h2 class="center">Set Location</h2>
-        <div id="currentLocation" class="center"></div>
-        <small class="center">Example: San Francisco, California</small>
+        <h2 style="margin-bottom:0px;" class="center">Set Location</h2>
+        <hr class="small-hr">
+        <div id="currentLocation"></div>
+        <small class="desc">Example: San Francisco, California</small>
         <div class="center">
           <input class="tinput" id="locationInput" name="locationInput" type="text" placeholder="Put location here">
         </div>
-        <div class="center">
-          <button onclick="sendLocation()">Submit Location</button>
-        </div>
+        <hr class="small-hr">
+        <button onclick="sendLocation()">Submit Location</button>
         <hr>
       </div>
 
       <div id="section-timezone" class="toggleable-section" style="display:none;">
-        <h2 class="center">Set Time Zone</h2>
+        <h2 style="margin-bottom:0px;">Set Time Zone</h2>
+        <hr class="small-hr">
         <div id="currentTimeZone" class="center"></div>
         <div class="center">
           <!--<input class="tinput" id="tzInput" name="tzInput" type="text" placeholder="Put time zone here">-->
@@ -351,9 +365,9 @@
             <option value="Australia/Auckland">Australia/Auckland</option>
           </select>
         </div>
-        <div class="center">
-          <button onclick="sendTimeZone()">Submit Time Zone</button>
-        </div>
+        <br />
+        <hr class="small-hr">
+        <button onclick="sendTimeZone()">Submit Time Zone</button>
         <hr>
       </div>
 

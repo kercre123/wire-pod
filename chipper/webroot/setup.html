@@ -35,8 +35,10 @@
 
       <div id="section-weather" style="display: none">
         <h3>Weather API Setup</h3>
+        <hr class="small-hr">
         <div>
-          <p>Set the weather provider you want to use.</p>
+          <p>Set the weather provider you'd like to use.</p>
+          <hr class="small-hr">
           <div id="addWeatherProviderAPI"></div>
           <form id="weatherAPIAddForm">
             <label for="weatherProvider">Weather API Provider:</label>
@@ -48,10 +50,11 @@
               <option value="weatherapi.com">WeatherAPI</option>
             </select><br />
             <span id="apiKeySpan" style="display: none">
-              <label for="apiKey">Weather API Key:</label>
+              <label for="apiKey">API Key:</label><br />
               <input class="tinput" type="text" name="apiKey" id="apiKey" /><br />
             </span>
           </form>
+          <hr class="small-hr">
           <button onclick="sendWeatherAPIKey()">
             Apply Weather Settings
           </button>
@@ -62,8 +65,10 @@
 
       <div id="section-kg" style="display: none">
         <h3>Knowledge Graph Setup</h3>
+        <hr class="small-hr">
         <div>
           <p>Select the knowledge provider you would like to use, then enter the required information.</p>
+          <hr class="small-hr">
           <div id="addKGProviderAPI"></div>
           <form id="kgAPIAddForm">
             <label for="kgProvider">Knowledge Graph API Provider:</label>
@@ -134,6 +139,7 @@
               </label>
             </span>
           </form>
+          <hr class="small-hr">
           <button onclick="sendKGAPIKey()">Apply Settings</button>
           <div id="addKGProviderAPIStatus"></div>
           <hr />
@@ -142,11 +148,13 @@
 
       <div id="section-stt" style="display: none">
         <h3>Speech-To-Text Language</h3>
+        <hr class="small-hr">
         <div>
           <p>
             Set the STT language you want to use. Works only with VOSK or
             Whisper as STT provider.
           </p>
+          <hr class="small-hr">
           <form id="sttAddForm">
             <label for="sttLanguage">STT Language:</label>
             <select name="sttLanguage" id="sttLanguage" form="sttAddForm">
@@ -185,6 +193,9 @@
 
       <div id="section-language" style="display: none">
         <h2>STT Language</h2>
+        <hr class="small-hr">
+        <p>Set the speech-to-text language you'd like wire-pod to use.</p>
+        <hr class="small-hr">
         <div id="languageStatus"></div>
         <div id="languageSelectionDiv">
           <div>
@@ -202,6 +213,7 @@
             </select>
           </div>
           <div>
+            <hr class="small-hr">
             <button onclick="setSTTLanguage()" type="submit">
               Set Language
             </button>

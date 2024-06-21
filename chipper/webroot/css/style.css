@@ -79,6 +79,11 @@ input[type="text"], input[type="file"], select {
   text-align: center;
 }
 
+.small-hr {
+  border: 1px solid #3e3e3e;
+  width: 30%;
+}
+
 input[type="file"] {
   width: auto;
 }
