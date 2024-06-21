@@ -191,44 +191,50 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 		if kgProvider == "" {
 			vars.APIConfig.Knowledge.Enable = false
+			vars.APIConfig.Knowledge.OpenAIPrompt = ""
+			vars.APIConfig.Knowledge.ID = ""
+			vars.APIConfig.Knowledge.Key = ""
+			vars.APIConfig.Knowledge.Provider = ""
+			vars.APIConfig.Knowledge.RobotName = ""
+			vars.APIConfig.Knowledge.IntentGraph = false
 		} else {
 			vars.APIConfig.Knowledge.Enable = true
 			vars.APIConfig.Knowledge.Provider = kgProvider
 			vars.APIConfig.Knowledge.Key = strings.TrimSpace(kgAPIKey)
 			vars.APIConfig.Knowledge.Model = strings.TrimSpace(kgModel)
 			vars.APIConfig.Knowledge.ID = strings.TrimSpace(kgAPIID)
-		}
-		if kgModel == "" && kgProvider == "together" {
-			logger.Println("Together model wasn't provided, using default meta-llama/Llama-3-70b-chat-hf")
-			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
-		}
-		if kgProvider == "openai" || kgProvider == "together" {
-			if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
-				vars.APIConfig.Knowledge.OpenAIPrompt = r.FormValue("openai_prompt")
-			} else {
-				vars.APIConfig.Knowledge.OpenAIPrompt = ""
+			if kgModel == "" && kgProvider == "together" {
+				logger.Println("Together model wasn't provided, using default meta-llama/Llama-3-70b-chat-hf")
+				vars.APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
 			}
-			if r.FormValue("save_chat") == "true" {
-				vars.APIConfig.Knowledge.SaveChat = true
-			} else {
-				vars.APIConfig.Knowledge.SaveChat = false
+			if kgProvider == "openai" || kgProvider == "together" {
+				if strings.TrimSpace(r.FormValue("openai_prompt")) != "" {
+					vars.APIConfig.Knowledge.OpenAIPrompt = r.FormValue("openai_prompt")
+				} else {
+					vars.APIConfig.Knowledge.OpenAIPrompt = ""
+				}
+				if r.FormValue("save_chat") == "true" {
+					vars.APIConfig.Knowledge.SaveChat = true
+				} else {
+					vars.APIConfig.Knowledge.SaveChat = false
+				}
+				if r.FormValue("commands_enable") == "true" {
+					vars.APIConfig.Knowledge.CommandsEnable = true
+				} else {
+					vars.APIConfig.Knowledge.CommandsEnable = false
+				}
 			}
-			if r.FormValue("commands_enable") == "true" {
-				vars.APIConfig.Knowledge.CommandsEnable = true
-			} else {
-				vars.APIConfig.Knowledge.CommandsEnable = false
+			if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "true" {
+				vars.APIConfig.Knowledge.IntentGraph = true
+				if r.FormValue("robot_name") == "" {
+					vars.APIConfig.Knowledge.RobotName = "Vector"
+				} else {
+					vars.APIConfig.Knowledge.RobotName = strings.TrimSpace(r.FormValue("robot_name"))
+				}
+			} else if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "false" {
+				vars.APIConfig.Knowledge.IntentGraph = false
+				vars.APIConfig.Knowledge.RobotName = ""
 			}
-		}
-		if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "true" {
-			vars.APIConfig.Knowledge.IntentGraph = true
-			if r.FormValue("robot_name") == "" {
-				vars.APIConfig.Knowledge.RobotName = "Vector"
-			} else {
-				vars.APIConfig.Knowledge.RobotName = strings.TrimSpace(r.FormValue("robot_name"))
-			}
-		} else if (kgProvider == "openai" || kgProvider == "together") && kgIntent == "false" {
-			vars.APIConfig.Knowledge.IntentGraph = false
-			vars.APIConfig.Knowledge.RobotName = ""
 		}
 		vars.WriteConfigToDisk()
 		fmt.Fprintf(w, "Changes successfully applied.")
