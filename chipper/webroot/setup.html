@@ -36,20 +36,20 @@
       <div id="section-weather" style="display: none">
         <h3>Weather API Setup</h3>
         <div>
-          <p>Set the weather provider you want to use</p>
+          <p>Set the weather provider you want to use.</p>
           <div id="addWeatherProviderAPI"></div>
           <form id="weatherAPIAddForm">
             <label for="weatherProvider">Weather API Provider:</label>
             <select name="weatherProvider" id="weatherProvider" form="weatherAPIAddForm" onchange="checkWeather()">
               <option value="" selected>None</option>
               <option value="openweathermap.org">
-                OpenWeatherMap (free, with forecast support)
+                OpenWeatherMap
               </option>
               <option value="weatherapi.com">WeatherAPI</option>
             </select><br />
             <span id="apiKeySpan" style="display: none">
               <label for="apiKey">Weather API Key:</label>
-              <input type="text" name="apiKey" id="apiKey" /><br />
+              <input class="tinput" type="text" name="apiKey" id="apiKey" /><br />
             </span>
           </form>
           <button onclick="sendWeatherAPIKey()">
