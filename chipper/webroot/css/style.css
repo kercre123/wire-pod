@@ -1,13 +1,18 @@
 @import url("wing.css");
 
 @font-face{ 
-  font-family: 'DroidSans';
-  src: url('DroidSans.woff') format('woff');
-  /*font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans*/
+  font-family: 'IBMVGA';
+  src: url('IBMVGA.woff') format('woff');
+  /* TODO: find licenses */
+}
+
+@font-face{ 
+  font-family: 'H1Weird';
+  src: url('h1Font.ttf') format('truetype');
 }
 
 :root {
-  --bg-color: rgba(43,42,51,1);			/* gray #2B2A33 */
+  --bg-color: #1e1e1e;			/* gray #2B2A33 */
   --bg-color-alt: rgba(196,196,196,1);		/* light gray #C4C4C4*/
   --button-color: rgba(75,75,75,1);		/* dark gray #4B4B4B */
   --button-color-alt: rgba(164,164,164,1);	/* light gray #A4A4A4 */
@@ -27,6 +32,7 @@ button:disabled {
   color : var(--bg-color-alt);
 }
 button {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 170px;
 }
 
@@ -46,21 +52,30 @@ button {
 
 body {
   background-color: var(--bg-color);
-  /*font-family: Arial, Helvetica, sans-serif;*/
-  font-family: "DroidSans";
+  font-family: "IBMVGA";
+  font-size: 1.7em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
 }
 
+
 h1, h2, h3, h4, small, p, li, label {
+  font-family: "IBMVGA";
   color: var(--text-color);
 }
 
 h1 {
+  font-family: "H1Weird", sans-serif;
+  font-size: 3em;
   text-align: center;
-  text-transform: uppercase;
 }
 
-p, small {
-}
+/* p {
+  font-size: 1.2em;
+} */
 
 .content {
   display: none;
@@ -72,9 +87,8 @@ p, small {
 }
 
 hr {
-  border: 0;
-  height: 1px;
-  background-image: linear-gradient(to right, var(--fg-color-alt), var(--fg-color), var(--fg-color-alt));
+  border: 2px solid #3e3e3e;
+  /* background-image: linear-gradient(to right, var(--fg-color-alt), var(--fg-color), var(--fg-color-alt)); */
 }
 
 a {
@@ -158,6 +172,9 @@ input[type='radio']:checked:after {
 
 .main-nav-parent {
   /*border: 1px solid black;*/
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin: 1rem;
   padding: 2rem 2rem;
   text-align: center;
@@ -166,14 +183,15 @@ input[type='radio']:checked:after {
 .main-nav-child {
   display: inline-block;
   /*border: 1px solid white;*/
-  padding: 0rem 0rem 2rem 0rem;
+  margin-bottom: 0px;
+  padding: 0rem 1.4rem 0rem 0rem;
   vertical-align: top;
   width: 85px;
 }
 
 .main-nav-child a {
   text-decoration: none;
-  font-size: 75%;
+  font-size: 100%;
   color: var(--bg-color-alt);
 }
 
