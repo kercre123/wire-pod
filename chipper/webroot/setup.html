@@ -99,16 +99,10 @@
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey" /><br />
               <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br />
-              <small><label for="togetherAIPrompt">(default: "You are a helpful, animated robot called
+              <small><label class="desc" for="togetherAIPrompt">(default: "You are a helpful, animated robot called
                   Vector. Keep the response concise yet
                   informative.")</label></small>
               <input type="text" name="togetherAIPrompt" id="togetherAIPrompt" /><br />
-              <input type="checkbox" id="togetherintentyes" name="togetherintentgselect" onclick="checkKG()" />
-              <label for="togetherintentyes">
-                Enable intent-graph. This
-                forwards the request to the LLM if the regular intent
-                processor didn't understand what you said.
-              </label>
             </span>
             <span id="openAIInput" style="display: none">
               <label for="openAIKey">OpenAI Key:</label>
@@ -118,32 +112,36 @@
                   Vector. Keep the response concise yet
                   informative.")</label></small>
               <input type="text" name="openAIPrompt" id="openAIPrompt" /><br />
-              <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
-              <label for="intentyes">
-                Enable intent-graph. This
-                forwards the request to the LLM if the regular intent
-                processor didn't understand what you said.
-              </label>
             </span>
+            <div style="text-align: left;">
+              <span id="intentGraphInput" style="display: none;">
+                <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
+                <label class="checkbox-label" for="intentyes">
+                  Enable intent-graph. This
+                  forwards the request to the LLM if the regular intent
+                  processor didn't understand what you said.
+                </label>
+              </span>
 
-            <span id="llmCommandInput" style="display: none">
-              <input type="checkbox" id="commandYes" name="commandDoselect" />
-              <label for="commandYes">
-                Allow the LLM to run commands on the robot?
-              </label>
-            </span>
-            <span id="saveChatInput" style="display: none">
-              <input type="checkbox" id="saveChatYes" name="saveChatselect" />
-              <label for="saveChatYes">
-                Save chats to be used in the context of future responses.
-              </label>
-            </span>
+              <span id="llmCommandInput" style="display: none">
+                <input type="checkbox" id="commandYes" name="commandDoselect" />
+                <label class="checkbox-label" for="commandYes">
+                  Allow the LLM to run commands on the robot, such as play animations.
+                </label>
+              </span>
+              <span id="saveChatInput" style="display: none">
+                <input type="checkbox" id="saveChatYes" name="saveChatselect" />
+                <label class="checkbox-label" for="saveChatYes">
+                  Save chats to be used in the context of future responses.
+                </label>
+              </span>
+            </div>
           </form>
-          <hr class="small-hr">
-          <button onclick="sendKGAPIKey()">Apply Settings</button>
-          <div id="addKGProviderAPIStatus"></div>
-          <hr />
         </div>
+        <hr class="small-hr">
+        <button onclick="sendKGAPIKey()">Apply Settings</button>
+        <div id="addKGProviderAPIStatus"></div>
+        <hr />
       </div>
 
       <div id="section-stt" style="display: none">

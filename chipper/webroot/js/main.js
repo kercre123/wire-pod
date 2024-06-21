@@ -628,22 +628,26 @@ function checkKG() {
   if (getE("kgProvider").value == "") {
     getE("houndifyInput").style.display = "none";
     getE("togetherInput").style.display = "none";
+    getE("intentGraphInput").style.display = "none"
     getE("openAIInput").style.display = "none";
     getE("saveChatInput").style.display = "none";
     getE("llmCommandInput").style.display = "none";
   } else if (getE("kgProvider").value == "houndify") {
     getE("togetherInput").style.display = "none";
     getE("openAIInput").style.display = "none";
+    getE("intentGraphInput").style.display = "none"
     getE("houndifyInput").style.display = "block";
     getE("saveChatInput").style.display = "none";
     getE("llmCommandInput").style.display = "none";
   } else if (getE("kgProvider").value == "openai") {
+    getE("intentGraphInput").style.display = "block"
     getE("openAIInput").style.display = "block";
     getE("togetherInput").style.display = "none";
     getE("houndifyInput").style.display = "none";
     getE("saveChatInput").style.display = "block";
     getE("llmCommandInput").style.display = "block";
   } else if (getE("kgProvider").value == "together") {
+    getE("intentGraphInput").style.display = "block"
     getE("togetherInput").style.display = "block";
     getE("openAIInput").style.display = "none";
     getE("houndifyInput").style.display = "none";
@@ -690,7 +694,7 @@ function sendKGAPIKey() {
     } else {
       doCommands = "false";
     }
-    if (getE("togetherintentyes").checked == true) {
+    if (getE("intentyes").checked == true) {
       intentgraph = "true";
     } else {
       intentgraph = "false";
@@ -787,7 +791,6 @@ function updateKGAPI() {
         getE("togetherAIPrompt").value = obj.kgOpenAIPrompt;
         checkE("commandYes", obj.kgCommandsEnable)
         checkE("intentyes", obj.kgIntentGraph)
-        checkE("togetherintentyes", obj.kgIntentGraph)
         checkE("saveChatYes", obj.kgSaveChat)
       } else if (obj.kgProvider == "houndify") {
         getE("houndKey").value = obj.kgApiKey;
