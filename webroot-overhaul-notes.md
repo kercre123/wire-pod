@@ -26,3 +26,4 @@
 -   fix panic upon no response from LLM
 -   make sure input box colors match with rest of page
 -   make stimulation graph smaller
+-   small hrs

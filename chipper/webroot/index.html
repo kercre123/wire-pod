@@ -105,7 +105,8 @@
       </div>
 
       <div id="section-botauth" style="display: none">
-        <h2>Authentication</h2>
+        <h2 style="margin-bottom:0px;">Authentication</h2>
+        <hr class="small-hr">
         <div>
           <div id="disconnectButton"></div>
         </div>
@@ -114,7 +115,8 @@
         </div>
         <hr />
         <div>
-          <h3>Configure an OSKR/dev-unlocked robot</h3>
+          <h3 style="margin-bottom:0px;"">Configure an OSKR/dev-unlocked robot</h3>
+          <hr class="small-hr">
           <small class="desc">Works with firmware 1.4 and above.</small>
           <div id="oskrSetupProgress"></div>
           <div id="oskrSetup">
@@ -122,8 +124,10 @@
               address and upload the bot's SSH key here, then click "Set up
               bot". After that, use the above section to finish setting up
               your bot.</p>
+            <hr class="small-hr">
             <input class="tinput" type="text" id="sshIp" name="sshIp" placeholder="Bot IP address" /><br />
             <input type="file" id="sshKeyFile" name="sshKeyFile" /><br />
+            <hr class="small-hr">
             <button onclick="doSSHSetup()">Set up bot</button>
           </div>
         </div>
@@ -131,7 +135,8 @@
       </div>
 
       <div id="section-log" style="display: none">
-        <h2>Log</h2>
+        <h2 style="margin-bottom:0px;">Log</h2>
+        <hr class="small-hr">
         <label for="logdebug">Show all logs</label>
         <input id="logdebug" name="logdebug" type="checkbox" /><br />
         <label for="logscrollbottom">Scroll to bottom</label>
@@ -170,11 +175,13 @@
       </div>
 
       <div id="section-version" style="display: none">
-        <h2>Version</h2>
+        <h2 style="margin-bottom:0px;">Version</h2>
+        <hr class="small-hr">
         <div id="versionDiv">
           <button onclick="checkUpdate()" type="submit">
             Check For Update
           </button>
+          <hr class="small-hr">
           <p id="cVersion"></p>
           <p id="aUpdate"></p>
           <a id="updateGuideLink" style="display: none" target="_blank"
