@@ -37,9 +37,7 @@ function checkBLECapability() {
         m2.target = "_blank";
         m3.innerHTML =
           "Note: with OSKR/dev robots, it might give a warning about firmware. This can be ignored.";
-        m1.class = "center";
-        m2.class = "center";
-        m3.class = "center";
+        m3.className = "desc"
         authEl.appendChild(m1);
         //authEl.appendChild(document.createElement("br"))
         authEl.appendChild(m2);

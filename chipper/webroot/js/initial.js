@@ -149,6 +149,8 @@ function initKGAPIKey() {
     intentgraph = "false";
   }
 
+
+  // this is bad
   var data =
     "provider=" +
     provider +

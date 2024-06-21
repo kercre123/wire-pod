@@ -11,12 +11,32 @@
   src: url('h1Font.ttf') format('truetype');
 }
 
+/* {
+  "TIP_OVER_TEAL" :
+  #00d16d
+    { "Hue" : 0.42, "Saturation" : 1.00 },
+  "OVERFIT_ORANGE" :
+    { "Hue" : 0.05, "Saturation" : 0.95 },
+  "UNCANNY_YELLOW" :
+    { "Hue" : 0.11, "Saturation" : 1.00 },
+  "NON_LINEAR_LIME" :
+    { "Hue" : 0.21, "Saturation" : 1.00 },
+  "SINGULARITY_SAPPHIRE" :
+    { "Hue" : 0.57, "Saturation" : 1.00 },
+  "FALSE_POSITIVE_PURPLE" :
+  #e237e6
+    { "Hue" : 0.83, "Saturation" : 0.76 },
+  "CONFUSION_MATRIX_GREEN" :
+    { "Hue" : 0.30, "Saturation" : 1.00 }
+} */
+
 :root {
-  --bg-color: #1e1e1e;			/* gray #2B2A33 */
+  --bg-color: #1e1e1e;
+  --h1-color: #00d16d;
   --bg-color-alt: rgba(196,196,196,1);		/* light gray #C4C4C4*/
   --button-color: rgba(75,75,75,1);		/* dark gray #4B4B4B */
   --button-color-alt: rgba(164,164,164,1);	/* light gray #A4A4A4 */
-  --fg-color: rgba(51,237,109,1);	        /* light green 33ED6D */
+  --fg-color: #00d16d;	        /* light green 33ED6D */
   --fg-color-alt: rgba(51,237,109,.05);		/* light green 33ED6D */
   --text-color: rgba(255,255,255,1);		/* white #FFFFFF */
   --text-color-alt: rgba(34,34,34,1);		/* black #000000 */
@@ -50,15 +70,38 @@ button {
   display: block;
 }
 
+input[type="text"], input[type="file"], select {
+  background-color: #2d2d2d;
+  color: #ffffff;
+  font-family: 'IBMVGA', sans-serif;
+  font-size: 0.9em;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+input[type="file"] {
+  width: auto;
+}
+
+/* input[type="text"] {
+  width: ;
+} */
+
+select {
+  width: auto;
+}
+
 body {
   background-color: var(--bg-color);
-  font-family: "IBMVGA";
+  font-family: "IBMVGA", sans-serif;
   font-size: 1.7em;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   margin: 0;
+  flex-wrap: wrap;
+  text-align: center;
 }
 
 
@@ -67,10 +110,30 @@ h1, h2, h3, h4, small, p, li, label {
   color: var(--text-color);
 }
 
+h2, h3 {
+  margin-top: 0px;
+  margin-bottom: 20px;
+}
+
+.desc {
+  color: var(--bg-color-alt);
+}
+
 h1 {
+  color: var(--h1-color);
   font-family: "H1Weird", sans-serif;
   font-size: 3em;
+  font-weight: bold;
+  letter-spacing: 0em;
   text-align: center;
+}
+
+textarea {
+  background-color: #2d2d2d;
+  color: #ffffff;
+  font-family: 'IBMVGA', sans-serif;
+  font-size: 0.9em;
+  height: 280px;
 }
 
 /* p {
@@ -98,20 +161,20 @@ a:hover {
   text-decoration: none;
   color: var(--fg-color);
 }
-
+/* 
 ul {
   list-style-type:none;
-}
+} */
 
 ul, li {
-  list-style-type: none;
+  /* list-style-type: none; */
   list-style-position:inside;
   margin:0;
   padding:0;
 }
 
 .tinput {
-  width: 100px !important;
+  width: 315px !important;
   background-color: var(--button-color) !important;
   color: var(--text-color) !important;
 }
@@ -122,13 +185,21 @@ ul, li {
   color: var(--text-color) !important;
 }
 
+canvas{
+
+  width:750px !important;
+  height:400px !important;
+
+}
+
 /* RADIO BUTTON ######################### */
 input[type='radio'] {
   appearance: none;
-  top: 13.33333px;
+  top: 13.333333px;
   right: 50%;
-  bottom: 0;
+  bottom: 0px;
   left: 0;
+  margin-top: 0px;
   height: 40px;
   width: 40px;
   transition: all .2s ease;
@@ -159,9 +230,9 @@ input[type='radio']:checked:after {
 }
 
 #content {
-  width: 800px !important;
-  /*word-break:break-all !important;*/
-  /*word-wrap: break-all !important;*/
+  width: 900px !important;
+  /* word-break:break-all !important; */
+  /* word-wrap: break-all !important; */
   white-space:normal !important;
 }
 #outer {
@@ -171,8 +242,8 @@ input[type='radio']:checked:after {
 }
 
 .main-nav-parent {
-  /*border: 1px solid black;*/
   display: flex;
+  flex-wrap: wrap;  /* enables wrapping */
   justify-content: center;
   align-items: center;
   margin: 1rem;
@@ -180,11 +251,21 @@ input[type='radio']:checked:after {
   text-align: center;
 }
 
+/* .main-nav-parent {
+  border: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem;
+  padding: 2rem 2rem;
+  text-align: center;
+} */
+
 .main-nav-child {
   display: inline-block;
   /*border: 1px solid white;*/
   margin-bottom: 0px;
-  padding: 0rem 1.4rem 0rem 0rem;
+  padding: 1.2rem 2rem 1.4rem 0rem;
   vertical-align: top;
   width: 85px;
 }
