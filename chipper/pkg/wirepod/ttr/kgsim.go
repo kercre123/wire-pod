@@ -139,6 +139,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	}
 	ctx := context.Background()
 	speakReady := make(chan string)
+	successIntent := make(chan bool)
 
 	aireq := CreateAIReq(transcribedText, esn, false)
 
@@ -169,6 +170,11 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
 				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
+				if len(fullRespSlice) == 0 {
+					logger.Println("LLM returned no response")
+					successIntent <- false
+					break
+				}
 				isDone = true
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {
@@ -224,15 +230,23 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
 				fullRespText = splitResp[1]
 				select {
+				case successIntent <- true:
+				default:
+				}
+				select {
 				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
 				default:
 				}
 			}
 		}
 	}()
-	for range speakReady {
-		IntentPass(req, "intent_greeting_hello", transcribedText, map[string]string{}, false)
-		break
+	for is := range successIntent {
+		if is {
+			IntentPass(req, "intent_greeting_hello", transcribedText, map[string]string{}, false)
+			break
+		} else {
+			return "", errors.New("llm returned no response")
+		}
 	}
 	matched := false
 	var robot *vector.Vector

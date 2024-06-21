@@ -117,7 +117,7 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 	},
 	{
 		Command:     "getImage",
-		Description: "Gets an image from the robot's camera and places it in the next message. If you want to do this, tell the user what you are about to do THEN use the command. This command should END a sentence. If a user says 'what am i holding now', imply that 'now' means that they have a new object they want you to analyze, so you need to get another image.",
+		Description: "Gets an image from the robot's camera and places it in the next message. If you want to do this, tell the user what you are about to do THEN use the command. This command should END a sentence. Your response will be stopped when this command is recognized. If a user says something like 'what do you see', you should assume that you need to take a new photo. Do NOT automatically assume that you are analyzing a previous photo.",
 		// not impl yet
 		ParamChoices:    "front, lookingUp",
 		Action:          ActionGetImage,

@@ -11,9 +11,18 @@
 ## things currently done
 
 -   i have decided to stick with wing for CSS
--   add box shadow to buttons
+-   add box shadow to buttons and inputs
 -   change fonts to what i like
 -   simplify hr, i thought the gradient looked tacky
 -   dark background
 -   reduce padding under each nav element
--   center things on screen
+-   center everything!
+-   change KG option selectors to checkboxes
+-   make sure colors update when a new icon is clicked
+-   use vector's teal eye color for accents
+    -    i will put in a selector for all the eye colors
+-   increase debug log lines to 200
+-   fix "getImage" freezes
+-   fix panic upon no response from LLM
+-   make sure input box colors match with rest of page
+-   make stimulation graph smaller
