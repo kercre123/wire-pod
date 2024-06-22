@@ -121,6 +121,29 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain bool) openai.ChatComp
 }
 
 func StreamingKGSim(req interface{}, esn string, transcribedText string) (string, error) {
+	matched := false
+	var robot *vector.Vector
+	var guid string
+	var target string
+	for _, bot := range vars.BotInfo.Robots {
+		if esn == bot.Esn {
+			guid = bot.GUID
+			target = bot.IPAddress + ":443"
+			matched = true
+			break
+		}
+	}
+	if matched {
+		var err error
+		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
+		if err != nil {
+			return err.Error(), err
+		}
+	}
+	_, err := robot.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
+	if err != nil {
+		return "", err
+	}
 	var fullRespText string
 	var fullfullRespText string
 	var fullRespSlice []string
@@ -248,25 +271,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			return "", errors.New("llm returned no response")
 		}
 	}
-	matched := false
-	var robot *vector.Vector
-	var guid string
-	var target string
-	for _, bot := range vars.BotInfo.Robots {
-		if esn == bot.Esn {
-			guid = bot.GUID
-			target = bot.IPAddress + ":443"
-			matched = true
-			break
-		}
-	}
-	if matched {
-		var err error
-		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
-		if err != nil {
-			return err.Error(), err
-		}
-	}
+	time.Sleep(time.Millisecond * 200)
 	controlRequest := &vectorpb.BehaviorControlRequest{
 		RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{
 			ControlRequest: &vectorpb.ControlRequest{
