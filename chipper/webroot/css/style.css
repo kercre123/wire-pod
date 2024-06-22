@@ -52,6 +52,8 @@ button:disabled {
   color : var(--bg-color-alt);
 }
 button {
+  font-family: "IBMVGA", monospace;
+  font-size: 0.8em;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 170px;
 }
