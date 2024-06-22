@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"time"
 
@@ -268,11 +267,12 @@ func DoPlaySound(sound string, robot *vector.Vector) error {
 }
 
 func DoSayText(input string, robot *vector.Vector) error {
-	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || os.Getenv("USE_OPENAI_VOICE") == "true" {
-		//if vars.APIConfig.Knowledge.Provider == "openai" {
-		err := DoSayText_OpenAI(robot, input)
-		return err
-	}
+	// TODO
+	// if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || os.Getenv("USE_OPENAI_VOICE") == "true" {
+	// 	//if vars.APIConfig.Knowledge.Provider == "openai" {
+	// 	err := DoSayText_OpenAI(robot, input)
+	// 	return err
+	// }
 	robot.Conn.SayText(
 		context.Background(),
 		&vectorpb.SayTextRequest{
@@ -284,55 +284,56 @@ func DoSayText(input string, robot *vector.Vector) error {
 	return nil
 }
 
-func DoSayText_OpenAI(robot *vector.Vector, input string) error {
-	oc := openai.NewClient(vars.APIConfig.Knowledge.Key)
-	resp, err := oc.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
-		Model:          openai.TTSModel1,
-		Input:          input,
-		Voice:          openai.VoiceFable,
-		ResponseFormat: "pcm",
-	})
-	if err != nil {
-		return err
-	}
-	speechBytes, _ := io.ReadAll(resp)
-	vclient, err := robot.Conn.ExternalAudioStreamPlayback(context.Background())
-	if err != nil {
-		return err
-	}
-	vclient.Send(&vectorpb.ExternalAudioStreamRequest{
-		AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamPrepare{
-			AudioStreamPrepare: &vectorpb.ExternalAudioStreamPrepare{
-				AudioFrameRate: 16000,
-				AudioVolume:    100,
-			},
-		},
-	})
-	//time.Sleep(time.Millisecond * 30)
-	var audioChunks [][]byte
-	if os.Getenv("USE_GO_DESAMPLE") == "true" {
-		audioChunks = downsample24kTo16k(speechBytes)
-	} else {
-		audioChunks = downsampleAudioSoxr(speechBytes)
-	}
-	for _, chunk := range audioChunks {
-		vclient.Send(&vectorpb.ExternalAudioStreamRequest{
-			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamChunk{
-				AudioStreamChunk: &vectorpb.ExternalAudioStreamChunk{
-					AudioChunkSizeBytes: 1024,
-					AudioChunkSamples:   chunk,
-				},
-			},
-		})
-		time.Sleep(time.Millisecond * 30)
-	}
-	vclient.Send(&vectorpb.ExternalAudioStreamRequest{
-		AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamComplete{
-			AudioStreamComplete: &vectorpb.ExternalAudioStreamComplete{},
-		},
-	})
-	return nil
-}
+// TODO
+// func DoSayText_OpenAI(robot *vector.Vector, input string) error {
+// 	oc := openai.NewClient(vars.APIConfig.Knowledge.Key)
+// 	resp, err := oc.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
+// 		Model:          openai.TTSModel1,
+// 		Input:          input,
+// 		Voice:          openai.VoiceFable,
+// 		ResponseFormat: "pcm",
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	speechBytes, _ := io.ReadAll(resp)
+// 	vclient, err := robot.Conn.ExternalAudioStreamPlayback(context.Background())
+// 	if err != nil {
+// 		return err
+// 	}
+// 	vclient.Send(&vectorpb.ExternalAudioStreamRequest{
+// 		AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamPrepare{
+// 			AudioStreamPrepare: &vectorpb.ExternalAudioStreamPrepare{
+// 				AudioFrameRate: 16000,
+// 				AudioVolume:    100,
+// 			},
+// 		},
+// 	})
+// 	//time.Sleep(time.Millisecond * 30)
+// 	var audioChunks [][]byte
+// 	if os.Getenv("USE_GO_DESAMPLE") == "true" {
+// 		audioChunks = downsample24kTo16k(speechBytes)
+// 	} else {
+// 		audioChunks = downsampleAudioSoxr(speechBytes)
+// 	}
+// 	for _, chunk := range audioChunks {
+// 		vclient.Send(&vectorpb.ExternalAudioStreamRequest{
+// 			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamChunk{
+// 				AudioStreamChunk: &vectorpb.ExternalAudioStreamChunk{
+// 					AudioChunkSizeBytes: 1024,
+// 					AudioChunkSamples:   chunk,
+// 				},
+// 			},
+// 		})
+// 		time.Sleep(time.Millisecond * 30)
+// 	}
+// 	vclient.Send(&vectorpb.ExternalAudioStreamRequest{
+// 		AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamComplete{
+// 			AudioStreamComplete: &vectorpb.ExternalAudioStreamComplete{},
+// 		},
+// 	})
+// 	return nil
+// }
 
 func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector.Vector) {
 	logger.Println("Get image here...")
