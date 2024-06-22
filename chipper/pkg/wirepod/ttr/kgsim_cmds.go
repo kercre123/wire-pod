@@ -309,7 +309,12 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 		},
 	})
 	//time.Sleep(time.Millisecond * 30)
-	audioChunks := downsample24kTo16k(speechBytes)
+	var audioChunks [][]byte
+	if os.Getenv("USE_GO_DESAMPLE") == "true" {
+		audioChunks = downsample24kTo16k(speechBytes)
+	} else {
+		audioChunks = downsampleAudioSoxr(speechBytes)
+	}
 	for _, chunk := range audioChunks {
 		vclient.Send(&vectorpb.ExternalAudioStreamRequest{
 			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamChunk{
