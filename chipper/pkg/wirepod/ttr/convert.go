@@ -1,22 +1,42 @@
 package wirepod_ttr
 
+import (
+	"bytes"
+	"encoding/binary"
+
+	"github.com/zaf/resample"
+)
+
 // take out every third sample, return 1024 byte chunks
 func downsampleAudio(input []byte) [][]byte {
-	numSamples := len(input) / 2
-	output := make([]byte, 0, (2*numSamples*2)/3)
-	for i := 0; i < numSamples; i += 3 {
-		if i+2 < numSamples {
-			output = append(output, input[2*i], input[2*i+1])
-			output = append(output, input[2*i+2], input[2*i+3])
-		}
+	newBytes := new(bytes.Buffer)
+	dec, _ := resample.New(newBytes, 24000, 16000, 1, resample.I16, resample.HighQ)
+	dec.Write(input)
+	var audioChunks [][]byte
+	decodedBytes := newBytes.Bytes()
+	iVolBytes, _ := IncreaseVolume(decodedBytes, 5)
+	for len(iVolBytes) >= 1024 {
+		audioChunks = append(audioChunks, iVolBytes[:1024])
+		iVolBytes = iVolBytes[1024:]
 	}
-	var chunks [][]byte
-	for i := 0; i < len(output); i += 1024 {
-		end := i + 1024
-		if end > len(output) {
-			end = len(output)
+	return audioChunks
+}
+
+func IncreaseVolume(audioBytes []byte, gain float64) ([]byte, error) {
+	adjustedBytes := make([]byte, len(audioBytes))
+	var sample int16
+
+	for i := 0; i < len(audioBytes); i += 2 {
+		// handle peaking
+		sample = int16(binary.LittleEndian.Uint16(audioBytes[i : i+2]))
+		adjustedSample := float64(sample) * gain
+		if adjustedSample < -32768 {
+			adjustedSample = -32768
+		} else if adjustedSample > 32767 {
+			adjustedSample = 32767
 		}
-		chunks = append(chunks, output[i:end])
+		binary.LittleEndian.PutUint16(adjustedBytes[i:i+2], uint16(int16(adjustedSample)))
 	}
-	return chunks
+
+	return adjustedBytes, nil
 }

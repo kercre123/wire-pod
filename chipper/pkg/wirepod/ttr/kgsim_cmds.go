@@ -304,7 +304,7 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 		AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamPrepare{
 			AudioStreamPrepare: &vectorpb.ExternalAudioStreamPrepare{
 				AudioFrameRate: 16000,
-				AudioVolume:    90,
+				AudioVolume:    100,
 			},
 		},
 	})
