@@ -25,9 +25,9 @@ func int16sToBytes(data []int16) []byte {
 func downsample24kTo16k(input []byte) [][]byte {
 	outBytes := downsample24kTo16kLinear(input)
 	var audioChunks [][]byte
-	iVolBytes := increaseVolume(outBytes, 6)
+	iVolBytes := increaseVolume(outBytes, 6.5)
 	// the "s" sounds are harsh. put through filter
-	filteredBytes := lowPassFilter(iVolBytes, 3000, 16000)
+	filteredBytes := lowPassFilter(iVolBytes, 4000, 16000)
 	for len(filteredBytes) >= 1024 {
 		audioChunks = append(audioChunks, filteredBytes[:1024])
 		filteredBytes = filteredBytes[1024:]

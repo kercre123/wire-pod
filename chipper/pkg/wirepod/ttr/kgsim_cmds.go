@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -267,9 +268,8 @@ func DoPlaySound(sound string, robot *vector.Vector) error {
 }
 
 func DoSayText(input string, robot *vector.Vector) error {
-	// todo: before merging, uncomment
-	// if vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai" {
-	if vars.APIConfig.Knowledge.Provider == "openai" {
+	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || os.Getenv("USE_OPENAI_VOICE") == "true" {
+		//if vars.APIConfig.Knowledge.Provider == "openai" {
 		err := DoSayText_OpenAI(robot, input)
 		return err
 	}
@@ -308,6 +308,7 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 			},
 		},
 	})
+	//time.Sleep(time.Millisecond * 30)
 	audioChunks := downsample24kTo16k(speechBytes)
 	for _, chunk := range audioChunks {
 		vclient.Send(&vectorpb.ExternalAudioStreamRequest{
@@ -564,7 +565,7 @@ func StartAnim_Queue(esn string) {
 		if q.ESN == esn {
 			if q.AnimCurrentlyPlaying {
 				for range AnimationQueues[i].AnimDone {
-					logger.Println("I await...")
+					logger.Println("(waiting for animation to be done...)")
 					break
 				}
 			} else {
