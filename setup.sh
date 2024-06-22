@@ -90,16 +90,16 @@ function getPackages() {
     echo "Installing required packages"
     if [[ ${TARGET} == "debian" ]]; then
         apt update -y
-        apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev libsoxr-dev
+        apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev
         elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config libsoxr
+        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config 
         elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
         elif [[ ${TARGET} == "darwin" ]]; then
         sudo -u $SUDO_USER brew update
-        sudo -u $SUDO_USER brew install wget pkg-config opus opusfile libsoxr
+        sudo -u $SUDO_USER brew install wget pkg-config opus opusfile
     fi
     touch ./vector-cloud/packagesGotten
     echo

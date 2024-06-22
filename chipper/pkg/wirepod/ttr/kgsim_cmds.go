@@ -308,7 +308,7 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 			},
 		},
 	})
-	audioChunks := downsampleAudio(speechBytes)
+	audioChunks := downsample24kTo16k(speechBytes)
 	for _, chunk := range audioChunks {
 		vclient.Send(&vectorpb.ExternalAudioStreamRequest{
 			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamChunk{
