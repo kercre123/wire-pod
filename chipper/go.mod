@@ -26,7 +26,6 @@ require (
 	github.com/soheilhy/cmux v0.1.5
 	github.com/soundhound/houndify-sdk-go v0.3.5
 	github.com/wlynxg/anet v0.0.1
-	github.com/zaf/resample v1.5.0
 	golang.org/x/crypto v0.16.0
 	google.golang.org/grpc v1.60.0
 	gopkg.in/ini.v1 v1.67.0
