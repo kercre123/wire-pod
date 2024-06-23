@@ -36,7 +36,7 @@ func Println(a ...any) {
 
 func LogUI(a ...any) {
 	LogArray = append(LogArray, time.Now().Format("2006.01.02 15:04:05")+": "+fmt.Sprint(a...)+"\n")
-	if len(LogArray) >= 30 {
+	if len(LogArray) >= 50 {
 		LogArray = LogArray[1:]
 	}
 	LogList = ""
@@ -47,7 +47,7 @@ func LogUI(a ...any) {
 
 func LogTray(a ...any) {
 	LogTrayArray = append(LogTrayArray, time.Now().Format("2006.01.02 15:04:05")+": "+fmt.Sprint(a...)+"\n")
-	if len(LogTrayArray) >= 30 {
+	if len(LogTrayArray) >= 200 {
 		LogTrayArray = LogTrayArray[1:]
 	}
 	LogTrayList = ""

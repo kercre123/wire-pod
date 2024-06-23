@@ -1,347 +1,250 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Wire-Pod Setup</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script
-      src="https://kit.fontawesome.com/8cdc8cbed9.js"
-      crossorigin="anonymous"
-    ></script>
-  </head>
 
-  <body>
-    <div id="outer">
-      <div id="content" class="">
-        <h1>Wire-Pod Setup</h1>
-        <hr />
-        <div class="main-nav-parent">
-          <div class="main-nav-child">
-            <a href="index.html"><i class="fa-solid fa-reply"></i><br />Back</a>
-          </div>
-          <div class="main-nav-child">
-            <a href="#" onclick="showWeather(); return false;"
-              ><i
-                class="fa solid fa-cloud-sun"
-                id="icon-Weather"
-                name="icon"
-              ></i
-              ><br />Weather</a
-            >
-          </div>
-          <div class="main-nav-child">
-            <a href="#" onclick="showKG(); return false;"
-              ><i
-                class="fa solid fa-diagram-project"
-                id="icon-KG"
-                name="icon"
-              ></i
-              ><br />Knowledge Graph</a
-            >
-          </div>
-          <div class="main-nav-child">
-            <a href="#" onclick="showLanguage(); return false;"
-              ><i
-                class="fa-solid fa-language"
-                id="icon-Language"
-                name="icon"
-              ></i
-              ><br />Set Language</a
-            >
-          </div>
-          <!--<div class="main-nav-child"><a href="#" onclick="showRestart(); return false;"><i class="fa solid fa-arrow-rotate-right" id="icon-Restart" name="icon"></i><br/>Restart Wire-Pod</a></div> -->
+<head>
+  <title>Wire-Pod Setup</title>
+  <link rel="stylesheet" type="text/css" href="css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div id="outer">
+    <div id="content" class="">
+      <h1>Wire-Pod Setup</h1>
+      <hr />
+      <div class="main-nav-parent">
+        <div class="main-nav-child">
+          <a href="index.html"><i class="fa-solid fa-reply"></i><br />Back</a>
         </div>
-        <hr />
-
-        <div id="section-weather" style="display: none">
-          <h3>Weather API Setup</h3>
-          <div>
-            <p>Set the weather provider you want to use</p>
-            <div id="addWeatherProviderAPI"></div>
-            <form id="weatherAPIAddForm">
-              <label for="weatherProvider">Weather API Provider:</label>
-              <select
-                name="weatherProvider"
-                id="weatherProvider"
-                form="weatherAPIAddForm"
-                onchange="checkWeather()"
-              >
-                <option value="" selected>None</option>
-                <option value="openweathermap.org">
-                  OpenWeatherMap (free, with forecast support)
-                </option>
-                <option value="weatherapi.com">WeatherAPI</option></select
-              ><br />
-              <span id="apiKeySpan" style="display: none">
-                <label for="apiKey">Weather API Key:</label>
-                <input type="text" name="apiKey" id="apiKey" /><br />
-              </span>
-            </form>
-            <div class="center">
-              <button onclick="sendWeatherAPIKey()">
-                Apply Weather Settings
-              </button>
-            </div>
-            <div id="addWeatherProviderAPIStatus"></div>
-            <hr />
-          </div>
+        <div class="main-nav-child">
+          <a href="#" onclick="showWeather(); return false;"><i class="fa solid fa-cloud-sun" id="icon-Weather"
+              name="icon"></i><br />Weather</a>
         </div>
+        <div class="main-nav-child">
+          <a href="#" onclick="showKG(); return false;"><i class="fa solid fa-diagram-project" id="icon-KG"
+              name="icon"></i><br />Knowledge Graph</a>
+        </div>
+        <div class="main-nav-child">
+          <a href="#" onclick="showLanguage(); return false;"><i class="fa-solid fa-language" id="icon-Language"
+              name="icon"></i><br />Set Language</a>
+        </div>
+        <!--<div class="main-nav-child"><a href="#" onclick="showRestart(); return false;"><i class="fa solid fa-arrow-rotate-right" id="icon-Restart" name="icon"></i><br/>Restart Wire-Pod</a></div> -->
+      </div>
+      <hr />
 
-        <div id="section-kg" style="display: none">
-          <h3>Knowledge Graph Setup</h3>
-          <div>
-            <p>Set the Knowledge Graph Provider you want to use</p>
-            <div id="addKGProviderAPI"></div>
-            <form id="kgAPIAddForm">
-              <label for="kgProvider">Knowledge Graph API Provider:</label>
-              <select
-                name="kgProvider"
-                id="kgProvider"
-                form="kgAPIAddForm"
-                onchange="checkKG()"
-              >
-                <option value="" selected>None</option>
-                <option value="openai">OpenAI</option>
-                <option value="houndify">Houndify</option>
-                <option value="together">Together</option></select
-              ><br />
-              <span id="houndifyInput" style="display: none">
-                <small
-                  >To use Houndify, create an account at
-                  <a href="https://www.houndify.com/signup">houndify.com</a>,
-                  create a free domain, and enter the Client ID and Key
-                  here.</small
-                ><br />
-                <label for="houndID">Knowledge Graph Client ID:</label>
-                <input type="text" name="houndID" id="houndID" /><br />
-                <label for="houndKey">Knowledge Graph Client Key:</label>
-                <input type="text" name="houndKey" id="houndKey" /><br />
-              </span>
-              <span id="togetherInput" style="display: none">
-                <small
-                  >To use Together, create an account at
-                  <a href="https://www.together.xyz">together.com</a>, create a
-                  free domain, and enter the Model Name and Together Key
-                  here.</small
-                ><br />
-                <label for="togetherModel"
-                  >Together Model Name: (leave blank for default:
-                  meta-llama/Llama-3-70b-chat-hf)</label
-                >
-                <input
-                  type="text"
-                  name="togetherModel"
-                  id="togetherModel"
-                /><br />
-                <label for="togetherKey">Together Key:</label>
-                <input type="text" name="togetherKey" id="togetherKey" /><br />
-                <label for="togetherAIPrompt"
-                  >GPT Prompt (leave blank for default):</label
-                ><br />
-                <small
-                  ><label for="togetherAIPrompt"
-                    >(default: "You are a helpful, animated robot called Vector.
-                    Keep the response concise yet informative.")</label
-                  ></small
-                >
-                <input
-                  type="text"
-                  name="togetherAIPrompt"
-                  id="togetherAIPrompt"
-                /><br />
-                <p>
-                  Would you like to enable the intent graph feature? This
-                  forwards the request to Together if the regular intent
-                  processor didn't understand what you said.
-                </p>
-                <label for="togetherintentyes">Yes</label>
-                <input
-                  type="radio"
-                  id="togetherintentyes"
-                  name="togetherintentgselect"
-                  value="yes"
-                  onclick="checkKG()"
-                />
-                <label for="intentno">No</label>
-                <input
-                  type="radio"
-                  id="togetherintentno"
-                  name="togetherintentgselect"
-                  value="no"
-                  onclick="checkKG()"
-                /><br /><br />
-              </span>
-              <span id="openAIInput" style="display: none">
-                <br />
-                <label for="openAIKey">OpenAI Key:</label>
-                <input type="text" name="openAIKey" id="openAIKey" /><br />
-                <label for="openAIPrompt"
-                  >GPT Prompt (leave blank for default):</label
-                ><br />
-                <small
-                  ><label for="openAIPrompt"
-                    >(default: "You are a helpful, animated robot called Vector.
-                    Keep the response concise yet informative.")</label
-                  ></small
-                >
-                <input
-                  type="text"
-                  name="openAIPrompt"
-                  id="openAIPrompt"
-                /><br />
-                <p>
-                  Would you like to enable the intent graph feature? This
-                  forwards the request to OpenAI if the regular intent processor
-                  didn't understand what you said.
-                </p>
-                <label for="intentyes">Yes</label>
-                <input
-                  type="radio"
-                  id="intentyes"
-                  name="intentgselect"
-                  value="yes"
-                  onclick="checkKG()"
-                />
-                <label for="intentno">No</label>
-                <input
-                  type="radio"
-                  id="intentno"
-                  name="intentgselect"
-                  value="no"
-                  onclick="checkKG()"
-                /><br /><br />
-              </span>
-            </form>
-            <span id="llmCommandInput" style="display: none">
-              <p>
-                Enable LLM commands (allows the LLM to run commands on the
-                robot)? (BETA)
-              </p>
-              <label for="commandYes">Yes</label>
-              <input
-                type="radio"
-                id="commandYes"
-                name="commandDoselect"
-                value="yes"
-              />
-              <label for="commandNo">No</label>
-              <input
-                type="radio"
-                id="commandNo"
-                name="commandDoselect"
-                value="no"
-              />
+      <div id="section-weather" style="display: none">
+        <h3>Weather API Setup</h3>
+        <hr class="small-hr">
+        <div>
+          <p>Set the weather provider you'd like to use.</p>
+          <hr class="small-hr">
+          <div id="addWeatherProviderAPI"></div>
+          <form id="weatherAPIAddForm">
+            <label for="weatherProvider">Weather API Provider:</label>
+            <select name="weatherProvider" id="weatherProvider" form="weatherAPIAddForm" onchange="checkWeather()">
+              <option value="" selected>None</option>
+              <option value="openweathermap.org">
+                OpenWeatherMap
+              </option>
+              <option value="weatherapi.com">WeatherAPI</option>
+            </select><br />
+            <span id="apiKeySpan" style="display: none">
+              <label for="apiKey">API Key:</label><br />
+              <input class="tinput" type="text" name="apiKey" id="apiKey" /><br />
             </span>
-            <br />
-            <span id="saveChatInput" style="display: none">
-              <p>
-                Would you like chats to be saved and used in the context of
-                future responses?
-              </p>
-              <label for="saveChatYes">Yes</label>
-              <input
-                type="radio"
-                id="saveChatYes"
-                name="saveChatselect"
-                value="yes"
-              />
-              <label for="saveChatNo">No</label>
-              <input
-                type="radio"
-                id="saveChatNo"
-                name="saveChatselect"
-                value="no"
-              />
-              <div class="center">
-                <button onclick="deleteSavedChats()">Delete Saved Chats</button>
-              </div>
-            </span>
-            <div class="center">
-              <button onclick="sendKGAPIKey()">Apply Settings</button>
-            </div>
-            <div id="addKGProviderAPIStatus"></div>
-            <hr />
-          </div>
-        </div>
-
-        <div id="section-stt" style="display: none">
-          <h3>Speech-To-Text Language</h3>
-          <div>
-            <p>
-              Set the STT language you want to use. Works only with VOSK or
-              Whisper as STT provider.
-            </p>
-            <form id="sttAddForm">
-              <label for="sttLanguage">STT Language:</label>
-              <select name="sttLanguage" id="sttLanguage" form="sttAddForm">
-                <option value="en-US">US English</option>
-                <option value="it-IT">Italian</option>
-                <option value="es-ES">Spanish</option>
-                <option value="fr-FR">French</option>
-                <option value="de-DE">German</option>
-                <option value="pt-BR">Portuguese</option>
-                <option value="pl-PL">Polish</option>
-                <option value="tr-TR">Turkish</option>
-                <option value="pl-PL">Chinese</option>
-                <option value="ru-RU">Russian</option></select
-              ><br />
-            </form>
-            <div class="center">
-              <button onclick="sendSTTLanguage()">Apply Language</button>
-            </div>
-            <div id="addSTTStatus"></div>
-            <hr />
-          </div>
-        </div>
-
-        <div id="section-restart" style="display: none">
-          <h3>Restart Wire-Pod</h3>
-          <div>
-            <p>
-              Restart Wire-Pod to apply the initial setup settings immediately
-            </p>
-            <div id="restart"></div>
-            <div class="center">
-              <button onclick="sendRestart()">Restart Wire-Pod</button>
-            </div>
-            <div id="restartStatus"></div>
-            <hr />
-          </div>
-        </div>
-
-        <div id="section-language" style="display: none">
-          <h2>STT Language</h2>
-          <div class="center" id="languageStatus"></div>
-          <div id="languageSelectionDiv">
-            <div class="center">
-              <select name="languageSelection" id="languageSelection">
-                <option value="en-US">English (US)</option>
-                <option value="it-IT">Italian (IT)</option>
-                <option value="es-ES">Spanish (ES)</option>
-                <option value="fr-FR">French (FR)</option>
-                <option value="de-DE">German (DE)</option>
-                <option value="pt-BR">Portuguese (BR)</option>
-                <option value="pl-PL">Polish (PL)</option>
-                <option value="tr-TR">Turkish (TR)</option>
-                <option value="zh-CN">Chinese (CN)</option>
-                <option value="ru-RU">Russian (RU)</option>
-              </select>
-            </div>
-            <div class="center">
-              <button onclick="setSTTLanguage()" type="submit">
-                Set Language
-              </button>
-            </div>
-          </div>
+          </form>
+          <hr class="small-hr">
+          <button onclick="sendWeatherAPIKey()">
+            Apply Weather Settings
+          </button>
+          <div id="addWeatherProviderAPIStatus"></div>
           <hr />
         </div>
       </div>
+
+      <div id="section-kg" style="display: none">
+        <h3>Knowledge Graph Setup</h3>
+        <hr class="small-hr">
+        <div>
+          <p>Select the knowledge provider you would like to use, then enter the required information.</p>
+          <hr class="small-hr">
+          <div id="addKGProviderAPI"></div>
+          <form id="kgAPIAddForm">
+            <label for="kgProvider">Knowledge Graph API Provider:</label>
+            <select name="kgProvider" id="kgProvider" form="kgAPIAddForm" onchange="checkKG()">
+              <option value="" selected>None</option>
+              <option value="openai">OpenAI</option>
+              <option value="houndify">Houndify</option>
+              <option value="together">Together</option>
+              <option value="custom">Custom</option>
+            </select>
+            <span id="houndifyInput" style="display: none">
+              <small class="desc">To use Houndify, create an account at
+                <a href="https://www.houndify.com/signup">houndify.com</a>,
+                create a free domain, and enter the Client ID and Key
+                here.</small><br />
+              <label for="houndID">Houndify Client ID:</label>
+              <input type="text" name="houndID" id="houndID" /><br />
+              <label for="houndKey">Houndify Client Key:</label>
+              <input type="text" name="houndKey" id="houndKey" /><br />
+            </span>
+            <span id="togetherInput" style="display: none">
+              <small class="desc">To use Together, create an account at
+                <a href="https://www.together.xyz">together.com</a>, create
+                a free domain, and enter the Model Name and Together Key
+                here.</small><br />
+              <label for="togetherModel">Together Model Name: <small class="desc">(leave blank for default
+                meta-llama/Llama-3-70b-chat-hf)</small></label>
+              <input type="text" name="togetherModel" id="togetherModel" /><br />
+              <label for="togetherKey">Together Key:</label>
+              <input type="text" name="togetherKey" id="togetherKey" /><br />
+              <label for="togetherAIPrompt">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
+              <small><label class="desc" for="togetherAIPrompt">(default: "You are a helpful, animated robot called
+                  Vector. Keep the response concise yet
+                  informative.")</label></small>
+              <input type="text" name="togetherAIPrompt" id="togetherAIPrompt" /><br />
+            </span>
+            <span id="openAIInput" style="display: none">
+              <label for="openAIKey">OpenAI Key:</label>
+              <input type="text" name="openAIKey" id="openAIKey" /><br />
+              <label for="openAIKey">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
+              <small><label class="desc" for="openAIPrompt">(default: "You are a helpful, animated robot called
+                  Vector. Keep the response concise yet
+                  informative.")</label></small>
+              <input type="text" name="openAIPrompt" id="openAIPrompt" /><br />
+            </span>
+
+            <span id="customAIInput" style="display: none">
+              <small class="desc">All LLM hosts that have OpenAI API compatibility are supported. For advanced
+                users.</small><br />
+              <label for="customAIKey">API Key <small class="desc">(for ollama, this is just 'ollama')</small>:</label>
+              <input type="text" name="customAIKey" id="customAIKey" /><br />
+              <label for="customAIEndpoint">API Endpoint <small class="desc">(i.e. http://localhost:11434/v1)</small>:</label>
+              <input type="text" name="customAIEndpoint" id="customAIEndpoint" /><br />
+              <label for="customModel">LLM Model Name <small class="desc">(i.e. 'llama3')</small>:</label>
+              <input type="text" name="customModel" id="customModel" /><br />
+              <label for="customAIPrompt">LLM Prompt <small class="desc">(leave blank for default)</small>:</label><br />
+              <small><label class="desc" for="customAIPrompt">(default: "You are a helpful, animated robot called
+                  Vector. Keep the response concise yet
+                  informative.")</label></small>
+              <input type="text" name="customAIPrompt" id="customAIPrompt" /><br />
+            </span>
+
+            <div style="text-align: left;">
+              <span id="intentGraphInput" style="display: none;">
+                <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
+                <label class="checkbox-label" for="intentyes">
+                  Enable intent-graph. This
+                  forwards the request to the LLM if the regular intent
+                  processor didn't understand what you said.
+                </label>
+              </span>
+              <span id="llmCommandInput" style="display: none">
+                <input type="checkbox" id="commandYes" name="commandDoselect" />
+                <label class="checkbox-label" for="commandYes">
+                  Allow the LLM to run commands on the robot, such as play animations.
+                </label>
+              </span>
+              <span id="saveChatInput" style="display: none">
+                <input type="checkbox" id="saveChatYes" name="saveChatselect" />
+                <label class="checkbox-label" for="saveChatYes">
+                  Save chats to be used in the context of future responses.
+                </label>
+              </span>
+            </div>
+
+          </form>
+        </div>
+        <hr class="small-hr">
+        <button onclick="sendKGAPIKey()">Apply Settings</button>
+        <div id="addKGProviderAPIStatus"></div>
+        <hr />
+      </div>
+
+      <div id="section-stt" style="display: none">
+        <h3>Speech-To-Text Language</h3>
+        <hr class="small-hr">
+        <div>
+          <p>
+            Set the STT language you want to use. Works only with VOSK or
+            Whisper as STT provider.
+          </p>
+          <hr class="small-hr">
+          <form id="sttAddForm">
+            <label for="sttLanguage">STT Language:</label>
+            <select name="sttLanguage" id="sttLanguage" form="sttAddForm">
+              <option value="en-US">US English</option>
+              <option value="it-IT">Italian</option>
+              <option value="es-ES">Spanish</option>
+              <option value="fr-FR">French</option>
+              <option value="de-DE">German</option>
+              <option value="pt-BR">Portuguese</option>
+              <option value="pl-PL">Polish</option>
+              <option value="tr-TR">Turkish</option>
+              <option value="pl-PL">Chinese</option>
+              <option value="ru-RU">Russian</option>
+            </select><br />
+          </form>
+          <button onclick="sendSTTLanguage()">Apply Language</button>
+          <div id="addSTTStatus"></div>
+          <hr />
+        </div>
+      </div>
+
+      <div id="section-restart" style="display: none">
+        <h3>Restart Wire-Pod</h3>
+        <div>
+          <p>
+            Restart Wire-Pod to apply the initial setup settings immediately
+          </p>
+          <div id="restart"></div>
+          <div>
+            <button onclick="sendRestart()">Restart Wire-Pod</button>
+          </div>
+          <div id="restartStatus"></div>
+          <hr />
+        </div>
+      </div>
+
+      <div id="section-language" style="display: none">
+        <h2>STT Language</h2>
+        <hr class="small-hr">
+        <p>Set the speech-to-text language you'd like wire-pod to use.</p>
+        <hr class="small-hr">
+        <div id="languageStatus"></div>
+        <div id="languageSelectionDiv">
+          <div>
+            <select name="languageSelection" id="languageSelection">
+              <option value="en-US">English (US)</option>
+              <option value="it-IT">Italian (IT)</option>
+              <option value="es-ES">Spanish (ES)</option>
+              <option value="fr-FR">French (FR)</option>
+              <option value="de-DE">German (DE)</option>
+              <option value="pt-BR">Portuguese (BR)</option>
+              <option value="pl-PL">Polish (PL)</option>
+              <option value="tr-TR">Turkish (TR)</option>
+              <option value="zh-CN">Chinese (CN)</option>
+              <option value="ru-RU">Russian (RU)</option>
+            </select>
+          </div>
+          <div>
+            <hr class="small-hr">
+            <button onclick="setSTTLanguage()" type="submit">
+              Set Language
+            </button>
+          </div>
+        </div>
+        <hr />
+      </div>
     </div>
-  </body>
-  <script src="./js/main.js"></script>
-  <script src="./sdkapp/js/main.js"></script>
-  <script>
-    updateWeatherAPI();
-    updateKGAPI();
-  </script>
+  </div>
+</body>
+<script src="./js/main.js"></script>
+<script src="./sdkapp/js/main.js"></script>
+<script>
+  updateWeatherAPI();
+  updateKGAPI();
+</script>
+
 </html>

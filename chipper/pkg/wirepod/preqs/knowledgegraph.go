@@ -69,8 +69,12 @@ func houndifyKG(req sr.SpeechRequest) string {
 }
 
 func togetherRequest(transcribedText string) string {
+	// will also handle custom
 	sendString := "You are a helpful robot called Vector. You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
 	url := "https://api.together.xyz/inference"
+	if vars.APIConfig.Knowledge.Provider == "custom" {
+		url = vars.APIConfig.Knowledge.Endpoint
+	}
 	model := vars.APIConfig.Knowledge.Model
 	formData := `{
 "model": "` + model + `",

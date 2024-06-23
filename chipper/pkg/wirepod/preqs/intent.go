@@ -43,7 +43,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 		return nil, nil
 	}
 	if !successMatched {
-		if vars.APIConfig.Knowledge.IntentGraph {
+		if vars.APIConfig.Knowledge.IntentGraph && vars.APIConfig.Knowledge.Enable {
 			logger.Println("Making LLM request for device " + req.Device + "...")
 			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText)
 			if err != nil {
