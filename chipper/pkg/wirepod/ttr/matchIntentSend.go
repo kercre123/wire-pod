@@ -96,7 +96,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 }
 
-func customIntentHandler(req interface{}, voiceText string, isOpus bool, botSerial string) bool {
+func customIntentHandler(req interface{}, voiceText string, botSerial string) bool {
 	var successMatched bool = false
 	if vars.CustomIntentsExist {
 		for _, c := range vars.CustomIntents {
@@ -248,7 +248,7 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 	var successMatched bool = false
 	voiceText = strings.ToLower(voiceText)
 	pluginMatched := pluginFunctionHandler(req, voiceText, botSerial)
-	customIntentMatched := customIntentHandler(req, voiceText, isOpus, botSerial)
+	customIntentMatched := customIntentHandler(req, voiceText, botSerial)
 	if !customIntentMatched && !pluginMatched {
 		logger.Println("Not a custom intent")
 		// Look for a perfect match first
@@ -259,7 +259,7 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 					if isOpus {
 						ParamChecker(req, b.Name, voiceText, botSerial)
 					} else {
-						prehistoricParamChecker(req, b.Name, voiceText, botSerial)
+						prehistoricParamChecker(req, b.Name, voiceText)
 					}
 					successMatched = true
 					matched = 1
@@ -283,7 +283,7 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 						if isOpus {
 							ParamChecker(req, b.Name, voiceText, botSerial)
 						} else {
-							prehistoricParamChecker(req, b.Name, voiceText, botSerial)
+							prehistoricParamChecker(req, b.Name, voiceText)
 						}
 						successMatched = true
 						matched = 1

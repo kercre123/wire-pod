@@ -1,6 +1,4 @@
-var eventListenerAdded = false;
-
-intentsJson =
+var intentsJson =
   '["intent_greeting_hello", "intent_names_ask", "intent_imperative_eyecolor", "intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep", "intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear", "intent_seasonal_happyholidays", "intent_amazon_signin", "intent_amazon_signin", "intent_imperative_forward", "intent_imperative_turnaround", "intent_imperative_turnleft", "intent_imperative_turnright", "intent_play_rollcube", "intent_play_popawheelie", "intent_play_fistbump", "intent_play_blackjack", "intent_imperative_affirmative", "intent_imperative_negative", "intent_photo_take_extend", "intent_imperative_praise", "intent_imperative_abuse", "intent_weather_extend", "intent_imperative_apologize", "intent_imperative_backup", "intent_imperative_volumedown", "intent_imperative_volumeup", "intent_imperative_lookatme", "intent_imperative_volumelevel_extend", "intent_imperative_shutup", "intent_names_username_extend", "intent_imperative_come", "intent_imperative_love", "intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend", "intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube", "intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend", "intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"]';
 
 function updateIntentSelection(element) {
@@ -11,8 +9,8 @@ function updateIntentSelection(element) {
   xhr.responseType = "json";
   xhr.send();
   xhr.onload = function () {
-    document.getElementById("editIntentStatus").innerHTML = "";
-    document.getElementById("deleteIntentStatus").innerHTML = "";
+    getE("editIntentStatus").innerHTML = "";
+    getE("deleteIntentStatus").innerHTML = "";
     var listResponse = xhr.response;
     var listNum = 0;
     if (listResponse != null) {
@@ -21,7 +19,7 @@ function updateIntentSelection(element) {
     if (listResponse != null && listNum != 0) {
       console.log(listNum);
       var select = document.createElement("select");
-      document.getElementById(element).innerHTML = "";
+      getE(element).innerHTML = "";
       select.name = element + "intents";
       select.id = element + "intents";
       for (const name in listResponse) {
@@ -36,7 +34,7 @@ function updateIntentSelection(element) {
       var label = document.createElement("label");
       label.innerHTML = "Choose the intent: ";
       label.htmlFor = element + "intents";
-      document.getElementById(element).appendChild(label).appendChild(select);
+      getE(element).appendChild(label).appendChild(select);
 
       select.addEventListener("change", function () {
         if (select.value) {
@@ -49,24 +47,24 @@ function updateIntentSelection(element) {
       var error2 = document.createElement("p");
       error1.innerHTML = "No intents found, you must add one first";
       error2.innerHTML = "No intents found, you must add one first";
-      document.getElementById("editIntentForm").innerHTML = "";
-      document.getElementById("editIntentStatus").innerHTML = "";
-      document.getElementById("deleteIntentStatus").innerHTML = "";
-      document.getElementById("editSelect").innerHTML = "";
-      document.getElementById("deleteSelect").innerHTML = "";
-      document.getElementById("deleteIntentStatus").appendChild(error1);
-      document.getElementById("editIntentStatus").appendChild(error2);
+      getE("editIntentForm").innerHTML = "";
+      getE("editIntentStatus").innerHTML = "";
+      getE("deleteIntentStatus").innerHTML = "";
+      getE("editSelect").innerHTML = "";
+      getE("deleteSelect").innerHTML = "";
+      getE("deleteIntentStatus").appendChild(error1);
+      getE("editIntentStatus").appendChild(error2);
     }
   };
 }
 
 function checkInited() {
   fetch("/api/get_version_info")
-  .then((response) => {
-    if (!response.ok) {
-      alert("This webroot does not match with the wire-pod binary. Some functionality will be broken. There was either an error during the last update, or you did not precisely follow the update guide.")
-    }
-  })
+    .then((response) => {
+      if (!response.ok) {
+        alert("This webroot does not match with the wire-pod binary. Some functionality will be broken. There was either an error during the last update, or you did not precisely follow the update guide.")
+      }
+    })
   fetch("/api/get_config")
     .then((response) => response.text())
     .then((response) => {
@@ -82,7 +80,7 @@ function checkInited() {
 // function that creates select from intentsJson
 function createIntentSelect(element) {
   var select = document.createElement("select");
-  document.getElementById(element).innerHTML = "";
+  getE(element).innerHTML = "";
   select.name = element + "intents";
   select.id = element + "intents";
   var intents = JSON.parse(intentsJson);
@@ -95,13 +93,13 @@ function createIntentSelect(element) {
   var label = document.createElement("label");
   label.innerHTML = "Intent to send to robot after script executed:";
   label.htmlFor = element + "intents";
-  document.getElementById(element).appendChild(label).appendChild(select);
+  getE(element).appendChild(label).appendChild(select);
 }
 
 // get intent from editSelect element and create a form in div#editIntentForm to edit it
 // options are: name, description, utterances, intent, paramname, paramvalue, exec
 function editFormCreate() {
-  var intentNumber = document.getElementById("editSelectintents").selectedIndex;
+  var intentNumber = getE("editSelectintents").selectedIndex;
   var xhr = new XMLHttpRequest();
   xhr.open("GET", "/api/get_custom_intents_json");
   xhr.setRequestHeader("Content-Type", "application/json");
@@ -245,8 +243,8 @@ function editFormCreate() {
       form.appendChild(execargsLabel).appendChild(execargs);
       form.appendChild(document.createElement("br"));
       form.appendChild(submit);
-      document.getElementById("editIntentForm").innerHTML = "";
-      document.getElementById("editIntentForm").appendChild(form);
+      getE("editIntentForm").innerHTML = "";
+      getE("editIntentForm").appendChild(form);
 
       //editIntentFrame.appendChild(nameLabel);
       //editIntentFrame.appendChild(descriptionLabel);
@@ -261,13 +259,13 @@ function editFormCreate() {
       var error2 = document.createElement("p");
       error1.innerHTML = "No intents found, you must add one first";
       error2.innerHTML = "No intents found, you must add one first";
-      document.getElementById("editIntentForm").innerHTML = "";
-      document.getElementById("editIntentStatus").innerHTML = "";
-      document.getElementById("deleteIntentStatus").innerHTML = "";
-      document.getElementById("editSelect").innerHTML = "";
-      document.getElementById("deleteSelect").innerHTML = "";
-      document.getElementById("deleteIntentStatus").appendChild(error1);
-      document.getElementById("editIntentStatus").appendChild(error2);
+      getE("editIntentForm").innerHTML = "";
+      getE("editIntentStatus").innerHTML = "";
+      getE("deleteIntentStatus").innerHTML = "";
+      getE("editSelect").innerHTML = "";
+      getE("deleteSelect").innerHTML = "";
+      getE("deleteIntentStatus").appendChild(error1);
+      getE("editIntentStatus").appendChild(error2);
     }
   };
 }
@@ -279,14 +277,14 @@ function editIntent(intentNumber) {
 
   var formData = new FormData();
   formData.append("number", intentNumber + 1);
-  formData.append("name", document.getElementById("name").value);
-  formData.append("description", document.getElementById("description").value);
-  formData.append("utterances", document.getElementById("utterances").value);
-  formData.append("intent", document.getElementById("intent").value);
-  formData.append("paramname", document.getElementById("paramname").value);
-  formData.append("paramvalue", document.getElementById("paramvalue").value);
-  formData.append("exec", document.getElementById("exec").value);
-  formData.append("execargs", document.getElementById("execargs").value);
+  formData.append("name", getE("name").value);
+  formData.append("description", getE("description").value);
+  formData.append("utterances", getE("utterances").value);
+  formData.append("intent", getE("intent").value);
+  formData.append("paramname", getE("paramname").value);
+  formData.append("paramvalue", getE("paramvalue").value);
+  formData.append("exec", getE("exec").value);
+  formData.append("execargs", getE("execargs").value);
   var xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/edit_custom_intent");
   xhr.send(formData);
@@ -296,14 +294,10 @@ function editIntent(intentNumber) {
     console.log("Intent edited");
     var success = document.createElement("p");
     success.innerHTML = "Intent edited successfully";
-    document.getElementById("editIntentStatus").innerHTML = "";
-    document.getElementById("editIntentStatus").appendChild(success);
+    getE("editIntentStatus").innerHTML = "";
+    getE("editIntentStatus").appendChild(success);
   };
 }
-
-updateIntentSelection("editSelect");
-updateIntentSelection("deleteSelect");
-createIntentSelect("intentAddSelect");
 
 var HttpClient = function () {
   this.get = function (aUrl, aCallback) {
@@ -318,7 +312,7 @@ var HttpClient = function () {
 };
 
 function deleteSelectedIntent() {
-  var intentNumber = document.getElementById("editSelectintents").selectedIndex;
+  var intentNumber = getE("editSelectintents").selectedIndex;
 
   var formData = new FormData();
   formData.append("number", intentNumber + 1);
@@ -337,7 +331,7 @@ function deleteSelectedIntent() {
 }
 
 function sendIntentAdd() {
-  const form = document.getElementById("intentAddForm");
+  const form = getE("intentAddForm");
   var data =
     "name=" +
     form.elements["nameAdd"].value +
@@ -356,7 +350,7 @@ function sendIntentAdd() {
     "&execargs=" +
     form.elements["execAddArgs"].value;
   var client = new HttpClient();
-  var result = document.getElementById("addIntentStatus");
+  var result = getE("addIntentStatus");
   const resultP = document.createElement("p");
   resultP.textContent = "Adding...";
   result.innerHTML = "";
@@ -374,8 +368,8 @@ function sendIntentAdd() {
 
 // Toggle Headllines
 function toggleSection(sectionToToggle, sectionToClose, foldableID) {
-  const toggleSect = document.getElementById(sectionToToggle);
-  const closeSect = document.getElementById(sectionToClose);
+  const toggleSect = getE(sectionToToggle);
+  const closeSect = getE(sectionToClose);
 
   if (toggleSect.style.display === "block") {
     closeSection(toggleSect, foldableID);
@@ -410,6 +404,7 @@ function togglePlusMinusSymbols() {
 */
 
 // Changes color of the clicked icon
+// this breaks the hover animation. todo fix
 function updateColor(id) {
   let body_styles = window.getComputedStyle(
     document.getElementsByTagName("body")[0]
@@ -420,24 +415,24 @@ function updateColor(id) {
   l_id = id.replace("section", "icon");
   let elements = document.getElementsByName("icon");
   for (let i = 0; i < elements.length; i++) {
-    document.getElementById(elements[i].id).style.color = bgColorAlt;
+    getE(elements[i].id).style.color = bgColorAlt;
   }
-  document.getElementById(l_id).style.color = fgColor;
+  getE(l_id).style.color = fgColor;
 }
 
 GetLog = false;
 
 function showLog() {
-  document.getElementById("section-intents").style.display = "none";
-  document.getElementById("section-language").style.display = "none";
-  document.getElementById("section-log").style.display = "block";
-  document.getElementById("section-botauth").style.display = "none";
-  document.getElementById("section-version").style.display = "none";
+  getE("section-intents").style.display = "none";
+  getE("section-language").style.display = "none";
+  getE("section-log").style.display = "block";
+  getE("section-botauth").style.display = "none";
+  getE("section-version").style.display = "none";
   updateColor("icon-Logs");
 
   GetLog = true;
-  logDivArea = document.getElementById("botTranscriptedTextArea");
-  document.getElementById("logscrollbottom").checked = true;
+  logDivArea = getE("botTranscriptedTextArea");
+  getE("logscrollbottom").checked = true;
   logP = document.createElement("p");
   interval = setInterval(function () {
     if (GetLog == false) {
@@ -445,7 +440,7 @@ function showLog() {
       return;
     }
     let xhr = new XMLHttpRequest();
-    if (document.getElementById("logdebug").checked) {
+    if (getE("logdebug").checked) {
       xhr.open("GET", "/api/get_debug_logs");
     } else {
       xhr.open("GET", "/api/get_logs");
@@ -459,7 +454,7 @@ function showLog() {
       } else {
         logP.innerHTML = xhr.response;
       }
-      if (document.getElementById("logscrollbottom").checked) {
+      if (getE("logscrollbottom").checked) {
         logDivArea.value = logP.innerHTML;
         logDivArea.scrollTop = logDivArea.scrollHeight;
       } else {
@@ -473,8 +468,8 @@ function showLog() {
 // <p id="aUpdate"></p>
 
 function checkUpdate() {
-  cVersion = document.getElementById("cVersion");
-  aUpdate = document.getElementById("aUpdate");
+  cVersion = getE("cVersion");
+  aUpdate = getE("aUpdate");
   cVersion.innerHTML = "Checking for updates...";
   aUpdate.innerHTML = "";
   fetch("/api/get_version_info")
@@ -483,7 +478,7 @@ function checkUpdate() {
       if (response.includes("error")) {
         cVersion.innerHTML =
           "There was an error. This is likely because this version of wire-pod was compiled from source, and this section only works with official WirePod releases.";
-          document.getElementById("updateGuideLink").style.display = "none";
+        getE("updateGuideLink").style.display = "none";
       } else {
         parsed = JSON.parse(response);
         cVersion.innerHTML = "Current Version: " + parsed.installed;
@@ -492,10 +487,10 @@ function checkUpdate() {
             "A newer version of WirePod (" +
             parsed.current +
             ") is available! Use this guide to update WirePod: ";
-          document.getElementById("updateGuideLink").style.display = "block";
+          getE("updateGuideLink").style.display = "block";
         } else {
           aUpdate.innerHTML = "You are on the latest version.";
-          document.getElementById("updateGuideLink").style.display = "none";
+          getE("updateGuideLink").style.display = "none";
         }
       }
     });
@@ -503,11 +498,11 @@ function checkUpdate() {
 
 function showLanguage() {
   GetLog = false;
-  document.getElementById("section-weather").style.display = "none";
-  document.getElementById("section-stt").style.display = "none";
-  document.getElementById("section-restart").style.display = "none";
-  document.getElementById("section-kg").style.display = "none";
-  document.getElementById("section-language").style.display = "block";
+  getE("section-weather").style.display = "none";
+  getE("section-stt").style.display = "none";
+  getE("section-restart").style.display = "none";
+  getE("section-kg").style.display = "none";
+  getE("section-language").style.display = "block";
   updateColor("icon-Language");
   let xhr = new XMLHttpRequest();
   xhr.open("GET", "/api/get_stt_info");
@@ -523,12 +518,12 @@ function showLanguage() {
         "To set the STT language, the provider must be Vosk or Whisper. The current one is '" +
         parsed["sttProvider"] +
         "'.";
-      document.getElementById("languageStatus").appendChild(error);
-      document.getElementById("languageSelectionDiv").style.display = "none";
+      getE("languageStatus").appendChild(error);
+      getE("languageSelectionDiv").style.display = "none";
     } else {
-      document.getElementById("languageSelectionDiv").style.display = "block";
+      getE("languageSelectionDiv").style.display = "block";
       console.log(parsed["sttLanguage"]);
-      document.getElementById("languageSelection").value =
+      getE("languageSelection").value =
         parsed["sttLanguage"];
     }
   };
@@ -537,78 +532,74 @@ function showLanguage() {
 function showVersion() {
   GetLog = false;
   checkUpdate();
-  document.getElementById("section-log").style.display = "none";
-  document.getElementById("section-language").style.display = "none";
-  document.getElementById("section-botauth").style.display = "none";
-  document.getElementById("section-intents").style.display = "none";
-  document.getElementById("section-version").style.display = "block";
+  getE("section-log").style.display = "none";
+  getE("section-language").style.display = "none";
+  getE("section-botauth").style.display = "none";
+  getE("section-intents").style.display = "none";
+  getE("section-version").style.display = "block";
   updateColor("icon-Version");
 }
 
 function showIntents() {
   GetLog = false;
-  document.getElementById("section-log").style.display = "none";
-  document.getElementById("section-language").style.display = "none";
-  document.getElementById("section-botauth").style.display = "none";
-  document.getElementById("section-intents").style.display = "block";
-  document.getElementById("section-version").style.display = "none";
+  getE("section-log").style.display = "none";
+  getE("section-language").style.display = "none";
+  getE("section-botauth").style.display = "none";
+  getE("section-intents").style.display = "block";
+  getE("section-version").style.display = "none";
   updateColor("icon-Intents");
 }
 
 function showWeather() {
-  document.getElementById("section-weather").style.display = "block";
-  document.getElementById("section-stt").style.display = "none";
-  document.getElementById("section-restart").style.display = "none";
-  document.getElementById("section-language").style.display = "none";
-  document.getElementById("section-kg").style.display = "none";
-  document.getElementById("section-version").style.display = "none";
+  getE("section-weather").style.display = "block";
+  getE("section-stt").style.display = "none";
+  getE("section-restart").style.display = "none";
+  getE("section-language").style.display = "none";
+  getE("section-kg").style.display = "none";
   updateColor("icon-Weather");
 }
 
 function showKG() {
-  document.getElementById("section-weather").style.display = "none";
-  document.getElementById("section-stt").style.display = "none";
-  document.getElementById("section-restart").style.display = "none";
-  document.getElementById("section-language").style.display = "none";
-  document.getElementById("section-kg").style.display = "block";
-  document.getElementById("section-version").style.display = "none";
+  getE("section-weather").style.display = "none";
+  getE("section-stt").style.display = "none";
+  getE("section-restart").style.display = "none";
+  getE("section-language").style.display = "none";
+  getE("section-kg").style.display = "block";
   updateColor("icon-KG");
 }
 
 function showSTT() {
-  document.getElementById("section-weather").style.display = "none";
-  document.getElementById("section-kg").style.display = "none";
-  document.getElementById("section-stt").style.display = "block";
-  document.getElementById("section-restart").style.display = "none";
-  document.getElementById("section-version").style.display = "none";
+  getE("section-weather").style.display = "none";
+  getE("section-kg").style.display = "none";
+  getE("section-stt").style.display = "block";
+  getE("section-restart").style.display = "none";
   updateColor("icon-STT");
 }
 
 function showRestart() {
-  document.getElementById("section-weather").style.display = "none";
-  document.getElementById("section-kg").style.display = "none";
-  document.getElementById("section-stt").style.display = "none";
-  document.getElementById("section-restart").style.display = "block";
-  document.getElementById("section-version").style.display = "none";
+  getE("section-weather").style.display = "none";
+  getE("section-kg").style.display = "none";
+  getE("section-stt").style.display = "none";
+  getE("section-restart").style.display = "block";
   updateColor("icon-Restart");
 }
 
 function checkWeather() {
-  if (document.getElementById("weatherProvider").value == "") {
-    document.getElementById("apiKey").value = "";
-    document.getElementById("apiKeySpan").style.display = "none";
+  if (getE("weatherProvider").value == "") {
+    getE("apiKey").value = "";
+    getE("apiKeySpan").style.display = "none";
   } else {
-    document.getElementById("apiKeySpan").style.display = "block";
+    getE("apiKeySpan").style.display = "block";
   }
 }
 
 function sendWeatherAPIKey() {
-  var form = document.getElementById("weatherAPIAddForm");
-  var provider = document.getElementById("weatherProvider").value;
+  var form = getE("weatherAPIAddForm");
+  var provider = getE("weatherProvider").value;
 
   var data =
     "provider=" + provider + "&api_key=" + form.elements["apiKey"].value;
-  var result = document.getElementById("addWeatherProviderAPIStatus");
+  var result = getE("addWeatherProviderAPIStatus");
   const resultP = document.createElement("p");
   resultP.textContent = "Saving...";
   result.innerHTML = "";
@@ -627,42 +618,58 @@ function updateWeatherAPI() {
     .then((response) => response.text())
     .then((response) => {
       obj = JSON.parse(response);
-      document.getElementById("weatherProvider").value = obj.weatherProvider;
-      document.getElementById("apiKey").value = obj.weatherApiKey;
+      getE("weatherProvider").value = obj.weatherProvider;
+      getE("apiKey").value = obj.weatherApiKey;
       checkWeather();
     });
 }
 
 function checkKG() {
-  if (document.getElementById("kgProvider").value == "") {
-    document.getElementById("houndifyInput").style.display = "none";
-    document.getElementById("togetherInput").style.display = "none";
-    document.getElementById("openAIInput").style.display = "none";
-    document.getElementById("saveChatInput").style.display = "none";
-    document.getElementById("llmCommandInput").style.display = "none";
-  } else if (document.getElementById("kgProvider").value == "houndify") {
-    document.getElementById("togetherInput").style.display = "none";
-    document.getElementById("openAIInput").style.display = "none";
-    document.getElementById("houndifyInput").style.display = "block";
-    document.getElementById("saveChatInput").style.display = "none";
-    document.getElementById("llmCommandInput").style.display = "none";
-  } else if (document.getElementById("kgProvider").value == "openai") {
-    document.getElementById("openAIInput").style.display = "block";
-    document.getElementById("togetherInput").style.display = "none";
-    document.getElementById("houndifyInput").style.display = "none";
-    document.getElementById("saveChatInput").style.display = "block";
-    document.getElementById("llmCommandInput").style.display = "block";
-  } else if (document.getElementById("kgProvider").value == "together") {
-    document.getElementById("togetherInput").style.display = "block";
-    document.getElementById("openAIInput").style.display = "none";
-    document.getElementById("houndifyInput").style.display = "none";
-    document.getElementById("saveChatInput").style.display = "block";
-    document.getElementById("llmCommandInput").style.display = "block";
+  if (getE("kgProvider").value == "") {
+    getE("houndifyInput").style.display = "none";
+    getE("togetherInput").style.display = "none";
+    getE("customAIInput").style.display = "none";
+    getE("intentGraphInput").style.display = "none"
+    getE("openAIInput").style.display = "none";
+    getE("saveChatInput").style.display = "none";
+    getE("llmCommandInput").style.display = "none";
+  } else if (getE("kgProvider").value == "houndify") {
+    getE("togetherInput").style.display = "none";
+    getE("openAIInput").style.display = "none";
+    getE("customAIInput").style.display = "none";
+    getE("intentGraphInput").style.display = "none"
+    getE("houndifyInput").style.display = "block";
+    getE("saveChatInput").style.display = "none";
+    getE("llmCommandInput").style.display = "none";
+  } else if (getE("kgProvider").value == "openai") {
+    getE("intentGraphInput").style.display = "block"
+    getE("openAIInput").style.display = "block";
+    getE("customAIInput").style.display = "none";
+    getE("togetherInput").style.display = "none";
+    getE("houndifyInput").style.display = "none";
+    getE("saveChatInput").style.display = "block";
+    getE("llmCommandInput").style.display = "block";
+  } else if (getE("kgProvider").value == "together") {
+    getE("intentGraphInput").style.display = "block"
+    getE("togetherInput").style.display = "block";
+    getE("customAIInput").style.display = "none";
+    getE("openAIInput").style.display = "none";
+    getE("houndifyInput").style.display = "none";
+    getE("saveChatInput").style.display = "block";
+    getE("llmCommandInput").style.display = "block";
+  } else if (getE("kgProvider").value == "custom") {
+    getE("intentGraphInput").style.display = "block"
+    getE("togetherInput").style.display = "none";
+    getE("customAIInput").style.display = "block";
+    getE("openAIInput").style.display = "none";
+    getE("houndifyInput").style.display = "none";
+    getE("saveChatInput").style.display = "block";
+    getE("llmCommandInput").style.display = "block";
   }
 }
 
 function sendKGAPIKey() {
-  var provider = document.getElementById("kgProvider").value;
+  var provider = getE("kgProvider").value;
   var key = "";
   var openAIPrompt = "";
   var id = "";
@@ -671,48 +678,95 @@ function sendKGAPIKey() {
   var model = "";
   var saveChat = "";
   var doCommands = "";
+  var endpoint = "";
 
   if (provider == "openai") {
-    key = document.getElementById("openAIKey").value;
-    openAIPrompt = document.getElementById("openAIPrompt").value;
-    if (document.getElementById("commandYes").checked == true) {
+    key = getE("openAIKey").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
+    openAIPrompt = getE("openAIPrompt").value;
+    if (getE("commandYes").checked == true) {
       doCommands = "true";
     } else {
       doCommands = "false";
     }
-    if (document.getElementById("intentyes").checked == true) {
+    if (getE("intentyes").checked == true) {
       intentgraph = "true";
     } else {
       intentgraph = "false";
     }
-    if (document.getElementById("saveChatYes").checked == true) {
+    if (getE("saveChatYes").checked == true) {
+      saveChat = "true";
+    } else {
+      saveChat = "false";
+    }
+  } else if (provider == "custom") {
+    key = getE("customAIKey").value;
+    model = getE("customModel").value;
+    if (model == "") {
+      alert("You must provide an LLM model.")
+    }
+    openAIPrompt = getE("customAIPrompt").value;
+    endpoint = getE("customAIEndpoint").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
+    if (endpoint == "") {
+      alert("You must provide an LLM endpoint.")
+    }
+    if (getE("commandYes").checked == true) {
+      doCommands = "true";
+    } else {
+      doCommands = "false";
+    }
+    if (getE("intentyes").checked == true) {
+      intentgraph = "true";
+    } else {
+      intentgraph = "false";
+    }
+    if (getE("saveChatYes").checked == true) {
       saveChat = "true";
     } else {
       saveChat = "false";
     }
   } else if (provider == "together") {
-    key = document.getElementById("togetherKey").value;
-    model = document.getElementById("togetherModel").value;
-    openAIPrompt = document.getElementById("togetherAIPrompt").value;
-    if (document.getElementById("commandYes").checked == true) {
+    key = getE("togetherKey").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
+    model = getE("togetherModel").value;
+    openAIPrompt = getE("togetherAIPrompt").value;
+    if (getE("commandYes").checked == true) {
       doCommands = "true";
     } else {
       doCommands = "false";
     }
-    if (document.getElementById("togetherintentyes").checked == true) {
+    if (getE("intentyes").checked == true) {
       intentgraph = "true";
     } else {
       intentgraph = "false";
     }
-    if (document.getElementById("saveChatYes").checked == true) {
+    if (getE("saveChatYes").checked == true) {
       saveChat = "true";
     } else {
       saveChat = "false";
     }
   } else if (provider == "houndify") {
-    key = document.getElementById("houndKey").value;
+    key = getE("houndKey").value;
+    if (key == "") {
+      alert("You must provide a client key.")
+      return
+    }
     model = "";
-    id = document.getElementById("houndID").value;
+    id = getE("houndID").value;
+    if (id == "") {
+      alert("You must provide a client ID.")
+      return
+    }
     intentgraph = "false";
   } else {
     key = "";
@@ -739,8 +793,10 @@ function sendKGAPIKey() {
     "&save_chat=" +
     saveChat +
     "&commands_enable=" +
-    doCommands;
-  var result = document.getElementById("addKGProviderAPIStatus");
+    doCommands +
+    "&endpoint=" +
+    endpoint;
+  var result = getE("addKGProviderAPIStatus");
   const resultP = document.createElement("p");
   resultP.textContent = "Saving...";
   result.innerHTML = "";
@@ -766,64 +822,58 @@ function deleteSavedChats() {
   }
 }
 
+function getE(element) {
+  return document.getElementById(element)
+}
+
+function checkE(element, is) {
+  if (is == "true") {
+    getE(element).checked = true
+  } else {
+    getE(element).checked = false
+  }
+}
+
 function updateKGAPI() {
   fetch("/api/get_kg_api")
     .then((response) => response.text())
     .then((response) => {
       obj = JSON.parse(response);
-      document.getElementById("kgProvider").value = obj.kgProvider;
+      getE("kgProvider").value = obj.kgProvider;
       if (obj.kgProvider == "openai") {
-        document.getElementById("openAIKey").value = obj.kgApiKey;
-        document.getElementById("openAIPrompt").value = obj.kgOpenAIPrompt;
-        if (obj.kgCommandsEnable == "true") {
-          document.getElementById("commandYes").checked = true;
-        } else {
-          document.getElementById("commandNo").checked = true;
-        }
-        if (obj.kgIntentGraph == "true") {
-          document.getElementById("intentyes").checked = true;
-        } else {
-          document.getElementById("intentno").checked = true;
-        }
-        if (obj.kgSaveChat == "true") {
-          document.getElementById("saveChatYes").checked = true;
-        } else {
-          document.getElementById("saveChatNo").checked = true;
-        }
+        getE("openAIKey").value = obj.kgApiKey;
+        getE("openAIPrompt").value = obj.kgOpenAIPrompt;
+        checkE("commandYes", obj.kgCommandsEnable)
+        checkE("intentyes", obj.kgIntentGraph)
+        checkE("saveChatYes", obj.kgSaveChat)
       } else if (obj.kgProvider == "together") {
-        document.getElementById("togetherKey").value = obj.kgApiKey;
-        document.getElementById("togetherModel").value = obj.kgModel;
-        document.getElementById("togetherAIPrompt").value = obj.kgOpenAIPrompt;
-        if (obj.kgCommandsEnable == "true") {
-          document.getElementById("commandYes").checked = true;
-        } else {
-          document.getElementById("commandNo").checked = true;
-        }
-        if (obj.kgIntentGraph == "true") {
-          document.getElementById("intentyes").checked = true;
-          document.getElementById("togetherintentyes").checked = true;
-        } else {
-          document.getElementById("intentno").checked = true;
-          document.getElementById("togetherintentyes").checked = true;
-        }
-        if (obj.kgSaveChat == "true") {
-          document.getElementById("saveChatYes").checked = true;
-        } else {
-          document.getElementById("saveChatNo").checked = true;
-        }
+        getE("togetherKey").value = obj.kgApiKey;
+        getE("togetherModel").value = obj.kgModel;
+        getE("togetherAIPrompt").value = obj.kgOpenAIPrompt;
+        checkE("commandYes", obj.kgCommandsEnable)
+        checkE("intentyes", obj.kgIntentGraph)
+        checkE("saveChatYes", obj.kgSaveChat)
+      } else if (obj.kgProvider == "custom") {
+        getE("customAIKey").value = obj.kgApiKey;
+        getE("customModel").value = obj.kgModel;
+        getE("customAIPrompt").value = obj.kgOpenAIPrompt;
+        getE("customAIEndpoint").value = obj.kgEndpoint;
+        checkE("commandYes", obj.kgCommandsEnable)
+        checkE("intentyes", obj.kgIntentGraph)
+        checkE("saveChatYes", obj.kgSaveChat)
       } else if (obj.kgProvider == "houndify") {
-        document.getElementById("houndKey").value = obj.kgApiKey;
-        document.getElementById("houndID").value = obj.kgApiID;
+        getE("houndKey").value = obj.kgApiKey;
+        getE("houndID").value = obj.kgApiID;
       }
       checkKG();
     });
 }
 
 function setSTTLanguage() {
-  var language = document.getElementById("languageSelection").value;
+  var language = getE("languageSelection").value;
   var data = "language=" + language;
-  document.getElementById("languageSelectionDiv").style.display = "none";
-  var result = document.getElementById("languageStatus");
+  getE("languageSelectionDiv").style.display = "none";
+  var result = getE("languageStatus");
   var resultP = document.createElement("p");
   resultP.textContent = "Setting...";
   result.innerHTML = "";
@@ -835,14 +885,14 @@ function setSTTLanguage() {
       result.innerHTML = "";
       if (response.includes("success")) {
         resultP.innerHTML = "Language switched successfully.";
-        document.getElementById("languageSelectionDiv").style.display = "block";
+        getE("languageSelectionDiv").style.display = "block";
       } else if (response.includes("downloading")) {
         resultP.innerHTML = "Downloading model...";
         result.appendChild(resultP);
         updateSTTLanguageDownload();
         return;
       } else if (response.includes("error")) {
-        document.getElementById("languageSelectionDiv").style.display = "block";
+        getE("languageSelectionDiv").style.display = "block";
         resultP.innerHTML = response;
       }
       result.appendChild(resultP);
@@ -851,7 +901,7 @@ function setSTTLanguage() {
 
 function updateSTTLanguageDownload() {
   var resultP = document.createElement("p");
-  var result = document.getElementById("languageStatus");
+  var result = getE("languageStatus");
   interval = setInterval(function () {
     fetch("/api/get_download_status")
       .then((response) => response.text())
@@ -862,7 +912,7 @@ function updateSTTLanguageDownload() {
           resultP.textContent = statusText;
           result.innerHTML = "";
           result.appendChild(resultP);
-          document.getElementById("languageSelectionDiv").style.display =
+          getE("languageSelectionDiv").style.display =
             "block";
           clearInterval(interval);
           return;
@@ -870,7 +920,7 @@ function updateSTTLanguageDownload() {
           resultP.textContent = statusText;
           result.innerHTML = "";
           result.appendChild(resultP);
-          document.getElementById("languageSelectionDiv").style.display =
+          getE("languageSelectionDiv").style.display =
             "block";
           clearInterval(interval);
           return;
@@ -889,8 +939,8 @@ function updateSTTLanguageDownload() {
 //         .then(response => response.text())
 //         .then((response) => {
 //             obj = JSON.parse(response);
-//             //document.getElementById("sttProvider").value = obj.sttProvider;
-//             document.getElementById("sttLanguage").value = obj.sttLanguage;
+//             //getE("sttProvider").value = obj.sttProvider;
+//             getE("sttLanguage").value = obj.sttLanguage;
 //         })
 // }
 
@@ -905,10 +955,10 @@ function sendRestart() {
 }
 
 function hideEditIntents() {
-  document.getElementById("editIntentForm").style.display = "none";
-  document.getElementById("editIntentStatus").innerHTML = "";
+  getE("editIntentForm").style.display = "none";
+  getE("editIntentStatus").innerHTML = "";
 }
 
 function showEditIntents() {
-  document.getElementById("editIntentForm").style.display = "block";
+  getE("editIntentForm").style.display = "block";
 }

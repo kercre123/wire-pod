@@ -37,6 +37,7 @@ let myChart = new Chart(stimChart, {
     ],
   },
   options: {
+    responsive: true,
     plugins: {
       legend: {
         display: false,
