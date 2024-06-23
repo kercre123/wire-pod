@@ -628,6 +628,7 @@ function checkKG() {
   if (getE("kgProvider").value == "") {
     getE("houndifyInput").style.display = "none";
     getE("togetherInput").style.display = "none";
+    getE("customAIInput").style.display = "none";
     getE("intentGraphInput").style.display = "none"
     getE("openAIInput").style.display = "none";
     getE("saveChatInput").style.display = "none";
@@ -635,6 +636,7 @@ function checkKG() {
   } else if (getE("kgProvider").value == "houndify") {
     getE("togetherInput").style.display = "none";
     getE("openAIInput").style.display = "none";
+    getE("customAIInput").style.display = "none";
     getE("intentGraphInput").style.display = "none"
     getE("houndifyInput").style.display = "block";
     getE("saveChatInput").style.display = "none";
@@ -642,6 +644,7 @@ function checkKG() {
   } else if (getE("kgProvider").value == "openai") {
     getE("intentGraphInput").style.display = "block"
     getE("openAIInput").style.display = "block";
+    getE("customAIInput").style.display = "none";
     getE("togetherInput").style.display = "none";
     getE("houndifyInput").style.display = "none";
     getE("saveChatInput").style.display = "block";
@@ -649,6 +652,15 @@ function checkKG() {
   } else if (getE("kgProvider").value == "together") {
     getE("intentGraphInput").style.display = "block"
     getE("togetherInput").style.display = "block";
+    getE("customAIInput").style.display = "none";
+    getE("openAIInput").style.display = "none";
+    getE("houndifyInput").style.display = "none";
+    getE("saveChatInput").style.display = "block";
+    getE("llmCommandInput").style.display = "block";
+  } else if (getE("kgProvider").value == "custom") {
+    getE("intentGraphInput").style.display = "block"
+    getE("togetherInput").style.display = "none";
+    getE("customAIInput").style.display = "block";
     getE("openAIInput").style.display = "none";
     getE("houndifyInput").style.display = "none";
     getE("saveChatInput").style.display = "block";
@@ -666,10 +678,45 @@ function sendKGAPIKey() {
   var model = "";
   var saveChat = "";
   var doCommands = "";
+  var endpoint = "";
 
   if (provider == "openai") {
     key = getE("openAIKey").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
     openAIPrompt = getE("openAIPrompt").value;
+    if (getE("commandYes").checked == true) {
+      doCommands = "true";
+    } else {
+      doCommands = "false";
+    }
+    if (getE("intentyes").checked == true) {
+      intentgraph = "true";
+    } else {
+      intentgraph = "false";
+    }
+    if (getE("saveChatYes").checked == true) {
+      saveChat = "true";
+    } else {
+      saveChat = "false";
+    }
+  } else if (provider == "custom") {
+    key = getE("customAIKey").value;
+    model = getE("customModel").value;
+    if (model == "") {
+      alert("You must provide an LLM model.")
+    }
+    openAIPrompt = getE("customAIPrompt").value;
+    endpoint = getE("customAIEndpoint").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
+    if (endpoint == "") {
+      alert("You must provide an LLM endpoint.")
+    }
     if (getE("commandYes").checked == true) {
       doCommands = "true";
     } else {
@@ -687,6 +734,10 @@ function sendKGAPIKey() {
     }
   } else if (provider == "together") {
     key = getE("togetherKey").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
     model = getE("togetherModel").value;
     openAIPrompt = getE("togetherAIPrompt").value;
     if (getE("commandYes").checked == true) {
@@ -706,8 +757,16 @@ function sendKGAPIKey() {
     }
   } else if (provider == "houndify") {
     key = getE("houndKey").value;
+    if (key == "") {
+      alert("You must provide a client key.")
+      return
+    }
     model = "";
     id = getE("houndID").value;
+    if (id == "") {
+      alert("You must provide a client ID.")
+      return
+    }
     intentgraph = "false";
   } else {
     key = "";
@@ -734,7 +793,9 @@ function sendKGAPIKey() {
     "&save_chat=" +
     saveChat +
     "&commands_enable=" +
-    doCommands;
+    doCommands +
+    "&endpoint=" +
+    endpoint;
   var result = getE("addKGProviderAPIStatus");
   const resultP = document.createElement("p");
   resultP.textContent = "Saving...";
@@ -789,6 +850,14 @@ function updateKGAPI() {
         getE("togetherKey").value = obj.kgApiKey;
         getE("togetherModel").value = obj.kgModel;
         getE("togetherAIPrompt").value = obj.kgOpenAIPrompt;
+        checkE("commandYes", obj.kgCommandsEnable)
+        checkE("intentyes", obj.kgIntentGraph)
+        checkE("saveChatYes", obj.kgSaveChat)
+      } else if (obj.kgProvider == "custom") {
+        getE("customAIKey").value = obj.kgApiKey;
+        getE("customModel").value = obj.kgModel;
+        getE("customAIPrompt").value = obj.kgOpenAIPrompt;
+        getE("customAIEndpoint").value = obj.kgEndpoint;
         checkE("commandYes", obj.kgCommandsEnable)
         checkE("intentyes", obj.kgIntentGraph)
         checkE("saveChatYes", obj.kgSaveChat)
