@@ -91,75 +91,122 @@ function initWeatherAPIKey() {
 }
 
 function initKGAPIKey() {
-  updateSetupStatus("Setting knowledge graph settings...");
-  var provider = document.getElementById("kgProvider").value;
-  var openAIPrompt = "";
+  var provider = getE("kgProvider").value;
   var key = "";
+  var openAIPrompt = "";
   var id = "";
   var intentgraph = "";
   var robotName = "";
   var model = "";
   var saveChat = "";
   var doCommands = "";
+  var endpoint = "";
 
   if (provider == "openai") {
-    key = document.getElementById("openAIKey").value;
-    openAIPrompt = document.getElementById("openAIPrompt").value;
-    if (document.getElementById("commandYes").checked == true) {
+    key = getE("openAIKey").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
+    openAIPrompt = getE("openAIPrompt").value;
+    if (getE("commandYes").checked == true) {
       doCommands = "true";
     } else {
       doCommands = "false";
     }
-    if (document.getElementById("intentyes").checked == true) {
+    if (getE("intentyes").checked == true) {
       intentgraph = "true";
     } else {
       intentgraph = "false";
     }
-    if (document.getElementById("saveChatYes").checked == true) {
+    if (getE("saveChatYes").checked == true) {
+      saveChat = "true";
+    } else {
+      saveChat = "false";
+    }
+  } else if (provider == "custom") {
+    key = getE("customAIKey").value;
+    model = getE("customModel").value;
+    if (model == "") {
+      alert("You must provide an LLM model.")
+    }
+    openAIPrompt = getE("customAIPrompt").value;
+    endpoint = getE("customAIEndpoint").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
+    if (endpoint == "") {
+      alert("You must provide an LLM endpoint.")
+      return
+    }
+    if (getE("commandYes").checked == true) {
+      doCommands = "true";
+    } else {
+      doCommands = "false";
+    }
+    if (getE("intentyes").checked == true) {
+      intentgraph = "true";
+    } else {
+      intentgraph = "false";
+    }
+    if (getE("saveChatYes").checked == true) {
       saveChat = "true";
     } else {
       saveChat = "false";
     }
   } else if (provider == "together") {
-    key = document.getElementById("togetherKey").value;
-    openAIPrompt = document.getElementById("togetherAIPrompt").value;
-    model = document.getElementById("togetherModel").value;
-    if (document.getElementById("commandYes").checked == true) {
+    key = getE("togetherKey").value;
+    if (key == "") {
+      alert("You must provide an API key.")
+      return
+    }
+    model = getE("togetherModel").value;
+    openAIPrompt = getE("togetherAIPrompt").value;
+    if (getE("commandYes").checked == true) {
       doCommands = "true";
     } else {
       doCommands = "false";
     }
-    if (document.getElementById("intentyes").checked == true) {
+    if (getE("intentyes").checked == true) {
       intentgraph = "true";
     } else {
       intentgraph = "false";
     }
-    if (document.getElementById("saveChatYes").checked == true) {
+    if (getE("saveChatYes").checked == true) {
       saveChat = "true";
     } else {
       saveChat = "false";
     }
   } else if (provider == "houndify") {
-    key = document.getElementById("houndKey").value;
-    id = document.getElementById("houndID").value;
+    key = getE("houndKey").value;
+    if (key == "") {
+      alert("You must provide a client key.")
+      return
+    }
+    model = "";
+    id = getE("houndID").value;
+    if (id == "") {
+      alert("You must provide a client ID.")
+      return
+    }
     intentgraph = "false";
   } else {
     key = "";
     id = "";
+    model = "";
     intentgraph = "false";
   }
 
-
-  // this is bad
   var data =
     "provider=" +
     provider +
     "&api_key=" +
     key +
-    "&api_id=" +
-    id +
     "&model=" +
     model +
+    "&api_id=" +
+    id +
     "&intent_graph=" +
     intentgraph +
     "&robot_name=" +
@@ -169,7 +216,9 @@ function initKGAPIKey() {
     "&save_chat=" +
     saveChat +
     "&commands_enable=" +
-    doCommands;
+    doCommands +
+    "&endpoint=" +
+    endpoint;
   fetch("/api/set_kg_api?" + data)
     .then((response) => response.text())
     .then((response) => {

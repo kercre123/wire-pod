@@ -31,6 +31,7 @@ type apiConfig struct {
 		OpenAIPrompt   string `json:"openai_prompt"`
 		SaveChat       bool   `json:"save_chat"`
 		CommandsEnable bool   `json:"commands_enable"`
+		Endpoint       string `json:"endpoint"`
 	} `json:"knowledge"`
 	STT struct {
 		Service  string `json:"provider"`

@@ -77,6 +77,7 @@
               <option value="openai">OpenAI</option>
               <option value="houndify">Houndify</option>
               <option value="together">Together</option>
+              <option value="custom">Custom</option>
             </select>
             <span id="houndifyInput" style="display: none">
               <small class="desc">To use Houndify, create an account at
@@ -93,12 +94,12 @@
                 <a href="https://www.together.xyz">together.com</a>, create
                 a free domain, and enter the Model Name and Together Key
                 here.</small><br />
-              <label for="togetherModel">Together Model Name: (leave blank for default
-                meta-llama/Llama-3-70b-chat-hf)</label>
+              <label for="togetherModel">Together Model Name: <small class="desc">(leave blank for default
+                meta-llama/Llama-3-70b-chat-hf)</small></label>
               <input type="text" name="togetherModel" id="togetherModel" /><br />
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey" /><br />
-              <label for="togetherAIPrompt">GPT Prompt (leave blank for default):</label><br />
+              <label for="togetherAIPrompt">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
               <small><label class="desc" for="togetherAIPrompt">(default: "You are a helpful, animated robot called
                   Vector. Keep the response concise yet
                   informative.")</label></small>
@@ -107,12 +108,29 @@
             <span id="openAIInput" style="display: none">
               <label for="openAIKey">OpenAI Key:</label>
               <input type="text" name="openAIKey" id="openAIKey" /><br />
-              <label for="openAIKey">GPT Prompt (leave blank for default):</label><br />
-              <small><label class="desc" for="openAIKey">(default: "You are a helpful, animated robot called
+              <label for="openAIKey">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
+              <small><label class="desc" for="openAIPrompt">(default: "You are a helpful, animated robot called
                   Vector. Keep the response concise yet
                   informative.")</label></small>
               <input type="text" name="openAIPrompt" id="openAIPrompt" /><br />
             </span>
+
+            <span id="customAIInput" style="display: none">
+              <small class="desc">All LLM hosts that have OpenAI API compatibility are supported. For advanced
+                users.</small><br />
+              <label for="customAIKey">API Key <small class="desc">(for ollama, this is just 'ollama')</small>:</label>
+              <input type="text" name="customAIKey" id="customAIKey" /><br />
+              <label for="customAIEndpoint">API Endpoint <small class="desc">(i.e. http://localhost:11434/v1)</small>:</label>
+              <input type="text" name="customAIEndpoint" id="customAIEndpoint" /><br />
+              <label for="customModel">LLM Model Name <small class="desc">(i.e. 'llama3')</small>:</label>
+              <input type="text" name="customModel" id="customModel" /><br />
+              <label for="customAIPrompt">LLM Prompt <small class="desc">(leave blank for default)</small>:</label><br />
+              <small><label class="desc" for="customAIPrompt">(default: "You are a helpful, animated robot called
+                  Vector. Keep the response concise yet
+                  informative.")</label></small>
+              <input type="text" name="customAIPrompt" id="customAIPrompt" /><br />
+            </span>
+
             <div style="text-align: left;">
               <span id="intentGraphInput" style="display: none;">
                 <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
@@ -122,7 +140,6 @@
                   processor didn't understand what you said.
                 </label>
               </span>
-
               <span id="llmCommandInput" style="display: none">
                 <input type="checkbox" id="commandYes" name="commandDoselect" />
                 <label class="checkbox-label" for="commandYes">
@@ -136,6 +153,7 @@
                 </label>
               </span>
             </div>
+
           </form>
         </div>
         <hr class="small-hr">

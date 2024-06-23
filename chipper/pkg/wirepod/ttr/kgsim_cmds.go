@@ -103,7 +103,7 @@ type LLMCommand struct {
 var ValidLLMCommands []LLMCommand = []LLMCommand{
 	{
 		Command:         "playAnimationWI",
-		Description:     "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated. Don't put two of these right next to each other. Use this MANY times.",
+		Description:     "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated. Don't put two of these right next to each other. Use this MANY times. The param choices are the onlyy choices you have. You can't create any.",
 		ParamChoices:    "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate, love",
 		Action:          ActionPlayAnimationWI,
 		SupportedModels: []string{"all"},
