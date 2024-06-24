@@ -1,11 +1,10 @@
 @import url("wing.css");
 
 @font-face{ 
-  font-family: 'IBMVGA'; 
+  font-family: 'IBMVGA';
   src: url('PxPlus_IBM_VGA_8x16.ttf') format('truetype');
   /* VileR's old school font pack - int10h.org */
 }
-
 
 @font-face{ 
   font-family: 'H1Weird';
