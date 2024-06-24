@@ -3,6 +3,7 @@ const intentsJson = JSON.parse(
 );
 
 var GetLog = false;
+var ActiveIcon = "";
 
 const getE = (element) => document.getElementById(element);
 
@@ -448,27 +449,33 @@ function toggleSection(sectionToToggle, sectionToClose, foldableID) {
   }
 }
 
-function openSection(sectionID, foldableID) {
+function openSection(sectionID) {
   sectionID.style.display = "block";
 }
 
-function closeSection(sectionID, foldableID) {
+function closeSection(sectionID) {
   sectionID.style.display = "none";
 }
 
 function updateColor(id) {
-  const body_styles = window.getComputedStyle(document.body);
-  const fgColor = body_styles.getPropertyValue("--fg-color");
-  const bgColorAlt = body_styles.getPropertyValue("--bg-color-alt");
-
+  ActiveIcon = id
+  console.log(ActiveIcon)
   const l_id = id.replace("section", "icon");
   const elements = document.getElementsByName("icon");
-  elements.forEach((element) => (getE(element.id).style.color = bgColorAlt));
-  getE(l_id).style.color = fgColor;
+
+  elements.forEach((element) => {
+    element.classList.remove("selectedicon");
+    element.classList.add("nowselectedicon");
+  });
+
+  const targetElement = document.getElementById(l_id);
+  targetElement.classList.remove("notselectedicon");
+  targetElement.classList.add("selectedicon");
 }
 
+
 function showLog() {
-  toggleVisibility(["section-intents", "section-log", "section-botauth", "section-version"], "section-log", "icon-Logs");
+  toggleVisibility(["section-intents", "section-log", "section-botauth", "section-version", "section-uicustomizer"], "section-log", "icon-Logs");
   logDivArea = getE("botTranscriptedTextArea");
   getE("logscrollbottom").checked = true;
   logP = document.createElement("p");
@@ -531,12 +538,12 @@ function showLanguage() {
 }
 
 function showVersion() {
-  toggleVisibility(["section-log", "section-language", "section-botauth", "section-intents", "section-version"], "section-version", "icon-Version");
+  toggleVisibility(["section-log", "section-language", "section-botauth", "section-intents", "section-version", "section-uicustomizer"], "section-version", "icon-Version");
   checkUpdate();
 }
 
 function showIntents() {
-  toggleVisibility(["section-log", "section-botauth", "section-intents", "section-version"], "section-intents", "icon-Intents");
+  toggleVisibility(["section-log", "section-botauth", "section-intents", "section-version", "section-uicustomizer"], "section-intents", "icon-Intents");
 }
 
 function showWeather() {

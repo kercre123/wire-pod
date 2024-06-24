@@ -133,12 +133,12 @@
           <select id="faceList" name="faceList"></select>
         </div>
         <div class="center">
-          <button class="center" onclick="refreshFaceList()" type="submit">Refresh list</button>
+          <button class="center" onclick="refreshFaceList()">Refresh list</button>
         </div>
         <div class="center">
           <div id="faceButtons">
-            <button onclick="deleteFace()" type="submit">Delete</button>
-            <button onclick="renameFace()" type="submit">Rename</button>
+            <button onclick="deleteFace()">Delete</button>
+            <button onclick="renameFace()">Rename</button>
           </div>
         </div>
         <hr class="small-hr">
@@ -157,15 +157,15 @@
         <h2 class="center">Quick Actions</h2>
         <hr class="small-hr">
         <div class="center">
-          <button onclick="sendForm('/api-sdk/cloud_intent?intent=explore_start')" type="submit">Explore
+          <button onclick="sendForm('/api-sdk/cloud_intent?intent=explore_start')">Explore
             Start</button>
-          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_dance')" type="submit">Listen for
+          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_dance')">Listen for
             Beat</button>
-          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_sleep')" type="submit">Go to
+          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_sleep')">Go to
             Sleep</button>
-          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_fetchcube')" type="submit">Fetch
+          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_imperative_fetchcube')">Fetch
             Cube</button>
-          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_charger')" type="submit">Go
+          <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_charger')">Go
             Home</button>
         </div>
         <hr>
@@ -183,7 +183,7 @@
       <div id="section-stats" class="toggleable-section" style="display:none;">
         <h2 class="center">Statistics</h2>
         <hr class="small-hr">
-        <button onclick="updateStats()" type="submit">Refresh</button><br>
+        <button onclick="updateStats()">Refresh</button><br>
         <div id="statsSection"></div>
         <hr>
       </div>
@@ -192,7 +192,7 @@
         <h2 class="center">Photos</h2>
         <hr class="small-hr">
         <div class="center">
-          <button onclick="getPhotos()" type="submit">Refresh List</button>
+          <button onclick="getPhotos()">Refresh List</button>
         </div>
         <div class="center">
           <div id="photoSection"></div>
@@ -296,8 +296,8 @@
           href="https://amazon.com/code">https://amazon.com/code</a>
         <hr class="small-hr">
         <div class="center">
-          <button onclick="sendForm('/api-sdk/alexa_sign_in')" type="submit">Signin Alexa</button>
-          <button onclick="sendForm('/api-sdk/alexa_sign_out')" type="submit">Signout Alexa</button>
+          <button onclick="sendForm('/api-sdk/alexa_sign_in')">Signin Alexa</button>
+          <button onclick="sendForm('/api-sdk/alexa_sign_out')">Signout Alexa</button>
         </div>
         <hr>
       </div>
@@ -380,6 +380,7 @@
   <script src="./js/iro.min.js"></script>
   <script src="./js/main.js"></script>
   <script src="./js/faces.js"></script>
+  <script src="../js/ui.js"></script>
   <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
 
 </body>

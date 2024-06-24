@@ -14,20 +14,10 @@ function showBotAuth() {
 }
 
 function toggleSections(showSection, icon) {
-  const sections = ["section-intents", "section-language", "section-log", "section-botauth"];
+  const sections = ["section-intents", "section-language", "section-log", "section-botauth", "section-uicustomizer"];
   sections.forEach((section) => (document.getElementById(section).style.display = "none"));
   document.getElementById(showSection).style.display = "block";
   updateColor(icon);
-}
-
-function updateColor(id) {
-  const bodyStyles = window.getComputedStyle(document.body);
-  const fgColor = bodyStyles.getPropertyValue("--fg-color");
-  const bgColorAlt = bodyStyles.getPropertyValue("--bg-color-alt");
-
-  const elements = document.getElementsByName("icon");
-  elements.forEach((element) => (document.getElementById(element.id).style.color = bgColorAlt));
-  document.getElementById(id.replace("section", "icon")).style.color = fgColor;
 }
 
 function checkBLECapability() {
