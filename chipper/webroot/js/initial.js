@@ -45,7 +45,7 @@ function sendSetupInfo() {
         initWeatherAPIKey();
       } else if (response.includes("downloading")) {
         updateSetupStatus("Downloading language model...");
-        const interval = setInterval(() => {
+        var interval = setInterval(() => {
           fetch("/api/get_download_status")
             .then((response) => response.text())
             .then((statusText) => {
@@ -76,7 +76,7 @@ function initWeatherAPIKey() {
   if (provider) {
     updateSetupStatus("Setting weather API key...");
     const apiKey = document.getElementById("weatherAPIAddForm").elements["apiKey"].value;
-    const data = { provider, api_key: apiKey };
+    const data = { provider, key: apiKey };
 
     fetch("/api/set_weather_api", {
       method: "POST",
@@ -97,13 +97,18 @@ function initWeatherAPIKey() {
 
 function initKGAPIKey() {
   const provider = getE("kgProvider").value;
+  if (provider == "") {
+    setConn();
+    return
+  }
   const key = getE(`${provider}Key`).value;
+  let doEnable = true;
   let model = "";
   let openAIPrompt = "";
   let id = "";
-  let intentgraph = getE("intentyes").checked ? "true" : "false";
-  let saveChat = getE("saveChatYes").checked ? "true" : "false";
-  let doCommands = getE("commandYes").checked ? "true" : "false";
+  let intentgraph = getE("intentyes").checked
+  let saveChat = getE("saveChatYes").checked
+  let doCommands = getE("commandYes").checked
   let endpoint = "";
 
   if (!key) {
@@ -135,15 +140,18 @@ function initKGAPIKey() {
       alert("You must provide a client ID.");
       return;
     }
+  } else {
+    doEnable = false;
   }
 
   const data = {
+    enable: doEnable,
     provider,
-    api_key: key,
+    key,
     model,
-    api_id: id,
-    intent_graph: intentgraph,
-    robot_name: "",
+    id,
+    intentgraph: intentgraph,
+    robotName: "",
     openai_prompt: openAIPrompt,
     save_chat: saveChat,
     commands_enable: doCommands,
@@ -191,8 +199,4 @@ function setConn() {
 
 function directToIndex() {
   window.location.href = "/index.html";
-}
-
-function getE(element) {
-  return document.getElementById(element);
 }

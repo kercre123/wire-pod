@@ -177,7 +177,7 @@ func handleRemoveCustomIntent(w http.ResponseWriter, r *http.Request) {
 func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
 	var config struct {
 		Provider string `json:"provider"`
-		Key      string `json:"api_key"`
+		Key      string `json:"key"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -201,6 +201,7 @@ func handleGetWeatherAPI(w http.ResponseWriter) {
 
 func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&vars.APIConfig.Knowledge); err != nil {
+		fmt.Println(err)
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
