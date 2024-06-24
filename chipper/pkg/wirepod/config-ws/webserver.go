@@ -78,8 +78,6 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetVersionInfo(w)
 	case "generate_certs":
 		handleGenerateCerts(w)
-	case "get_chipper_commit":
-		handleGetChipperCommit(w)
 	default:
 		http.Error(w, "not found", http.StatusNotFound)
 	}
@@ -98,7 +96,7 @@ func handleAddCustomIntent(w http.ResponseWriter, r *http.Request) {
 	vars.CustomIntentsExist = true
 	vars.CustomIntents = append(vars.CustomIntents, intent)
 	saveCustomIntents()
-	fmt.Fprint(w, "Intent added successfully.")
+	fmt.Fprint(w, "intent added successfully")
 }
 
 func handleEditCustomIntent(w http.ResponseWriter, r *http.Request) {
@@ -141,7 +139,7 @@ func handleEditCustomIntent(w http.ResponseWriter, r *http.Request) {
 	}
 	intent.IsSystemIntent = false
 	saveCustomIntents()
-	fmt.Fprint(w, "Intent edited successfully.")
+	fmt.Fprint(w, "intent edited successfully")
 }
 
 func handleGetCustomIntentsJSON(w http.ResponseWriter) {
@@ -173,7 +171,7 @@ func handleRemoveCustomIntent(w http.ResponseWriter, r *http.Request) {
 	}
 	vars.CustomIntents = append(vars.CustomIntents[:request.Number-1], vars.CustomIntents[request.Number:]...)
 	saveCustomIntents()
-	fmt.Fprint(w, "Intent removed successfully.")
+	fmt.Fprint(w, "intent removed successfully")
 }
 
 func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
@@ -193,7 +191,7 @@ func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
 		vars.APIConfig.Weather.Provider = config.Provider
 	}
 	vars.WriteConfigToDisk()
-	fmt.Fprint(w, "Changes successfully applied.")
+	fmt.Fprint(w, "changes successfully applied")
 }
 
 func handleGetWeatherAPI(w http.ResponseWriter) {
@@ -208,7 +206,7 @@ func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars.WriteConfigToDisk()
-	fmt.Fprint(w, "Changes successfully applied.")
+	fmt.Fprint(w, "changes successfully applied")
 }
 
 func handleGetKGAPI(w http.ResponseWriter) {
@@ -231,7 +229,7 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 		}
 		if !isDownloadedLanguage(request.Language, vars.DownloadedVoskModels) {
 			go localization.DownloadVoskModel(request.Language)
-			fmt.Fprint(w, "downloading language model...")
+			fmt.Fprint(w, "downloading language model")
 			return
 		}
 	} else if vars.APIConfig.STT.Service == "whisper.cpp" {
@@ -248,7 +246,7 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 	vars.WriteConfigToDisk()
 	processreqs.ReloadVosk()
 	logger.Println("Reloaded voice processor successfully")
-	fmt.Fprint(w, "Language switched successfully.")
+	fmt.Fprint(w, "language switched successfully")
 }
 
 func handleGetDownloadStatus(w http.ResponseWriter) {
@@ -357,10 +355,6 @@ func handleGenerateCerts(w http.ResponseWriter) {
 		return
 	}
 	fmt.Fprint(w, "done")
-}
-
-func handleGetChipperCommit(w http.ResponseWriter) {
-
 }
 
 func saveCustomIntents() {
