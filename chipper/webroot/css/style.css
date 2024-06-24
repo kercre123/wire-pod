@@ -1,10 +1,11 @@
 @import url("wing.css");
 
 @font-face{ 
-  font-family: 'IBMVGA';
+  font-family: 'IBMVGA'; 
   src: url('PxPlus_IBM_VGA_8x16.ttf') format('truetype');
   /* VileR's old school font pack - int10h.org */
 }
+
 
 @font-face{ 
   font-family: 'H1Weird';
@@ -79,6 +80,10 @@ input[type="text"], input[type="file"], select {
   font-size: 1.0em;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
+}
+
+input[type='text']:disabled {
+  cursor: not-allowed;
 }
 
 .small-hr {
@@ -231,6 +236,15 @@ input[type='radio']:checked:after {
   background-color: var(--fg-color);
   content: '';
   display: inline-block;
+}
+
+input[type='radio']:disabled {
+  cursor: not-allowed;
+}
+
+input[type='radio']:disabled:after {
+  background-color: var(--button-color-alt);
+  cursor: not-allowed;
 }
 
 /* ###################################### */
