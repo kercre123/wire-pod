@@ -2,6 +2,8 @@ const intentsJson = JSON.parse(
   '["intent_greeting_hello", "intent_names_ask", "intent_imperative_eyecolor", "intent_character_age", "intent_explore_start", "intent_system_charger", "intent_system_sleep", "intent_greeting_goodmorning", "intent_greeting_goodnight", "intent_greeting_goodbye", "intent_seasonal_happynewyear", "intent_seasonal_happyholidays", "intent_amazon_signin", "intent_imperative_forward", "intent_imperative_turnaround", "intent_imperative_turnleft", "intent_imperative_turnright", "intent_play_rollcube", "intent_play_popawheelie", "intent_play_fistbump", "intent_play_blackjack", "intent_imperative_affirmative", "intent_imperative_negative", "intent_photo_take_extend", "intent_imperative_praise", "intent_imperative_abuse", "intent_weather_extend", "intent_imperative_apologize", "intent_imperative_backup", "intent_imperative_volumedown", "intent_imperative_volumeup", "intent_imperative_lookatme", "intent_imperative_volumelevel_extend", "intent_imperative_shutup", "intent_names_username_extend", "intent_imperative_come", "intent_imperative_love", "intent_knowledge_promptquestion", "intent_clock_checktimer", "intent_global_stop_extend", "intent_clock_settimer_extend", "intent_clock_time", "intent_imperative_quiet", "intent_imperative_dance", "intent_play_pickupcube", "intent_imperative_fetchcube", "intent_imperative_findcube", "intent_play_anytrick", "intent_message_recordmessage_extend", "intent_message_playmessage_extend", "intent_blackjack_hit", "intent_blackjack_stand", "intent_play_keepaway"]'
 );
 
+var GetLog = false;
+
 const getE = (element) => document.getElementById(element);
 
 function updateIntentSelection(element) {
@@ -194,10 +196,9 @@ function checkWeather() {
 }
 
 function sendWeatherAPIKey() {
-  const form = getE("weatherAPIAddForm");
   const data = {
     provider: getE("weatherProvider").value,
-    api_key: form.elements["apiKey"].value,
+    key: getE("apiKey").value,
   };
 
   displayMessage("addWeatherProviderAPIStatus", "Saving...");
@@ -220,7 +221,7 @@ function updateWeatherAPI() {
     .then((response) => response.json())
     .then((data) => {
       getE("weatherProvider").value = data.provider;
-      getE("apiKey").value = data.api_key;
+      getE("apiKey").value = data.key;
       checkWeather();
     });
 }
@@ -264,43 +265,44 @@ function checkKG() {
 function sendKGAPIKey() {
   const provider = getE("kgProvider").value;
   const data = {
+    enable: true,
     provider,
-    api_key: "",
+    key: "",
     model: "",
-    api_id: "",
-    intent_graph: "",
-    robot_name: "",
+    id: "",
+    intentgraph: false,
+    robotName: "",
     openai_prompt: "",
-    save_chat: "",
-    commands_enable: "",
+    save_chat: false,
+    commands_enable: false,
     endpoint: "",
   };
-
   if (provider === "openai") {
-    data.api_key = getE("openAIKey").value;
+    data.key = getE("openaiKey").value;
     data.openai_prompt = getE("openAIPrompt").value;
-    data.intent_graph = getE("intentyes").checked ? "true" : "false";
-    data.save_chat = getE("saveChatYes").checked ? "true" : "false";
-    data.commands_enable = getE("commandYes").checked ? "true" : "false";
+    data.intentgraph = getE("intentyes").checked
+    data.save_chat = getE("saveChatYes").checked
+    data.commands_enable = getE("commandYes").checked
   } else if (provider === "custom") {
-    data.api_key = getE("customAIKey").value;
+    data.key = getE("customKey").value;
     data.model = getE("customModel").value;
     data.openai_prompt = getE("customAIPrompt").value;
     data.endpoint = getE("customAIEndpoint").value;
-    data.intent_graph = getE("intentyes").checked ? "true" : "false";
-    data.save_chat = getE("saveChatYes").checked ? "true" : "false";
-    data.commands_enable = getE("commandYes").checked ? "true" : "false";
+    data.intentgraph = getE("intentyes").checked
+    data.save_chat = getE("saveChatYes").checked
+    data.commands_enable = getE("commandYes").checked
   } else if (provider === "together") {
-    data.api_key = getE("togetherKey").value;
+    data.key = getE("togetherKey").value;
     data.model = getE("togetherModel").value;
     data.openai_prompt = getE("togetherAIPrompt").value;
-    data.intent_graph = getE("intentyes").checked ? "true" : "false";
-    data.save_chat = getE("saveChatYes").checked ? "true" : "false";
-    data.commands_enable = getE("commandYes").checked ? "true" : "false";
+    data.intentgraph = getE("intentyes").checked;
+    data.save_chat = getE("saveChatYes").checked
+    data.commands_enable = getE("commandYes").checked
   } else if (provider === "houndify") {
-    data.api_key = getE("houndKey").value;
-    data.api_id = getE("houndID").value;
-    data.intent_graph = "false";
+    data.key = getE("houndKey").value;
+    data.id = getE("houndID").value;
+  } else {
+    data.enable = false;
   }
 
   fetch("/api/set_kg_api", {
@@ -333,29 +335,29 @@ function updateKGAPI() {
     .then((data) => {
       getE("kgProvider").value = data.provider;
       if (data.provider === "openai") {
-        getE("openAIKey").value = data.api_key;
+        getE("openaiKey").value = data.key;
         getE("openAIPrompt").value = data.openai_prompt;
-        getE("commandYes").checked = data.commands_enable === "true";
-        getE("intentyes").checked = data.intent_graph === "true";
-        getE("saveChatYes").checked = data.save_chat === "true";
+        getE("commandYes").checked = data.commands_enable
+        getE("intentyes").checked = data.intentgraph
+        getE("saveChatYes").checked = data.save_chat
       } else if (data.provider === "together") {
-        getE("togetherKey").value = data.api_key;
+        getE("togetherKey").value = data.key;
         getE("togetherModel").value = data.model;
         getE("togetherAIPrompt").value = data.openai_prompt;
-        getE("commandYes").checked = data.commands_enable === "true";
-        getE("intentyes").checked = data.intent_graph === "true";
-        getE("saveChatYes").checked = data.save_chat === "true";
+        getE("commandYes").checked = data.commands_enable
+        getE("intentyes").checked = data.intentgraph
+        getE("saveChatYes").checked = data.save_chat
       } else if (data.provider === "custom") {
-        getE("customAIKey").value = data.api_key;
+        getE("customKey").value = data.key;
         getE("customModel").value = data.model;
         getE("customAIPrompt").value = data.openai_prompt;
         getE("customAIEndpoint").value = data.endpoint;
-        getE("commandYes").checked = data.commands_enable === "true";
-        getE("intentyes").checked = data.intent_graph === "true";
-        getE("saveChatYes").checked = data.save_chat === "true";
+        getE("commandYes").checked = data.commands_enable
+        getE("intentyes").checked = data.intentgraph
+        getE("saveChatYes").checked = data.save_chat
       } else if (data.provider === "houndify") {
-        getE("houndKey").value = data.api_key;
-        getE("houndID").value = data.api_id;
+        getE("houndKey").value = data.key;
+        getE("houndID").value = data.id;
       }
       checkKG();
     });
@@ -386,17 +388,14 @@ function setSTTLanguage() {
 }
 
 function updateSTTLanguageDownload() {
-  const result = getE("languageStatus");
-  const resultP = document.createElement("p");
-  result.appendChild(resultP);
 
   const interval = setInterval(() => {
     fetch("/api/get_download_status")
       .then((response) => response.text())
       .then((response) => {
-        resultP.textContent = response.includes("not downloading") ? "Initiating download..." : response;
+        displayMessage("languageStatus", response.includes("not downloading") ? "Initiating download..." : response)
         if (response.includes("success") || response.includes("error")) {
-          result.innerHTML = response;
+          displayMessage("languageStatus", response);
           getE("languageSelectionDiv").style.display = "block";
           clearInterval(interval);
         }
@@ -469,10 +468,11 @@ function updateColor(id) {
 }
 
 function showLog() {
-  toggleVisibility(["section-intents", "section-language", "section-log", "section-botauth", "section-version"], "block", "icon-Logs");
+  toggleVisibility(["section-intents", "section-log", "section-botauth", "section-version"], "section-log", "icon-Logs");
   logDivArea = getE("botTranscriptedTextArea");
   getE("logscrollbottom").checked = true;
   logP = document.createElement("p");
+  GetLog = true
   const interval = setInterval(() => {
     if (!GetLog) {
       clearInterval(interval);
@@ -516,16 +516,16 @@ function checkUpdate() {
 }
 
 function showLanguage() {
-  toggleVisibility(["section-weather", "section-stt", "section-restart", "section-kg", "section-language"], "block", "icon-Language");
+  toggleVisibility(["section-weather", "section-restart", "section-kg", "section-language"], "section-language", "icon-Language");
   fetch("/api/get_stt_info")
     .then((response) => response.json())
     .then((parsed) => {
-      if (parsed.sttProvider !== "vosk" && parsed.sttProvider !== "whisper.cpp") {
+      if (parsed.provider !== "vosk" && parsed.provider !== "whisper.cpp") {
         displayError("languageStatus", `To set the STT language, the provider must be Vosk or Whisper. The current one is '${parsed.sttProvider}'.`);
         getE("languageSelectionDiv").style.display = "none";
       } else {
         getE("languageSelectionDiv").style.display = "block";
-        getE("languageSelection").value = parsed.sttLanguage;
+        getE("languageSelection").value = parsed.language;
       }
     });
 }
@@ -536,7 +536,7 @@ function showVersion() {
 }
 
 function showIntents() {
-  toggleVisibility(["section-log", "section-language", "section-botauth", "section-intents", "section-version"], "section-intents", "icon-Intents");
+  toggleVisibility(["section-log", "section-botauth", "section-intents", "section-version"], "section-intents", "icon-Intents");
 }
 
 function showWeather() {
@@ -547,15 +547,10 @@ function showKG() {
   toggleVisibility(["section-weather", "section-stt", "section-restart", "section-language", "section-kg"], "section-kg", "icon-KG");
 }
 
-function showSTT() {
-  toggleVisibility(["section-weather", "section-kg", "section-stt", "section-restart"], "section-stt", "icon-STT");
-}
-
-function showRestart() {
-  toggleVisibility(["section-weather", "section-kg", "section-stt", "section-restart"], "section-restart", "icon-Restart");
-}
-
 function toggleVisibility(sections, sectionToShow, iconId) {
+  if (sectionToShow != "section-log") {
+    GetLog = false;
+  }
   sections.forEach((section) => {
     getE(section).style.display = "none";
   });
