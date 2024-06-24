@@ -38,15 +38,22 @@
 
 :root {
   --bg-color: #1e1e1e;
-  --h1-color: #00d16d;
   --body-font-family: 'DroidSans', sans-serif;
   --bg-color-alt: rgba(196,196,196,1);		/* light gray #C4C4C4*/
   --button-color: rgba(75,75,75,1);		/* dark gray #4B4B4B */
   --button-color-alt: rgba(164,164,164,1);	/* light gray #A4A4A4 */
-  --fg-color: #00d16d;	        /* light green 33ED6D */
+  --fg-color: #00ff80;	        /* light green 33ED6D */
   --fg-color-alt: rgba(51,237,109,.05);		/* light green 33ED6D */
   --text-color: rgba(255,255,255,1);		/* white #FFFFFF */
   --text-color-alt: rgba(34,34,34,1);		/* black #000000 */
+}
+
+.selectedicon {
+  color: var(--fg-color);
+}
+
+.notselectedicon {
+  color: var(--bg-color-alt);
 }
 
 .dropdown {
@@ -54,15 +61,25 @@
   display: inline-block;
 }
 
-button:disabled {
+button:disabled, button[type="submit"]:disabled {
   background: var(--bg-color);
   color : var(--bg-color-alt);
 }
-button {
+button, button[type="submit"] {
   font-family: var(--body-font-family);
   font-size: 0.8em;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 170px;
+  border: 2px solid var(--fg-color);
+  background-color: var(--button-color);
+  color: var(--text-color);
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+button:hover, button[type="submit"]:disabled {
+  border-color: var(--fg-color-alt);
+  background-color: var(--fg-color);
+  color: var(--text-color-alt);
 }
 
 .dropdown-content {
@@ -86,6 +103,11 @@ input[type="text"], input[type="file"], select {
   font-size: 1.0em;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
+  border: 2px solid var(--fg-color); 
+}
+
+input[type="text"]:focus, input[type="file"]:focus, select:focus {
+  border-color: var(--fg-color-alt); 
 }
 
 .small-hr {
@@ -138,7 +160,7 @@ h2, h3 {
 }
 
 h1 {
-  color: var(--h1-color);
+  color: var(--fg-color);
   font-family: "H1Weird", sans-serif;
   font-size: 3em;
   font-weight: bold;
@@ -152,6 +174,11 @@ textarea {
   font-family: var(--body-font-family);
   font-size: 0.9em;
   height: 280px;
+  border: 2px solid var(--fg-color); 
+}
+
+textarea:focus {
+  border-color: var(--fg-color-alt); 
 }
 
 /* p {
@@ -195,19 +222,19 @@ ul, li {
   width: 315px !important;
   background-color: var(--button-color) !important;
   color: var(--text-color) !important;
+  border: 2px solid var(--fg-color); /* accent color */
 }
 
 .tinputauth {
   width: 499px !important;
   background-color: var(--button-color) !important;
   color: var(--text-color) !important;
+  border: 2px solid var(--fg-color); /* accent color */
 }
 
 canvas{
-
   width:750px !important;
   height:400px !important;
-
 }
 
 /* RADIO BUTTON ######################### */
@@ -245,6 +272,7 @@ input[type='radio']:checked:after {
   width: 499px !important;
   background-color: var(--bg-color-alt) !important;
   color: var(--text-color) !important;
+  border: 2px solid var(--fg-color); /* accent color */
 }
 
 #content {
@@ -277,15 +305,6 @@ input[type='radio']:checked:after {
   width: 85px;
 }
 
-.main-nav-child {
-  display: inline-block;
-  /*border: 1px solid white;*/
-  /* margin-bottom: 0px; */
-  padding: 1.2rem 2rem 1.4rem 0rem;
-  vertical-align: top;
-  width: 85px;
-}
-
 .main-nav-child a {
   text-decoration: none;
   font-size: 100%;
@@ -313,7 +332,7 @@ input[type='checkbox'] {
   width: 25px;
   height: 25px;
   background-color: var(--button-color);
-  border: 2px solid var(--button-color-alt);
+  border: 2px solid var(--fg-color); /* accent color */
   border-radius: 5px;
   cursor: pointer;
   position: relative;
