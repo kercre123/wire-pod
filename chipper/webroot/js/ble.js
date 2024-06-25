@@ -151,6 +151,7 @@ function scanWifi() {
     .then((response) => response.json())
     .then((networks) => {
       authEl.innerHTML = `
+        <p>Select a Wi-Fi network to connect Vector to.</p>
         <button onclick="scanWifi()">Scan Again</button>
         <br>
         ${networks
@@ -160,7 +161,6 @@ function scanWifi() {
           )
           .join("")}
       `;
-      updateAuthel("Select a Wi-Fi network to connect Vector to.");
     });
 }
 
