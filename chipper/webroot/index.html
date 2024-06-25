@@ -192,6 +192,7 @@
           </button>
           <hr class="small-hr">
           <p id="cVersion"></p>
+          <small class="desc" style="display: none;" id="cCommit"></small>
           <p id="aUpdate"></p>
           <a id="updateGuideLink" style="display: none" target="_blank"
             href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#updating-wire-pod">Update Guide</a>
@@ -215,8 +216,8 @@
         <hr class="small-hr">
         <p>Body Font</p>
         <select onchange="setUIFont()" id="body-font-choose">
-          <option value="droidsans" selected="selected">Droid Sans (default)</option>
-          <option value="ibmvga">IBM VGA 8x16 (retro)</option>
+          <option style="font-family: 'DroidSans';" value="droidsans" selected="selected">Droid Sans (default)</option>
+          <option style="font-family: 'IBMVGA';" value="ibmvga">IBM VGA 8x16 (retro)</option>
         </select>
         <hr />
       </div>

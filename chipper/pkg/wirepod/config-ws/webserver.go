@@ -80,6 +80,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGenerateCerts(w)
 	case "get_chipper_commit":
 		handleGetChipperCommit(w)
+	case "is_api_v1":
+		fmt.Fprintf(w, "it is!")
 	default:
 		http.Error(w, "not found", http.StatusNotFound)
 	}
@@ -326,26 +328,46 @@ func handleGetOTA(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetVersionInfo(w http.ResponseWriter) {
+	var installedVer string
 	ver, err := os.ReadFile(vars.VersionFile)
-	if err != nil {
-		http.Error(w, "version file doesn't exist", http.StatusNotFound)
-		return
+	if err == nil {
+		installedVer = strings.TrimSpace(string(ver))
 	}
-	installedVer := strings.TrimSpace(string(ver))
 	currentVer, err := GetLatestReleaseTag("kercre123", "WirePod")
 	if err != nil {
-		http.Error(w, "error communicating with github: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "error communicating with github (ver): "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	currentCommit, err := GetLatestCommitSha()
+	if err != nil {
+		http.Error(w, "error communicating with github (commit): "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	type VersionInfo struct {
-		Installed       string `json:"installed"`
-		Current         string `json:"current"`
+		FromSource      bool   `json:"fromsource"`
+		InstalledVer    string `json:"installedversion"`
+		InstalledCommit string `json:"installedcommit"`
+		CurrentVer      string `json:"currentversion"`
+		CurrentCommit   string `json:"currentcommit"`
 		UpdateAvailable bool   `json:"avail"`
 	}
+	var fromSource bool
+	if installedVer == "" {
+		fromSource = true
+	}
+	var uAvail bool
+	if fromSource {
+		uAvail = vars.CommitSHA != strings.TrimSpace(currentCommit)
+	} else {
+		uAvail = installedVer != strings.TrimSpace(currentVer)
+	}
 	verInfo := VersionInfo{
-		Installed:       installedVer,
-		Current:         strings.TrimSpace(currentVer),
-		UpdateAvailable: installedVer != strings.TrimSpace(currentVer),
+		FromSource:      fromSource,
+		InstalledVer:    installedVer,
+		InstalledCommit: vars.CommitSHA,
+		CurrentVer:      strings.TrimSpace(currentVer),
+		CurrentCommit:   strings.TrimSpace(currentCommit),
+		UpdateAvailable: uAvail,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(verInfo)
@@ -391,6 +413,34 @@ func StartWebServer() {
 		}
 		os.Exit(1)
 	}
+}
+
+func GetLatestCommitSha() (string, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://api.github.com/repos/kercre123/wire-pod/commits", nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get commits: %s", resp.Status)
+	}
+	type Commit struct {
+		Sha string `json:"sha"`
+	}
+	var commits []Commit
+	if err := json.NewDecoder(resp.Body).Decode(&commits); err != nil {
+		return "", err
+	}
+	if len(commits) == 0 {
+		return "", fmt.Errorf("no commits found")
+	}
+	return commits[0].Sha[:7], nil
 }
 
 func GetLatestReleaseTag(owner, repo string) (string, error) {
