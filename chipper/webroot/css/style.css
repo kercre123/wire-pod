@@ -110,6 +110,10 @@ input[type="text"]:focus, input[type="file"]:focus, select:focus {
   border-color: var(--fg-color-alt); 
 }
 
+input[type='text']:disabled {
+  cursor: not-allowed;
+}
+
 .small-hr {
   border: 1px solid #3e3e3e;
   width: 30%;
@@ -265,6 +269,15 @@ input[type='radio']:checked:after {
   background-color: var(--fg-color);
   content: '';
   display: inline-block;
+}
+
+input[type='radio']:disabled {
+  cursor: not-allowed;
+}
+
+input[type='radio']:disabled:after {
+  background-color: var(--button-color-alt);
+  cursor: not-allowed;
 }
 
 /* ###################################### */
