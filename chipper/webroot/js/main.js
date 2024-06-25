@@ -99,9 +99,9 @@ function editFormCreate() {
           <label for="paramvalue">Param Value:<br><input type="text" id="paramvalue" value="${intent.params.paramvalue}"></label><br>
           <label for="exec">Exec:<br><input type="text" id="exec" value="${intent.exec}"></label><br>
           <label for="execargs">Exec Args:<br><input type="text" id="execargs" value="${intent.execargs.join(",")}"></label><br>
-          <button type="button" id="submit" style="position:relative;left:50%;top:15px;transform:translate(-50%, -50%);">Submit</button>
+          <button onclick="editIntent(${intentNumber})">Submit</button>
         `;
-        form.querySelector("#submit").onclick = () => editIntent(intentNumber);
+        //form.querySelector("#submit").onclick = () => editIntent(intentNumber);
         getE("editIntentForm").innerHTML = "";
         getE("editIntentForm").appendChild(form);
         showEditIntents();
@@ -136,6 +136,7 @@ function editIntent(intentNumber) {
     .then((response) => response.text())
     .then((response) => {
       displayMessage("editIntentStatus", response);
+      alert(response)
       updateIntentSelection("editSelect");
       updateIntentSelection("deleteSelect");
     });
@@ -152,8 +153,9 @@ function deleteSelectedIntent() {
     body: JSON.stringify({ number: intentNumber }),
   })
     .then((response) => response.text())
-    .then(() => {
+    .then((response) => {
       hideEditIntents();
+      alert(response)
       updateIntentSelection("editSelect");
       updateIntentSelection("deleteSelect");
     });
@@ -173,6 +175,11 @@ function sendIntentAdd() {
     exec: form.elements["execAdd"].value,
     execargs: form.elements["execAddArgs"].value.split(","),
   };
+  if (!data.name || !data.description || !data.utterances) {
+    displayMessage("addIntentStatus", "A required input is missing. You need a name, description, and utterances.");
+    alert("A required input is missing. You need a name, description, and utterances.")
+    return
+  }
 
   displayMessage("addIntentStatus", "Adding...");
 
@@ -186,6 +193,7 @@ function sendIntentAdd() {
     .then((response) => response.text())
     .then((response) => {
       displayMessage("addIntentStatus", response);
+      alert(response)
       updateIntentSelection("editSelect");
       updateIntentSelection("deleteSelect");
     });
