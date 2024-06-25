@@ -562,16 +562,18 @@ function setupSystemd() {
     if [[ ${USE_INBUILT_BLE} == "true" ]]; then
         export GOTAGS="nolibopusfile,inbuiltble"
     fi
+    COMMIT_HASH="$(git rev-parse --short HEAD)"
+    export GOLDFLAGS="-X 'github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${COMMIT_HASH}'"
     if [[ ${STT_SERVICE} == "leopard" ]]; then
         echo "wire-pod.service created, building chipper with Picovoice STT service..."
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/leopard/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/leopard/main.go
         elif [[ ${STT_SERVICE} == "vosk" ]]; then
         echo "wire-pod.service created, building chipper with VOSK STT service..."
         export CGO_ENABLED=1
         export CGO_CFLAGS="-I/root/.vosk/libvosk"
         export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
         export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/vosk/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/vosk/main.go
         elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
         echo "wire-pod.service created, building chipper with Whisper.CPP STT service..."
         export CGO_ENABLED=1
@@ -580,13 +582,13 @@ function setupSystemd() {
         export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp"
         export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
         export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/experimental/whisper.cpp/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/experimental/whisper.cpp/main.go
     else
         echo "wire-pod.service created, building chipper with Coqui STT service..."
         export CGO_LDFLAGS="-L/root/.coqui/"
         export CGO_CXXFLAGS="-I/root/.coqui/"
         export LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/coqui/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/coqui/main.go
     fi
     sync
     mv main chipper
