@@ -106,9 +106,9 @@
               <input type="text" name="togetherAIPrompt" id="togetherAIPrompt" /><br />
             </span>
             <span id="openAIInput" style="display: none">
-              <label for="openAIKey">OpenAI Key:</label>
-              <input type="text" name="openAIKey" id="openAIKey" /><br />
-              <label for="openAIKey">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
+              <label for="openaiKey">OpenAI Key:</label>
+              <input type="text" name="openaiKey" id="openaiKey" /><br />
+              <label for="openaiKey">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
               <small><label class="desc" for="openAIPrompt">(default: "You are a helpful, animated robot called
                   Vector. Keep the response concise yet
                   informative.")</label></small>
@@ -118,8 +118,8 @@
             <span id="customAIInput" style="display: none">
               <small class="desc">All LLM hosts that have OpenAI API compatibility are supported. For advanced
                 users.</small><br />
-              <label for="customAIKey">API Key <small class="desc">(for ollama, this is just 'ollama')</small>:</label>
-              <input type="text" name="customAIKey" id="customAIKey" /><br />
+              <label for="customKey">API Key <small class="desc">(for ollama, this is just 'ollama')</small>:</label>
+              <input type="text" name="customKey" id="customKey" /><br />
               <label for="customAIEndpoint">API Endpoint <small class="desc">(i.e. http://localhost:11434/v1)</small>:</label>
               <input type="text" name="customAIEndpoint" id="customAIEndpoint" /><br />
               <label for="customModel">LLM Model Name <small class="desc">(i.e. 'llama3')</small>:</label>
@@ -230,7 +230,7 @@
           </div>
           <div>
             <hr class="small-hr">
-            <button onclick="setSTTLanguage()" type="submit">
+            <button onclick="setSTTLanguage()">
               Set Language
             </button>
           </div>
@@ -241,6 +241,7 @@
   </div>
 </body>
 <script src="./js/main.js"></script>
+<script src="./js/ui.js"></script>
 <script src="./sdkapp/js/main.js"></script>
 <script>
   updateWeatherAPI();

@@ -4,11 +4,9 @@
     <title>Vector Web App</title>
     <link rel="stylesheet" type="text/css" href="../css/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script
-      src="https://kit.fontawesome.com/8cdc8cbed9.js"
-      crossorigin="anonymous"
-    ></script>
+    <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
   </head>
+
   <body onload="updateControlButtons()">
     <div id="outer">
       <div id="content">
@@ -21,8 +19,9 @@
             >
           </div>
         </div>
-        <hr />
-
+      </div>
+      <hr />
+      
         <div id="sdkActions">
           <h2 class="center">Camera Feed</h2>
           <hr class="small-hr">
@@ -83,25 +82,27 @@
                 id="textSay"
                 type="text"
                 placeholder="Put text here"
-		disabled
+                disabled
               />
             </div>
             <button onclick="sayText()" type="submit">Submit</button>
         </div>
-        <hr>
+        <hr/>
+      
+        <h2 class="center">Say Text</h2>
+        <div class="center">
+          <input class="tinput" name="textSay" id="textSay" type="text" placeholder="Put text here" />
+        </div>
+        <button onclick="sayText()">Submit</button>
       </div>
+      <hr>
     </div>
+  </div>
 
-    <script src="./js/httprequest.js"></script>
-    <script src="./js/iro.min.js"></script>
-    <script src="./js/control.js"></script>
-    <iframe
-      name="hiddenFrame"
-      width="0"
-      height="0"
-      border="0"
-      style="display: none"
-    ></iframe>
-  </body>
+  <script src="./js/httprequest.js"></script>
+  <script src="./js/iro.min.js"></script>
+  <script src="./js/control.js"></script>
+  <script src="../js/ui.js"></script>
+  <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
+</body>
 </html>
-
