@@ -71,7 +71,7 @@ button, button[type="submit"] {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 170px;
   border: 2px solid var(--fg-color);
-  background-color: var(--button-color);
+  background-color: var (--button-color);
   color: var(--text-color);
   transition: border-color 0.3s, background-color 0.3s;
 }
@@ -104,10 +104,16 @@ input[type="text"], input[type="file"], select {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
   border: 2px solid var(--fg-color); 
+  box-sizing: border-box;
+  transition: border-color 0.3s;
 }
 
+input[type="text"]:hover, input[type="file"]:hover, select:hover,
 input[type="text"]:focus, input[type="file"]:focus, select:focus {
-  border-color: var(--fg-color-alt); 
+  border-color: white; 
+  border: 2px solid; 
+  box-sizing: border-box;
+  transition: border-color 0.3s;
 }
 
 input[type='text']:disabled {
@@ -179,10 +185,12 @@ textarea {
   font-size: 0.9em;
   height: 280px;
   border: 2px solid var(--fg-color); 
+  box-sizing: border-box;
+  transition: border-color 0.3s;
 }
 
-textarea:focus {
-  border-color: var(--fg-color-alt); 
+textarea:hover, textarea:focus {
+  border-color: white; 
 }
 
 /* p {
