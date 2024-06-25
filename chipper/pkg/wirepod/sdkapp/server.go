@@ -509,6 +509,15 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func DisableCachingAndSniffing(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate;")
+		w.Header().Set("pragma", "no-cache")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func BeginServer() {
 	if os.Getenv("JDOCS_PINGER_ENABLED") == "false" {
 		PingerEnabled = false
@@ -519,7 +528,7 @@ func BeginServer() {
 		serverFiles = filepath.Join(vars.AndroidPath, "/static/webroot")
 	}
 	fileServer := http.FileServer(http.Dir(serverFiles))
-	http.Handle("/sdk-app", fileServer)
+	http.Handle("/sdk-app", DisableCachingAndSniffing(fileServer))
 	// in jdocspinger.go
 	http.HandleFunc("/ok:80", connCheck)
 	http.HandleFunc("/ok", connCheck)

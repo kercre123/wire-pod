@@ -390,6 +390,15 @@ func saveCustomIntents() {
 	os.WriteFile(vars.CustomIntentsPath, customIntentJSONFile, 0644)
 }
 
+func DisableCachingAndSniffing(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate;")
+		w.Header().Set("pragma", "no-cache")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func StartWebServer() {
 	botsetup.RegisterSSHAPI()
 	botsetup.RegisterBLEAPI()
@@ -404,7 +413,7 @@ func StartWebServer() {
 	} else {
 		webRoot = http.FileServer(http.Dir("./webroot"))
 	}
-	http.Handle("/", webRoot)
+	http.Handle("/", DisableCachingAndSniffing(webRoot))
 	fmt.Printf("Starting webserver at port " + vars.WebPort + " (http://localhost:" + vars.WebPort + ")\n")
 	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {
 		logger.Println("Error binding to " + vars.WebPort + ": " + err.Error())
