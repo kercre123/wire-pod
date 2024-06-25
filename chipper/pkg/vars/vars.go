@@ -19,6 +19,8 @@ import (
 	"github.com/wlynxg/anet"
 )
 
+var CommitSHA string
+
 // initialize variables so they don't have to be found during runtime
 
 var VarsInited bool
@@ -146,6 +148,7 @@ func join(p1, p2 string) string {
 }
 
 func Init() {
+	logger.Println("Commit SHA: " + CommitSHA)
 	if VarsInited {
 		logger.Println("Not initting vars again")
 		return
