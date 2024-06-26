@@ -90,7 +90,6 @@ func STT(req sr.SpeechRequest) (string, error) {
 			break
 		}
 	}
-	os.WriteFile("../../test.pcm", req.DecodedMicData, 0777)
 	transcribedText, err := process(BytesToFloat32Buffer(padPCM(req.DecodedMicData)))
 	if err != nil {
 		return "", err
