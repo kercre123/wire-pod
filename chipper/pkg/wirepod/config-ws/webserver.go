@@ -78,8 +78,6 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetVersionInfo(w)
 	case "generate_certs":
 		handleGenerateCerts(w)
-	case "get_chipper_commit":
-		handleGetChipperCommit(w)
 	case "is_api_v1":
 		fmt.Fprintf(w, "it is!")
 	default:
@@ -379,10 +377,6 @@ func handleGenerateCerts(w http.ResponseWriter) {
 		return
 	}
 	fmt.Fprint(w, "done")
-}
-
-func handleGetChipperCommit(w http.ResponseWriter) {
-
 }
 
 func saveCustomIntents() {

@@ -90,13 +90,13 @@ function getPackages() {
     echo "Installing required packages"
     if [[ ${TARGET} == "debian" ]]; then
         apt update -y
-        apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev
+        apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev libsoxr-dev
         elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config 
+        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config libsoxr 
         elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
-        dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
+        dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel soxr-devel
         elif [[ ${TARGET} == "darwin" ]]; then
         sudo -u $SUDO_USER brew update
         sudo -u $SUDO_USER brew install wget pkg-config opus opusfile
@@ -109,16 +109,18 @@ function getPackages() {
     if [[ ${TARGET} != "darwin" ]] && [[ ${TARGET} != "arch" ]]; then
         if [[ ! -f /usr/local/go/bin/go ]]; then
             if [[ ${ARCH} == "x86_64" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-amd64.tar.gz
                 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
                 elif [[ ${ARCH} == "aarch64" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-arm64.tar.gz
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-arm64.tar.gz
                 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-arm64.tar.gz
                 elif [[ ${ARCH} == "armv7l" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-armv6l.tar.gz
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-armv6l.tar.gz
                 rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-armv6l.tar.gz
             fi
-            ln -s /usr/local/go/bin/go /usr/bin/go
+	    if [[ ! -f /usr/bin/go ]] && [[ ! -e /usr/bin/go ]]; then
+                ln -s /usr/local/go/bin/go /usr/bin/go
+	    fi
         fi
     else
         echo "This is a macOS or arch target, assuming Go is installed already"
@@ -637,6 +639,7 @@ if [[ $1 == "scp" ]]; then
 fi
 
 if [[ $1 == "daemon-enable" ]]; then
+    getPackages
     setupSystemd
     exit 0
 fi
