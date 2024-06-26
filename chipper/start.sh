@@ -73,8 +73,8 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
     else
         export C_INCLUDE_PATH="../whisper.cpp"
         export LIBRARY_PATH="../whisper.cpp"
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp"
-        export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp:$(pwd)/../whisper.cpp/build"
+        export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp -L$(pwd)/../whisper.cpp/build"
         export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
         if [[ ${UNAME} == *"Darwin"* ]]; then
             export GGML_METAL_PATH_RESOURCES="../whisper.cpp"
