@@ -347,6 +347,7 @@ function updateKGAPI() {
       if (data.provider === "openai") {
         getE("openaiKey").value = data.key;
         getE("openAIPrompt").value = data.openai_prompt;
+        getE("openaiVoice").value = data.openai_voice;
         getE("commandYes").checked = data.commands_enable
         getE("intentyes").checked = data.intentgraph
         getE("saveChatYes").checked = data.save_chat

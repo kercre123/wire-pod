@@ -1,12 +1,8 @@
 package wirepod_ttr
 
-// TODO
 import (
-	"bytes"
 	"encoding/binary"
 	"math"
-
-	"github.com/zaf/resample"
 )
 
 func bytesToInt16s(data []byte) []int16 {
@@ -25,16 +21,20 @@ func int16sToBytes(data []int16) []byte {
 	return bytes
 }
 
-// entry-point (go, not default)
 func downsample24kTo16k(input []byte) [][]byte {
-	iVolBytes := increaseVolume(input, 6)
-	outBytes := downsample24kTo16kLinear(iVolBytes)
+	outBytes := downsample24kTo16kLinear(input)
 	var audioChunks [][]byte
-	// the "s" sounds are harsh. put through filter
-	//filteredBytes := lowPassFilter(outBytes, 4000, 16000)
-	for len(outBytes) >= 1024 {
-		audioChunks = append(audioChunks, outBytes[:1024])
-		outBytes = outBytes[1024:]
+	filteredBytes := lowPassFilter(outBytes, 4000, 16000)
+	iVolBytes := increaseVolume(filteredBytes, 5)
+	for len(iVolBytes) > 0 {
+		if len(iVolBytes) < 1024 {
+			chunk := make([]byte, 1024)
+			copy(chunk, iVolBytes)
+			audioChunks = append(audioChunks, chunk)
+			break
+		}
+		audioChunks = append(audioChunks, iVolBytes[:1024])
+		iVolBytes = iVolBytes[1024:]
 	}
 
 	return audioChunks
@@ -73,7 +73,7 @@ func lowPassFilter(data []byte, cutoffFreq float64, sampleRate int) []byte {
 	return int16sToBytes(filtered)
 }
 
-// technically copied too
+// copied too
 func downsample24kTo16kLinear(input []byte) []byte {
 	int16s := bytesToInt16s(input)
 	outputLength := (len(int16s) * 2) / 3
@@ -89,20 +89,4 @@ func downsample24kTo16kLinear(input []byte) []byte {
 	}
 
 	return int16sToBytes(output)
-}
-
-// entry-point (soxr)
-func downsampleAudioSoxr(input []byte) [][]byte {
-	newBytes := new(bytes.Buffer)
-	dec, _ := resample.New(newBytes, 24000, 16000, 1, resample.I16, resample.VeryHighQ)
-	dec.Write(input)
-	var audioChunks [][]byte
-	decodedBytes := newBytes.Bytes()
-	filteredBytes := lowPassFilter(decodedBytes, 4000, 16000)
-	iVolBytes := increaseVolume(filteredBytes, 5)
-	for len(iVolBytes) >= 1024 {
-		audioChunks = append(audioChunks, iVolBytes[:1024])
-		iVolBytes = iVolBytes[1024:]
-	}
-	return audioChunks
 }
