@@ -261,6 +261,7 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 			err = json.Unmarshal([]byte(geoCodingResponse), &geoCodingInfoStruct)
 			if err != nil {
 				logger.Println(err)
+				logger.Println("Geolocation API error: " + geoCodingResponse)
 			}
 			if len(geoCodingInfoStruct) == 0 {
 				logger.Println("Geo provided no response.")

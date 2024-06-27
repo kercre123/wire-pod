@@ -1,46 +1,37 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Vector SDK App</title>
-    <link rel="stylesheet" type="text/css" href="../css/style.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script
-      src="https://kit.fontawesome.com/8cdc8cbed9.js"
-      crossorigin="anonymous"
-    ></script>
-  </head>
-  <body>
-    <div id="outer">
-      <div id="content">
-        <h1 class="center">Vector configuration</h1>
-        <hr />
-        <div class="main-nav-parent">
-          <div class="main-nav-child">
-            <a href="../index.html"
-              ><i class="fa-solid fa-reply"></i><br />Back</a
-            >
-          </div>
+
+<head>
+  <title>Vector SDK App</title>
+  <link rel="stylesheet" type="text/css" href="../css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div id="outer">
+    <div id="content">
+      <h1 class="center">Vector Configuration</h1>
+      <hr />
+      <div class="main-nav-parent">
+        <div class="main-nav-child">
+          <a href="../index.html"><i class="fa-solid fa-reply"></i><br />Back</a>
         </div>
-        <hr />
-        <p>
-          Choose the bot you would like to connect to, then press "Connect".
-        </p>
-        <select id="botList" name="botList"></select>
-        <div class="center">
-          <button onclick="connectSDK()" type="submit">Connect</button>
-        </div>
-        <hr />
-        <div id="authResult"></div>
       </div>
+      <hr />
+      <p>
+        Choose the bot you would like to connect to then press "Connect".
+      </p>
+      <select id="botList" name="botList"></select><br />
+      <button onclick="connectSDK()">Connect</button>
+      <hr />
+      <div id="authResult"></div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
-<iframe
-  name="hiddenFrame"
-  width="0"
-  height="0"
-  border="0"
-  style="display: none"
-></iframe>
+<iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
 <script src="./js/httprequest.js"></script>
+<script src="../js/ui.js"></script>
 <script src="./js/auth.js"></script>

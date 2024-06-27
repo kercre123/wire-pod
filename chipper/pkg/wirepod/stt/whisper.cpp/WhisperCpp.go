@@ -19,6 +19,26 @@ var Name string = "whisper.cpp"
 var context *whisper.Context
 var params whisper.Params
 
+func padPCM(data []byte) []byte {
+	const sampleRate = 16000
+	const minDurationMs = 1020
+	const minDurationSamples = sampleRate * minDurationMs / 1000
+	const bytesPerSample = 2
+
+	currentSamples := len(data) / bytesPerSample
+
+	if currentSamples >= minDurationSamples {
+		return data
+	}
+
+	logger.Println("Padding audio data to be 1000ms")
+
+	paddingSamples := minDurationSamples - currentSamples
+	paddingBytes := make([]byte, paddingSamples*bytesPerSample)
+
+	return append(data, paddingBytes...)
+}
+
 func Init() error {
 	whispModel := os.Getenv("WHISPER_MODEL")
 	if whispModel == "" {
@@ -65,13 +85,12 @@ func STT(req sr.SpeechRequest) (string, error) {
 			return "", err
 		}
 		// has to be split into 320 []byte chunks for VAD
-		speechIsDone = req.DetectEndOfSpeech()
+		speechIsDone, _ = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}
 	}
-
-	transcribedText, err := process(BytesToFloat32Buffer(req.DecodedMicData))
+	transcribedText, err := process(BytesToFloat32Buffer(padPCM(req.DecodedMicData)))
 	if err != nil {
 		return "", err
 	}

@@ -93,7 +93,7 @@ function getPackages() {
         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev
         elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config
+        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config 
         elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
@@ -109,16 +109,18 @@ function getPackages() {
     if [[ ${TARGET} != "darwin" ]] && [[ ${TARGET} != "arch" ]]; then
         if [[ ! -f /usr/local/go/bin/go ]]; then
             if [[ ${ARCH} == "x86_64" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-amd64.tar.gz
-                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-amd64.tar.gz
+                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz
                 elif [[ ${ARCH} == "aarch64" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-arm64.tar.gz
-                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-arm64.tar.gz
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-arm64.tar.gz
+                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.4.linux-arm64.tar.gz
                 elif [[ ${ARCH} == "armv7l" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.19.4.linux-armv6l.tar.gz
-                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.4.linux-armv6l.tar.gz
+                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-armv6l.tar.gz
+                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.4.linux-armv6l.tar.gz
             fi
-            ln -s /usr/local/go/bin/go /usr/bin/go
+	    if [[ ! -f /usr/bin/go ]] && [[ ! -e /usr/bin/go ]]; then
+                ln -s /usr/local/go/bin/go /usr/bin/go
+	    fi
         fi
     else
         echo "This is a macOS or arch target, assuming Go is installed already"
@@ -234,7 +236,7 @@ function getSTT() {
             cd whisper.cpp
         fi
         function whichWhisperModel() {
-            availableModels="tiny, base, small, medium, large"
+            availableModels="tiny, base, small, medium, large-v3, large-v3-q5_0"
             echo
             echo "Which Whisper model would you like to use?"
             echo "Options: $availableModels"
@@ -562,16 +564,18 @@ function setupSystemd() {
     if [[ ${USE_INBUILT_BLE} == "true" ]]; then
         export GOTAGS="nolibopusfile,inbuiltble"
     fi
+    COMMIT_HASH="$(git rev-parse --short HEAD)"
+    export GOLDFLAGS="-X 'github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${COMMIT_HASH}'"
     if [[ ${STT_SERVICE} == "leopard" ]]; then
         echo "wire-pod.service created, building chipper with Picovoice STT service..."
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/leopard/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/leopard/main.go
         elif [[ ${STT_SERVICE} == "vosk" ]]; then
         echo "wire-pod.service created, building chipper with VOSK STT service..."
         export CGO_ENABLED=1
         export CGO_CFLAGS="-I/root/.vosk/libvosk"
         export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
         export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/vosk/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/vosk/main.go
         elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
         echo "wire-pod.service created, building chipper with Whisper.CPP STT service..."
         export CGO_ENABLED=1
@@ -580,13 +584,13 @@ function setupSystemd() {
         export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp"
         export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
         export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/experimental/whisper.cpp/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/experimental/whisper.cpp/main.go
     else
         echo "wire-pod.service created, building chipper with Coqui STT service..."
         export CGO_LDFLAGS="-L/root/.coqui/"
         export CGO_CXXFLAGS="-I/root/.coqui/"
         export LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags $GOTAGS cmd/coqui/main.go
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/coqui/main.go
     fi
     sync
     mv main chipper
@@ -635,6 +639,7 @@ if [[ $1 == "scp" ]]; then
 fi
 
 if [[ $1 == "daemon-enable" ]]; then
+    getPackages
     setupSystemd
     exit 0
 fi

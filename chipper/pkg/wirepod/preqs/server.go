@@ -15,8 +15,9 @@ type Server struct{}
 var VoiceProcessor = ""
 
 type JsonIntent struct {
-	Name       string   `json:"name"`
-	Keyphrases []string `json:"keyphrases"`
+	Name              string   `json:"name"`
+	Keyphrases        []string `json:"keyphrases"`
+	RequireExactMatch bool     `json:"requiresexact"`
 }
 
 var sttLanguage string = "en-US"
@@ -32,7 +33,7 @@ var isSti bool = false
 func ReloadVosk() {
 	if vars.APIConfig.STT.Service == "vosk" || vars.APIConfig.STT.Service == "whisper.cpp" {
 		vars.SttInitFunc()
-		vars.MatchListList, vars.IntentsList, _ = vars.LoadIntents()
+		vars.IntentList, _ = vars.LoadIntents()
 	}
 }
 
@@ -44,7 +45,7 @@ func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (
 		vars.APIConfig.STT.Language = "en-US"
 	}
 	sttLanguage = vars.APIConfig.STT.Language
-	vars.MatchListList, vars.IntentsList, _ = vars.LoadIntents()
+	vars.IntentList, _ = vars.LoadIntents()
 	logger.Println("Initiating " + voiceProcessor + " voice processor with language " + sttLanguage)
 	vars.SttInitFunc = InitFunc
 	err := InitFunc()
