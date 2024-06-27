@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"math"
 	"os"
+	"time"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/opus-go/opus"
@@ -172,6 +174,7 @@ func applyGain(samples []int16, gain float64) []int16 {
 
 // remove noise
 func highPassFilter(data []byte) []byte {
+	bTime := time.Now()
 	sampleRate := 16000
 	cutoffFreq := 300.0
 	samples, err := bytesToInt16(data)
@@ -196,7 +199,12 @@ func highPassFilter(data []byte) []byte {
 		int16FilteredSamples[i] = int16(sample)
 	}
 
-	return int16ToBytes(applyGain(int16FilteredSamples, 1.5))
+	gained := applyGain(int16FilteredSamples, 1.5)
+	if os.Getenv("DEBUG_PRINT_HIGHPASS") == "true" {
+		logger.Println("highpass filter took: " + fmt.Sprint(time.Since(bTime)))
+	}
+
+	return int16ToBytes(gained)
 }
 
 // Converts a vtt.*Request to a SpeechRequest, which allows functions like DetectEndOfSpeech to work
