@@ -45,7 +45,8 @@ var textToNumber = map[string]int{
 }
 
 func words2num(input string) string {
-	if os.Getenv("STT_SERVICE") == "whisper.cpp" {
+	containsNum, _ := regexp.MatchString(`\b\d+\b`, input)
+	if os.Getenv("STT_SERVICE") == "whisper.cpp" && containsNum {
 		return whisperSpeechtoNum(input)
 	}
 	totalSeconds := 0

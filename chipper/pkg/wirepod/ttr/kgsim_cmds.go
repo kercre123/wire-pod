@@ -365,8 +365,6 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 			},
 		})
 	}()
-	os.WriteFile("../../pre-process.pcm", speechBytes, 0777)
-	os.WriteFile("../../post-process.pcm", chunksToDetermineLength, 0777)
 	time.Sleep(pcmLength(chunksToDetermineLength) + (time.Millisecond * 50))
 	return nil
 }
