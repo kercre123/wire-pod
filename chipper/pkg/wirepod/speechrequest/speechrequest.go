@@ -21,22 +21,23 @@ var debugWriteFile bool = false
 var debugFile *os.File
 
 type SpeechRequest struct {
-	Device         string
-	Session        string
-	FirstReq       []byte
-	Stream         interface{}
-	IsKG           bool
-	IsIG           bool
-	MicData        []byte
-	DecodedMicData []byte
-	PrevLen        int
-	PrevLenRaw     int
-	InactiveFrames int
-	ActiveFrames   int
-	VADInst        *webrtcvad.VAD
-	LastAudioChunk []byte
-	IsOpus         bool
-	OpusStream     *opus.OggStream
+	Device          string
+	Session         string
+	FirstReq        []byte
+	Stream          interface{}
+	IsKG            bool
+	IsIG            bool
+	MicData         []byte
+	DecodedMicData  []byte
+	FilteredMicData []byte
+	PrevLen         int
+	PrevLenRaw      int
+	InactiveFrames  int
+	ActiveFrames    int
+	VADInst         *webrtcvad.VAD
+	LastAudioChunk  []byte
+	IsOpus          bool
+	OpusStream      *opus.OggStream
 }
 
 func BytesToSamples(buf []byte) []int16 {
@@ -67,9 +68,9 @@ func (req *SpeechRequest) OpusDecode(chunk []byte) []byte {
 		if err != nil {
 			logger.Println(err)
 		}
-		return highPassFilter(n)
+		return n
 	} else {
-		return highPassFilter(chunk)
+		return chunk
 	}
 }
 
@@ -245,8 +246,9 @@ func ReqToSpeechRequest(req interface{}) SpeechRequest {
 		request.OpusStream = &opus.OggStream{}
 		decodedFirstReq, _ := request.OpusStream.Decode(request.FirstReq)
 		request.FirstReq = highPassFilter(decodedFirstReq)
-		request.DecodedMicData = append(request.DecodedMicData, request.FirstReq...)
-		request.LastAudioChunk = request.DecodedMicData[request.PrevLen:]
+		request.FilteredMicData = append(request.FilteredMicData, request.FirstReq...)
+		request.DecodedMicData = append(request.DecodedMicData, decodedFirstReq...)
+		request.LastAudioChunk = request.FilteredMicData[request.PrevLen:]
 		request.PrevLen = len(request.DecodedMicData)
 		request.IsOpus = true
 	}
@@ -265,8 +267,9 @@ func (req *SpeechRequest) GetNextStreamChunk() ([]byte, error) {
 		}
 		req.MicData = append(req.MicData, chunk.InputAudio...)
 		req.DecodedMicData = append(req.DecodedMicData, req.OpusDecode(chunk.InputAudio)...)
+		req.FilteredMicData = append(req.FilteredMicData, highPassFilter(req.OpusDecode(chunk.InputAudio))...)
 		dataReturn := req.DecodedMicData[req.PrevLen:]
-		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
+		req.LastAudioChunk = req.FilteredMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
 		return dataReturn, nil
 	} else if str, ok := req.Stream.(pb.ChipperGrpc_StreamingIntentGraphServer); ok {
@@ -278,8 +281,9 @@ func (req *SpeechRequest) GetNextStreamChunk() ([]byte, error) {
 		}
 		req.MicData = append(req.MicData, chunk.InputAudio...)
 		req.DecodedMicData = append(req.DecodedMicData, req.OpusDecode(chunk.InputAudio)...)
+		req.FilteredMicData = append(req.FilteredMicData, highPassFilter(req.OpusDecode(chunk.InputAudio))...)
 		dataReturn := req.DecodedMicData[req.PrevLen:]
-		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
+		req.LastAudioChunk = req.FilteredMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
 		if debugWriteFile {
 			debugFile.Write(chunk.InputAudio)
@@ -294,8 +298,9 @@ func (req *SpeechRequest) GetNextStreamChunk() ([]byte, error) {
 		}
 		req.MicData = append(req.MicData, chunk.InputAudio...)
 		req.DecodedMicData = append(req.DecodedMicData, req.OpusDecode(chunk.InputAudio)...)
+		req.FilteredMicData = append(req.FilteredMicData, highPassFilter(req.OpusDecode(chunk.InputAudio))...)
 		dataReturn := req.DecodedMicData[req.PrevLen:]
-		req.LastAudioChunk = req.DecodedMicData[req.PrevLen:]
+		req.LastAudioChunk = req.FilteredMicData[req.PrevLen:]
 		req.PrevLen = len(req.DecodedMicData)
 		return dataReturn, nil
 	}
