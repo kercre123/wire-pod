@@ -113,6 +113,16 @@
                   Vector. Keep the response concise yet
                   informative.")</label></small>
               <input type="text" name="openAIPrompt" id="openAIPrompt" /><br />
+              <label for="openaiVoice">OpenAI TTS voice for non-English languages:</label><br/>
+              <small class="desc">See <a target="_blank" href="https://platform.openai.com/docs/guides/text-to-speech/voice-options">OpenAI's TTS site</a> to demo each voice.</small><br/>
+              <select name="openaiVoice" id="openaiVoice">
+                <option value="fable" selected>Fable</option>
+                <option value="alloy">Alloy</option>
+                <option value="echo">Echo</option>
+                <option value="onyx">Onyx</option>
+                <option value="nova">Nova</option>
+                <option value="shimmer">Shimmer</option>
+              </select>
             </span>
 
             <span id="customAIInput" style="display: none">

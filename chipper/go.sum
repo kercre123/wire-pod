@@ -140,6 +140,8 @@ github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4
 github.com/fsouza/go-dockerclient v1.6.6/go.mod h1:3/oRIWoe7uT6bwtAayj/EmJmepBjeL4pYvt7ZxC7Rnk=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20231214200047-940de9dbe9c9 h1:B3bFAoLQ8y4RFNR8A4GjkCiKzuUIwblYUiIgRgWr604=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20231214200047-940de9dbe9c9/go.mod h1:QIjZ9OktHFG7p+/m3sMvrAJKKdWrr1fZIK0rM6HZlyo=
+github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240618151033-bf4cb4abad4e h1:np99/bjGH4/khEujoGbwc0ohMLh32GjovhEv2mJRNfs=
+github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240618151033-bf4cb4abad4e/go.mod h1:QIjZ9OktHFG7p+/m3sMvrAJKKdWrr1fZIK0rM6HZlyo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-audio/audio v1.0.0 h1:zS9vebldgbQqktK4H0lUqWrG8P0NxCJVqcj7ZpNnwd4=
 github.com/go-audio/audio v1.0.0/go.mod h1:6uAu0+H2lHkwdGsAY+j2wHPNPpPoeg5AaEFh9FlA+Zs=
@@ -493,6 +495,8 @@ github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
+github.com/zaf/resample v1.5.0 h1:c3yumHrV1cJoED8ZY2Ai3cehS8s0mJSroA9/vMaUcho=
+github.com/zaf/resample v1.5.0/go.mod h1:e4yWalfgRccQrnZSrkIxTqmMCOPhTi1xvYpNpRIB13k=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.mongodb.org/mongo-driver v1.4.2/go.mod h1:WcMNYLx/IlOxLe6JRJiv2uXuCz6zBLndR4SoGjYphSc=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=

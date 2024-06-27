@@ -5,13 +5,13 @@ function checkLanguage() {
       const sectionLanguage = document.getElementById("section-language");
       const languageSelection = document.getElementById("languageSelection");
 
-      if (parsed.sttProvider !== "vosk" && parsed.sttProvider !== "whisper.cpp") {
+      if (parsed.provider !== "vosk" && parsed.provider !== "whisper.cpp") {
         console.log("stt not vosk/whisper");
         sectionLanguage.style.display = "none";
         languageSelection.value = "en-US";
       } else {
         sectionLanguage.style.display = "block";
-        console.log(parsed.sttLanguage);
+        console.log(parsed.language);
         languageSelection.value = "en-US";
       }
     });
