@@ -281,6 +281,7 @@ function sendKGAPIKey() {
     intentgraph: false,
     robotName: "",
     openai_prompt: "",
+    openai_voice: "",
     save_chat: false,
     commands_enable: false,
     endpoint: "",
@@ -291,6 +292,7 @@ function sendKGAPIKey() {
     data.intentgraph = getE("intentyes").checked
     data.save_chat = getE("saveChatYes").checked
     data.commands_enable = getE("commandYes").checked
+    data.openai_voice = getE("openaiVoice").value
   } else if (provider === "custom") {
     data.key = getE("customKey").value;
     data.model = getE("customModel").value;

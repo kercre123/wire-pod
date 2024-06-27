@@ -11,7 +11,7 @@ require (
 	github.com/digital-dream-labs/opus-go v0.0.0-20201230195736-934a8a9e0a1e
 	github.com/digital-dream-labs/vector-bluetooth v0.0.0-20210604051118-1c511122d877
 	github.com/fforchino/vector-go-sdk v0.0.0-20231108155304-62168f3595d6
-	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20231214200047-940de9dbe9c9
+	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240618151033-bf4cb4abad4e
 	github.com/go-audio/audio v1.0.0
 	github.com/go-audio/wav v1.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -67,6 +67,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
+	github.com/zaf/resample v1.5.0 // indirect
 	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/net v0.16.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
