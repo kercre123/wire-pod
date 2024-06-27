@@ -104,7 +104,7 @@ type LLMCommand struct {
 var ValidLLMCommands []LLMCommand = []LLMCommand{
 	{
 		Command:         "playAnimationWI",
-		Description:     "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated. Don't put two of these right next to each other. Use this MANY times. The param choices are the onlyy choices you have. You can't create any.",
+		Description:     "Plays an animation on the robot without interrupting speech. This should be used FAR more than the playAnimation command. This is great for storytelling and making any normal response animated. Don't put two of these right next to each other. Use this MANY times. The param choices are the only choices you have. You can't create any.",
 		ParamChoices:    "happy, veryHappy, sad, verySad, angry, frustrated, dartingEyes, confused, thinking, celebrate, love",
 		Action:          ActionPlayAnimationWI,
 		SupportedModels: []string{"all"},
@@ -307,6 +307,9 @@ func getOpenAIVoice(voice string) openai.SpeechVoice {
 
 // TODO
 func DoSayText_OpenAI(robot *vector.Vector, input string) error {
+	if strings.TrimSpace(input) == "" {
+		return nil
+	}
 	openaiVoice := getOpenAIVoice(vars.APIConfig.Knowledge.OpenAIPrompt)
 	// if vars.APIConfig.Knowledge.OpenAIVoice == "" {
 	// 	openaiVoice = openai.VoiceFable
@@ -318,7 +321,7 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 		Model:          openai.TTSModel1,
 		Input:          input,
 		Voice:          openaiVoice,
-		ResponseFormat: "pcm",
+		ResponseFormat: openai.SpeechResponseFormatPcm,
 	})
 	if err != nil {
 		logger.Println(err)
@@ -338,12 +341,8 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 		},
 	})
 	//time.Sleep(time.Millisecond * 30)
-	var audioChunks [][]byte
-	if os.Getenv("USE_GO_DESAMPLE") == "true" {
-		audioChunks = downsample24kTo16k(speechBytes)
-	} else {
-		audioChunks = downsampleAudioSoxr(speechBytes)
-	}
+	audioChunks := downsample24kTo16k(speechBytes)
+
 	var chunksToDetermineLength []byte
 	for _, chunk := range audioChunks {
 		chunksToDetermineLength = append(chunksToDetermineLength, chunk...)
@@ -366,6 +365,8 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 			},
 		})
 	}()
+	os.WriteFile("../../pre-process.pcm", speechBytes, 0777)
+	os.WriteFile("../../post-process.pcm", chunksToDetermineLength, 0777)
 	time.Sleep(pcmLength(chunksToDetermineLength) + (time.Millisecond * 50))
 	return nil
 }
