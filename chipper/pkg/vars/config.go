@@ -29,8 +29,10 @@ type apiConfig struct {
 		IntentGraph    bool   `json:"intentgraph"`
 		RobotName      string `json:"robotName"`
 		OpenAIPrompt   string `json:"openai_prompt"`
+		OpenAIVoice    string `json:"openai_voice"`
 		SaveChat       bool   `json:"save_chat"`
 		CommandsEnable bool   `json:"commands_enable"`
+		Endpoint       string `json:"endpoint"`
 	} `json:"knowledge"`
 	STT struct {
 		Service  string `json:"provider"`
@@ -118,6 +120,12 @@ func ReadConfig() {
 				APIConfig.PastInitialSetup = true
 			}
 		}
+
+		if APIConfig.Knowledge.Model == "meta-llama/Llama-2-70b-chat-hf" {
+			logger.Println("Setting Together model to Llama3")
+			APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
+		}
+
 		writeBytes, _ := json.Marshal(APIConfig)
 		os.WriteFile(ApiConfigPath, writeBytes, 0644)
 		logger.Println("API config successfully read")

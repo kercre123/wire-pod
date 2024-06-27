@@ -96,7 +96,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 }
 
-func customIntentHandler(req interface{}, voiceText string, intentList []string, isOpus bool, botSerial string) bool {
+func customIntentHandler(req interface{}, voiceText string, botSerial string) bool {
 	var successMatched bool = false
 	if vars.CustomIntentsExist {
 		for _, c := range vars.CustomIntents {
@@ -228,7 +228,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 	return matched
 }
 
-func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, intentList []string, isOpus bool) bool {
+func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent, isOpus bool) bool {
 	var botSerial string
 	var req2 *vtt.IntentRequest
 	var req1 *vtt.KnowledgeGraphRequest
@@ -248,18 +248,18 @@ func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 	var successMatched bool = false
 	voiceText = strings.ToLower(voiceText)
 	pluginMatched := pluginFunctionHandler(req, voiceText, botSerial)
-	customIntentMatched := customIntentHandler(req, voiceText, intentList, isOpus, botSerial)
+	customIntentMatched := customIntentHandler(req, voiceText, botSerial)
 	if !customIntentMatched && !pluginMatched {
 		logger.Println("Not a custom intent")
 		// Look for a perfect match first
-		for _, b := range listOfLists {
-			for _, c := range b {
+		for _, b := range intents {
+			for _, c := range b.Keyphrases {
 				if voiceText == strings.ToLower(c) {
-					logger.Println("Bot " + botSerial + " Perfect match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
+					logger.Println("Bot " + botSerial + " Perfect match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
 					if isOpus {
-						ParamChecker(req, intentList[intentNum], voiceText, botSerial)
+						ParamChecker(req, b.Name, voiceText, botSerial)
 					} else {
-						prehistoricParamChecker(req, intentList[intentNum], voiceText, botSerial)
+						prehistoricParamChecker(req, b.Name, voiceText)
 					}
 					successMatched = true
 					matched = 1
@@ -276,14 +276,14 @@ func ProcessTextAll(req interface{}, voiceText string, listOfLists [][]string, i
 		if !successMatched {
 			intentNum = 0
 			matched = 0
-			for _, b := range listOfLists {
-				for _, c := range b {
-					if strings.Contains(voiceText, strings.ToLower(c)) {
-						logger.Println("Bot " + botSerial + " Partial match for intent " + intentList[intentNum] + " (" + strings.ToLower(c) + ")")
+			for _, b := range intents {
+				for _, c := range b.Keyphrases {
+					if strings.Contains(voiceText, strings.ToLower(c)) && !b.RequireExactMatch {
+						logger.Println("Bot " + botSerial + " Partial match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
 						if isOpus {
-							ParamChecker(req, intentList[intentNum], voiceText, botSerial)
+							ParamChecker(req, b.Name, voiceText, botSerial)
 						} else {
-							prehistoricParamChecker(req, intentList[intentNum], voiceText, botSerial)
+							prehistoricParamChecker(req, b.Name, voiceText)
 						}
 						successMatched = true
 						matched = 1

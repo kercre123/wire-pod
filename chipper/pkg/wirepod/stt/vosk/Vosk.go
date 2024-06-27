@@ -185,7 +185,6 @@ func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 
 func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + req.Device + ", Vosk) Processing...")
-	speechIsDone := false
 	var withGrm bool
 	if (vars.APIConfig.Knowledge.IntentGraph || req.IsKG) || !GrammerEnable {
 		logger.Println("Using general recognizer")
@@ -203,9 +202,10 @@ func STT(req sr.SpeechRequest) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		rec.AcceptWaveform(chunk)
-		// has to be split into 320 []byte chunks for VAD
-		speechIsDone = req.DetectEndOfSpeech()
+		speechIsDone, doProcess := req.DetectEndOfSpeech()
+		if doProcess {
+			rec.AcceptWaveform(chunk)
+		}
 		if speechIsDone {
 			break
 		}

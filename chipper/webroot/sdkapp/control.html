@@ -1,114 +1,101 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Vector Web App</title>
-    <link rel="stylesheet" type="text/css" href="../css/style.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script
-      src="https://kit.fontawesome.com/8cdc8cbed9.js"
-      crossorigin="anonymous"
-    ></script>
-  </head>
-  <body>
-    <div id="outer">
-      <div id="content">
-        <h1 class="center">Vector control (beta)</h1>
-        <hr />
-        <div class="main-nav-parent">
-          <div class="main-nav-child">
-            <a href="#" onclick="goBackToSettings()"
-              ><i class="fa-solid fa-reply"></i><br />Back</a
-            >
-          </div>
-        </div>
-        <hr />
 
-        <div id="sdkActions">
-          <h2 class="center">Camera Feed</h2>
-          <div class="center" id="camStream"></div>
-          <div class="center">
-            <button onclick="showCamStream()">Begin Camera Stream</button>
-            <button onclick="stopCamStream()">Stop Camera Stream</button>
-          </div>
-          <hr />
+<head>
+  <title>Vector Web App</title>
+  <link rel="stylesheet" type="text/css" href="../css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/8cdc8cbed9.js" crossorigin="anonymous"></script>
+</head>
 
-          <h2 class="center">Behavior Control</h2>
-          <small class="center"
-            >You must assume behavior control before performing any
-            action</small
-          >
-          <div class="center">
-            <button
-              onclick="sendForm('/api-sdk/assume_behavior_control?priority=high')"
-              type="submit"
-            >
-              Assume
-            </button>
-            <button
-              onclick="sendForm('/api-sdk/release_behavior_control')"
-              type="submit"
-            >
-              Release
-            </button>
-          </div>
-          <hr />
-
-          <h2 class="center">Move Motors</h2>
-          <div class="center">
-            <button onclick="toggleKeyboard()" type="submit">
-              Toggle Keyboard Controls (unstable)
-            </button>
-          </div>
-          <div id="keysKey">
-            <small class="center" display="_blank"
-              >Enabled! WASD for wheels, R-lift up, F-lift down, T-head up,
-              G-head down</small
-            >
-          </div>
-          <hr />
-
-          <h2 class="center">Mirror Mode</h2>
-          <div class="center">
-            <button
-              onclick="sendForm('/api-sdk/mirror_mode?enable=true')"
-              type="submit"
-            >
-              Mirror Mode On
-            </button>
-            <button
-              onclick="sendForm('/api-sdk/mirror_mode?enable=false')"
-              type="submit"
-            >
-              Mirror Mode Off
-            </button>
-          </div>
-          <hr />
-          <h2 class="center">Say Text</h2>
-          <div class="center">
-            <div class="center">
-              <input
-                class="tinput"
-                name="textSay"
-                id="textSay"
-                type="text"
-                placeholder="Put text here"
-              />
-            </div>
-            <button onclick="sayText()" type="submit">Submit</button>
-          </div>
+<body onload="updateControlButtons()">
+  <div id="outer">
+    <div id="content">
+      <h1 class="center">Vector control (beta)</h1>
+      <hr />
+      <div class="main-nav-parent">
+        <div class="main-nav-child">
+          <a href="#" onclick="goBackToSettings()"><i class="fa-solid fa-reply"></i><br />Back</a>
         </div>
       </div>
-    </div>
+      <hr />
 
-    <script src="./js/httprequest.js"></script>
-    <script src="./js/iro.min.js"></script>
-    <script src="./js/control.js"></script>
-    <iframe
-      name="hiddenFrame"
-      width="0"
-      height="0"
-      border="0"
-      style="display: none"
-    ></iframe>
-  </body>
+      <div id="sdkActions">
+        <h2 class="center">Camera Feed</h2>
+        <hr class="small-hr">
+        <div class="center" id="camStream"></div>
+        <div style="text-align: left;" class="center">
+          <label>
+            <input type="radio" name="cam" id="cam" onclick="showCamStream()">Begin Camera Stream<br>
+          </label>
+          <label>
+            <input type="radio" name="cam" id="cam" onclick="stopCamStream()" checked>Stop Camera Stream<br>
+          </label>
+        </div>
+        <hr />
+
+        <h2 class="center">Behavior Control</h2>
+        <hr class="small-hr">
+        <small class="center">You must assume behavior control before performing any action</small>
+        <div style="text-align: left;" class="center">
+          <label>
+            <input type="radio" name="control" id="assume_control"
+              onclick="sendForm('/api-sdk/assume_behavior_control?priority=high'); updateControlButtons();">Assume<br>
+          </label>
+          <label>
+            <input type="radio" name="control" id="release_control"
+              onclick="sendForm('/api-sdk/release_behavior_control'); updateControlButtons();" checked>Release<br>
+          </label>
+        </div>
+        <hr />
+
+        <h2 class="center">Move Motors</h2>
+        <hr class="small-hr">
+        <small class="center">Toggle Keyboard Controls (unstable) <br> WASD for wheels, R-lift up, F-lift down, T-head
+          up, G-head down</small>
+        <div style="text-align: left;" class="center">
+          <label>
+            <input type="radio" name="keycontrol" id="key_control_on" onclick="toggleKeyboard()" disabled>On<br>
+          </label>
+          <label>
+            <input type="radio" name="keycontrol" id="key_control_off" onclick="toggleKeyboard()" checked
+              disabled>Off<br>
+          </label>
+        </div>
+        <hr />
+
+        <h2 class="center">Mirror Mode</h2>
+        <hr class="small-hr">
+        <div style="text-align: left;" class="center">
+          <label>
+            <input type="radio" name="mirror" id="mirror_on" onclick="sendForm('/api-sdk/mirror_mode?enable=true')"
+              disabled>On<br>
+          </label>
+          <label>
+            <input type="radio" name="mirror" id="mirror_off" onclick="sendForm('/api-sdk/mirror_mode?enable=false')"
+              checked disabled>Off<br>
+          </label>
+        </div>
+        <hr />
+
+        <h2 class="center">Say Text</h2>
+        <div class="center">
+          <input class="tinput" name="textSay" id="textSay" type="text" placeholder="Put text here" disabled />
+        </div>
+        <button onclick="sayText()" type="submit">Submit</button>
+      </div>
+      <hr />
+    </div>
+  </div>
+  <hr>
+  </div>
+  </div>
+
+  <script src="./js/httprequest.js"></script>
+  <script src="./js/iro.min.js"></script>
+  <script src="./js/control.js"></script>
+  <script src="../js/ui.js"></script>
+  <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
+</body>
+
 </html>

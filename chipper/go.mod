@@ -3,7 +3,7 @@ module github.com/kercre123/wire-pod/chipper
 go 1.18
 
 require (
-	github.com/Picovoice/leopard/binding/go v1.2.0
+	github.com/Picovoice/leopard/binding/go/v2 v2.0.2
 	github.com/asticode/go-asticoqui v0.2.0
 	github.com/bramvdbogaerde/go-scp v1.2.1
 	github.com/digital-dream-labs/api v0.0.0-20210824232136-8cc90c1bb12c
@@ -11,7 +11,7 @@ require (
 	github.com/digital-dream-labs/opus-go v0.0.0-20201230195736-934a8a9e0a1e
 	github.com/digital-dream-labs/vector-bluetooth v0.0.0-20210604051118-1c511122d877
 	github.com/fforchino/vector-go-sdk v0.0.0-20231108155304-62168f3595d6
-	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20231214200047-940de9dbe9c9
+	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240618151033-bf4cb4abad4e
 	github.com/go-audio/audio v1.0.0
 	github.com/go-audio/wav v1.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -22,7 +22,7 @@ require (
 	github.com/ncruces/zenity v0.10.10
 	github.com/orcaman/writerseeker v0.0.0-20200621085525-1d3f536ff85e
 	github.com/pkg/errors v0.9.1
-	github.com/sashabaranov/go-openai v1.20.4
+	github.com/sashabaranov/go-openai v1.24.0
 	github.com/soheilhy/cmux v0.1.5
 	github.com/soundhound/houndify-sdk-go v0.3.5
 	github.com/wlynxg/anet v0.0.1

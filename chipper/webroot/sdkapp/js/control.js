@@ -26,6 +26,55 @@ var headIsMovingDown = false;
 var headIsMovingUp = false;
 var headIsStopped = false;
 
+// when pages is closed
+window.onbeforeunload = function() {
+  stopCamStream();
+  useKeyboardControl = false;
+  sendForm("/api-sdk/mirror_mode?enable=false");
+};
+
+// switches items to disabled or enables them
+function updateControlButtons() {
+  const assumeControl = document.getElementById("assume_control");
+  const releaseControl = document.getElementById("release_control");
+  const keyControlOn = document.getElementById("key_control_on");
+  const keyControlOff = document.getElementById("key_control_off");
+  const keyMirrorOn = document.getElementById("mirror_on");
+  const keyMirrorOff = document.getElementById("mirror_off");
+  const textSay = document.getElementById("textSay");
+
+  if (assumeControl.checked) {
+    keyControlOn.disabled = false;
+    keyControlOff.disabled = false;
+    keyMirrorOn.disabled = false;
+    keyMirrorOff.disabled = false;
+    textSay.disabled = false;
+  } else if (releaseControl.checked) {
+    useKeyboardControl = false;
+    keyControlOff.checked = true;
+    keyControlOn.disabled = true;
+    keyControlOff.disabled = true;
+    sendForm("/api-sdk/mirror_mode?enable=false");
+    keyMirrorOff.checked = true;
+    keyMirrorOn.disabled = true;
+    keyMirrorOff.disabled = true;
+    textSay.disabled = true;
+  }
+}
+
+// Add event listener to activate keyControlOff when textSay receives the focus
+document.addEventListener('DOMContentLoaded', function() {
+  const textSay = document.getElementById("textSay");
+  const keyControlOff = document.getElementById("key_control_off");
+
+  textSay.addEventListener('focus', function() {
+    //keyControlOff.disabled = false;
+    keyControlOff.checked = true;
+    useKeyboardControl = false;
+  });
+});
+
+
 function toggleKeyboard() {
   if (useKeyboardControl == false) {
     useKeyboardControl = true;

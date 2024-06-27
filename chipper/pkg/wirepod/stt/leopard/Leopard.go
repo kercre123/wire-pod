@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	leopard "github.com/Picovoice/leopard/binding/go"
+	leopard "github.com/Picovoice/leopard/binding/go/v2"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 )
@@ -77,7 +77,7 @@ func STT(req sr.SpeechRequest) (transcribedText string, err error) {
 			BotNumMu.Unlock()
 			return "", err
 		}
-		speechIsDone = req.DetectEndOfSpeech()
+		speechIsDone, _ = req.DetectEndOfSpeech()
 		if speechIsDone {
 			break
 		}
