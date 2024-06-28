@@ -306,6 +306,8 @@ input[type='radio']:disabled:after {
   width: 100%;
   display: flex;
   justify-content: center;
+  height: 100vh; /* Keeps things at the top*/
+  align-items: start;
 }
 
 .main-nav-parent {
