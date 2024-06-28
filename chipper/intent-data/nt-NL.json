@@ -1,0 +1,266 @@
+[
+	{
+		"name" : "intent_names_username_extend", 
+		"keyphrases": ["Mijn naam is", "naam is", "bijnaam is", "mijn maan is", "Mijn baan is" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_weather_extend", 
+		"keyphrases" : ["weer", "meer", "keer", "het weer", "weerbericht", "hoe is het weer", "hoe is het meer", "het keer" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_names_ask", 
+		"keyphrases" : ["mijn naam", "wat is mijn naam", "watts mijn naam", "mijn maan"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_eyecolor",
+		"keyphrases" : ["ogen", "oogkleur", "boven", "maak je ogen", "boog", "boogkleur", "verander oogkleur naar", "oog meur"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_character_age", 
+		"keyphrases" : ["hoe oud", "hoe oud ben jij", "roe oud ben jij", "wat is je leeftijd", "wat is jouw leefijd", "hoe oud ben je"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_explore_start", 
+		"keyphrases" : ["ontdek", "ga ontdekken", "onttrek"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_charger", 
+		"keyphrases" : ["laad op", "huis", "ga naar", "muis", "ga naar je lader", "ga laden" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_system_sleep",
+		"keyphrases" : ["slaap", "ga slapen", "schaap", "ga schapen" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_greeting_goodmorning", 
+		"keyphrases" : ["morgen", "morge", "goede morgen", "middag", "goede middag" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_greeting_goodnight", 
+		"keyphrases" : ["avond", "almond", "fijne avond","goede avond" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_greeting_goodbye", 
+		"keyphrases" : ["doei", "doeidoei", "bye", "groei" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_seasonal_happynewyear",
+		"keyphrases" : ["vuurwerk", "gelukkig nieuw jaar", "gelukkig nieuw waar", "vuur sterk", "nieuwe jaar" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_seasonal_happyholidays", 
+		"keyphrases" : ["feestdagen", "kerst", "fijne feestagen", "fijne kerst", "fijne kerstmis", "beestdagen" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["log in bij alexa", "bij alexa", "", "ing alex", "in bij alexa", "naar alexa", "in angelica" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["in outlet", "i now of elea", "out alexa", "out of ale" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_forward",
+		"keyphrases" : ["voren", "naar voren", "rol naar voren", "boren", "ga naar boren", "storen","ga naar storen" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnaround", 
+		"keyphrases" : ["keer om", "slalom", "draai om", "maai om", "meer om" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnleft", 
+		"keyphrases" : ["ga links", "ga naar links", "draai naar links", "draai links" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnright", 
+		"keyphrases" : ["ga rechts", "rechts", "ga rechst" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_rollcube",
+		"keyphrases" : ["rol je kubus", "ro je kubus", "wo je kubus", "rol kubus", "wo kubus" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_popawheelie", 
+		"keyphrases" : ["pop een wheele", "popawhele", "wele", "pop a wiele", "wielstand", "do a flip", "weerstand", "pop een wie", "poppen wie"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_fistbump", 
+		"keyphrases" : ["box", "mox", "geef een box", "boks", "stots", "roks", "cocks", "vox" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_play_blackjack", 
+		"keyphrases" : ["black", "kaarten", "game", "speel blackjack", "eenentwintigen", "eendentwintigen" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_imperative_affirmative",
+		"keyphrases" : ["ja", "klopt", "tuurlijk", "graag", "ja graag" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_negative", 
+		"keyphrases" : ["nee", "niet", "nee bedankt", "slee"],
+		"requiresexact": true
+	},
+	{	
+		"name": "intent_photo_take_extend", 
+		"keyphrases" : ["photo", "foto", "selfy", "fotografeer", "grafeer", "maak een foto" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_praise", 
+		"keyphrases" : ["goed", "super", "goede robot", "goed robot", "stoep robot" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_abuse",
+		"keyphrases" : ["slecht", "stom", "slechte robot", "stomme robot", "haat", "dom" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_apologize", 
+		"keyphrases" : ["sorry", "spijt me", "oops", "laat maar" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_backup", 
+		"keyphrases" : ["back", "back up", "backwards","beck"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumedown",
+		"keyphrases" : ["geluid omlaag", "zachter", "zet zechter", "zet het geluid zachter", "wachter" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumeup", 
+		"keyphrases" : ["harder", "luider", "zet harder", "zet het geluid harder", "harrer" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_lookatme", 
+		"keyphrases" : ["kijk naar me", "naar me", "kijk" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumelevel_extend",
+		"keyphrases" : ["luidst", "hardst" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_shutup", 
+		"keyphrases" : ["shut up", "hou op" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_greeting_hello", 
+		"keyphrases" : ["hallo", "hoi",	"halo" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_come", 
+		"keyphrases" : ["kom hier", "kom naar mij toe", "kom mier" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_love",
+		"keyphrases" : ["hou van je", "dove you", "i love you" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_knowledge_promptquestion", 
+		"keyphrases" : ["vraag", "ik heb een vraag", "waag", "ik heb een waag" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_checktimer", 
+		"keyphrases" : ["check timer", "check de timer" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_global_stop_extend", 
+		"keyphrases" : ["stop timer", "stop de timer", "stop klok", "stoppen timer", "stop het alarm", "stop alarm" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_settimer_extend",
+		"keyphrases" : ["timer", "timer van", "alarm van", "zet alarm", "zet een timer van", "zet een alarm van" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_time", 
+		"keyphrases" : ["hoe laat is het", "tijd", "wat is de tijd", "klok" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_quiet", 
+		"keyphrases" : ["still", "hou je bek", "doe stil" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_dance", 
+		"keyphrases" : ["dans", "trans", "luister naar de muziek", "dans op de beat", "publiek", "luister naar pibliek", "naar de muziek" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_pickupcube",
+		"keyphrases" : ["pak op", "pak je kubus" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_fetchcube", 
+		"keyphrases" : ["breng je kubus naar mij", "haal je kubus op", "maal je kubus", "streng je kubus" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_findcube", 
+		"keyphrases" : ["vind je kubus", "vind kubus", "je kubus" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_anytrick", 
+		"keyphrases" : ["trukje", "iets cools", "doe een truk", "doe iets cools" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_message_recordmessage_extend",
+		"keyphrases" : ["neem op", "opnemen" ]
+	},
+	{
+		"name": "intent_blackjack_hit", 
+		"keyphrases" : ["hit", "raak" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_blackjack_stand", 
+		"keyphrases" : ["stand", "stan", "standaard", "kraam" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_keepaway",
+		"keyphrases": ["keepaway", "keep away", "play keepaway", "speel houdt weg", "houdt weg" ],
+		"requiresexact": false
+	}
+]

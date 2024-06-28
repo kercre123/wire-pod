@@ -73,7 +73,6 @@ function loadSettings() {
     }
 }
 
-// call loadSettings when the page loads
-window.onload = function () {
-    loadSettings();
-};
+// call loadSettings
+loadSettings();
+
