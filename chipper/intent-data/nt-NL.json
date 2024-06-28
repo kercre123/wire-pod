@@ -196,7 +196,7 @@
 	},
 	{	
 		"name": "intent_clock_checktimer", 
-		"keyphrases" : ["check timer", "check de timer", ],
+		"keyphrases" : ["check timer", "check de timer" ],
 		"requiresexact": false
 	},
 	{	
@@ -231,7 +231,7 @@
 	},
 	{	
 		"name": "intent_imperative_fetchcube", 
-		"keyphrases" : ["breng je kubus naar mij", "haal je kubus op", "maal je kubus", "streng je kubus", ],
+		"keyphrases" : ["breng je kubus naar mij", "haal je kubus op", "maal je kubus", "streng je kubus" ],
 		"requiresexact": false
 	},
 	{	
@@ -246,7 +246,7 @@
 	},
 	{	
 		"name": "intent_message_recordmessage_extend",
-		"keyphrases" : ["neem op", "opnemen" ],
+		"keyphrases" : ["neem op", "opnemen" ]
 	},
 	{
 		"name": "intent_blackjack_hit", 
