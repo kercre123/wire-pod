@@ -101,7 +101,7 @@
 	},
 	{	
 		"name": "intent_play_popawheelie", 
-		"keyphrases" : ["pop een wheele", "popawhele", "wele", "pop a wiele", "wielstand", "do a flip", "weerstand", "pop een wie", "poppen wie", ],
+		"keyphrases" : ["pop een wheele", "popawhele", "wele", "pop a wiele", "wielstand", "do a flip", "weerstand", "pop een wie", "poppen wie"],
 		"requiresexact": false
 	},
 	{	
