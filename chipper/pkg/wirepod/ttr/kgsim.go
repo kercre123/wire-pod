@@ -9,6 +9,10 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
+
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
@@ -63,10 +67,48 @@ func Remember(user, ai openai.ChatCompletionMessage, esn string) {
 	PlaceChat(currentChat)
 }
 
-func removeSpecialCharacters(str string) string {
-	re := regexp.MustCompile(`[&^*#@]`)
-	return removeEmojis(re.ReplaceAllString(str, ""))
+func isMn(r rune) bool {
+	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
 }
+
+func removeSpecialCharacters(str string) string {
+
+	// these two lines create a transformation that decomposes characters, removes non-spacing marks (like diacritics), and then recomposes the characters, effectively removing special characters
+	t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+	result, _, _ := transform.String(t, str)
+
+	// Define the regular expression to match special characters
+	re := regexp.MustCompile(`[&^*#@]`)
+
+	// Replace special characters with an empty string
+	result = removeEmojis(re.ReplaceAllString(result, ""))
+
+	// Replace special characters with ASCII
+    // * COPY/PASTE TO ADD MORE CHARACTERS:
+    //   result = strings.ReplaceAll(result, "", "")
+	result = strings.ReplaceAll(result, "‘", "'")
+	result = strings.ReplaceAll(result, "’", "'")
+	result = strings.ReplaceAll(result, "“", "\"")
+	result = strings.ReplaceAll(result, "”", "\"")
+	result = strings.ReplaceAll(result, "—", "-")
+	result = strings.ReplaceAll(result, "–", "-")
+	result = strings.ReplaceAll(result, "…", "...")
+	result = strings.ReplaceAll(result, "\u00A0", " ")
+	result = strings.ReplaceAll(result, "•", "*")
+	result = strings.ReplaceAll(result, "¼", "1/4")
+	result = strings.ReplaceAll(result, "½", "1/2")
+	result = strings.ReplaceAll(result, "¾", "3/4")
+	result = strings.ReplaceAll(result, "×", "x")
+	result = strings.ReplaceAll(result, "÷", "/")
+	result = strings.ReplaceAll(result, "ç", "c")
+	result = strings.ReplaceAll(result, "©", "(c)")
+	result = strings.ReplaceAll(result, "®", "(r)")
+	result = strings.ReplaceAll(result, "™", "(tm)")
+	result = strings.ReplaceAll(result, "@", "(a)")
+	result = strings.ReplaceAll(result, " AI ", " A. I. ")	
+	return result
+}
+
 
 func removeEmojis(input string) string {
 	// a mess, but it works!
