@@ -39,7 +39,7 @@ function updateIntentSelection(element) {
 }
 
 function checkInited() {
-  fetch("/api/is_api_v1").then((response) => {
+  fetch("/api/is_api_v2").then((response) => {
     if (!response.ok) {
       alert(
         "This webroot does not match with the wire-pod binary. Some functionality will be broken. There was either an error during the last update, or you did not precisely follow the update guide. https://github.com/kercre123/wire-pod/wiki/Things-to-Know#updating-wire-pod"
@@ -99,6 +99,7 @@ function editFormCreate() {
           <label for="paramvalue">Param Value:<br><input type="text" id="paramvalue" value="${intent.params.paramvalue}"></label><br>
           <label for="exec">Exec:<br><input type="text" id="exec" value="${intent.exec}"></label><br>
           <label for="execargs">Exec Args:<br><input type="text" id="execargs" value="${intent.execargs.join(",")}"></label><br>
+          <label for="luascript">Lua code to run:</label><br><textarea id="luascript">${intent.luascript}</textarea>
           <button onclick="editIntent(${intentNumber})">Submit</button>
         `;
         //form.querySelector("#submit").onclick = () => editIntent(intentNumber);
@@ -124,6 +125,7 @@ function editIntent(intentNumber) {
     },
     exec: getE("exec").value,
     execargs: getE("execargs").value.split(","),
+    luascript: getE("luascript").value,
   };
 
   fetch("/api/edit_custom_intent", {
@@ -174,10 +176,17 @@ function sendIntentAdd() {
     },
     exec: form.elements["execAdd"].value,
     execargs: form.elements["execAddArgs"].value.split(","),
+    luascript: form.elements["luaAdd"].value,
   };
   if (!data.name || !data.description || !data.utterances) {
     displayMessage("addIntentStatus", "A required input is missing. You need a name, description, and utterances.");
     alert("A required input is missing. You need a name, description, and utterances.")
+    return
+  }
+
+  console.log(data.luascript)
+  if (!data.exec && !data.luascript) {
+    alert("A required input is missing. You need either an exec value or a Lua script.")
     return
   }
 
@@ -572,7 +581,7 @@ function showLanguage() {
 }
 
 function showVersion() {
-  toggleVisibility(["section-log", "section-language", "section-botauth", "section-intents", "section-version", "section-uicustomizer"], "section-version", "icon-Version");
+  toggleVisibility(["section-log", "section-botauth", "section-intents", "section-version", "section-uicustomizer"], "section-version", "icon-Version");
   checkUpdate();
 }
 
@@ -581,11 +590,11 @@ function showIntents() {
 }
 
 function showWeather() {
-  toggleVisibility(["section-weather", "section-stt", "section-restart", "section-language", "section-kg"], "section-weather", "icon-Weather");
+  toggleVisibility(["section-weather", "section-restart", "section-language", "section-kg"], "section-weather", "icon-Weather");
 }
 
 function showKG() {
-  toggleVisibility(["section-weather", "section-stt", "section-restart", "section-language", "section-kg"], "section-kg", "icon-KG");
+  toggleVisibility(["section-weather", "section-restart", "section-language", "section-kg"], "section-kg", "icon-KG");
 }
 
 function toggleVisibility(sections, sectionToShow, iconId) {

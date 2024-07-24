@@ -61,7 +61,7 @@ var WebPort string = "8080"
 var SDKIniPath string
 var BotJdocs []botjdoc
 var BotInfo RobotInfoStore
-var CustomIntents IntentsStruct
+var CustomIntents []CustomIntent
 var CustomIntentsExist bool = false
 var DownloadedVoskModels []string
 var VoskGrammerEnable bool = false
@@ -113,7 +113,7 @@ type JsonIntent struct {
 	RequireExactMatch bool     `json:"requiresexact"`
 }
 
-type IntentsStruct []struct {
+type CustomIntent struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Utterances  []string `json:"utterances"`
@@ -125,6 +125,7 @@ type IntentsStruct []struct {
 	Exec           string   `json:"exec"`
 	ExecArgs       []string `json:"execargs"`
 	IsSystemIntent bool     `json:"issystem"`
+	LuaScript      string   `json:"luascript"`
 }
 
 type AJdoc struct {

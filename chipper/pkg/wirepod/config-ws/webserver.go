@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
@@ -20,20 +21,6 @@ import (
 )
 
 var SttInitFunc func() error
-
-type CustomIntent struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Utterances  []string `json:"utterances"`
-	Intent      string   `json:"intent"`
-	Params      struct {
-		ParamName  string `json:"paramname"`
-		ParamValue string `json:"paramvalue"`
-	} `json:"params"`
-	Exec           string   `json:"exec"`
-	ExecArgs       []string `json:"execargs"`
-	IsSystemIntent bool     `json:"issystem"`
-}
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -78,7 +65,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetVersionInfo(w)
 	case "generate_certs":
 		handleGenerateCerts(w)
-	case "is_api_v1":
+	case "is_api_v2":
 		fmt.Fprintf(w, "it is!")
 	default:
 		http.Error(w, "not found", http.StatusNotFound)
@@ -86,7 +73,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAddCustomIntent(w http.ResponseWriter, r *http.Request) {
-	var intent CustomIntent
+	var intent vars.CustomIntent
 	if err := json.NewDecoder(r.Body).Decode(&intent); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
@@ -94,6 +81,13 @@ func handleAddCustomIntent(w http.ResponseWriter, r *http.Request) {
 	if anyEmpty(intent.Name, intent.Description, intent.Intent) || len(intent.Utterances) == 0 {
 		http.Error(w, "missing required field (name, description, utterances, and intent are required)", http.StatusBadRequest)
 		return
+	}
+	intent.LuaScript = strings.TrimSpace(intent.LuaScript)
+	if intent.LuaScript != "" {
+		if err := scripting.ValidateLuaScript(intent.LuaScript); err != nil {
+			http.Error(w, "lua validation error: "+err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 	vars.CustomIntentsExist = true
 	vars.CustomIntents = append(vars.CustomIntents, intent)
@@ -104,7 +98,7 @@ func handleAddCustomIntent(w http.ResponseWriter, r *http.Request) {
 func handleEditCustomIntent(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Number int `json:"number"`
-		CustomIntent
+		vars.CustomIntent
 	}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -135,6 +129,13 @@ func handleEditCustomIntent(w http.ResponseWriter, r *http.Request) {
 	}
 	if request.Exec != "" {
 		intent.Exec = request.Exec
+	}
+	if request.LuaScript != "" {
+		intent.LuaScript = request.LuaScript
+		if err := scripting.ValidateLuaScript(intent.LuaScript); err != nil {
+			http.Error(w, "lua validation error: "+err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 	if len(request.ExecArgs) != 0 {
 		intent.ExecArgs = request.ExecArgs
@@ -386,9 +387,10 @@ func saveCustomIntents() {
 
 func DisableCachingAndSniffing(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate;")
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
 		w.Header().Set("pragma", "no-cache")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Expires", "0")
 		next.ServeHTTP(w, r)
 	})
 }
