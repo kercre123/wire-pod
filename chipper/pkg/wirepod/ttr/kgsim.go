@@ -84,8 +84,8 @@ func removeSpecialCharacters(str string) string {
 	result = removeEmojis(re.ReplaceAllString(result, ""))
 
 	// Replace special characters with ASCII
-    // * COPY/PASTE TO ADD MORE CHARACTERS:
-    //   result = strings.ReplaceAll(result, "", "")
+	// * COPY/PASTE TO ADD MORE CHARACTERS:
+	//   result = strings.ReplaceAll(result, "", "")
 	result = strings.ReplaceAll(result, "‘", "'")
 	result = strings.ReplaceAll(result, "’", "'")
 	result = strings.ReplaceAll(result, "“", "\"")
@@ -105,10 +105,9 @@ func removeSpecialCharacters(str string) string {
 	result = strings.ReplaceAll(result, "®", "(r)")
 	result = strings.ReplaceAll(result, "™", "(tm)")
 	result = strings.ReplaceAll(result, "@", "(a)")
-	result = strings.ReplaceAll(result, " AI ", " A. I. ")	
+	result = strings.ReplaceAll(result, " AI ", " A. I. ")
 	return result
 }
-
 
 func removeEmojis(input string) string {
 	// a mess, but it works!
@@ -334,6 +333,11 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	}
 	start := make(chan bool)
 	stop := make(chan bool)
+	stopStop := make(chan bool)
+	interrupted := false
+	go func() {
+		interrupted = InterruptKGSimWhenTouchedOrWaked(robot, stop, stopStop)
+	}()
 
 	go func() {
 		// * begin - modified from official vector-go-sdk
@@ -431,10 +435,13 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 					break
 				}
 			}
+			if interrupted {
+				break
+			}
 			logger.Println(respSlice[numInResp])
 			acts := GetActionsFromString(respSlice[numInResp])
 			nChat[len(nChat)-1].Content = fullRespText
-			disconnect = PerformActions(nChat, acts, robot)
+			disconnect = PerformActions(nChat, acts, robot, stopStop)
 			if disconnect {
 				break
 			}
@@ -457,7 +464,9 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		// 	},
 		// )
 		//time.Sleep(time.Millisecond * 3300)
-		stop <- true
+		if !interrupted {
+			stop <- true
+		}
 	}
 	return "", nil
 }

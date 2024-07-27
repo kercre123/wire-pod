@@ -270,7 +270,7 @@ func DoPlaySound(sound string, robot *vector.Vector) error {
 func DoSayText(input string, robot *vector.Vector) error {
 
 	// just before vector speaks
-	removeSpecialCharacters(input) 	
+	removeSpecialCharacters(input)
 
 	// TODO
 	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || os.Getenv("USE_OPENAI_VOICE") == "true" {
@@ -373,13 +373,23 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 	return nil
 }
 
-func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector.Vector) {
+func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector.Vector, stopStop chan bool) {
+	stopImaging := false
+	go func() {
+		for range stopStop {
+			stopImaging = true
+			break
+		}
+	}()
 	logger.Println("Get image here...")
 	// get image
 	robot.Conn.EnableMirrorMode(context.Background(), &vectorpb.EnableMirrorModeRequest{
 		Enable: true,
 	})
 	for i := 3; i > 0; i-- {
+		if stopImaging {
+			return
+		}
 		time.Sleep(time.Millisecond * 300)
 		robot.Conn.SayText(
 			context.Background(),
@@ -389,6 +399,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 				DurationScalar: 1.05,
 			},
 		)
+		if stopImaging {
+			return
+		}
 	}
 	resp, _ := robot.Conn.CaptureSingleImage(
 		context.Background(),
@@ -465,6 +478,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
 		aireq.Model = vars.APIConfig.Knowledge.Model
+	}
+	if stopImaging {
+		return
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
@@ -550,6 +566,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	}()
 	numInResp := 0
 	for {
+		if stopImaging {
+			return
+		}
 		respSlice := fullRespSlice
 		if len(respSlice)-1 < numInResp {
 			if !isDone {
@@ -564,14 +583,26 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		}
 		logger.Println(respSlice[numInResp])
 		acts := GetActionsFromString(respSlice[numInResp])
-		PerformActions(msgs, acts, robot)
+		PerformActions(msgs, acts, robot, stopStop)
 		numInResp = numInResp + 1
+		if stopImaging {
+			return
+		}
 	}
 }
 
-func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, robot *vector.Vector) bool {
+func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, robot *vector.Vector, stopStop chan bool) bool {
 	// assuming we have behavior control already
+	stopPerforming := false
+	go func() {
+		for range stopStop {
+			stopPerforming = true
+		}
+	}()
 	for _, action := range actions {
+		if stopPerforming {
+			return false
+		}
 		switch {
 		case action.Action == ActionSayText:
 			DoSayText(action.Parameter, robot)
@@ -580,7 +611,7 @@ func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, 
 		case action.Action == ActionPlayAnimationWI:
 			DoPlayAnimationWI(action.Parameter, robot)
 		case action.Action == ActionGetImage:
-			DoGetImage(msgs, action.Parameter, robot)
+			DoGetImage(msgs, action.Parameter, robot, stopStop)
 			return true
 		case action.Action == ActionPlaySound:
 			DoPlaySound(action.Parameter, robot)
