@@ -139,7 +139,7 @@ func StopServer() {
 func StartChipper() {
 	// load certs
 	if vars.APIConfig.Server.EPConfig && runtime.GOOS != "android" {
-		go mdnshandler.PostmDNS()
+		mdnshandler.StartPionServer(vars.GetOutboundIP())
 	}
 	var certPub []byte
 	var certPriv []byte

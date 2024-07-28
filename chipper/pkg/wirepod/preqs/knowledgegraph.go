@@ -12,6 +12,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
+	ttr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/ttr"
 	"github.com/pkg/errors"
 	"github.com/soundhound/houndify-sdk-go"
 )
@@ -194,6 +195,24 @@ func togetherKG(speechReq sr.SpeechRequest) string {
 	return togetherRequest(transcribedText)
 }
 
+func streamingKG(req *vtt.KnowledgeGraphRequest, speechReq sr.SpeechRequest) string {
+	// have him start "thinking" right after the text is transcribed
+	transcribedText, err := sttHandler(speechReq)
+	if err != nil {
+		return "There was an error."
+	}
+	kg := pb.KnowledgeGraphResponse{
+		Session:     req.Session,
+		DeviceId:    req.Device,
+		CommandType: NoResult,
+		SpokenText:  "bla bla bla bla bla bla bla bla bla bla",
+	}
+	req.Stream.Send(&kg)
+	ttr.StreamingKGSim(req, req.Device, transcribedText, true)
+	logger.Println("(KG) Bot " + speechReq.Device + " request served.")
+	return ""
+}
+
 // Takes a SpeechRequest, figures out knowledgegraph provider, makes request, returns API response
 func KgRequest(speechReq sr.SpeechRequest) string {
 	if vars.APIConfig.Knowledge.Enable {
@@ -211,16 +230,20 @@ func KgRequest(speechReq sr.SpeechRequest) string {
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
 	InitKnowledge()
 	speechReq := sr.ReqToSpeechRequest(req)
-	apiResponse := KgRequest(speechReq)
-	kg := pb.KnowledgeGraphResponse{
-		Session:     req.Session,
-		DeviceId:    req.Device,
-		CommandType: NoResult,
-		SpokenText:  apiResponse,
-	}
-	logger.Println("(KG) Bot " + speechReq.Device + " request served.")
-	if err := req.Stream.Send(&kg); err != nil {
-		return nil, err
+	if vars.APIConfig.Knowledge.IntentGraph {
+		streamingKG(req, speechReq)
+	} else {
+		apiResponse := KgRequest(speechReq)
+		kg := pb.KnowledgeGraphResponse{
+			Session:     req.Session,
+			DeviceId:    req.Device,
+			CommandType: NoResult,
+			SpokenText:  apiResponse,
+		}
+		logger.Println("(KG) Bot " + speechReq.Device + " request served.")
+		if err := req.Stream.Send(&kg); err != nil {
+			return nil, err
+		}
 	}
 	return nil, nil
 

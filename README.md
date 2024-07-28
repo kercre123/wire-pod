@@ -16,11 +16,12 @@ Check out the [wiki](https://github.com/kercre123/wire-pod/wiki) for more inform
 
 If you want to :P
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?business=53VQ3Q95TD2M6&no_recurring=0&currency_code=USD)
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/kercre123)
 
 ## Credits
 
 - [Digital Dream Labs](https://github.com/digital-dream-labs) for open sourcing chipper and creating escape pod (which made this possible)
+- [bliteknight](https://github.com/bliteknight) for making wire-pod more accessible with his easy-to-use pre-setup Linux boxes
 - [dietb](https://github.com/dietb) for rewriting chipper and giving tips
 - [fforchino](https://github.com/fforchino) for adding many features such as localization and multilanguage, and for helping out
 - [xanathon](https://github.com/xanathon) for the publicity and web interface help

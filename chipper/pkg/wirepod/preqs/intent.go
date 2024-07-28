@@ -45,7 +45,7 @@ func (s *Server) ProcessIntent(req *vtt.IntentRequest) (*vtt.IntentResponse, err
 	if !successMatched {
 		if vars.APIConfig.Knowledge.IntentGraph && vars.APIConfig.Knowledge.Enable {
 			logger.Println("Making LLM request for device " + req.Device + "...")
-			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText)
+			_, err := ttr.StreamingKGSim(req, req.Device, transcribedText, false)
 			if err != nil {
 				logger.Println("LLM error: " + err.Error())
 				logger.LogUI("LLM error: " + err.Error())

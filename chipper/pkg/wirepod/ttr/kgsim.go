@@ -168,7 +168,13 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain bool) openai.ChatComp
 	return aireq
 }
 
-func StreamingKGSim(req interface{}, esn string, transcribedText string) (string, error) {
+func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bool) (string, error) {
+	start := make(chan bool)
+	stop := make(chan bool)
+	stopStop := make(chan bool)
+	kgReadyToAnswer := make(chan bool)
+	kgStopLooping := false
+	ctx := context.Background()
 	matched := false
 	var robot *vector.Vector
 	var guid string
@@ -192,6 +198,24 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	if err != nil {
 		return "", err
 	}
+	if isKG {
+		BControl(robot, ctx, start, stop)
+		go func() {
+			for {
+				if kgStopLooping {
+					kgReadyToAnswer <- true
+					break
+				}
+				robot.Conn.PlayAnimation(ctx, &vectorpb.PlayAnimationRequest{
+					Animation: &vectorpb.Animation{
+						Name: "anim_knowledgegraph_searching_01",
+					},
+					Loops: 1,
+				})
+				time.Sleep(time.Second / 3)
+			}
+		}()
+	}
 	var fullRespText string
 	var fullfullRespText string
 	var fullRespSlice []string
@@ -212,7 +236,6 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	} else if vars.APIConfig.Knowledge.Provider == "openai" {
 		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
 	}
-	ctx := context.Background()
 	speakReady := make(chan string)
 	successIntent := make(chan bool)
 
@@ -244,13 +267,14 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
-				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
+				// prevents a crash
 				if len(fullRespSlice) == 0 {
 					logger.Println("LLM returned no response")
 					successIntent <- false
 					break
 				}
 				isDone = true
+				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {
 					if i == 0 {
@@ -317,86 +341,48 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 	}()
 	for is := range successIntent {
 		if is {
-			IntentPass(req, "intent_greeting_hello", transcribedText, map[string]string{}, false)
+			if !isKG {
+				IntentPass(req, "intent_greeting_hello", transcribedText, map[string]string{}, false)
+			}
 			break
 		} else {
 			return "", errors.New("llm returned no response")
 		}
 	}
 	time.Sleep(time.Millisecond * 200)
-	controlRequest := &vectorpb.BehaviorControlRequest{
-		RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{
-			ControlRequest: &vectorpb.ControlRequest{
-				Priority: vectorpb.ControlRequest_OVERRIDE_BEHAVIORS,
-			},
-		},
+	if !isKG {
+		BControl(robot, ctx, start, stop)
 	}
-	start := make(chan bool)
-	stop := make(chan bool)
-	stopStop := make(chan bool)
 	interrupted := false
 	go func() {
 		interrupted = InterruptKGSimWhenTouchedOrWaked(robot, stop, stopStop)
 	}()
-
-	go func() {
-		// * begin - modified from official vector-go-sdk
-		r, err := robot.Conn.BehaviorControl(
-			ctx,
-		)
-		if err != nil {
-			logger.Println(err)
-			return
-		}
-
-		if err := r.Send(controlRequest); err != nil {
-			logger.Println(err)
-			return
-		}
-
-		for {
-			ctrlresp, err := r.Recv()
-			if err != nil {
-				logger.Println(err)
-				return
-			}
-			if ctrlresp.GetControlGrantedResponse() != nil {
-				start <- true
-				break
-			}
-		}
-
-		for {
-			select {
-			case <-stop:
-				logger.Println("KGSim: releasing behavior control (interrupt)")
-				if err := r.Send(
-					&vectorpb.BehaviorControlRequest{
-						RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
-							ControlRelease: &vectorpb.ControlRelease{},
-						},
-					},
-				); err != nil {
-					logger.Println(err)
-					return
-				}
-				return
-			default:
-				continue
-			}
-		}
-		// * end - modified from official vector-go-sdk
-	}()
+	var TTSLoopAnimation string
+	var TTSGetinAnimation string
+	if isKG {
+		TTSLoopAnimation = "anim_knowledgegraph_answer_01"
+		TTSGetinAnimation = "anim_knowledgegraph_searching_getout_01"
+	} else {
+		TTSLoopAnimation = "anim_tts_loop_02"
+		TTSGetinAnimation = "anim_getin_tts_01"
+	}
 
 	var stopTTSLoop bool
 	TTSLoopStopped := make(chan bool)
 	for range start {
-		time.Sleep(time.Millisecond * 300)
+		if isKG {
+			kgStopLooping = true
+			for range kgReadyToAnswer {
+				break
+			}
+		} else {
+			time.Sleep(time.Millisecond * 300)
+		}
 		robot.Conn.PlayAnimation(
 			ctx,
 			&vectorpb.PlayAnimationRequest{
 				Animation: &vectorpb.Animation{
-					Name: "anim_getin_tts_01",
+					Name: TTSGetinAnimation,
 				},
 				Loops: 1,
 			},
@@ -412,7 +398,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 						ctx,
 						&vectorpb.PlayAnimationRequest{
 							Animation: &vectorpb.Animation{
-								Name: "anim_tts_loop_02",
+								Name: TTSLoopAnimation,
 							},
 							Loops: 1,
 						},
@@ -454,16 +440,18 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string) (string
 			}
 		}
 		time.Sleep(time.Millisecond * 100)
-		// robot.Conn.PlayAnimation(
-		// 	ctx,
-		// 	&vectorpb.PlayAnimationRequest{
-		// 		Animation: &vectorpb.Animation{
-		// 			Name: "anim_knowledgegraph_success_01",
+		// if isKG {
+		// 	robot.Conn.PlayAnimation(
+		// 		ctx,
+		// 		&vectorpb.PlayAnimationRequest{
+		// 			Animation: &vectorpb.Animation{
+		// 				Name: "anim_knowledgegraph_success_01",
+		// 			},
+		// 			Loops: 1,
 		// 		},
-		// 		Loops: 1,
-		// 	},
-		// )
-		//time.Sleep(time.Millisecond * 3300)
+		// 	)
+		// 	time.Sleep(time.Millisecond * 3300)
+		// }
 		if !interrupted {
 			stop <- true
 		}
@@ -607,15 +595,6 @@ func KGSim(esn string, textToSay string) error {
 				}
 			}
 			time.Sleep(time.Millisecond * 100)
-			robot.Conn.PlayAnimation(
-				ctx,
-				&vectorpb.PlayAnimationRequest{
-					Animation: &vectorpb.Animation{
-						Name: "anim_knowledgegraph_success_01",
-					},
-					Loops: 1,
-				},
-			)
 			//time.Sleep(time.Millisecond * 3300)
 			stop <- true
 		}
