@@ -255,6 +255,15 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 				return "", err
 			}
 		} else {
+			if isKG {
+				kgStopLooping = true
+				for range kgReadyToAnswer {
+					break
+				}
+				stop <- true
+				time.Sleep(time.Second / 3)
+				KGSim(esn, "There was an error getting data from the L. L. M.")
+			}
 			return "", err
 		}
 	}
@@ -271,6 +280,15 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 				if len(fullRespSlice) == 0 {
 					logger.Println("LLM returned no response")
 					successIntent <- false
+					if isKG {
+						kgStopLooping = true
+						for range kgReadyToAnswer {
+							break
+						}
+						stop <- true
+						time.Sleep(time.Second / 3)
+						KGSim(esn, "There was an error getting data from the L. L. M.")
+					}
 					break
 				}
 				isDone = true
@@ -453,6 +471,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		// 	time.Sleep(time.Millisecond * 3300)
 		// }
 		if !interrupted {
+			stopStop <- true
 			stop <- true
 		}
 	}
