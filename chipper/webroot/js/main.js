@@ -39,7 +39,7 @@ function updateIntentSelection(element) {
 }
 
 function checkInited() {
-  fetch("/api/is_api_v1").then((response) => {
+  fetch("/api/is_api_v2").then((response) => {
     if (!response.ok) {
       alert(
         "This webroot does not match with the wire-pod binary. Some functionality will be broken. There was either an error during the last update, or you did not precisely follow the update guide. https://github.com/kercre123/wire-pod/wiki/Things-to-Know#updating-wire-pod"
@@ -99,6 +99,7 @@ function editFormCreate() {
           <label for="paramvalue">Param Value:<br><input type="text" id="paramvalue" value="${intent.params.paramvalue}"></label><br>
           <label for="exec">Exec:<br><input type="text" id="exec" value="${intent.exec}"></label><br>
           <label for="execargs">Exec Args:<br><input type="text" id="execargs" value="${intent.execargs.join(",")}"></label><br>
+          <label for="luascript">Lua code to run:</label><br><textarea id="luascript">${intent.luascript}</textarea>
           <button onclick="editIntent(${intentNumber})">Submit</button>
         `;
         //form.querySelector("#submit").onclick = () => editIntent(intentNumber);
@@ -124,6 +125,7 @@ function editIntent(intentNumber) {
     },
     exec: getE("exec").value,
     execargs: getE("execargs").value.split(","),
+    luascript: getE("luascript").value,
   };
 
   fetch("/api/edit_custom_intent", {
@@ -174,6 +176,7 @@ function sendIntentAdd() {
     },
     exec: form.elements["execAdd"].value,
     execargs: form.elements["execAddArgs"].value.split(","),
+    luascript: form.elements["luaAdd"].value,
   };
   if (!data.name || !data.description || !data.utterances) {
     displayMessage("addIntentStatus", "A required input is missing. You need a name, description, and utterances.");
@@ -244,6 +247,7 @@ function checkKG() {
     "openAIInput",
     "saveChatInput",
     "llmCommandInput",
+    "openAIVoiceForEnglishInput",
   ];
 
   elements.forEach((el) => (getE(el).style.display = "none"));
@@ -256,6 +260,7 @@ function checkKG() {
       getE("openAIInput").style.display = "block";
       getE("saveChatInput").style.display = "block";
       getE("llmCommandInput").style.display = "block";
+      getE("openAIVoiceForEnglishInput").style.display = "block";
     } else if (provider === "together") {
       getE("intentGraphInput").style.display = "block";
       getE("togetherInput").style.display = "block";
@@ -282,6 +287,7 @@ function sendKGAPIKey() {
     robotName: "",
     openai_prompt: "",
     openai_voice: "",
+    openai_voice_with_english: false,
     save_chat: false,
     commands_enable: false,
     endpoint: "",
@@ -293,6 +299,7 @@ function sendKGAPIKey() {
     data.save_chat = getE("saveChatYes").checked
     data.commands_enable = getE("commandYes").checked
     data.openai_voice = getE("openaiVoice").value
+    data.openai_voice_with_english = getE("voiceEnglishYes").checked
   } else if (provider === "custom") {
     data.key = getE("customKey").value;
     data.model = getE("customModel").value;
@@ -351,6 +358,7 @@ function updateKGAPI() {
         getE("commandYes").checked = data.commands_enable
         getE("intentyes").checked = data.intentgraph
         getE("saveChatYes").checked = data.save_chat
+        getE("voiceEnglishYes").checked = data.openai_voice_with_english
       } else if (data.provider === "together") {
         getE("togetherKey").value = data.key;
         getE("togetherModel").value = data.model;
@@ -572,7 +580,7 @@ function showLanguage() {
 }
 
 function showVersion() {
-  toggleVisibility(["section-log", "section-language", "section-botauth", "section-intents", "section-version", "section-uicustomizer"], "section-version", "icon-Version");
+  toggleVisibility(["section-log", "section-botauth", "section-intents", "section-version", "section-uicustomizer"], "section-version", "icon-Version");
   checkUpdate();
 }
 
@@ -581,11 +589,11 @@ function showIntents() {
 }
 
 function showWeather() {
-  toggleVisibility(["section-weather", "section-stt", "section-restart", "section-language", "section-kg"], "section-weather", "icon-Weather");
+  toggleVisibility(["section-weather", "section-restart", "section-language", "section-kg"], "section-weather", "icon-Weather");
 }
 
 function showKG() {
-  toggleVisibility(["section-weather", "section-stt", "section-restart", "section-language", "section-kg"], "section-kg", "icon-KG");
+  toggleVisibility(["section-weather", "section-restart", "section-language", "section-kg"], "section-kg", "icon-KG");
 }
 
 function toggleVisibility(sections, sectionToShow, iconId) {

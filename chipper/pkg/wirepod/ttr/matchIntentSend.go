@@ -9,6 +9,7 @@ import (
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
 )
@@ -105,8 +106,7 @@ func customIntentHandler(req interface{}, voiceText string, botSerial string) bo
 				// Check whether the custom sentence is either at the end of the spoken text or space-separated...
 				var seekText = strings.ToLower(strings.TrimSpace(v))
 				// System intents can also match any utterances (*)
-				if (c.IsSystemIntent && strings.HasPrefix(seekText, "*")) ||
-					strings.HasSuffix(voiceText, seekText) || strings.Contains(voiceText, seekText+" ") {
+				if (c.IsSystemIntent && strings.HasPrefix(seekText, "*")) || strings.Contains(voiceText, seekText) {
 					logger.Println("Bot " + botSerial + " Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
 					var intentParams map[string]string
 					var isParam bool = false
@@ -115,6 +115,16 @@ func customIntentHandler(req interface{}, voiceText string, botSerial string) bo
 						intentParams = map[string]string{c.Params.ParamName: c.Params.ParamValue}
 						isParam = true
 					}
+
+					go func() {
+						if c.LuaScript != "" {
+							err := scripting.RunLuaScript(botSerial, c.LuaScript)
+							if err != nil {
+								logger.Println("Error running Lua script: " + err.Error())
+							}
+						}
+					}()
+
 					var args []string
 					for _, arg := range c.ExecArgs {
 						if arg == "!botSerial" {

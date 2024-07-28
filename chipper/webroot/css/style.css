@@ -191,6 +191,9 @@ textarea {
 
 textarea:hover, textarea:focus {
   border-color: white; 
+  border: 2px solid; 
+  box-sizing: border-box;
+  transition: border-color 0.3s;
 }
 
 /* p {
