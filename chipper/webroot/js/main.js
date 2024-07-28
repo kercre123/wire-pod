@@ -247,6 +247,7 @@ function checkKG() {
     "openAIInput",
     "saveChatInput",
     "llmCommandInput",
+    "openAIVoiceForEnglishInput",
   ];
 
   elements.forEach((el) => (getE(el).style.display = "none"));
@@ -259,6 +260,7 @@ function checkKG() {
       getE("openAIInput").style.display = "block";
       getE("saveChatInput").style.display = "block";
       getE("llmCommandInput").style.display = "block";
+      getE("openAIVoiceForEnglishInput").style.display = "block";
     } else if (provider === "together") {
       getE("intentGraphInput").style.display = "block";
       getE("togetherInput").style.display = "block";
@@ -285,6 +287,7 @@ function sendKGAPIKey() {
     robotName: "",
     openai_prompt: "",
     openai_voice: "",
+    openai_voice_with_english: false,
     save_chat: false,
     commands_enable: false,
     endpoint: "",
@@ -296,6 +299,7 @@ function sendKGAPIKey() {
     data.save_chat = getE("saveChatYes").checked
     data.commands_enable = getE("commandYes").checked
     data.openai_voice = getE("openaiVoice").value
+    data.openai_voice_with_english = getE("voiceEnglishYes").checked
   } else if (provider === "custom") {
     data.key = getE("customKey").value;
     data.model = getE("customModel").value;
@@ -354,6 +358,7 @@ function updateKGAPI() {
         getE("commandYes").checked = data.commands_enable
         getE("intentyes").checked = data.intentgraph
         getE("saveChatYes").checked = data.save_chat
+        getE("voiceEnglishYes").checked = data.openai_voice_with_english
       } else if (data.provider === "together") {
         getE("togetherKey").value = data.key;
         getE("togetherModel").value = data.model;

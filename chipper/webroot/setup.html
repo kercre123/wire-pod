@@ -98,11 +98,12 @@
                 a free domain, and enter the Model Name and Together Key
                 here.</small><br />
               <label for="togetherModel">Together Model Name: <small class="desc">(leave blank for default
-                meta-llama/Llama-3-70b-chat-hf)</small></label>
+                  meta-llama/Llama-3-70b-chat-hf)</small></label>
               <input type="text" name="togetherModel" id="togetherModel" /><br />
               <label for="togetherKey">Together Key:</label>
               <input type="text" name="togetherKey" id="togetherKey" /><br />
-              <label for="togetherAIPrompt">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
+              <label for="togetherAIPrompt">GPT Prompt <small class="desc">(leave blank for
+                  default):</small></label><br />
               <small><label class="desc" for="togetherAIPrompt">(default: "You are a helpful, animated robot called
                   Vector. Keep the response concise yet
                   informative.")</label></small>
@@ -116,8 +117,10 @@
                   Vector. Keep the response concise yet
                   informative.")</label></small>
               <input type="text" name="openAIPrompt" id="openAIPrompt" /><br />
-              <label for="openaiVoice">OpenAI TTS voice for non-English languages:</label><br/>
-              <small class="desc">See <a target="_blank" href="https://platform.openai.com/docs/guides/text-to-speech/voice-options">OpenAI's TTS site</a> to demo each voice.</small><br/>
+              <label for="openaiVoice">OpenAI TTS voice for non-English languages:</label><br />
+              <small class="desc">See <a target="_blank"
+                  href="https://platform.openai.com/docs/guides/text-to-speech/voice-options">OpenAI's TTS site</a> to
+                demo each voice.</small><br />
               <select name="openaiVoice" id="openaiVoice">
                 <option value="fable" selected>Fable</option>
                 <option value="alloy">Alloy</option>
@@ -133,11 +136,13 @@
                 users.</small><br />
               <label for="customKey">API Key <small class="desc">(for ollama, this is just 'ollama')</small>:</label>
               <input type="text" name="customKey" id="customKey" /><br />
-              <label for="customAIEndpoint">API Endpoint <small class="desc">(i.e. http://localhost:11434/v1)</small>:</label>
+              <label for="customAIEndpoint">API Endpoint <small class="desc">(i.e.
+                  http://localhost:11434/v1)</small>:</label>
               <input type="text" name="customAIEndpoint" id="customAIEndpoint" /><br />
               <label for="customModel">LLM Model Name <small class="desc">(i.e. 'llama3')</small>:</label>
               <input type="text" name="customModel" id="customModel" /><br />
-              <label for="customAIPrompt">LLM Prompt <small class="desc">(leave blank for default)</small>:</label><br />
+              <label for="customAIPrompt">LLM Prompt <small class="desc">(leave blank for
+                  default)</small>:</label><br />
               <small><label class="desc" for="customAIPrompt">(default: "You are a helpful, animated robot called
                   Vector. Keep the response concise yet
                   informative.")</label></small>
@@ -156,13 +161,21 @@
               <span id="llmCommandInput" style="display: none">
                 <input type="checkbox" id="commandYes" name="commandDoselect" />
                 <label class="checkbox-label" for="commandYes">
-                  Allow the LLM to run commands on the robot, such as play animations.
+                  Allow the LLM to make the robot perform animations and other actions during the response.
                 </label>
               </span>
               <span id="saveChatInput" style="display: none">
                 <input type="checkbox" id="saveChatYes" name="saveChatselect" />
                 <label class="checkbox-label" for="saveChatYes">
-                  Enable conversations via "I have a question". This also allows previous chats to be used in the context of future responses.
+                  Enable conversations via "I have a question". This also allows previous chats to be used in the
+                  context of future responses.
+                </label></br>
+                <a href="#" onclick="deleteSavedChats()">Delete Saved Chats</a>
+              </span>
+              <span id="openAIVoiceForEnglishInput" style="display: none">
+                <input type="checkbox" id="voiceEnglishYes" name="voiceEnglishselect" />
+                <label class="checkbox-label" for="voiceEnglishYes">
+                  Use the OpenAI TTS voice for English as well.
                 </label>
               </span>
             </div>

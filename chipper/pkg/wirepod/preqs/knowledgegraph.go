@@ -79,7 +79,10 @@ func streamingKG(req *vtt.KnowledgeGraphRequest, speechReq sr.SpeechRequest) str
 		SpokenText:  "bla bla bla bla bla bla bla bla bla bla",
 	}
 	req.Stream.Send(&kg)
-	ttr.StreamingKGSim(req, req.Device, transcribedText, true)
+	_, err = ttr.StreamingKGSim(req, req.Device, transcribedText, true)
+	if err != nil {
+		logger.Println("LLM error: " + err.Error())
+	}
 	logger.Println("(KG) Bot " + speechReq.Device + " request served.")
 	return ""
 }

@@ -290,8 +290,7 @@ func DoSayText(input string, robot *vector.Vector) error {
 	// just before vector speaks
 	removeSpecialCharacters(input)
 
-	// TODO
-	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || os.Getenv("USE_OPENAI_VOICE") == "true" {
+	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || vars.APIConfig.Knowledge.OpenAIVoiceWithEnglish {
 		err := DoSayText_OpenAI(robot, input)
 		return err
 	}

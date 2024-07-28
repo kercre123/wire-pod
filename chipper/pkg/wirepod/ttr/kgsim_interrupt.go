@@ -27,6 +27,7 @@ func InterruptKGSimWhenTouchedOrWaked(rob *vector.Vector, stop chan bool, stopSt
 	var stopFunc bool
 	go func() {
 		for range stopStop {
+			logger.Println("KG Interrupter has been stopped")
 			stopFunc = true
 			break
 		}
@@ -82,6 +83,7 @@ func InterruptKGSimWhenTouchedOrWaked(rob *vector.Vector, stop chan bool, stopSt
 				return true
 			}
 			if stopFunc {
+				strm.CloseSend()
 				return false
 			}
 		}
