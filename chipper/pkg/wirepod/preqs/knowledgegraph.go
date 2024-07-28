@@ -1,10 +1,7 @@
 package processreqs
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
-	"net/http"
 	"strings"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
@@ -12,6 +9,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
+	ttr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/ttr"
 	"github.com/pkg/errors"
 	"github.com/soundhound/houndify-sdk-go"
 )
@@ -68,141 +66,32 @@ func houndifyKG(req sr.SpeechRequest) string {
 	return apiResponse
 }
 
-func togetherRequest(transcribedText string) string {
-	// will also handle custom
-	sendString := "You are a helpful robot called Vector. You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly. Keep the answer concise yet informative. Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
-	url := "https://api.together.xyz/inference"
-	if vars.APIConfig.Knowledge.Provider == "custom" {
-		url = vars.APIConfig.Knowledge.Endpoint
-	}
-	model := vars.APIConfig.Knowledge.Model
-	formData := `{
-"model": "` + model + `",
-"prompt": "` + sendString + `",
-"temperature": 0.7,
-"max_tokens": 256,
-"top_p": 1
-}`
-	logger.Println("Making request to Together API...")
-	logger.Println("Model is " + model)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(formData)))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+vars.APIConfig.Knowledge.Key)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "There was an error making the request to Together API"
-	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	var togetherResponse map[string]any
-	err = json.Unmarshal(body, &togetherResponse)
-	if err != nil {
-		return "Together API returned no response."
-	}
-	output := togetherResponse["output"].(map[string]any)
-	choice := output["choices"].([]any)
-	for _, val := range choice {
-		x := val.(map[string]any)
-		textResponse := x["text"].(string)
-		apiResponse := strings.TrimSuffix(textResponse, "</s>")
-		logger.Println("Together response: " + apiResponse)
-		return apiResponse
-	}
-	// In case text is not present in result from API, return a string saying answer was not found
-	return "Answer was not found"
-}
-
-func openaiRequest(transcribedText string) string {
-	var robName string
-	if vars.APIConfig.Knowledge.RobotName != "" {
-		robName = vars.APIConfig.Knowledge.RobotName
-	} else {
-		robName = "Vector"
-	}
-	defaultPrompt := "You are a helpful robot called " + robName + ". You will be given a question asked by a user and you must provide the best answer you can. It may not be punctuated or spelled correctly as the STT model is small. The answer will be put through TTS, so it should be a speakable string. Keep the answer concise yet informative."
-	sendString := " Here is the question: " + "\\" + "\"" + transcribedText + "\\" + "\"" + " , Answer: "
-	if strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt) != "" {
-		sendString = strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt) + sendString
-	} else {
-		sendString = defaultPrompt + sendString
-	}
-	logger.Println("Making request to OpenAI...")
-	url := "https://api.openai.com/v1/completions"
-	formData := `{
-"model": "gpt-3.5-turbo-instruct",
-"prompt": "` + sendString + `",
-"temperature": 0.9,
-"max_tokens": 256,
-"top_p": 1,
-"frequency_penalty": 0.2,
-"presence_penalty": 0
-}`
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(formData)))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(vars.APIConfig.Knowledge.Key))
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		logger.Println(err)
-		return "There was an error making the request to OpenAI."
-	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	type openAIStruct struct {
-		ID      string `json:"id"`
-		Object  string `json:"object"`
-		Created int    `json:"created"`
-		Model   string `json:"model"`
-		Choices []struct {
-			Text         string      `json:"text"`
-			Index        int         `json:"index"`
-			Logprobs     interface{} `json:"logprobs"`
-			FinishReason string      `json:"finish_reason"`
-		} `json:"choices"`
-		Usage struct {
-			PromptTokens     int `json:"prompt_tokens"`
-			CompletionTokens int `json:"completion_tokens"`
-			TotalTokens      int `json:"total_tokens"`
-		} `json:"usage"`
-	}
-	var openAIResponse openAIStruct
-	err = json.Unmarshal(body, &openAIResponse)
-	if err != nil || len(openAIResponse.Choices) == 0 {
-		logger.Println("OpenAI returned no response.")
-		logger.Println(string(body))
-		return "OpenAI returned no response."
-	}
-	apiResponse := strings.TrimSpace(openAIResponse.Choices[0].Text)
-	logger.Println("OpenAI response: " + apiResponse)
-	return apiResponse
-}
-
-func openaiKG(speechReq sr.SpeechRequest) string {
+func streamingKG(req *vtt.KnowledgeGraphRequest, speechReq sr.SpeechRequest) string {
+	// have him start "thinking" right after the text is transcribed
 	transcribedText, err := sttHandler(speechReq)
 	if err != nil {
 		return "There was an error."
 	}
-	return openaiRequest(transcribedText)
-}
-
-func togetherKG(speechReq sr.SpeechRequest) string {
-	transcribedText, err := sttHandler(speechReq)
-	if err != nil {
-		return "There was an error."
+	kg := pb.KnowledgeGraphResponse{
+		Session:     req.Session,
+		DeviceId:    req.Device,
+		CommandType: NoResult,
+		SpokenText:  "bla bla bla bla bla bla bla bla bla bla",
 	}
-	return togetherRequest(transcribedText)
+	req.Stream.Send(&kg)
+	_, err = ttr.StreamingKGSim(req, req.Device, transcribedText, true)
+	if err != nil {
+		logger.Println("LLM error: " + err.Error())
+	}
+	logger.Println("(KG) Bot " + speechReq.Device + " request served.")
+	return ""
 }
 
 // Takes a SpeechRequest, figures out knowledgegraph provider, makes request, returns API response
-func KgRequest(speechReq sr.SpeechRequest) string {
+func KgRequest(req *vtt.KnowledgeGraphRequest, speechReq sr.SpeechRequest) string {
 	if vars.APIConfig.Knowledge.Enable {
 		if vars.APIConfig.Knowledge.Provider == "houndify" {
 			return houndifyKG(speechReq)
-		} else if vars.APIConfig.Knowledge.Provider == "openai" {
-			return openaiKG(speechReq)
-		} else if vars.APIConfig.Knowledge.Provider == "together" {
-			return togetherKG(speechReq)
 		}
 	}
 	return "Knowledge graph is not enabled. This can be enabled in the web interface."
@@ -211,16 +100,20 @@ func KgRequest(speechReq sr.SpeechRequest) string {
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
 	InitKnowledge()
 	speechReq := sr.ReqToSpeechRequest(req)
-	apiResponse := KgRequest(speechReq)
-	kg := pb.KnowledgeGraphResponse{
-		Session:     req.Session,
-		DeviceId:    req.Device,
-		CommandType: NoResult,
-		SpokenText:  apiResponse,
-	}
-	logger.Println("(KG) Bot " + speechReq.Device + " request served.")
-	if err := req.Stream.Send(&kg); err != nil {
-		return nil, err
+	if vars.APIConfig.Knowledge.Enable && vars.APIConfig.Knowledge.Provider != "houndify" {
+		streamingKG(req, speechReq)
+	} else {
+		apiResponse := KgRequest(req, speechReq)
+		kg := pb.KnowledgeGraphResponse{
+			Session:     req.Session,
+			DeviceId:    req.Device,
+			CommandType: NoResult,
+			SpokenText:  apiResponse,
+		}
+		logger.Println("(KG) Bot " + speechReq.Device + " request served.")
+		if err := req.Stream.Send(&kg); err != nil {
+			return nil, err
+		}
 	}
 	return nil, nil
 

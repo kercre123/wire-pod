@@ -12,13 +12,7 @@ import (
 	"github.com/kercre123/zeroconf"
 )
 
-/*
-	goal:
-		- register a proxy every minute or so
-		(it is every 4 seconds right now, which is too much)
-		- BroadcastNow function which resets the timer and broadcasts right now
-		- detect when a new bot is available on the network and broadcast ASAP
-*/
+// legacy ZeroConf code
 
 var PostingmDNS bool
 var MDNSNow chan bool
@@ -39,9 +33,9 @@ func PostmDNSWhenNewVector() {
 		for entry := range entries {
 			if strings.Contains(entry.Service, "ankivector") {
 				logger.Println("Vector discovered on network, broadcasting mDNS")
-				time.Sleep(time.Second * 2)
-				PostmDNSNow()
 				cancel()
+				time.Sleep(time.Second)
+				PostmDNSNow()
 				return
 			}
 		}
@@ -78,6 +72,9 @@ func PostmDNS() {
 	for {
 		ipAddr := vars.GetOutboundIP().String()
 		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
+		if os.Getenv("PRINT_MDNS") == "true" {
+			logger.Println("mDNS broadcasted")
+		}
 		for {
 			if MDNSTimeBeforeNextRegister >= 30 {
 				MDNSTimeBeforeNextRegister = 0

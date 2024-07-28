@@ -14,7 +14,7 @@ function showBotAuth() {
 }
 
 function toggleSections(showSection, icon) {
-  const sections = ["section-intents", "section-language", "section-log", "section-botauth", "section-version", "section-uicustomizer"];
+  const sections = ["section-intents", "section-log", "section-botauth", "section-version", "section-uicustomizer"];
   sections.forEach((section) => (document.getElementById(section).style.display = "none"));
   document.getElementById(showSection).style.display = "block";
   updateColor(icon);

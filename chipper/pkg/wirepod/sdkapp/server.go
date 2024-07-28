@@ -17,6 +17,7 @@ import (
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
@@ -519,6 +520,7 @@ func DisableCachingAndSniffing(next http.Handler) http.Handler {
 }
 
 func BeginServer() {
+	scripting.RegisterScriptingAPI()
 	if os.Getenv("JDOCS_PINGER_ENABLED") == "false" {
 		PingerEnabled = false
 		logger.Println("Jdocs pinger has been disabled")

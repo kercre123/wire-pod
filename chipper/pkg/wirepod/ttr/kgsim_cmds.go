@@ -26,7 +26,8 @@ const (
 	// arg: animation name
 	ActionPlayAnimationWI = 2
 	// arg: now
-	ActionGetImage = 3
+	ActionGetImage   = 3
+	ActionNewRequest = 4
 	// arg: sound file
 	ActionPlaySound = 4
 )
@@ -124,6 +125,13 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 		Action:          ActionGetImage,
 		SupportedModels: []string{openai.GPT4o},
 	},
+	{
+		Command:         "newVoiceRequest",
+		Description:     "Starts a new voice command from the robot. Use this if you want more input from the user/if you want to carry out a conversation. You are the only one who can end it in this case. This goes at the end of your response, if you use it.",
+		ParamChoices:    "now",
+		Action:          ActionNewRequest,
+		SupportedModels: []string{"all"},
+	},
 	// {
 	// 	Command:      "playSound",
 	// 	Description:  "Plays a sound on the robot.",
@@ -141,7 +149,7 @@ func ModelIsSupported(cmd LLMCommand, model string) bool {
 	return false
 }
 
-func CreatePrompt(origPrompt string, model string) string {
+func CreatePrompt(origPrompt string, model string, isKG bool) string {
 	prompt := origPrompt + "\n\n" + "Keep in mind, user input comes from speech-to-text software, so respond accordingly. No special characters, especially these: & ^ * # @ - . No lists. No formatting."
 	if vars.APIConfig.Knowledge.CommandsEnable {
 		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nUse the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
@@ -150,7 +158,17 @@ func CreatePrompt(origPrompt string, model string) string {
 				promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
 				prompt = prompt + promptAppendage
 			}
+			if isKG && vars.APIConfig.Knowledge.SaveChat {
+				promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question, use newVoiceRequest. If you don't, you should end the conversation by not using it."
+				prompt = prompt + promptAppentage
+			} else {
+				promptAppentage := "\n\nNOTE: You are NOT in 'conversation' mode. Refrain from asking the user any questions and from using newVoiceRequest."
+				prompt = prompt + promptAppentage
+			}
 		}
+	}
+	if os.Getenv("DEBUG_PRINT_PROMPT") == "true" {
+		logger.Println(prompt)
 	}
 	return prompt
 }
@@ -270,10 +288,9 @@ func DoPlaySound(sound string, robot *vector.Vector) error {
 func DoSayText(input string, robot *vector.Vector) error {
 
 	// just before vector speaks
-	removeSpecialCharacters(input) 	
+	removeSpecialCharacters(input)
 
-	// TODO
-	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || os.Getenv("USE_OPENAI_VOICE") == "true" {
+	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || vars.APIConfig.Knowledge.OpenAIVoiceWithEnglish {
 		err := DoSayText_OpenAI(robot, input)
 		return err
 	}
@@ -373,13 +390,23 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 	return nil
 }
 
-func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector.Vector) {
+func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector.Vector, stopStop chan bool) {
+	stopImaging := false
+	go func() {
+		for range stopStop {
+			stopImaging = true
+			break
+		}
+	}()
 	logger.Println("Get image here...")
 	// get image
 	robot.Conn.EnableMirrorMode(context.Background(), &vectorpb.EnableMirrorModeRequest{
 		Enable: true,
 	})
 	for i := 3; i > 0; i-- {
+		if stopImaging {
+			return
+		}
 		time.Sleep(time.Millisecond * 300)
 		robot.Conn.SayText(
 			context.Background(),
@@ -389,6 +416,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 				DurationScalar: 1.05,
 			},
 		)
+		if stopImaging {
+			return
+		}
 	}
 	resp, _ := robot.Conn.CaptureSingleImage(
 		context.Background(),
@@ -465,6 +495,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
 		aireq.Model = vars.APIConfig.Knowledge.Model
+	}
+	if stopImaging {
+		return
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
@@ -550,6 +583,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	}()
 	numInResp := 0
 	for {
+		if stopImaging {
+			return
+		}
 		respSlice := fullRespSlice
 		if len(respSlice)-1 < numInResp {
 			if !isDone {
@@ -564,14 +600,31 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		}
 		logger.Println(respSlice[numInResp])
 		acts := GetActionsFromString(respSlice[numInResp])
-		PerformActions(msgs, acts, robot)
+		PerformActions(msgs, acts, robot, stopStop)
 		numInResp = numInResp + 1
+		if stopImaging {
+			return
+		}
 	}
 }
 
-func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, robot *vector.Vector) bool {
+func DoNewRequest(robot *vector.Vector) {
+	time.Sleep(time.Second / 3)
+	robot.Conn.AppIntent(context.Background(), &vectorpb.AppIntentRequest{Intent: "knowledge_question"})
+}
+
+func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, robot *vector.Vector, stopStop chan bool) bool {
 	// assuming we have behavior control already
+	stopPerforming := false
+	go func() {
+		for range stopStop {
+			stopPerforming = true
+		}
+	}()
 	for _, action := range actions {
+		if stopPerforming {
+			return false
+		}
 		switch {
 		case action.Action == ActionSayText:
 			DoSayText(action.Parameter, robot)
@@ -579,8 +632,11 @@ func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, 
 			DoPlayAnimation(action.Parameter, robot)
 		case action.Action == ActionPlayAnimationWI:
 			DoPlayAnimationWI(action.Parameter, robot)
+		case action.Action == ActionNewRequest:
+			go DoNewRequest(robot)
+			return true
 		case action.Action == ActionGetImage:
-			DoGetImage(msgs, action.Parameter, robot)
+			DoGetImage(msgs, action.Parameter, robot, stopStop)
 			return true
 		case action.Action == ActionPlaySound:
 			DoPlaySound(action.Parameter, robot)

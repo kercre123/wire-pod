@@ -6,6 +6,9 @@
   <link rel="stylesheet" type="text/css" href="css/style.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
 </head>
 
 <body>
@@ -58,9 +61,8 @@
         </h2>
         <div class="content" id="content-add">
           <p>
-            It is recommended you read
-            <a href="https://github.com/kercre123/wire-pod/wiki/Things-to-Know#web-interface" target="_blank">the
-              wiki</a>
+            For more details, see 
+            <a href="https://github.com/kercre123/wire-pod/wiki/Custom-Intents" target="_blank">the Custom Intents page of the wiki</a>
           </p>
           <div id="addIntentStatus"></div>
           <form id="intentAddForm">
@@ -79,8 +81,10 @@
             <label for="execAdd">Path to script/program to execute after sending intent (not
               required):</label>
             <input type="text" name="execAdd" id="execAdd" /><br />
-            <label for="execAdd">Arguments for program (seperated by ,) (not required)</label>
+            <label for="execAdd">Arguments for script/program (seperated by ,) (not required):</label>
             <input type="text" name="execAddArgs" id="execAddArgs" size="50" /><br />
+            <label for="luaAdd">Lua code to run (not required):</label>
+            <textarea id="luaAdd"></textarea>
           </form>
           <div>
             <button onclick="sendIntentAdd()">Add intent</button>
@@ -154,34 +158,6 @@
          loading log...
       </textarea>
         <hr class="log-hr" />
-      </div>
-
-      <div id="section-language" style="display: none">
-        <h2>STT Language</h2>
-        <div id="languageStatus"></div>
-        <div id="languageSelectionDiv">
-          <div>
-            <select name="languageSelection" id="languageSelection">
-              <option value="en-US">English (US)</option>
-              <option value="it-IT">Italian (IT)</option>
-              <option value="es-ES">Spanish (ES)</option>
-              <option value="fr-FR">French (FR)</option>
-              <option value="de-DE">German (DE)</option>
-              <option value="pt-BR">Portuguese (BR)</option>
-              <option value="pl-PL">Polish (PL)</option>
-              <option value="tr-TR">Turkish (TR)</option>
-              <option value="zh-CN">Chinese (CN)</option>
-              <option value="ru-RU">Russian (RU)</option>
-              <option value="nt-NL">Dutch (NL)</option>
-            </select>
-          </div>
-          <div>
-            <button onclick="setSTTLanguage()">
-              Set Language
-            </button>
-          </div>
-        </div>
-        <hr />
       </div>
 
       <div id="section-version" style="display: none">

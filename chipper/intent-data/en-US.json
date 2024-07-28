@@ -34,10 +34,15 @@
 		"keyphrases" : ["charge", "home", "go to your", "church", "find your ch", "charger" ],
 		"requiresexact": false
 	},
-		{	
+	{	
 		"name": "intent_system_sleep",
 		"keyphrases" : ["flee", "sleep", "sheep", "go to sleep" ],
 		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_noaudio",
+		"keyphrases" : ["[blank_audio]", "[door opens]", "[sighs]" ],
+		"requiresexact": true
 	},
 	{	
 		"name": "intent_greeting_goodmorning", 
@@ -191,7 +196,7 @@
 	},
 	{	
 		"name": "intent_knowledge_promptquestion", 
-		"keyphrases" : ["question", "weston", "i have a question" ],
+		"keyphrases" : ["question", "weston", "i have a question", "conversation", "lets talk", "let's talk" ],
 		"requiresexact": false
 	},
 	{	
