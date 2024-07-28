@@ -42,7 +42,7 @@ function sendSetupInfo() {
     .then((response) => {
       if (response.includes("success")) {
         updateSetupStatus("Language set successfully.");
-        initWeatherAPIKey();
+        setConn();
       } else if (response.includes("downloading")) {
         updateSetupStatus("Downloading language model...");
         var interval = setInterval(() => {
@@ -52,8 +52,8 @@ function sendSetupInfo() {
               updateSetupStatus(statusText);
               if (statusText.includes("success")) {
                 updateSetupStatus("Language set successfully.");
-                initWeatherAPIKey();
                 clearInterval(interval);
+                setConn();
               } else if (statusText.includes("error")) {
                 document.getElementById("config-options").style.display = "block";
                 clearInterval(interval);
@@ -68,107 +68,6 @@ function sendSetupInfo() {
         updateSetupStatus(response);
         document.getElementById("config-options").style.display = "block";
       }
-    });
-}
-
-function initWeatherAPIKey() {
-  const provider = document.getElementById("weatherProvider").value;
-  if (provider) {
-    updateSetupStatus("Setting weather API key...");
-    const apiKey = document.getElementById("weatherAPIAddForm").elements["apiKey"].value;
-    const data = { provider, key: apiKey };
-
-    fetch("/api/set_weather_api", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => response.text())
-      .then((response) => {
-        updateSetupStatus(response);
-        initKGAPIKey();
-      });
-  } else {
-    initKGAPIKey();
-  }
-}
-
-function initKGAPIKey() {
-  const provider = getE("kgProvider").value;
-  if (provider == "") {
-    setConn();
-    return
-  }
-  const key = getE(`${provider}Key`).value;
-  let doEnable = true;
-  let model = "";
-  let openAIPrompt = "";
-  let id = "";
-  let intentgraph = getE("intentyes").checked
-  let saveChat = getE("saveChatYes").checked
-  let doCommands = getE("commandYes").checked
-  let endpoint = "";
-
-  if (!key) {
-    alert("You must provide an API key.");
-    return;
-  }
-
-  if (provider === "custom") {
-    model = getE("customModel").value;
-    openAIPrompt = getE("customAIPrompt").value;
-    endpoint = getE("customAIEndpoint").value;
-
-    if (!model) {
-      alert("You must provide an LLM model.");
-      return;
-    }
-    if (!endpoint) {
-      alert("You must provide an LLM endpoint.");
-      return;
-    }
-  } else if (provider === "together") {
-    model = getE("togetherModel").value;
-    openAIPrompt = getE("togetherAIPrompt").value;
-  } else if (provider === "openai") {
-    openAIPrompt = getE("openAIPrompt").value;
-  } else if (provider === "houndify") {
-    id = getE("houndID").value;
-    if (!id) {
-      alert("You must provide a client ID.");
-      return;
-    }
-  } else {
-    doEnable = false;
-  }
-
-  const data = {
-    enable: doEnable,
-    provider,
-    key,
-    model,
-    id,
-    intentgraph: intentgraph,
-    robotName: "",
-    openai_prompt: openAIPrompt,
-    save_chat: saveChat,
-    commands_enable: doCommands,
-    endpoint,
-  };
-
-  fetch("/api/set_kg_api", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((response) => response.text())
-    .then((response) => {
-      updateSetupStatus(response);
-      setConn();
     });
 }
 

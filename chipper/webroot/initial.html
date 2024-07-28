@@ -6,6 +6,9 @@
   <link rel="stylesheet" type="text/css" href="css/style.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
 </head>
 
 <body>
@@ -22,7 +25,7 @@
         </p>
         <hr />
         <div id="section-conn" style="display: block">
-          <h3>Connection Option</h3>
+          <h3>Connection Method</h3>
           <hr class="small-hr">
           <div class="center" id="connStatus"></div>
           <select onchange="checkConn()" name="connSelection" id="connSelection">
@@ -30,7 +33,7 @@
               Escape Pod (recommended for regular, production robots)
             </option>
             <option value="ip">
-              IP address (recommended for OSKR/dev-unlocked robots)
+              IP Address (recommended for OSKR/dev-unlocked robots)
             </option>
           </select>
           <div class="center" id="portViz" style="display: none">
@@ -41,7 +44,7 @@
         </div>
 
         <div id="section-language" style="display: none">
-          <h3>STT Language</h3>
+          <h3>Speech-to-Text Language</h3>
           <hr class="small-hr">
           <div class="center" id="languageStatus"></div>
           <div id="languageSelectionDiv">
@@ -62,144 +65,10 @@
           <hr />
         </div>
 
-        <div id="section-weather" style="display: block">
-          <h3>Weather API</h3>
-          <hr class="small-hr">
-          <div>
-            <p>
-              Select the weather provider you would like to use, then enter
-              the required information.
-            </p>
-            <hr class="small-hr">
-            <small>
-              <ul>
-                <li class="desc">
-                  OpenWeatherMap: Free, has forecast and localization support.
-                  To use, create an account at
-                  <a href="https://openweathermap.org">openweathermap.org</a>,
-                  create an API key, and enter it here.
-                </li>
-                <li class="desc">
-                  WeatherAPI: Requires payment, but is faster and is better at
-                  figuring out location. To use, create an account at
-                  <a href="https://weatherapi.com">weatherapi.com</a>, and
-                  enter your API key here.
-                </li>
-              </ul>
-            </small>
-            <hr class="small-hr">
-            <div id="addWeatherProviderAPI"></div>
-            <form id="weatherAPIAddForm">
-              <label for="weatherProvider">Weather API Provider:</label>
-              <select name="weatherProvider" id="weatherProvider" form="weatherAPIAddForm" onchange="checkWeather()">
-                <option value="" selected>None</option>
-                <option value="openweathermap.org">OpenWeatherMap</option>
-                <option value="weatherapi.com">WeatherAPI</option>
-              </select><br />
-              <span id="apiKeySpan" style="display: none">
-                <label for="apiKey">API Key:</label>
-                <input type="text" name="apiKey" id="apiKey" /><br />
-              </span>
-            </form>
-            <div id="addWeatherProviderAPIStatus"></div>
-            <hr />
-          </div>
-        </div>
+        <small class="desc">Weather and Knowledge Graph settings can be configured in the Server Settings page once
+          wire-pod is set up.</small>
+        <hr />
 
-        <div id="section-kg" style="display: block">
-          <h3>Knowledge Graph Setup</h3>
-          <hr class="small-hr">
-          <div>
-            <p>Select the knowledge provider you would like to use, then enter the required information.</p>
-            <hr class="small-hr">
-            <div id="addKGProviderAPI"></div>
-            <form id="kgAPIAddForm">
-              <label for="kgProvider">Knowledge Graph API Provider:</label>
-              <select name="kgProvider" id="kgProvider" form="kgAPIAddForm" onchange="checkKG()">
-                <option value="" selected>None</option>
-                <option value="openai">OpenAI</option>
-                <option value="houndify">Houndify</option>
-                <option value="together">Together</option>
-                <option value="custom">Custom</option>
-              </select>
-              <span id="houndifyInput" style="display: none">
-                <small class="desc">To use Houndify, create an account at
-                  <a href="https://www.houndify.com/signup">houndify.com</a>,
-                  create a free domain, and enter the Client ID and Key
-                  here.</small><br />
-                <label for="houndID">Houndify Client ID:</label>
-                <input type="text" name="houndID" id="houndID" /><br />
-                <label for="houndKey">Houndify Client Key:</label>
-                <input type="text" name="houndKey" id="houndKey" /><br />
-              </span>
-              <span id="togetherInput" style="display: none">
-                <small class="desc">To use Together, create an account at
-                  <a href="https://www.together.xyz">together.com</a>, create
-                  a free domain, and enter the Model Name and Together Key
-                  here.</small><br />
-                <label for="togetherModel">Together Model Name: <small class="desc">(leave blank for default
-                  meta-llama/Llama-3-70b-chat-hf)</small></label>
-                <input type="text" name="togetherModel" id="togetherModel" /><br />
-                <label for="togetherKey">Together Key:</label>
-                <input type="text" name="togetherKey" id="togetherKey" /><br />
-                <label for="togetherAIPrompt">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
-                <small><label class="desc" for="togetherAIPrompt">(default: "You are a helpful, animated robot called
-                    Vector. Keep the response concise yet
-                    informative.")</label></small>
-                <input type="text" name="togetherAIPrompt" id="togetherAIPrompt" /><br />
-              </span>
-              <span id="openAIInput" style="display: none">
-                <label for="openaiKey">OpenAI Key:</label>
-                <input type="text" name="openaiKey" id="openaiKey" /><br />
-                <label for="openaiKey">GPT Prompt <small class="desc">(leave blank for default):</small></label><br />
-                <small><label class="desc" for="openAIPrompt">(default: "You are a helpful, animated robot called
-                    Vector. Keep the response concise yet
-                    informative.")</label></small>
-                <input type="text" name="openAIPrompt" id="openAIPrompt" /><br />
-              </span>
-  
-              <span id="customAIInput" style="display: none">
-                <small class="desc">All LLM hosts that have OpenAI API compatibility are supported. For advanced
-                  users.</small><br />
-                <label for="customKey">API Key <small class="desc">(for ollama, this is just 'ollama')</small>:</label>
-                <input type="text" name="customKey" id="customKey" /><br />
-                <label for="customAIEndpoint">API Endpoint <small class="desc">(i.e. http://localhost:11434/v1)</small>:</label>
-                <input type="text" name="customAIEndpoint" id="customAIEndpoint" /><br />
-                <label for="customModel">LLM Model Name <small class="desc">(i.e. 'llama3')</small>:</label>
-                <input type="text" name="customModel" id="customModel" /><br />
-                <label for="customAIPrompt">LLM Prompt <small class="desc">(leave blank for default)</small>:</label><br />
-                <small><label class="desc" for="customAIPrompt">(default: "You are a helpful, animated robot called
-                    Vector. Keep the response concise yet
-                    informative.")</label></small>
-                <input type="text" name="customAIPrompt" id="customAIPrompt" /><br />
-              </span>
-  
-              <div style="text-align: left;">
-                <span id="intentGraphInput" style="display: none;">
-                  <input type="checkbox" id="intentyes" name="intentgselect" onclick="checkKG()" />
-                  <label class="checkbox-label" for="intentyes">
-                    Enable intent-graph. This
-                    forwards the request to the LLM if the regular intent
-                    processor didn't understand what you said.
-                  </label>
-                </span>
-                <span id="llmCommandInput" style="display: none">
-                  <input type="checkbox" id="commandYes" name="commandDoselect" />
-                  <label class="checkbox-label" for="commandYes">
-                    Allow the LLM to run commands on the robot, such as play animations.
-                  </label>
-                </span>
-                <span id="saveChatInput" style="display: none">
-                  <input type="checkbox" id="saveChatYes" name="saveChatselect" />
-                  <label class="checkbox-label" for="saveChatYes">
-                    Save chats to be used in the context of future responses.
-                  </label>
-                </span>
-              </div>
-              <hr/>
-            </form>
-          </div>
-        </div>
         <button onclick="sendSetupInfo()">
           Submit Settings
         </button>
@@ -213,8 +82,6 @@
 <!-- <script src="./sdkapp/js/main.js"></script> -->
 <script>
   checkLanguage();
-  updateWeatherAPI();
-  updateKGAPI();
 </script>
 
 </html>

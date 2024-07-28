@@ -106,8 +106,7 @@ func customIntentHandler(req interface{}, voiceText string, botSerial string) bo
 				// Check whether the custom sentence is either at the end of the spoken text or space-separated...
 				var seekText = strings.ToLower(strings.TrimSpace(v))
 				// System intents can also match any utterances (*)
-				if (c.IsSystemIntent && strings.HasPrefix(seekText, "*")) ||
-					strings.HasSuffix(voiceText, seekText) || strings.Contains(voiceText, seekText+" ") || strings.HasPrefix(voiceText, seekText) {
+				if (c.IsSystemIntent && strings.HasPrefix(seekText, "*")) || strings.Contains(voiceText, seekText) {
 					logger.Println("Bot " + botSerial + " Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
 					var intentParams map[string]string
 					var isParam bool = false

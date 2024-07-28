@@ -116,7 +116,7 @@ func removeEmojis(input string) string {
 	return result
 }
 
-func CreateAIReq(transcribedText, esn string, gpt3tryagain bool) openai.ChatCompletionRequest {
+func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.ChatCompletionRequest {
 	defaultPrompt := "You are a helpful, animated robot called Vector. Keep the response concise yet informative."
 
 	var nChat []openai.ChatCompletionMessage
@@ -142,7 +142,7 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain bool) openai.ChatComp
 		model = vars.APIConfig.Knowledge.Model
 	}
 
-	smsg.Content = CreatePrompt(smsg.Content, model)
+	smsg.Content = CreatePrompt(smsg.Content, model, isKG)
 
 	nChat = append(nChat, smsg)
 	if vars.APIConfig.Knowledge.SaveChat {
@@ -239,14 +239,14 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	speakReady := make(chan string)
 	successIntent := make(chan bool)
 
-	aireq := CreateAIReq(transcribedText, esn, false)
+	aireq := CreateAIReq(transcribedText, esn, false, isKG)
 
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
-			aireq := CreateAIReq(transcribedText, esn, true)
+			aireq := CreateAIReq(transcribedText, esn, true, isKG)
 			logger.Println("Falling back to " + aireq.Model)
 			logger.LogUI("Falling back to " + aireq.Model)
 			stream, err = c.CreateChatCompletionStream(ctx, aireq)
