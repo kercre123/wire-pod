@@ -184,12 +184,6 @@ function sendIntentAdd() {
     return
   }
 
-  console.log(data.luascript)
-  if (!data.exec && !data.luascript) {
-    alert("A required input is missing. You need either an exec value or a Lua script.")
-    return
-  }
-
   displayMessage("addIntentStatus", "Adding...");
 
   fetch("/api/add_custom_intent", {

@@ -26,7 +26,8 @@ const (
 	// arg: animation name
 	ActionPlayAnimationWI = 2
 	// arg: now
-	ActionGetImage = 3
+	ActionGetImage   = 3
+	ActionNewRequest = 4
 	// arg: sound file
 	ActionPlaySound = 4
 )
@@ -124,6 +125,13 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 		Action:          ActionGetImage,
 		SupportedModels: []string{openai.GPT4o},
 	},
+	{
+		Command:         "newVoiceRequest",
+		Description:     "Starts a new voice command from the robot. Use this if you want more input from the user/if you want to carry out a conversation. You are the only one who can end it in this case. This goes at the end of your response, if you use it.",
+		ParamChoices:    "now",
+		Action:          ActionNewRequest,
+		SupportedModels: []string{"all"},
+	},
 	// {
 	// 	Command:      "playSound",
 	// 	Description:  "Plays a sound on the robot.",
@@ -141,7 +149,7 @@ func ModelIsSupported(cmd LLMCommand, model string) bool {
 	return false
 }
 
-func CreatePrompt(origPrompt string, model string) string {
+func CreatePrompt(origPrompt string, model string, isKG bool) string {
 	prompt := origPrompt + "\n\n" + "Keep in mind, user input comes from speech-to-text software, so respond accordingly. No special characters, especially these: & ^ * # @ - . No lists. No formatting."
 	if vars.APIConfig.Knowledge.CommandsEnable {
 		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nUse the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
@@ -150,7 +158,17 @@ func CreatePrompt(origPrompt string, model string) string {
 				promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
 				prompt = prompt + promptAppendage
 			}
+			if isKG && vars.APIConfig.Knowledge.SaveChat {
+				promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question, use newVoiceRequest. If you don't, you should end the conversation by not using it."
+				prompt = prompt + promptAppentage
+			} else {
+				promptAppentage := "\n\nNOTE: You are NOT in 'conversation' mode. Refrain from asking the user any questions and from using newVoiceRequest."
+				prompt = prompt + promptAppentage
+			}
 		}
+	}
+	if os.Getenv("DEBUG_PRINT_PROMPT") == "true" {
+		logger.Println(prompt)
 	}
 	return prompt
 }
@@ -591,6 +609,11 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	}
 }
 
+func DoNewRequest(robot *vector.Vector) {
+	time.Sleep(time.Second / 3)
+	robot.Conn.AppIntent(context.Background(), &vectorpb.AppIntentRequest{Intent: "knowledge_question"})
+}
+
 func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, robot *vector.Vector, stopStop chan bool) bool {
 	// assuming we have behavior control already
 	stopPerforming := false
@@ -610,6 +633,9 @@ func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, 
 			DoPlayAnimation(action.Parameter, robot)
 		case action.Action == ActionPlayAnimationWI:
 			DoPlayAnimationWI(action.Parameter, robot)
+		case action.Action == ActionNewRequest:
+			go DoNewRequest(robot)
+			return true
 		case action.Action == ActionGetImage:
 			DoGetImage(msgs, action.Parameter, robot, stopStop)
 			return true
