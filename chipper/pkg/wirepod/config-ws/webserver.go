@@ -286,7 +286,6 @@ func handleIsRunning(w http.ResponseWriter) {
 }
 
 func handleDeleteChats(w http.ResponseWriter) {
-	os.Remove(vars.SavedChatsPath)
 	vars.RememberedChats = []vars.RememberedChat{}
 	fmt.Fprint(w, "done")
 }

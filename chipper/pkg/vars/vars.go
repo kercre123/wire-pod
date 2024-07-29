@@ -43,7 +43,6 @@ var (
 	VoskModelPath     string = "../vosk/models/"
 	WhisperModelPath  string = "../whisper.cpp/models/"
 	SessionCertPath   string = "./session-certs/"
-	SavedChatsPath    string = "./openaiChats.json"
 	VersionFile       string = "./version"
 )
 
@@ -180,7 +179,6 @@ func Init() {
 		ServerConfigPath = join(podDir, "./certs/server_config.json")
 		Certs = join(podDir, "./certs")
 		SessionCertPath = join(podDir, SessionCertPath)
-		SavedChatsPath = join(podDir, SavedChatsPath)
 		if runtime.GOOS == "android" {
 			VersionFile = AndroidPath + "/static/version"
 		}
@@ -231,9 +229,6 @@ func Init() {
 
 	// load api config (config.go)
 	ReadConfig()
-
-	// load openai chats
-	LoadChats()
 
 	// check models folder, add all models to DownloadedVoskModels
 	if APIConfig.STT.Service == "vosk" {
@@ -418,22 +413,6 @@ func AddToRInfo(esn string, id string, ip string) {
 	rinfo.ID = id
 	rinfo.IP = ip
 	RecurringInfo = append(RecurringInfo, rinfo)
-}
-
-func SaveChats() {
-	marshalled, err := json.Marshal(RememberedChats)
-	if err != nil {
-		logger.Println(err)
-	}
-	os.WriteFile(SavedChatsPath, marshalled, 0777)
-}
-
-func LoadChats() {
-	file, err := os.ReadFile(SavedChatsPath)
-	if err != nil {
-		return
-	}
-	json.Unmarshal(file, &RememberedChats)
 }
 
 func GetRobot(esn string) (*vector.Vector, error) {

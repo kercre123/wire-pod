@@ -36,12 +36,10 @@ func PlaceChat(chat vars.RememberedChat) {
 	for i, achat := range vars.RememberedChats {
 		if achat.ESN == chat.ESN {
 			vars.RememberedChats[i] = chat
-			vars.SaveChats()
 			return
 		}
 	}
 	vars.RememberedChats = append(vars.RememberedChats, chat)
-	vars.SaveChats()
 }
 
 // remember last 16 lines of chat

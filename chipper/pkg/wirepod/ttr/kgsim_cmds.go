@@ -127,7 +127,7 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 	},
 	{
 		Command:         "newVoiceRequest",
-		Description:     "Starts a new voice command from the robot. Use this if you want more input from the user/if you want to carry out a conversation. You are the only one who can end it in this case. This goes at the end of your response, if you use it.",
+		Description:     "Starts a new voice command from the robot. Use this if you want more input from the user after your response/if you want to carry out a conversation. This goes at the end of your response, if you use it.",
 		ParamChoices:    "now",
 		Action:          ActionNewRequest,
 		SupportedModels: []string{"all"},
@@ -158,13 +158,13 @@ func CreatePrompt(origPrompt string, model string, isKG bool) string {
 				promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
 				prompt = prompt + promptAppendage
 			}
-			if isKG && vars.APIConfig.Knowledge.SaveChat {
-				promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question, use newVoiceRequest. If you don't, you should end the conversation by not using it."
-				prompt = prompt + promptAppentage
-			} else {
-				promptAppentage := "\n\nNOTE: You are NOT in 'conversation' mode. Refrain from asking the user any questions and from using newVoiceRequest."
-				prompt = prompt + promptAppentage
-			}
+		}
+		if isKG && vars.APIConfig.Knowledge.SaveChat {
+			promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question near the end of your response, you MUST use newVoiceRequest. If you decide you want to end the conversation, you should not use it."
+			prompt = prompt + promptAppentage
+		} else {
+			promptAppentage := "\n\nNOTE: You are NOT in 'conversation' mode. Refrain from asking the user any questions and from using newVoiceRequest."
+			prompt = prompt + promptAppentage
 		}
 	}
 	if os.Getenv("DEBUG_PRINT_PROMPT") == "true" {
