@@ -41,3 +41,4 @@
 /whisper.cpp
 .DS_Store
 /chipper/openaiChats.json
+*.txt
