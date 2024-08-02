@@ -133,7 +133,7 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	if gpt3tryagain {
 		model = openai.GPT3Dot5Turbo
 	} else if vars.APIConfig.Knowledge.Provider == "openai" {
-		model = openai.GPT4o
+		model = openai.GPT4oMini
 		logger.Println("Using " + model)
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)

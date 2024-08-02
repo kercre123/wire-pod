@@ -123,7 +123,7 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 		// not impl yet
 		ParamChoices:    "front, lookingUp",
 		Action:          ActionGetImage,
-		SupportedModels: []string{openai.GPT4o},
+		SupportedModels: []string{openai.GPT4o, openai.GPT4oMini},
 	},
 	{
 		Command:         "newVoiceRequest",
@@ -490,7 +490,7 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		Stream:           true,
 	}
 	if vars.APIConfig.Knowledge.Provider == "openai" {
-		aireq.Model = openai.GPT4o
+		aireq.Model = openai.GPT4oMini
 		logger.Println("Using " + aireq.Model)
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
