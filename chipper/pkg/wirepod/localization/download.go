@@ -55,6 +55,8 @@ func DownloadVoskModel(language string) {
 		filename = filename + "ru-0.22.zip"
 	} else if language == "nt-NL" {
 		filename = filename + "nl-0.22.zip"
+	} else if language == "uk-UA" {
+		filename = filename + "uk-v3-small.zip"
 	} else {
 		logger.Println("Language not valid? " + language)
 		return
