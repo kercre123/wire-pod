@@ -1,0 +1,214 @@
+[
+    {
+        "name": "intent_names_username_extend",
+        "keyphrases": ["імена", "назви імена"]
+    },
+    {
+        "name": "intent_weather_extend",
+        "keyphrases": ["погода", "погода на завтра", "яка погода"]
+    },
+    {
+        "name": "intent_names_ask",
+        "keyphrases": ["як мене звати", "моє ім'я", "хто я"]
+    },
+    {
+        "name": "intent_imperative_eyecolor",
+        "keyphrases": ["око", "очі", "зміни колір очей", "поміняй колір очей"]
+    },
+    {
+        "name": "intent_character_age",
+        "keyphrases": ["скільки тобі років"]
+    },
+    {
+        "name": "intent_explore_start",
+        "keyphrases": ["почни досліджувати", "дивись навколо"]
+    },
+    {
+        "name": "intent_system_charger",
+        "keyphrases": ["зарядка", "дім", "база", "знайди зарядку", "знайди базу", "іди на зарядку", "іди на базу", "додому", "іди додому"]
+    },
+    {
+        "name": "intent_system_sleep",
+        "keyphrases": ["спати", "іди спати"]
+    },
+    {
+        "name": "intent_greeting_goodmorning",
+        "keyphrases": ["добрий ранок", "ранок", "доброго ранку", "раночку"]
+    },
+    {
+        "name": "intent_greeting_goodnight",
+        "keyphrases": ["спокійної ночі", "час спати", "добраніч", "на добраніч"]
+    },
+    {
+        "name": "intent_greeting_goodbye",
+        "keyphrases": ["бувай", "прощавай", "я пішов", "я пішла", "папа"]
+    },
+    {
+        "name": "intent_seasonal_happynewyear",
+        "keyphrases": ["феєрверк", "новий рік", "салют", "з новим роком"]
+    },
+    {
+        "name": "intent_seasonal_happyholidays",
+        "keyphrases": ["свято", "зі святом", "сьогодні свято"]
+    },
+    {
+        "name": "intent_amazon_signin",
+        "keyphrases": ["алекса"]
+    },
+    {
+        "name": "intent_imperative_forward",
+        "keyphrases": ["вперед", "їдь вперед"]
+    },
+    {
+        "name": "intent_imperative_turnaround",
+        "keyphrases": ["повернись", "обернись", "оглянься", "розвернись", "покрутись"]
+    },
+    {
+        "name": "intent_imperative_turnleft",
+        "keyphrases": ["ліворуч", "ліво", "вліво"]
+    },
+    {
+        "name": "intent_imperative_turnright",
+        "keyphrases": ["праворуч", "право", "вправо"]
+    },
+    {
+        "name": "intent_play_rollcube",
+        "keyphrases": ["коти куб", "коти кубик", "поверни куб", "поверни кубик"]
+    },
+    {
+        "name": "intent_play_popawheelie",
+        "keyphrases": ["стань на куб", "стань на кубик", "трюк", "покажи трюк"]
+    },
+    {
+        "name": "intent_play_fistbump",
+        "keyphrases": ["дай п'ять", "п'ятюня", "дай кулачок", "давай п'ять", "давай п'ятюню"]
+    },
+    {
+        "name": "intent_play_blackjack",
+        "keyphrases": ["карти", "грати", "граємо в карти", "давай грати", "давай зіграємо"]
+    },
+    {
+        "name": "intent_imperative_affirmative",
+        "keyphrases": ["так", "давай", "звичайно"]
+    },
+    {
+        "name": "intent_imperative_negative",
+        "keyphrases": ["ні"]
+    },
+    {
+        "name": "intent_photo_take_extend",
+        "keyphrases": ["фото", "селфі", "зроби фото", "сфотографуй"]
+    },
+    {
+        "name": "intent_imperative_praise",
+        "keyphrases": ["красень", "молодець", "гарний робот", "розумний робот"]
+    },
+    {
+        "name": "intent_imperative_abuse",
+        "keyphrases": ["це погано", "поганий робот"]
+    },
+    {
+        "name": "intent_imperative_apologize",
+        "keyphrases": ["вибач", "прошу пробачення", "мені шкода"]
+    },
+    {
+        "name": "intent_imperative_backup",
+        "keyphrases": ["назад", "рухайся назад", "їдь назад"]
+    },
+    {
+        "name": "intent_imperative_volumedown",
+        "keyphrases": ["зменш звук", "зменш гучність", "тише гучність", "тихіше"]
+    },
+    {
+        "name": "intent_imperative_volumeup",
+        "keyphrases": ["додай звук", "додай гучність", "гучніше"]
+    },
+    {
+        "name": "intent_imperative_lookatme",
+        "keyphrases": ["дивись на мене", "подивись на мене", "глянь на мене"]
+    },
+    {
+        "name": "intent_imperative_volumelevel_extend",
+        "keyphrases": ["гучність", "рівень гучності"]
+    },
+    {
+        "name": "intent_imperative_shutup",
+        "keyphrases": ["заткнися", "замовкни"]
+    },
+    {
+        "name": "intent_greeting_hello",
+        "keyphrases": ["привіт", "радий тебе бачити"]
+    },
+    {
+        "name": "intent_imperative_come",
+        "keyphrases": ["до мене", "іди до мене", "іди сюди", "їдь до мене", "їдь сюди"]
+    },
+    {
+        "name": "intent_imperative_love",
+        "keyphrases": ["люблю тебе", "я тебе люблю", "ти такий милий", "ти смішний"]
+    },
+    {
+        "name": "intent_knowledge_promptquestion",
+        "keyphrases": ["питання", "у мене є питання", "запитання"]
+    },
+    {
+        "name": "intent_clock_checktimer",
+        "keyphrases": ["перевір таймер"]
+    },
+    {
+        "name": "intent_global_stop_extend",
+        "keyphrases": ["зупини таймер", "скасуй таймер", "вимкни таймер"]
+    },
+    {
+        "name": "intent_clock_settimer_extend",
+        "keyphrases": ["таймер", "постав таймер", "встанови таймер"]
+    },
+    {
+        "name": "intent_clock_time",
+        "keyphrases": ["час", "котра година", "скільки часу", "котра зараз година", "яка година", "яка зараз година"]
+    },
+    {
+        "name": "intent_imperative_quiet",
+        "keyphrases": ["тихо", "припини", "будь тихіше", "будь тихо"]
+    },
+    {
+        "name": "intent_imperative_dance",
+        "keyphrases": ["танець", "танцюй", "давай танцювати"]
+    },
+    {
+        "name": "intent_play_pickupcube",
+        "keyphrases": ["візьми кубик", "підбери кубик", "підніми кубик"]
+    },
+    {
+        "name": "intent_imperative_fetchcube",
+        "keyphrases": ["дай кубик", "принеси мені", "неси мені", "принеси свій кубик"]
+    },
+    {
+        "name": "intent_imperative_findcube",
+        "keyphrases": ["знайди кубик", "знайди свій кубик", "шукай кубик", "де твій кубик"]
+    },
+    {
+        "name": "intent_play_anytrick",
+        "keyphrases": ["трюк", "зроби трюк"]
+    },
+    {
+        "name": "intent_message_recordmessage_extend",
+        "keyphrases": ["запиши"]
+    },
+    {
+        "name": "intent_message_playmessage_extend",
+        "keyphrases": ["відтвори повідомлення", "повтори за мною"]
+    },
+    {
+        "name": "intent_blackjack_hit",
+        "keyphrases": ["ще", "ще карту"]
+    },
+    {
+        "name": "intent_blackjack_stand",
+        "keyphrases": ["досить"]
+    },
+    {
+        "name": "intent_play_keepaway",
+        "keyphrases": ["відстань", "відвали", "йди геть", "іди звідси", "котись звідси"]
+    }
+]
