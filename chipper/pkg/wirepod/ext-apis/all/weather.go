@@ -18,22 +18,34 @@ const (
 	WEATHER_THUNDER = "Thunderstorms"
 )
 
-type WeatherAPIStore struct {
-	Name         string      `json:"name"`
-	Link         string      `json:"dashlink"`
-	NeedsPayment bool        `json:"needspayment"`
-	APIAddr      string      `json:"apiaddr"`
-	GeoAddr      string      `json:"geoaddr"`
-	NeedsGeo     bool        `json:"needsgeo"`
-	Structure    interface{} `json:"weatherstructure"`
-	GeoStructure interface{} `json:"geostructure"`
+type WeatherAPI struct {
+	Name          string
+	Link          string
+	NeedsPayment  bool
+	APIAddr       string
+	GeoAddr       string
+	NeedsGeo      bool
+	Structure     interface{}
+	GeoStructure  interface{}
+	Meteorologist WeatherAPIer
 }
 
-type WeatherAPI interface {
-	WeatherAPIStore
-	GetWeather(Coordinates) WeatherConditions
+type WeatherAPIer interface {
+	/*
+		functions you need to define
+	*/
+	GetWeatherWithLocation(string) WeatherConditions
+	GetWeatherWithCoordinates(Coordinates) WeatherConditions
 	GetCoordinates() Coordinates
-	GetWeatherFull(esn string) WeatherConditions
+	// test the API, see if API key is correct
+	Test() (bool, error)
+
+	/*
+		functions you DON'T need to define
+	*/
+	// actual entry-point function. this is already defined
+	// if NeedsGeo is false, it won't use GetWeatherWithCoordinates, vice versa
+	GetWeather(string) WeatherConditions
 }
 
 // get bot's location from JDocs, usually in the format of:
@@ -48,6 +60,10 @@ func GetLocation(esn string) (string, error) {
 	return jdocSettings.DefaultLocation, nil
 }
 
+func SaveAPIKey(provider string, key string) {
+
+}
+
 type Coordinates struct {
 	Lat float64 `json:"lat"`
 	Lon float64 `json:"lon"`
@@ -57,4 +73,17 @@ type WeatherConditions struct {
 	Condition string `json:"condition"`
 	TempF     int    `json:"tempf"`
 	TempC     int    `json:"tempc"`
+}
+
+func NewWeatherAPI(name, link, apiaddr, geoaddr string, needspayment, needsgeo bool, apistruct, geostruct interface{}) WeatherAPI {
+	return WeatherAPI{
+		Name:         name,
+		Link:         link,
+		APIAddr:      apiaddr,
+		GeoAddr:      geoaddr,
+		NeedsPayment: needspayment,
+		NeedsGeo:     needsgeo,
+		Structure:    apistruct,
+		GeoStructure: geostruct,
+	}
 }
