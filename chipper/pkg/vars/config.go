@@ -44,38 +44,11 @@ type apiConfig struct {
 		EPConfig bool   `json:"epconfig"`
 		Port     string `json:"port"`
 	} `json:"server"`
-	HasReadFromEnv   bool `json:"hasreadfromenv"`
 	PastInitialSetup bool `json:"pastinitialsetup"`
 }
 
 func WriteConfigToDisk() {
 	logger.Println("Configuration changed, writing to disk")
-	writeBytes, _ := json.Marshal(APIConfig)
-	os.WriteFile(ApiConfigPath, writeBytes, 0644)
-}
-
-func CreateConfigFromEnv() {
-	// if no config exists, create it
-	if os.Getenv("WEATHERAPI_ENABLED") == "true" {
-		APIConfig.Weather.Enable = true
-		APIConfig.Weather.Provider = os.Getenv("WEATHERAPI_PROVIDER")
-		APIConfig.Weather.Key = os.Getenv("WEATHERAPI_KEY")
-		APIConfig.Weather.Unit = os.Getenv("WEATHERAPI_UNIT")
-	} else {
-		APIConfig.Weather.Enable = false
-	}
-	if os.Getenv("KNOWLEDGE_ENABLED") == "true" {
-		APIConfig.Knowledge.Enable = true
-		APIConfig.Knowledge.Provider = os.Getenv("KNOWLEDGE_PROVIDER")
-		if os.Getenv("KNOWLEDGE_PROVIDER") == "houndify" {
-			APIConfig.Knowledge.ID = os.Getenv("KNOWLEDGE_ID")
-		}
-		APIConfig.Knowledge.Key = os.Getenv("KNOWLEDGE_KEY")
-	} else {
-		APIConfig.Knowledge.Enable = false
-	}
-	WriteSTT()
-	APIConfig.HasReadFromEnv = true
 	writeBytes, _ := json.Marshal(APIConfig)
 	os.WriteFile(ApiConfigPath, writeBytes, 0644)
 }
@@ -90,10 +63,7 @@ func WriteSTT() {
 }
 
 func ReadConfig() {
-	if _, err := os.Stat(ApiConfigPath); err != nil {
-		CreateConfigFromEnv()
-		logger.Println("API config JSON created")
-	} else {
+	if _, err := os.Stat(ApiConfigPath); err == nil {
 		// read config
 		configBytes, err := os.ReadFile(ApiConfigPath)
 		if err != nil {
@@ -114,12 +84,6 @@ func ReadConfig() {
 		// stt service is the only thing controlled by shell
 		if APIConfig.STT.Service != os.Getenv("STT_SERVICE") {
 			WriteSTT()
-		}
-		if !APIConfig.HasReadFromEnv {
-			if APIConfig.Server.Port != os.Getenv("DDL_RPC_PORT") {
-				APIConfig.HasReadFromEnv = true
-				APIConfig.PastInitialSetup = true
-			}
 		}
 
 		if APIConfig.Knowledge.Model == "meta-llama/Llama-2-70b-chat-hf" {
