@@ -8,8 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO:
+// Set and Get functions for per-bot configs
+// make sure Delete function goes through each per-bot config and resets the default in case the deleted uuid is the bot's default
+
 var ExtAPIConfs ExternalAPIConfigs
-var ExternalApiConfigPath = "./externalAPIConfigs.json"
+var ExternallegacyConfPath = "./externallegacyConfs.json"
 var ExtAPIMutex sync.Mutex
 
 type WeatherConfig struct {
@@ -46,6 +50,14 @@ type TTSConfig struct {
 	Functional bool   `json:"functional"`
 }
 
+type PerBotConfig struct {
+	ESN       string `json:"esn"`
+	KGID      string `json:"kgid"`
+	IGID      string `json:"igid"`
+	WeatherID string `json:"weatherid"`
+	STTID     string `json:"sttid"`
+}
+
 type ExternalAPIConfigs struct {
 	// uuids
 	DefaultWeather string          `json:"defaultweather"`
@@ -55,11 +67,12 @@ type ExternalAPIConfigs struct {
 	Weathers       []WeatherConfig `json:"weathers"`
 	KGs            []KGConfig      `json:"kgs"`
 	TTSes          []TTSConfig     `json:"ttses"`
+	BotConfigs     []PerBotConfig  `json:"botconfigs"`
 }
 
 func SaveExternalAPIConfigs() {
 	marshalled, _ := json.Marshal(ExtAPIConfs)
-	os.WriteFile(ExternalApiConfigPath, marshalled, 0777)
+	os.WriteFile(ExternallegacyConfPath, marshalled, 0777)
 }
 
 func GetUUID() string {
@@ -138,7 +151,17 @@ func SetTTSDefault(uuid string) {
 	ExtAPIMutex.Unlock()
 }
 
-func GetExtAPIConfigs() ExternalAPIConfigs {
+func SetPerBotKG(esn string, uuid string) {
+	ExtAPIMutex.Lock()
+	for i, rob := range ExtAPIConfs.BotConfigs {
+		if rob.ESN == esn {
+			ExtAPIConfs.BotConfigs[i].KGID = uuid
+		}
+	}
+	ExtAPIMutex.Unlock()
+}
+
+func GetExtlegacyConfs() ExternalAPIConfigs {
 	ExtAPIMutex.Lock()
 	defer ExtAPIMutex.Unlock()
 	return ExtAPIConfs
@@ -193,30 +216,30 @@ func DeleteAPIConfig(uuid string) {
 
 }
 
-func MigrateAPIConfigs() {
-	if APIConfig.Knowledge.Enable {
+func MigrateLegacyConfs() {
+	if legacyConf.Knowledge.Enable {
 		var hid string
 		var hkey string
 		var kapikey string
 		var igcapable bool
-		if APIConfig.Knowledge.ID != "" {
-			hid = APIConfig.Knowledge.ID
-			hkey = APIConfig.Knowledge.Key
+		if legacyConf.Knowledge.ID != "" {
+			hid = legacyConf.Knowledge.ID
+			hkey = legacyConf.Knowledge.Key
 			igcapable = false
-		} else if APIConfig.Knowledge.Key != "" {
-			kapikey = APIConfig.Knowledge.Key
+		} else if legacyConf.Knowledge.Key != "" {
+			kapikey = legacyConf.Knowledge.Key
 			igcapable = true
 		}
 		kgId := AddKGConfig(
 			KGConfig{
-				Provider:          APIConfig.Knowledge.Provider,
+				Provider:          legacyConf.Knowledge.Provider,
 				APIKey:            kapikey,
 				HoundifyClientID:  hid,
 				HoundifyClientKey: hkey,
 				LLMSpecifics: KGLLMSpecifics{
-					Model:              APIConfig.Knowledge.Model,
-					Endpoint:           APIConfig.Knowledge.Endpoint,
-					Prompt:             APIConfig.Knowledge.OpenAIPrompt,
+					Model:              legacyConf.Knowledge.Model,
+					Endpoint:           legacyConf.Knowledge.Endpoint,
+					Prompt:             legacyConf.Knowledge.OpenAIPrompt,
 					IntentGraphCapable: igcapable,
 				},
 				Functional: true,
@@ -227,25 +250,59 @@ func MigrateAPIConfigs() {
 			SetIGDefault(kgId)
 		}
 	}
-	if APIConfig.Weather.Enable {
+	if legacyConf.Weather.Enable {
 		wId := AddWeatherConfig(
 			WeatherConfig{
-				Provider:   APIConfig.Weather.Provider,
-				APIKey:     APIConfig.Weather.Key,
+				Provider:   legacyConf.Weather.Provider,
+				APIKey:     legacyConf.Weather.Key,
 				Functional: true,
 			},
 		)
 		SetWeatherDefault(wId)
 	}
-	if APIConfig.Knowledge.Provider == "openai" {
+	if legacyConf.Knowledge.Provider == "openai" {
 		ttsId := AddTTSConfig(
 			TTSConfig{
 				Provider:   "openai",
-				APIKey:     APIConfig.Knowledge.Key,
-				Voice:      APIConfig.Knowledge.OpenAIVoice,
+				APIKey:     legacyConf.Knowledge.Key,
+				Voice:      legacyConf.Knowledge.OpenAIVoice,
 				Functional: true,
 			},
 		)
 		SetTTSDefault(ttsId)
 	}
+}
+
+type legacyAPIConfig struct {
+	Weather struct {
+		Enable   bool   `json:"enable"`
+		Provider string `json:"provider"`
+		Key      string `json:"key"`
+		Unit     string `json:"unit"`
+	} `json:"weather"`
+	Knowledge struct {
+		Enable                 bool   `json:"enable"`
+		Provider               string `json:"provider"`
+		Key                    string `json:"key"`
+		ID                     string `json:"id"`
+		Model                  string `json:"model"`
+		IntentGraph            bool   `json:"intentgraph"`
+		RobotName              string `json:"robotName"`
+		OpenAIPrompt           string `json:"openai_prompt"`
+		OpenAIVoice            string `json:"openai_voice"`
+		OpenAIVoiceWithEnglish bool   `json:"openai_voice_with_english"`
+		SaveChat               bool   `json:"save_chat"`
+		CommandsEnable         bool   `json:"commands_enable"`
+		Endpoint               string `json:"endpoint"`
+	} `json:"knowledge"`
+	STT struct {
+		Service  string `json:"provider"`
+		Language string `json:"language"`
+	} `json:"STT"`
+	Server struct {
+		// false for ip, true for escape pod
+		EPConfig bool   `json:"epconfig"`
+		Port     string `json:"port"`
+	} `json:"server"`
+	PastInitialSetup bool `json:"pastinitialsetup"`
 }
