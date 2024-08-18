@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -73,9 +73,9 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			break
 		}
 	}
-	if strings.Contains(req.Items[0].DocName, "vic.AppTokens") {
+	if strings.Contains(req.Items[0].DocName, vars.APP_TOKENS_JDOC) {
 		StoreBotInfo(ctx, req.Thing)
-		_, tokenExists := vars.GetJdoc(req.Thing, "vic.AppTokens")
+		_, tokenExists := vars.GetJdoc(req.Thing, vars.APP_TOKENS_JDOC)
 		if !tokenExists {
 			logger.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
 			matched := false
@@ -102,7 +102,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			for num, pair := range tokenserver.SessionWriteStoreNames {
 				if strings.EqualFold(ipAddr, strings.Split(pair[0], ":")[0]) {
 					sessionMatched = true
-					fullPath := filepath.Join(vars.SDKIniPath, pair[1] + "-" + esn + ".cert")
+					fullPath := filepath.Join(vars.SDKIniPath, pair[1]+"-"+esn+".cert")
 					if _, err := os.Stat(vars.SDKIniPath); err != nil {
 						logger.Println("Creating " + vars.SDKIniPath + " directory")
 						os.Mkdir(vars.SDKIniPath, 0755)
@@ -131,7 +131,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 						WriteToIniSecondary(esn, guid, ipAddr)
 					}
 					// bot is not authenticated yet, do not write to botinfo json
-					tokenJdoc, _ := vars.GetJdoc(req.Thing, "vic.AppToken")
+					tokenJdoc, _ := vars.GetJdoc(req.Thing, vars.APP_TOKENS_JDOC)
 					var truejdoc jdocspb.Jdoc
 					truejdoc.ClientMetadata = tokenJdoc.ClientMetadata
 					truejdoc.DocVersion = tokenJdoc.DocVersion

@@ -127,22 +127,6 @@ type CustomIntent struct {
 	LuaScript      string   `json:"luascript"`
 }
 
-type AJdoc struct {
-	DocVersion     uint64 `protobuf:"varint,1,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"`            // first version = 1; 0 => invalid or doesn't exist
-	FmtVersion     uint64 `protobuf:"varint,2,opt,name=fmt_version,json=fmtVersion,proto3" json:"fmt_version,omitempty"`            // first version = 1; 0 => invalid
-	ClientMetadata string `protobuf:"bytes,3,opt,name=client_metadata,json=clientMetadata,proto3" json:"client_metadata,omitempty"` // arbitrary client-defined string, eg a data fingerprint (typ "", 32 chars max)
-	JsonDoc        string `protobuf:"bytes,4,opt,name=json_doc,json=jsonDoc,proto3" json:"json_doc,omitempty"`
-}
-
-type botjdoc struct {
-	// vic:00000000
-	Thing string `json:"thing"`
-	// vic.RobotSettings, etc
-	Name string `json:"name"`
-	// actual jdoc
-	Jdoc AJdoc `json:"jdoc"`
-}
-
 func join(p1, p2 string) string {
 	return filepath.Join(p1, p2)
 }
@@ -310,59 +294,6 @@ func LoadIntents() ([]JsonIntent, error) {
 		// logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + APIConfig.STT.Language + ")")
 	}
 	return jsonIntents, err
-}
-
-func WriteJdocs() {
-	writeBytes, _ := json.Marshal(BotJdocs)
-	os.WriteFile(JdocsPath, writeBytes, 0644)
-}
-
-// removes a bot from jdocs file
-func DeleteData(thing string) {
-	var newdocs []botjdoc
-	for _, jdocentry := range BotJdocs {
-		if jdocentry.Thing != thing {
-			newdocs = append(newdocs, jdocentry)
-		}
-	}
-	BotJdocs = newdocs
-	WriteJdocs()
-}
-
-func GetJdoc(thing, jdocname string) (AJdoc, bool) {
-	for _, botJdoc := range BotJdocs {
-		if botJdoc.Name == jdocname && botJdoc.Thing == thing {
-			return botJdoc.Jdoc, true
-		}
-	}
-	return AJdoc{}, false
-}
-
-//    DocVersion     uint64 `protobuf:"varint,1,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"`            // first version = 1; 0 => invalid or doesn't exist
-// FmtVersion     uint64 `protobuf:"varint,2,opt,name=fmt_version,json=fmtVersion,proto3" json:"fmt_version,omitempty"`            // first version = 1; 0 => invalid
-// ClientMetadata string `protobuf:"bytes,3,opt,name=client_metadata,json=clientMetadata,proto3" json:"client_metadata,omitempty"` // arbitrary client-defined string, eg a data fingerprint (typ "", 32 chars max)
-// JsonDoc        string
-
-func AddJdoc(thing string, name string, jdoc AJdoc) uint64 {
-	var latestVersion uint64 = 0
-	matched := false
-	for index, jdocentry := range BotJdocs {
-		if jdocentry.Thing == thing && jdocentry.Name == name {
-			BotJdocs[index].Jdoc = jdoc
-			latestVersion = BotJdocs[index].Jdoc.DocVersion
-			matched = true
-			break
-		}
-	}
-	if !matched {
-		var newbot botjdoc
-		newbot.Thing = thing
-		newbot.Name = name
-		newbot.Jdoc = jdoc
-		BotJdocs = append(BotJdocs, newbot)
-	}
-	WriteJdocs()
-	return latestVersion
 }
 
 func ReadSessionCerts() {
