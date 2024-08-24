@@ -331,7 +331,7 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 	if strings.TrimSpace(input) == "" {
 		return nil
 	}
-	openaiVoice := getOpenAIVoice(vars.APIConfig.Knowledge.OpenAIPrompt)
+	openaiVoice := getOpenAIVoice(vars.APIConfig.Knowledge.OpenAIVoice)
 	// if vars.APIConfig.Knowledge.OpenAIVoice == "" {
 	// 	openaiVoice = openai.VoiceFable
 	// } else {
