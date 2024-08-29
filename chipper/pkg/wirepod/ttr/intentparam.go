@@ -11,6 +11,10 @@ import (
 	lcztn "github.com/kercre123/wire-pod/chipper/pkg/wirepod/localization"
 )
 
+/*
+	this is one of the worst pieces of code i have ever made. if you come across this, pweeasee fix it
+*/
+
 // stt
 func ParamChecker(req interface{}, intent string, speechText string, botSerial string) {
 	var intentParam string
@@ -25,25 +29,9 @@ func ParamChecker(req interface{}, intent string, speechText string, botSerial s
 	var DoWeatherError bool = false
 
 	// see if jdoc exists
-	botJdoc, jdocExists := vars.GetJdoc("vic:"+botSerial, "vic.RobotSettings")
+	botJdoc, jdocExists := vars.GetJdoc(vars.ESNToThing(botSerial), vars.ROBOT_SETTINGS_JDOC)
 	if jdocExists {
-		type robotSettingsJson struct {
-			ButtonWakeword int  `json:"button_wakeword"`
-			Clock24Hour    bool `json:"clock_24_hour"`
-			CustomEyeColor struct {
-				Enabled    bool    `json:"enabled"`
-				Hue        float64 `json:"hue"`
-				Saturation float64 `json:"saturation"`
-			} `json:"custom_eye_color"`
-			DefaultLocation  string `json:"default_location"`
-			DistIsMetric     bool   `json:"dist_is_metric"`
-			EyeColor         int    `json:"eye_color"`
-			Locale           string `json:"locale"`
-			MasterVolume     int    `json:"master_volume"`
-			TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
-			TimeZone         string `json:"time_zone"`
-		}
-		var robotSettings robotSettingsJson
+		var robotSettings vars.RobotSettings
 		err := json.Unmarshal([]byte(botJdoc.JsonDoc), &robotSettings)
 		if err != nil {
 			logger.Println("Error unmarshaling json in paramchecker")
@@ -337,7 +325,7 @@ func ParamCheckerSlotsEnUS(req interface{}, intent string, slots map[string]stri
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
 	// see if jdoc exists
-	botJdoc, jdocExists := vars.GetJdoc("vic:"+botSerial, "vic.RobotSettings")
+	botJdoc, jdocExists := vars.GetJdoc(vars.ESNToThing(botSerial), vars.ROBOT_SETTINGS_JDOC)
 	if jdocExists {
 		type robotSettingsJson struct {
 			ButtonWakeword int  `json:"button_wakeword"`
