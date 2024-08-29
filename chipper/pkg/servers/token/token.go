@@ -98,7 +98,7 @@ func SetBotGUID(esn string, guid string, guidHash string) error {
 
 func WriteTokenHash(esn string, tokenHash string) error {
 	// will return blank jdoc if it doesn't exist
-	jdoc, jdocExists := vars.GetJdoc(esn, "vic.AppTokens")
+	jdoc, jdocExists := vars.GetJdoc(vars.ESNToThing(esn), vars.APP_TOKENS_JDOC)
 	var tokenJson ClientTokenManager
 	if !jdocExists {
 		jdoc.DocVersion = 1
