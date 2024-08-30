@@ -13,7 +13,7 @@ import (
 // make sure Delete function goes through each per-bot config and resets the default in case the deleted uuid is the bot's default
 
 var ExtAPIConfs ExternalAPIConfigs
-var ExternallegacyConfPath = "./externallegacyConfs.json"
+var ExternalAPIConfigsPath = "./externalAPIConfigs.json"
 var ExtAPIMutex sync.Mutex
 
 type WeatherConfig struct {
@@ -72,7 +72,7 @@ type ExternalAPIConfigs struct {
 
 func SaveExternalAPIConfigs() {
 	marshalled, _ := json.Marshal(ExtAPIConfs)
-	os.WriteFile(ExternallegacyConfPath, marshalled, 0777)
+	os.WriteFile(ExternalAPIConfigsPath, marshalled, 0777)
 }
 
 func GetUUID() string {
@@ -161,7 +161,7 @@ func SetPerBotKG(esn string, uuid string) {
 	ExtAPIMutex.Unlock()
 }
 
-func GetExtlegacyConfs() ExternalAPIConfigs {
+func GetExtAPIConfigs() ExternalAPIConfigs {
 	ExtAPIMutex.Lock()
 	defer ExtAPIMutex.Unlock()
 	return ExtAPIConfs
@@ -211,6 +211,14 @@ func DeleteAPIConfig(uuid string) {
 		} else {
 			newExtAPIs.DefaultKG = ""
 			newExtAPIs.DefaultIG = ""
+		}
+	}
+	for i, rob := range ExtAPIConfs.BotConfigs {
+		if rob.IGID == uuid {
+			if len(newExtAPIs.KGs) > 0 {
+				if ExtAPIConfs.B
+				ExtAPIConfs.BotConfigs[i].IGID == newExt
+			}
 		}
 	}
 
