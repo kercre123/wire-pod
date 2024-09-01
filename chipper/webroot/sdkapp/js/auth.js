@@ -12,12 +12,13 @@ getSDKInfo().then((jsonResp) => {
     option.value = jsonResp["robots"][i]["esn"];
     x.add(option);
   }
-}).catch(() => {
+}).catch((error) => {
+  console.error('Unable to get SDK info:', error);
   alert("Error, it's likely no bots are authenticated");
 });
 
 function connectSDK() {
-  var x = document.getElementById("botList");
+  var botList = document.getElementById("botList");
   fetch("/api-sdk/conn_test?serial=" + botList.value)
     .then((response) => response.text())
     .then((response) => {
