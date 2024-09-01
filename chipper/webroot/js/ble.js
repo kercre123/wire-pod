@@ -54,7 +54,7 @@ function beginBLESetup() {
 function reInitBLE() {
   fetch("/api-ble/disconnect").then(() => fetch("/api-ble/init").catch(() => {
     showExternalSetupInstructions();
-  }).catch(() => fetch("/api-ble/init"));
+  })).catch(() => fetch("/api-ble/init"));
 }
 
 function scanRobots(returning) {
