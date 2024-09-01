@@ -433,14 +433,14 @@ input[type='radio']:disabled:after {
   /* content is an svg of a lightning bolt */
   content: url('data:image/svg+xml;utf8,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 60"><polygon points="20,0 5,33 24,33 15,60 35,27 16,27" fill="white"/></svg>');
   /* svg drop shadow */
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 1));
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.4));
 }
 
 .chargeTimeRemaining {
   position: absolute;
-  bottom: 3px;
+  bottom: 0px;
   left: 3px;
-  font-size: 0.8em;
+  font-size: 0.6em;
   color: white;
   text-shadow: 0 0 4px rgba(0, 0, 0, 1);
 }
