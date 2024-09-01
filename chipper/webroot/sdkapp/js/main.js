@@ -415,3 +415,9 @@ function getCurrentSettings() {
     s11.appendChild(s11P);
   };
 }
+
+renderBatteryInfo(esn).then(() => {
+  setInterval(() => {
+    updateBatteryInfo(esn);
+  }, 3000);
+});
