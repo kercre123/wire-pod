@@ -3,19 +3,20 @@ var botStats = document.getElementById("botStats");
 
 async function renderBatteryInfo(sdkInfo) {
   for (var i = 0; i < sdkInfo["robots"].length; i++) {
+    const serial = sdkInfo["robots"][i]["esn"];
     // For each robot, we'll create a new div to hold the battery information with a class of "batteryContainer"
     var batteryContainer = document.createElement("div");
     batteryContainer.className = "batteryContainer";
     botStats.appendChild(batteryContainer);
-    botStats.onclick = function() {
-      window.location.href = "/settings.html?serial=" + sdkInfo["robots"][i]["esn"];
+    batteryContainer.onclick = function() {
+      window.location.href = "/settings.html?serial=" + serial;
     };
 
     // Create a tooltip for the robot's serial number, with class "tooltip"
 
     var tooltip = document.createElement("span");
     tooltip.className = "tooltip";
-    tooltip.innerHTML = `<b>${sdkInfo["robots"][i]["esn"]}</b>`;
+    tooltip.innerHTML = `<b>${serial}</b>`;
     batteryContainer.appendChild(tooltip);
 
     // Create a new div to hold the battery status with a class of "batteryOutline", this will be the outline of the battery status
@@ -36,7 +37,7 @@ async function renderBatteryInfo(sdkInfo) {
     // We will manage the battery level via class names, there are only 4 levels reported (0, 1, 2, 3)
 
     // Get the battery status for the robot
-    const batteryStatus = await getBatteryStatus(sdkInfo["robots"][i]["esn"]); // {"status":{"code":1},"battery_level":3,"battery_volts":3.9210937,"is_on_charger_platform":true}
+    const batteryStatus = await getBatteryStatus(serial); // {"status":{"code":1},"battery_level":3,"battery_volts":3.9210937,"is_on_charger_platform":true}
 
     if (!batteryStatus) {
       batteryLevel.className = "batteryLevel batteryUnknown";
