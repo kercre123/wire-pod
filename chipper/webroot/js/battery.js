@@ -57,8 +57,6 @@ async function renderBatteryInfo(serial) {
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
     return;
   }
-  // Add the battery voltage to the tooltip
-  tooltip.innerHTML += `<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
 
   // If the robot is on the charger platform, we'll set the battery level to "charging" by adding a child div with class "charging"
   if (batteryStatus["is_on_charger_platform"]) {
@@ -72,7 +70,13 @@ async function renderBatteryInfo(serial) {
 
   // Set the battery level based on the battery_level value and handle the rest in css
   batteryLevel.className = "batteryLevel battery" + batteryStatus["battery_level"];
-  batteryLevel.style.width = getBatteryPercentage(batteryStatus["battery_volts"]) + "%";
+  const batteryPercentage = getBatteryPercentage(batteryStatus["battery_volts"]);
+  batteryLevel.style.width = batteryPercentage + "%";
+
+  tooltip.innerHTML += `<br/>${batteryPercentage}%?`;
+
+  // Add the battery voltage to the tooltip
+  tooltip.innerHTML += `<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
 }
 
 async function updateBatteryInfo(serial, i) {
@@ -95,16 +99,17 @@ async function updateBatteryInfo(serial, i) {
     return;
   }
 
-  // Clear tooltip, and replace serial number and the latest voltage
-  tooltip.innerHTML = `<b>${sdkInfo["robots"][i]["esn"]}</b><br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
-
   // Set the battery level based on the battery_level value and handle the rest in css
   const batteryLevelClass = "batteryLevel battery" + batteryStatus["battery_level"];
   if (batteryLevel.className !== batteryLevelClass) {
     batteryLevel.className = batteryLevelClass;
   }
+  const batteryPercentage = getBatteryPercentage(batteryStatus["battery_volts"]);
   // Update the battery level
-  batteryLevel.style.width = getBatteryPercentage(batteryStatus["battery_volts"]) + "%";
+  batteryLevel.style.width = batteryPercentage + "%";
+
+  // Clear tooltip, and replace serial number and the latest voltage
+  tooltip.innerHTML = `<b>${sdkInfo["robots"][i]["esn"]}</b><br/>${batteryPercentage}%?<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
 
   // Update the charging status
   if (batteryStatus["is_on_charger_platform"]) {
