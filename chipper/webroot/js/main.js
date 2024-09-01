@@ -35,8 +35,8 @@ function updateIntentSelection(element) {
         error.innerHTML = "No intents found, you must add one first";
         container.appendChild(error);
       }
-    }).catch((error) => {
-      console.error(error);
+    }).catch(() => {
+      // Do nothing
     });
 }
 
