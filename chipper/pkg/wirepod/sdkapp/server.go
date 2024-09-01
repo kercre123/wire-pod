@@ -2,6 +2,7 @@ package sdkapp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -136,6 +137,11 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case r.URL.Path == "/api-sdk/get_battery":
+		// Ensure the endpoint times out after 15 seconds
+		ctx := r.Context() // Get the request context
+		ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+
 		resp, err := robot.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
