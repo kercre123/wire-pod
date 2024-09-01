@@ -396,10 +396,10 @@ input[type='radio']:disabled:after {
 }
 
 .vectorFace {
-  height: 50px;
+  height: 60px;
   width: 50px;
   background-position: center;
-  background-size: 50px 42px;
+  background-size: 60px 50px;
   background-repeat: no-repeat;
 }
 
