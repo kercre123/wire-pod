@@ -67,6 +67,9 @@ async function updateBatteryInfo(sdkInfo) {
     }
 
     var batteryContainer = document.getElementsByClassName("batteryContainer")[i];
+    if (!batteryContainer) {
+      continue;
+    }
     var batteryOutline = batteryContainer.getElementsByClassName("batteryOutline")[0];
     var batteryLevel = batteryOutline.getElementsByClassName("batteryLevel")[0];
     var vectorFace = batteryOutline.getElementsByClassName("vectorFace")[0];
@@ -121,8 +124,6 @@ async function processBotStats() {
     renderBatteryInfo(sdkInfo);
 
     setInterval(async () => {
-      // Clear the botStats div to remove all battery information
-      botStats.innerHTML = "";
       // Re-render the battery information
       updateBatteryInfo(sdkInfo);
     }, 3000);
