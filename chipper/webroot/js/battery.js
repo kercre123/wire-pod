@@ -101,7 +101,7 @@ async function updateBatteryInfo(serial, i) {
     var charging = batteryOutline.getElementsByClassName("charging")[0];
     if (charging) {
       charging.remove();
-      vectorFace.style.backgroundImage = "url(/assets/face.gif)";
+      vectorFace.style.backgroundImage = "url(/assets/facegaze.gif)";
     }
     chargeTimeRemaining.style.display = "none";
   }
@@ -178,7 +178,7 @@ async function renderBatteryInfo(serial, i = 0) {
     batteryOutline.appendChild(charging);
     vectorFace.style.backgroundImage = "url(/assets/expandface.gif)";
   } else {
-    vectorFace.style.backgroundImage = "url(/assets/face.gif)";
+    vectorFace.style.backgroundImage = "url(/assets/facegaze.gif)";
   }
 
   // Set the battery level based on the battery_level value and handle the rest in css
