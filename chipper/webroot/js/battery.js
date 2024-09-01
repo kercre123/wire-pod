@@ -65,7 +65,7 @@ async function updateBatteryInfo(serial, i) {
     }
   } else if (batteryStatus["battery_level"] === 1 && !batteryStatus["is_on_charger_platform"]) {
     // Cap the battery level at 20% if the battery level is 1 and not charging
-    vectorFace.style.backgroundImage = "url(/assets/homeface.gif)";
+    vectorFace.style.backgroundImage = "url(/assets/homeface.png)";
     batteryPercentage = Math.min(20, batteryPercentage);
   }
 
