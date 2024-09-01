@@ -135,6 +135,19 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(json))
 			return
 		}
+	case r.URL.Path == "/api-sdk/get_battery":
+		resp, err := robot.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		jsonBytes, err := json.Marshal(resp)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, string(jsonBytes))
+		return
 	case r.URL.Path == "/api-sdk/time_format_12":
 		setSettingSDKintbool(robotObj, "clock_24_hour", "false")
 		fmt.Fprintf(w, "done")
