@@ -3,11 +3,11 @@ var botStats = document.getElementById("botStats");
 function getBatteryPercentage(voltage) {
   if (voltage >= 4.15) {
     return 100; // Fully charged or charging
-  } else if (voltage <= 3.6) {
-    return 3; // Nearly empty
+  } else if (voltage <= 3.5) {
+    return 0; // Nearly empty
   } else {
     const maxVoltage = 4.15;
-    const minVoltage = 3.6;
+    const minVoltage = 3.5;
     const exponent = 1.3;
 
     // Calculate the battery percentage using the non-linear approximation
