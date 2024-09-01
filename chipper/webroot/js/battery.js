@@ -2,16 +2,18 @@ var botStats = document.getElementById("botStats");
 
 function getBatteryPercentage(voltage) {
   let percentage;
+  const maxVoltage = 4.1; // Maximum voltage for the battery
+  const minVoltage = 3.5; // Minimum voltage for the battery
 
-  if (voltage >= 4.2) {
+  if (voltage >= maxVoltage) {
       percentage = 100; // Fully charged
   } else if (voltage >= 3.85) {
       // Fast drop from 100% to 80%
-      let scaledVoltage = (voltage - 3.85) / (4.2 - 3.85);
+      let scaledVoltage = (voltage - 3.85) / (maxVoltage - 3.85);
       percentage = 80 + 20 * Math.log10(1 + scaledVoltage * 9); // Adjust factor to make the curve steeper
-  } else if (voltage >= 3.5) {
+  } else if (voltage >= minVoltage) {
       // Gradual drop off from 80% to 0%
-      let scaledVoltage = (voltage - 3.5) / (3.85 - 3.5);
+      let scaledVoltage = (voltage - minVoltage) / (3.85 - minVoltage);
       percentage = 80 * Math.log10(1 + scaledVoltage * 9); // Adjust factor for the curve
   } else {
       percentage = 0; // At or below 3.5V, considered empty
