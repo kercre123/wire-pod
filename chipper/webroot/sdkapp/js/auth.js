@@ -10,7 +10,7 @@ getSDKInfo().then((jsonResp) => {
     var option = document.createElement("option");
     option.text = jsonResp["robots"][i]["esn"];
     option.value = jsonResp["robots"][i]["esn"];
-    x.add(option);
+    botList.add(option);
   }
 }).catch((error) => {
   console.error('Unable to get SDK info:', error);
