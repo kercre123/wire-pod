@@ -52,7 +52,9 @@ function beginBLESetup() {
 }
 
 function reInitBLE() {
-  fetch("/api-ble/disconnect").then(() => fetch("/api-ble/init"));
+  fetch("/api-ble/disconnect").then(() => fetch("/api-ble/init").catch(() => {
+    showExternalSetupInstructions();
+  }).catch(() => fetch("/api-ble/init"));
 }
 
 function scanRobots(returning) {
@@ -85,13 +87,16 @@ function scanRobots(returning) {
       updateAuthel("Click on the robot you would like to pair with.");
       authEl.appendChild(rescanButton);
       authEl.appendChild(buttonsDiv);
+    }).catch(() => {
+      updateAuthel("Error scanning. Reiniting BLE then scanning...");
+      reInitBLE().then(() => scanRobots(false));
     });
 }
 
 function disconnect() {
   authEl.innerHTML = "Disconnecting...";
   OTAUpdating = false;
-  fetch("/api-ble/stop_ota").then(() => fetch("/api-ble/disconnect").then(() => checkBLECapability()));
+  fetch("/api-ble/stop_ota").then(() => fetch("/api-ble/disconnect").then(() => checkBLECapability())).catch(() => checkBLECapability());
 }
 
 function connectRobot(id) {
@@ -134,6 +139,9 @@ function sendPin() {
       } else {
         wifiCheck();
       }
+    }).catch(() => {
+      updateAuthel("Error sending PIN... Reiniting BLE then scanning...");
+      reInitBLE().then(() => scanRobots(true));
     });
 }
 
@@ -146,6 +154,9 @@ function wifiCheck() {
       } else {
         scanWifi();
       }
+    }).catch(() => {
+      updateAuthel("Error checking Wi-Fi status... Reiniting BLE then scanning...");
+      reInitBLE().then(() => scanRobots(true));
     });
 }
 
@@ -165,6 +176,9 @@ function scanWifi() {
           )
           .join("")}
       `;
+    }).catch(() => {
+      updateAuthel("Error scanning Wi-Fi networks... Reiniting BLE then scanning...");
+      reInitBLE().then(() => scanRobots(true));
     });
 }
 
@@ -190,6 +204,9 @@ function connectWifi(ssid, authtype) {
       } else {
         whatToDo();
       }
+    }).catch(() => {
+      updateAuthel("Error connecting to Wi-Fi... Reiniting BLE then scanning...");
+      reInitBLE().then(() => scanRobots(true));
     });
 }
 
@@ -199,6 +216,9 @@ function checkFirmware() {
     .then((response) => {
       const splitFirmware = response.split("-");
       console.log(splitFirmware);
+    }).catch(() => {
+      updateAuthel("Error getting firmware version... Reiniting BLE then scanning...");
+      reInitBLE().then(() => scanRobots(true));
     });
 }
 
