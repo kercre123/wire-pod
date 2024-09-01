@@ -1,19 +1,23 @@
 var botStats = document.getElementById("botStats");
 
 function getBatteryPercentage(voltage) {
-  if (voltage >= 4.15) {
-    return 100; // Fully charged or charging
-  } else if (voltage <= 3.5) {
-    return 0; // Nearly empty
-  } else {
-    const maxVoltage = 4.15;
-    const minVoltage = 3.5;
-    const exponent = 1.3;
+  let percentage;
 
-    // Calculate the battery percentage using the non-linear approximation
-    let percentage = 100 * (1 - Math.pow((maxVoltage - voltage) / (maxVoltage - minVoltage), exponent));
-    return Math.round(percentage); // Round to nearest whole number for display
+  if (voltage >= 4.2) {
+      percentage = 100; // Fully charged
+  } else if (voltage >= 3.85) {
+      // Fast drop from 100% to 80%
+      let scaledVoltage = (voltage - 3.85) / (4.2 - 3.85);
+      percentage = 80 + 20 * Math.log10(1 + scaledVoltage * 9); // Adjust factor to make the curve steeper
+  } else if (voltage >= 3.5) {
+      // Gradual drop off from 80% to 0%
+      let scaledVoltage = (voltage - 3.5) / (3.85 - 3.5);
+      percentage = 80 * Math.log10(1 + scaledVoltage * 9); // Adjust factor for the curve
+  } else {
+      percentage = 0; // At or below 3.5V, considered empty
   }
+
+  return Math.max(0, Math.min(100, Math.round(percentage))); // Ensure percentage is within 0-100%
 }
 
 
@@ -42,7 +46,7 @@ async function updateBatteryInfo(serial, i) {
   if (!batteryStatus) {
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
-    tooltip.innerHTML = `<b>${serial}</b><br/>?%<br/> (Unable to connect)`;
+    tooltip.innerHTML = `<b>${serial}</b><br/>??%<br/> (Unable to connect)`;
     setTimeout(async () => {
       // Re-render the battery information
       updateBatteryInfo(serial, i);
@@ -60,7 +64,7 @@ async function updateBatteryInfo(serial, i) {
   batteryLevel.style.width = batteryPercentage + "%";
 
   // Clear tooltip, and replace serial number and the latest voltage
-  tooltip.innerHTML = `<b>${serial}</b><br/>${batteryPercentage}%?<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
+  tooltip.innerHTML = `<b>${serial}</b><br/>~${batteryPercentage}%<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
 
   // Update the charging status
   if (batteryStatus["is_on_charger_platform"]) {
@@ -129,7 +133,7 @@ async function renderBatteryInfo(serial, i = 0) {
   if (!batteryStatus) {
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
-    tooltip.innerHTML = `<b>${serial}</b><br/>?%<br/> (Unable to connect)`;
+    tooltip.innerHTML = `<b>${serial}</b><br/>??<br/> (Unable to connect)`;
     setTimeout(async () => {
       // Re-render the battery information
       updateBatteryInfo(serial, i);
@@ -152,7 +156,7 @@ async function renderBatteryInfo(serial, i = 0) {
   const batteryPercentage = getBatteryPercentage(batteryStatus["battery_volts"]);
   batteryLevel.style.width = batteryPercentage + "%";
 
-  tooltip.innerHTML += `<br/>${batteryPercentage}%?`;
+  tooltip.innerHTML += `<br/>~${batteryPercentage}%`;
 
   // Add the battery voltage to the tooltip
   tooltip.innerHTML += `<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
