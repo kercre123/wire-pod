@@ -28,7 +28,7 @@ async function updateBatteryInfo(serial, i) {
   }
   var batteryOutline = batteryContainer.getElementsByClassName("batteryOutline")[0];
   var batteryLevel = batteryOutline.getElementsByClassName("batteryLevel")[0];
-  var chargeTimeRemaining = batteryContainer.getElementsByClassName("chargeTimeRemaining")[0];
+  var chargeTimeRemaining = batteryOutline.getElementsByClassName("chargeTimeRemaining")[0];
   var vectorFace = batteryContainer.getElementsByClassName("vectorFace")[0];
   var tooltip = batteryContainer.getElementsByClassName("tooltip")[0];
 
@@ -92,7 +92,9 @@ async function updateBatteryInfo(serial, i) {
     chargeTimeRemaining.style.display = "block";
     if (batteryStatus["suggested_charger_sec"]) {
       chargeTimeRemaining.innerHTML = `ETA: ${batteryStatus["suggested_charger_sec"]}s`;
-    } else {
+    } else if (batteryStatus["is_charging"]) {
+      chargeTimeRemaining.innerHTML = "Charging";
+    }else {
       chargeTimeRemaining.innerHTML = "Full";
     }
   } else {
@@ -145,7 +147,7 @@ async function renderBatteryInfo(serial, i = 0) {
 
   var chargeTimeRemaining = document.createElement("div");
   chargeTimeRemaining.className = "chargeTimeRemaining";
-  batteryContainer.appendChild(chargeTimeRemaining);
+  batteryOutline.appendChild(chargeTimeRemaining);
 
   // We will manage the battery level via class names, there are only 4 levels reported (0, 1, 2, 3)
 
