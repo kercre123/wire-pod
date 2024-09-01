@@ -397,9 +397,9 @@ input[type='radio']:disabled:after {
 
 .vectorFace {
   height: 60px;
-  width: 50px;
+  width: 60px;
   background-position: center;
-  background-size: 60px 50px;
+  background-size: contain;
   background-repeat: no-repeat;
 }
 
