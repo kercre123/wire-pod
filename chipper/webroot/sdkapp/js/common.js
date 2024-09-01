@@ -22,8 +22,7 @@ async function getBatteryStatus(serial) {
   }
 
   try {
-    var response = await fetch({
-      url: "/api-sdk/get_battery?serial=" + serial, 
+    var response = await fetch("/api-sdk/get_battery?serial=" + serial, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
