@@ -7,6 +7,9 @@ async function renderBatteryInfo(sdkInfo) {
     var batteryContainer = document.createElement("div");
     batteryContainer.className = "batteryContainer";
     botStats.appendChild(batteryContainer);
+    botStats.onclick = function() {
+      window.location.href = "/settings.html?serial=" + sdkInfo["robots"][i]["esn"];
+    };
 
     // Create a tooltip for the robot's serial number, with class "tooltip"
 
@@ -23,7 +26,7 @@ async function renderBatteryInfo(sdkInfo) {
     var vectorFace = document.createElement("div");
     vectorFace.className = "vectorFace";
     vectorFace.style.backgroundImage = "url(/assets/webface.gif)"; // default loading face
-    batteryOutline.appendChild(vectorFace);
+    batteryContainer.appendChild(vectorFace);
 
     // Create the colored div that will represent the battery level, with a class of "batteryLevel"
     var batteryLevel = document.createElement("div");
@@ -72,7 +75,7 @@ async function updateBatteryInfo(sdkInfo) {
     }
     var batteryOutline = batteryContainer.getElementsByClassName("batteryOutline")[0];
     var batteryLevel = batteryOutline.getElementsByClassName("batteryLevel")[0];
-    var vectorFace = batteryOutline.getElementsByClassName("vectorFace")[0];
+    var vectorFace = batteryContainer.getElementsByClassName("vectorFace")[0];
     var tooltip = batteryContainer.getElementsByClassName("tooltip")[0];
 
     if (!batteryLevel || !vectorFace) {

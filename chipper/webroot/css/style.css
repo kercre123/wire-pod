@@ -346,6 +346,7 @@ input[type='radio']:disabled:after {
   margin: 0 auto;
   height: 60px;
   gap: 5px;
+  cursor: pointer;
 }
 
 .batteryContainer:hover .tooltip {
@@ -361,6 +362,7 @@ input[type='radio']:disabled:after {
   padding: 5px;
   z-index: 1000;
   margin-top: -65px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 .batteryOutline {
@@ -376,25 +378,25 @@ input[type='radio']:disabled:after {
   top: 2px;
   left: 2px;
   width: 96px;
-  height: 56px;
+  height: 36px;
   background-color: var(--button-color);
   border-radius: 5px;
 }
 .batteryOutline::after {
   content: '';
   position: absolute;
-  top: 28px;
-  left: 98px;
-  width: 10px;
-  height: 4px;
+  top: 12px;
+  left: 100px;
+  width: 6px;
+  height: 18px;
   background-color: var(--text-color);
 }
 
 .vectorFace {
-  height: 60px;
-  width: 60px;
+  height: 40px;
+  width: 40px;
   background-position: center;
-  background-size: 60px 60px;
+  background-size: 40px 40px;
   background-repeat: no-repeat;
 }
 
@@ -403,7 +405,7 @@ input[type='radio']:disabled:after {
   top: 2px;
   left: 2px;
   width: 96px;
-  height: 56px;
+  height: 36px;
   background-color: var(--button-color-alt);
   border-radius: 5px;
 }
@@ -425,9 +427,9 @@ input[type='radio']:disabled:after {
   top: 0px;
   left: 30px;
   width: 40px;
-  height: 60px;
+  height: 40px;
   /* content is an svg of a lightning bolt */
-  content: url('data:image/svg+xml;utf8,<svg width="40" height="60" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 60"><polygon points="20,0 12,33 24,33 15,60 28,27 16,27" fill="white"/></svg>');
+  content: url('data:image/svg+xml;utf8,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 60"><polygon points="20,0 12,33 24,33 15,60 28,27 16,27" fill="white"/></svg>');
 }
 
 .main-nav-parent {
