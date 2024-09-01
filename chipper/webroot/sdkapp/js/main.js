@@ -416,8 +416,4 @@ function getCurrentSettings() {
   };
 }
 
-renderBatteryInfo(esn).then(() => {
-  setInterval(() => {
-    updateBatteryInfo(esn);
-  }, 3000);
-});
+renderBatteryInfo(esn);
