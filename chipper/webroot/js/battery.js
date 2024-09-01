@@ -9,7 +9,7 @@ async function renderBatteryInfo(sdkInfo) {
     batteryContainer.className = "batteryContainer";
     botStats.appendChild(batteryContainer);
     batteryContainer.onclick = function() {
-      window.location.href = "/settings.html?serial=" + serial;
+      window.location.href = "/sdkapp/settings.html?serial=" + serial;
     };
 
     // Create a tooltip for the robot's serial number, with class "tooltip"
