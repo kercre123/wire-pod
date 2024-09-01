@@ -299,6 +299,10 @@ input[type='radio']:disabled:after {
   border: 2px solid var(--fg-color); /* accent color */
 }
 
+#botAuth {
+  color: vat(--text-color);
+}
+
 #content {
   width: 950px !important;
   /* word-break:break-all !important; */

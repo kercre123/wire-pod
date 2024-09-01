@@ -35,6 +35,8 @@ function updateIntentSelection(element) {
         error.innerHTML = "No intents found, you must add one first";
         container.appendChild(error);
       }
+    }).catch((error) => {
+      console.error(error);
     });
 }
 
@@ -109,7 +111,10 @@ function editFormCreate() {
       } else {
         displayError("editIntentForm", "No intents found, you must add one first");
       }
-    });
+    }).catch((error) => {
+      console.error(error);
+      displayError("editIntentForm", "Error fetching intents");
+    })
 }
 
 function editIntent(intentNumber) {
