@@ -93,7 +93,7 @@ async function updateBatteryInfo(serial, i) {
     if (batteryStatus["suggested_charger_sec"]) {
       chargeTimeRemaining.innerHTML = `ETA: ${batteryStatus["suggested_charger_sec"]}s`;
     } else if (batteryStatus["is_charging"]) {
-      chargeTimeRemaining.innerHTML = "Charging";
+      chargeTimeRemaining.innerHTML = "";
     }else {
       chargeTimeRemaining.innerHTML = "Full";
     }
