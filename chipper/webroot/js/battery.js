@@ -54,12 +54,25 @@ async function updateBatteryInfo(serial, i) {
     return;
   }
 
+  let batteryPercentage = getBatteryPercentage(batteryStatus["battery_volts"]);
+  if (batteryStatus["battery_level"] === 2) {
+    // If the battery level is 2, we'll update the colors to reflect the battery level
+    if (batteryPercentage < 20) {
+      batteryStatus["battery_level"] = 0;
+    } else if (batteryPercentage < 50) {
+      batteryStatus["battery_level"] = 1;
+    }
+  } else if (batteryStatus["battery_level"] === 1) {
+    // Cap the battery level at 20% if the battery level is 1
+    batteryPercentage = Math.min(20, batteryPercentage);
+  }
+
   // Set the battery level based on the battery_level value and handle the rest in css
   const batteryLevelClass = "batteryLevel battery" + batteryStatus["battery_level"];
   if (batteryLevel.className !== batteryLevelClass) {
     batteryLevel.className = batteryLevelClass;
   }
-  const batteryPercentage = getBatteryPercentage(batteryStatus["battery_volts"]);
+  
   // Update the battery level
   batteryLevel.style.width = batteryPercentage + "%";
 
