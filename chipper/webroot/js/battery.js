@@ -62,8 +62,8 @@ async function updateBatteryInfo(serial, i) {
     } else if (batteryPercentage < 50) {
       batteryStatus["battery_level"] = 1;
     }
-  } else if (batteryStatus["battery_level"] === 1) {
-    // Cap the battery level at 20% if the battery level is 1
+  } else if (batteryStatus["battery_level"] === 1 && !batteryStatus["is_on_charger_platform"]) {
+    // Cap the battery level at 20% if the battery level is 1 and not charging
     batteryPercentage = Math.min(20, batteryPercentage);
   }
 
