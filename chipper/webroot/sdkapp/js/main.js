@@ -415,22 +415,3 @@ function getCurrentSettings() {
     s11.appendChild(s11P);
   };
 }
-
-function getBatteryStatus(serial) {
-  if (!serial) {
-    serial = esn;
-  }
-  let xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api-sdk/get_battery?serial=" + serial);
-  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  xhr.responseType = "json";
-  xhr.send();
-
-  return new Promise((resolve, reject) => {
-    xhr.onload = function () {
-      var jdocBatteryStatus = JSON.stringify(xhr.response);
-      var jdocBatteryStatus = JSON.parse(jdocBatteryStatus); // {"status":{"code":1},"battery_level":3,"battery_volts":3.9210937,"is_on_charger_platform":true}
-      resolve(jdocBatteryStatus);
-    };
-  });
-}

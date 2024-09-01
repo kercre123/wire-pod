@@ -43,6 +43,8 @@
   --button-color: rgba(75,75,75,1);		/* dark gray #4B4B4B */
   --button-color-alt: rgba(164,164,164,1);	/* light gray #A4A4A4 */
   --fg-color: #00ff80;	        /* light green 33ED6D */
+  --medium-battery: #ced100;		/* bright yellow */
+  --low-battery: #ff0000;		/* bright red */
   --fg-color-alt: rgba(51,237,109,.05);		/* light green 33ED6D */
   --text-color: rgba(255,255,255,1);		/* white #FFFFFF */
   --text-color-alt: rgba(34,34,34,1);		/* black #000000 */
@@ -315,6 +317,117 @@ input[type='radio']:disabled:after {
   justify-content: center;
   height: 100vh; /* Keeps things at the top*/
   align-items: start;
+}
+
+#botStats {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+
+/* a simple gif loading from /assets/cloudface.gif and is 60x60px */
+.botLoader {
+  background-image: url('/assets/cloudface.gif');
+  background-size: 60px 60px;
+  background-position: center;
+  background-clip: border-box;
+  background-repeat: no-repeat;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+}
+
+.batteryContainer {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  margin: 0 auto;
+  height: 60px;
+  gap: 5px;
+}
+
+.batteryContainer:hover .tooltip {
+  display: block;
+}
+
+.tooltip {
+  position: absolute;
+  display: none;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-radius: 5px;
+  padding: 5px;
+  z-index: 1000;
+  margin-top: -65px;
+}
+
+.batteryOutline {
+  border: 2px solid var(--text-color);
+  border-radius: 5px;
+  width: 100px;
+  height: 60px;
+  position: relative;
+}
+.batteryOutline::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 96px;
+  height: 56px;
+  background-color: var(--button-color);
+  border-radius: 5px;
+}
+.batteryOutline::after {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 98px;
+  width: 10px;
+  height: 4px;
+  background-color: var(--text-color);
+}
+
+.vectorFace {
+  height: 60px;
+  width: 60px;
+  background-position: center;
+  background-size: 60px 60px;
+  background-repeat: no-repeat;
+}
+
+.batteryLevel {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 96px;
+  height: 56px;
+  background-color: var(--button-color-alt);
+  border-radius: 5px;
+}
+
+.battery0, .battery1 {
+  background-color: var(--low-battery);
+}
+
+.battery2 {
+  background-color: var(--medium-battery);
+}
+
+.battery3 {
+  background-color: var(--fg-color);
+}
+
+.charging {
+  position: absolute;
+  top: 0px;
+  left: 30px;
+  width: 40px;
+  height: 60px;
+  /* content is an svg of a lightning bolt */
+  content: url('data:image/svg+xml;utf8,<svg width="40" height="60" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 60"><polygon points="20,0 12,33 24,33 15,60 28,27 16,27" fill="white"/></svg>');
 }
 
 .main-nav-parent {

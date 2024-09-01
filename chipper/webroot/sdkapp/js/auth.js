@@ -1,22 +1,11 @@
 var client = new HttpClient();
 
-async function getSDKInfo() {
-  try {
-    var response = await fetch("/api-sdk/get_sdk_info");
-    if (!response.ok) {
-      return undefined;
-    }
-    var data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Unable to get SDK info:', error);
-    throw error;
-  }
-}
-
-var x = document.getElementById("botList");
+var botList = document.getElementById("botList");
 
 getSDKInfo().then((jsonResp) => {
+  if (!botList) {
+    return;
+  }
   for (var i = 0; i < jsonResp["robots"].length; i++) {
     var option = document.createElement("option");
     option.text = jsonResp["robots"][i]["esn"];
@@ -29,11 +18,11 @@ getSDKInfo().then((jsonResp) => {
 
 function connectSDK() {
   var x = document.getElementById("botList");
-  fetch("/api-sdk/conn_test?serial=" + x.value)
+  fetch("/api-sdk/conn_test?serial=" + botList.value)
     .then((response) => response.text())
     .then((response) => {
       if (response.includes("success")) {
-        window.location.href = "./settings.html?serial=" + x.value;
+        window.location.href = "./settings.html?serial=" + botList.value;
       } else {
         alert(response);
       }
