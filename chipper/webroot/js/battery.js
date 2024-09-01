@@ -97,6 +97,7 @@ async function updateBatteryInfo(serial, i) {
       chargeTimeRemaining.innerHTML = "";
     }else {
       chargeTimeRemaining.innerHTML = "Full";
+      vectorFace.style.backgroundImage = "url(/assets/face.gif)";
     }
   } else {
     var charging = batteryOutline.getElementsByClassName("charging")[0];
