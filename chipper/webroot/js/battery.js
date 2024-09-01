@@ -35,7 +35,7 @@ async function updateBatteryInfo(serial, i) {
 
   try {
   // Maintain the battery information for each robot but fetch the latest battery status and update the battery level
-  batteryStatus = await getBatteryStatus(serial);
+    batteryStatus = await getBatteryStatus(serial);
   } catch {
     // Do nothing
   }
@@ -43,6 +43,10 @@ async function updateBatteryInfo(serial, i) {
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
     tooltip.innerHTML = `<b>${serial}</b><br/>?%<br/> (Unable to connect)`;
+    setTimeout(async () => {
+      // Re-render the battery information
+      updateBatteryInfo(serial, i);
+    }, 6000);
     return;
   }
 
@@ -56,7 +60,7 @@ async function updateBatteryInfo(serial, i) {
   batteryLevel.style.width = batteryPercentage + "%";
 
   // Clear tooltip, and replace serial number and the latest voltage
-  tooltip.innerHTML = `<b>${sdkInfo["robots"][i]["esn"]}</b><br/>${batteryPercentage}%?<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
+  tooltip.innerHTML = `<b>${serial}</b><br/>${batteryPercentage}%?<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
 
   // Update the charging status
   if (batteryStatus["is_on_charger_platform"]) {
@@ -114,11 +118,22 @@ async function renderBatteryInfo(serial, i = 0) {
   // We will manage the battery level via class names, there are only 4 levels reported (0, 1, 2, 3)
 
   // Get the battery status for the robot
-  const batteryStatus = await getBatteryStatus(serial); // {"status":{"code":1},"battery_level":3,"battery_volts":3.9210937,"is_on_charger_platform":true}
+  let batteryStatus;
 
+  try {
+  // Maintain the battery information for each robot but fetch the latest battery status and update the battery level
+    batteryStatus = await getBatteryStatus(serial);
+  } catch {
+    // Do nothing
+  }
   if (!batteryStatus) {
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
+    tooltip.innerHTML = `<b>${serial}</b><br/>?%<br/> (Unable to connect)`;
+    setTimeout(async () => {
+      // Re-render the battery information
+      updateBatteryInfo(serial, i);
+    }, 6000);
     return;
   }
 
