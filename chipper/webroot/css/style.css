@@ -343,11 +343,11 @@ input[type='radio']:disabled:after {
 .batteryContainer {
   display: flex;
   justify-content: center;
-  align-items: start;
+  align-items: center;
   margin: 0 auto;
   height: 60px;
   padding-bottom: 15px;
-  gap: 12px;
+  gap: 15px;
   cursor: pointer;
 }
 
