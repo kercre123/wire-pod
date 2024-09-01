@@ -399,7 +399,7 @@ input[type='radio']:disabled:after {
   height: 50px;
   width: 50px;
   background-position: center;
-  background-size: 50px 50px;
+  background-size: 50px 42px;
   background-repeat: no-repeat;
 }
 
