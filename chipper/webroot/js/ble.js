@@ -106,7 +106,11 @@ function connectRobot(id) {
         updateAuthel("Waiting for WirePod to restart...");
         setTimeout(checkBLECapability, 3000);
       }
-    });
+    }).catch(() => {
+      alert("Error connecting. WirePod will restart and this will return to the first screen of setup.");
+      updateAuthel("Waiting for WirePod to restart...");
+      setTimeout(checkBLECapability, 3000);
+    })
 }
 
 function createPinEntry() {

@@ -300,7 +300,7 @@ input[type='radio']:disabled:after {
 }
 
 #botAuth {
-  color: vat(--text-color);
+  color: var(--text-color);
 }
 
 #content {
