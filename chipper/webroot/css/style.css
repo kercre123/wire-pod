@@ -412,15 +412,15 @@ input[type='radio']:disabled:after {
   border-radius: 5px;
 }
 
-.battery0, .battery1 {
+.battery0 {
   background-color: var(--low-battery);
 }
 
-.battery2 {
+.battery1 {
   background-color: var(--medium-battery);
 }
 
-.battery3 {
+.battery3, .battery2  {
   background-color: var(--fg-color);
 }
 

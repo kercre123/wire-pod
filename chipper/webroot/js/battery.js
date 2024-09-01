@@ -1,113 +1,125 @@
 var botStats = document.getElementById("botStats");
 
+function getBatteryPercentage(voltage) {
+  if (voltage >= 4.15) {
+    return 100; // Fully charged or charging
+  } else if (voltage <= 3.6) {
+    return 3; // Nearly empty
+  } else {
+    const maxVoltage = 4.15;
+    const minVoltage = 3.6;
+    const exponent = 1.3;
 
-async function renderBatteryInfo(sdkInfo) {
-  for (var i = 0; i < sdkInfo["robots"].length; i++) {
-    const serial = sdkInfo["robots"][i]["esn"];
-    // For each robot, we'll create a new div to hold the battery information with a class of "batteryContainer"
-    var batteryContainer = document.createElement("div");
-    batteryContainer.className = "batteryContainer";
-    botStats.appendChild(batteryContainer);
-    batteryContainer.onclick = function() {
-      window.location.href = "/sdkapp/settings.html?serial=" + serial;
-    };
+    // Calculate the battery percentage using the non-linear approximation
+    let percentage = 100 * (1 - Math.pow((maxVoltage - voltage) / (maxVoltage - minVoltage), exponent));
+    return Math.round(percentage); // Round to nearest whole number for display
+  }
+}
 
-    // Create a tooltip for the robot's serial number, with class "tooltip"
+async function renderBatteryInfo(serial) {
+  // For each robot, we'll create a new div to hold the battery information with a class of "batteryContainer"
+  var batteryContainer = document.createElement("div");
+  batteryContainer.className = "batteryContainer";
+  botStats.appendChild(batteryContainer);
+  batteryContainer.onclick = function() {
+    window.location.href = "/sdkapp/settings.html?serial=" + serial;
+  };
 
-    var tooltip = document.createElement("span");
-    tooltip.className = "tooltip";
-    tooltip.innerHTML = `<b>${serial}</b>`;
-    batteryContainer.appendChild(tooltip);
+  // Create a tooltip for the robot's serial number, with class "tooltip"
 
-    // Create a new div to hold the battery status with a class of "batteryOutline", this will be the outline of the battery status
-    var batteryOutline = document.createElement("div");
-    batteryOutline.className = "batteryOutline";
-    batteryContainer.appendChild(batteryOutline);
+  var tooltip = document.createElement("span");
+  tooltip.className = "tooltip";
+  tooltip.innerHTML = `<b>${serial}</b>`;
+  batteryContainer.appendChild(tooltip);
 
-    var vectorFace = document.createElement("div");
-    vectorFace.className = "vectorFace";
-    vectorFace.style.backgroundImage = "url(/assets/webface.gif)"; // default loading face
-    batteryContainer.appendChild(vectorFace);
+  // Create a new div to hold the battery status with a class of "batteryOutline", this will be the outline of the battery status
+  var batteryOutline = document.createElement("div");
+  batteryOutline.className = "batteryOutline";
+  batteryContainer.appendChild(batteryOutline);
 
-    // Create the colored div that will represent the battery level, with a class of "batteryLevel"
-    var batteryLevel = document.createElement("div");
-    batteryLevel.className = "batteryLevel";
-    batteryOutline.appendChild(batteryLevel);
+  var vectorFace = document.createElement("div");
+  vectorFace.className = "vectorFace";
+  vectorFace.style.backgroundImage = "url(/assets/webface.gif)"; // default loading face
+  batteryContainer.appendChild(vectorFace);
 
-    // We will manage the battery level via class names, there are only 4 levels reported (0, 1, 2, 3)
+  // Create the colored div that will represent the battery level, with a class of "batteryLevel"
+  var batteryLevel = document.createElement("div");
+  batteryLevel.className = "batteryLevel";
+  batteryOutline.appendChild(batteryLevel);
 
-    // Get the battery status for the robot
-    const batteryStatus = await getBatteryStatus(serial); // {"status":{"code":1},"battery_level":3,"battery_volts":3.9210937,"is_on_charger_platform":true}
+  // We will manage the battery level via class names, there are only 4 levels reported (0, 1, 2, 3)
 
-    if (!batteryStatus) {
-      batteryLevel.className = "batteryLevel batteryUnknown";
-      vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
-      continue;
-    }
-    // Add the battery voltage to the tooltip
-    tooltip.innerHTML += `<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
+  // Get the battery status for the robot
+  const batteryStatus = await getBatteryStatus(serial); // {"status":{"code":1},"battery_level":3,"battery_volts":3.9210937,"is_on_charger_platform":true}
 
-    // If the robot is on the charger platform, we'll set the battery level to "charging" by adding a child div with class "charging"
-    if (batteryStatus["is_on_charger_platform"]) {
+  if (!batteryStatus) {
+    batteryLevel.className = "batteryLevel batteryUnknown";
+    vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
+    return;
+  }
+  // Add the battery voltage to the tooltip
+  tooltip.innerHTML += `<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
+
+  // If the robot is on the charger platform, we'll set the battery level to "charging" by adding a child div with class "charging"
+  if (batteryStatus["is_on_charger_platform"]) {
+    var charging = document.createElement("div");
+    charging.className = "charging";
+    batteryOutline.appendChild(charging);
+    vectorFace.style.backgroundImage = "url(/assets/expandface.gif)";
+  } else {
+    vectorFace.style.backgroundImage = "url(/assets/face.gif)";
+  }
+
+  // Set the battery level based on the battery_level value and handle the rest in css
+  batteryLevel.className = "batteryLevel battery" + batteryStatus["battery_level"];
+  batteryLevel.style.width = getBatteryPercentage(batteryStatus["battery_volts"]) + "%";
+}
+
+async function updateBatteryInfo(serial, i) {
+  // Maintain the battery information for each robot but fetch the latest battery status and update the battery level
+  const batteryStatus = await getBatteryStatus(serial);
+  if (!batteryStatus) {
+    return;
+  }
+
+  var batteryContainer = document.getElementsByClassName("batteryContainer")[i];
+  if (!batteryContainer) {
+    return;
+  }
+  var batteryOutline = batteryContainer.getElementsByClassName("batteryOutline")[0];
+  var batteryLevel = batteryOutline.getElementsByClassName("batteryLevel")[0];
+  var vectorFace = batteryContainer.getElementsByClassName("vectorFace")[0];
+  var tooltip = batteryContainer.getElementsByClassName("tooltip")[0];
+
+  if (!batteryLevel || !vectorFace) {
+    return;
+  }
+
+  // Clear tooltip, and replace serial number and the latest voltage
+  tooltip.innerHTML = `<b>${sdkInfo["robots"][i]["esn"]}</b><br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
+
+  // Set the battery level based on the battery_level value and handle the rest in css
+  const batteryLevelClass = "batteryLevel battery" + batteryStatus["battery_level"];
+  if (batteryLevel.className !== batteryLevelClass) {
+    batteryLevel.className = batteryLevelClass;
+  }
+  // Update the battery level
+  batteryLevel.style.width = getBatteryPercentage(batteryStatus["battery_volts"]) + "%";
+
+  // Update the charging status
+  if (batteryStatus["is_on_charger_platform"]) {
+    if (!batteryOutline.getElementsByClassName("charging").length) {
       var charging = document.createElement("div");
       charging.className = "charging";
       batteryOutline.appendChild(charging);
       vectorFace.style.backgroundImage = "url(/assets/expandface.gif)";
-    } else {
+    }
+  } else {
+    var charging = batteryOutline.getElementsByClassName("charging")[0];
+    if (charging) {
+      charging.remove();
       vectorFace.style.backgroundImage = "url(/assets/face.gif)";
     }
-
-    // Set the battery level based on the battery_level value and handle the rest in css
-    batteryLevel.className = "batteryLevel battery" + batteryStatus["battery_level"];
-  }
-}
-
-async function updateBatteryInfo(sdkInfo) {
-  // Maintain the battery information for each robot but fetch the latest battery status and update the battery level
-  for (var i = 0; i < sdkInfo["robots"].length; i++) {
-    const batteryStatus = await getBatteryStatus(sdkInfo["robots"][i]["esn"]);
-    if (!batteryStatus) {
-      continue;
-    }
-
-    var batteryContainer = document.getElementsByClassName("batteryContainer")[i];
-    if (!batteryContainer) {
-      continue;
-    }
-    var batteryOutline = batteryContainer.getElementsByClassName("batteryOutline")[0];
-    var batteryLevel = batteryOutline.getElementsByClassName("batteryLevel")[0];
-    var vectorFace = batteryContainer.getElementsByClassName("vectorFace")[0];
-    var tooltip = batteryContainer.getElementsByClassName("tooltip")[0];
-
-    if (!batteryLevel || !vectorFace) {
-      continue;
-    }
-
-    // Clear tooltip, and replace serial number and the latest voltage
-    tooltip.innerHTML = `<b>${sdkInfo["robots"][i]["esn"]}</b><br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
-
-    // Set the battery level based on the battery_level value and handle the rest in css
-    const batteryLevelClass = "batteryLevel battery" + batteryStatus["battery_level"];
-    if (batteryLevel.className !== batteryLevelClass) {
-      batteryLevel.className = batteryLevelClass;
-    }
-
-    // Update the charging status
-    if (batteryStatus["is_on_charger_platform"]) {
-      if (!batteryOutline.getElementsByClassName("charging").length) {
-        var charging = document.createElement("div");
-        charging.className = "charging";
-        batteryOutline.appendChild(charging);
-        vectorFace.style.backgroundImage = "url(/assets/expandface.gif)";
-      }
-    } else {
-      var charging = batteryOutline.getElementsByClassName("charging")[0];
-      if (charging) {
-        charging.remove();
-        vectorFace.style.backgroundImage = "url(/assets/face.gif)";
-      }
-    }
-
   }
 }
 
@@ -125,15 +137,17 @@ async function processBotStats() {
       return;
     }
 
-    renderBatteryInfo(sdkInfo);
+    for (var i = 0; i < sdkInfo["robots"].length; i++) {
+      const serial = sdkInfo["robots"][i]["esn"];
 
-    setInterval(async () => {
-      // Re-render the battery information
-      updateBatteryInfo(sdkInfo);
-    }, 3000);
+      renderBatteryInfo(serial);
+
+      setInterval(async () => {
+        // Re-render the battery information
+        updateBatteryInfo(serial);
+      }, 3000);
+    }
   } catch {
     // Do nothing
   }
 }
-
-processBotStats();
