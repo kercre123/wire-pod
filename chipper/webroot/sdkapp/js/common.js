@@ -27,6 +27,7 @@ async function getBatteryStatus(serial) {
       headers: {
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(15000)
     });
     if (!response.ok) {
       return undefined;
