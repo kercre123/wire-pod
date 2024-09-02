@@ -3,17 +3,18 @@ var botStats = document.getElementById("botStats");
 function getBatteryPercentage(voltage) {
   let percentage;
   const maxVoltage = 4.1; // Maximum voltage for the battery
+  const midVoltage = 3.85; // Mid voltage for the battery
   const minVoltage = 3.5; // Minimum voltage for the battery
 
   if (voltage >= maxVoltage) {
       percentage = 100; // Fully charged
-  } else if (voltage >= 3.85) {
+  } else if (voltage >= midVoltage) {
       // Fast drop from 100% to 80%
-      let scaledVoltage = (voltage - 3.85) / (maxVoltage - 3.85);
+      let scaledVoltage = (voltage - midVoltage) / (maxVoltage - midVoltage);
       percentage = 80 + 20 * Math.log10(1 + scaledVoltage * 9); // Adjust factor to make the curve steeper
   } else if (voltage >= minVoltage) {
       // Gradual drop off from 80% to 0%
-      let scaledVoltage = (voltage - minVoltage) / (3.85 - minVoltage);
+      let scaledVoltage = (voltage - minVoltage) / (midVoltage - minVoltage);
       percentage = 80 * Math.log10(1 + scaledVoltage * 9); // Adjust factor for the curve
   } else {
       percentage = 0; // At or below 3.5V, considered empty
@@ -66,9 +67,10 @@ async function updateBatteryInfo(serial, i) {
       batteryStatus["battery_level"] = 1;
     }
   } else if (batteryStatus["battery_level"] === 1 && !batteryStatus["is_on_charger_platform"]) {
-    // Cap the battery level at 20% if the battery level is 1 and not charging
+    // Cap the battery level at 15% if the battery level is 1 and not charging
     vectorFace.style.backgroundImage = "url(/assets/homeface.png)";
-    batteryPercentage = Math.min(20, batteryPercentage);
+    batteryPercentage = Math.min(15, batteryPercentage);
+    batteryStatus["battery_level"] = 0; // Set color to red
   }
 
   // Set the battery level based on the battery_level value and handle the rest in css
