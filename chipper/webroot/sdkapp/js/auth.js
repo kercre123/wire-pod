@@ -14,7 +14,8 @@ getSDKInfo().then((jsonResp) => {
   }
 }).catch((error) => {
   console.error('Unable to get SDK info:', error);
-  alert("Error, it's likely no bots are authenticated");
+  alert("Error getting robot list. This likely means no bots are authenticated.");
+  window.location.href = "/";
 });
 
 function connectSDK() {
