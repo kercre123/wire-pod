@@ -65,7 +65,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetVersionInfo(w)
 	case "generate_certs":
 		handleGenerateCerts(w)
-	case "is_api_v2":
+	case "is_api_v3":
 		fmt.Fprintf(w, "it is!")
 	default:
 		http.Error(w, "not found", http.StatusNotFound)

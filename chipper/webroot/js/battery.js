@@ -16,6 +16,10 @@ function getBatteryPercentage(voltage) {
       // Gradual drop off from 80% to 0%
       let scaledVoltage = (voltage - minVoltage) / (midVoltage - minVoltage);
       percentage = 80 * Math.log10(1 + scaledVoltage * 9); // Adjust factor for the curve
+  } else if (!voltage) {
+      // if the bot is turned on whilst off the charger, the get_battery response doesn't include voltage. 
+      // assume a reasonable battery percentage
+      percentage = 70;
   } else {
       percentage = 0; // At or below 3.5V, considered empty
   }
