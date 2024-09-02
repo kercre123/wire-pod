@@ -96,6 +96,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/get_sdk_info":
+		if len(vars.BotInfo.Robots) == 0 {
+			http.Error(w, "no bots are authenticated", http.StatusInternalServerError)
+			return
+		}
 		jsonBytes, err := json.Marshal(vars.BotInfo)
 		if err != nil {
 			fmt.Fprintf(w, "error marshaling json")

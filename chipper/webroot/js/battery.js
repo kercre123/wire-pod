@@ -214,6 +214,7 @@ async function processBotStats() {
     
     botLoader.remove();
     if (!sdkInfo) {
+      botStats.style.display = "none";
       return;
     }
 

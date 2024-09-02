@@ -4,6 +4,7 @@
 async function getSDKInfo() {
   try {
     var response = await fetch("/api-sdk/get_sdk_info");
+    console.log(response)
     if (!response.ok) {
       return undefined;
     }
