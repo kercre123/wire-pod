@@ -155,7 +155,7 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 
 	aireq := openai.ChatCompletionRequest{
 		Model:            model,
-		MaxTokens:        2048,
+		MaxTokens:        256,
 		Temperature:      1,
 		TopP:             1,
 		FrequencyPenalty: 0,
@@ -241,6 +241,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
+        log.Printf("Error creating chat completion stream: %v", err)
 		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
