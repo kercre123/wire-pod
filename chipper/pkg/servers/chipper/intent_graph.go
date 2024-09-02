@@ -14,7 +14,7 @@ func (s *Server) StreamingIntentGraph(stream pb.ChipperGrpc_StreamingIntentGraph
 
 	req, err := stream.Recv()
 	if err != nil {
-		logger.Println("Intent graph error")
+		logger.Println("Intent graph stream error")
 		logger.Println(err)
 
 		return err
@@ -32,7 +32,7 @@ func (s *Server) StreamingIntentGraph(stream pb.ChipperGrpc_StreamingIntentGraph
 			// Mode:
 		},
 	); err != nil {
-		logger.Println("Intent graph error")
+		logger.Println("Intent graph processing error")
 		logger.Println(err)
 		return err
 	}
