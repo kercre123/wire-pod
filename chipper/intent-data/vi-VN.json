@@ -1,0 +1,218 @@
+[
+    {
+        "name": "intent_names_username_extend",
+        "keyphrases": ["Tên"]
+    },
+    {
+        "name": "intent_weather_extend",
+        "keyphrases": ["Thời tiết", "Dự báo thời tiết", "Thời tiết ngày mai", "Thời tiết hôm nay"]
+    },
+    {
+        "name": "intent_names_ask",
+        "keyphrases": ["Tên của tôi", "Tôi là", "Tôi là ai"]
+    },
+    {
+        "name": "intent_imperative_eyecolor",
+        "keyphrases": ["Màu mắt", "Màu sắc"]
+    },
+    {
+        "name": "intent_character_age",
+        "keyphrases": ["Bao nhiêu tuổi", "Bạn bao nhiêu tuổi"]
+    },
+    {
+        "name": "intent_explore_start",
+        "keyphrases": ["Đi dạo", "Tự do"]
+    },
+    {
+        "name": "intent_system_charger",
+        "keyphrases": ["Về nhà", "Sạc điện","Võ Duy Linh"]
+    },
+    {
+        "name": "intent_system_sleep",
+        "keyphrases": ["Ngủ", "Đi ngủ", "Ngủ đi"]
+    },
+    {
+        "name": "intent_greeting_goodmorning",
+        "keyphrases": ["Chào buổi sáng", "Chào buổi trưa", "Chào buổi chiều", "Xin chào"]
+    },
+    {
+        "name": "intent_greeting_goodnight",
+        "keyphrases": ["Chúc ngủ ngon"]
+    },
+    {
+        "name": "intent_greeting_goodbye",
+        "keyphrases": ["Tạm biệt", "Gặp lại sau"]
+    },
+    {
+        "name": "intent_seasonal_happynewyear",
+        "keyphrases": ["Chúc mừng năm mới", "Pháo hoa", "Ăn mừng", "Võ Duy Linh"]
+    },
+    {
+        "name": "intent_seasonal_happyholidays",
+        "keyphrases": ["Vui vẻ", "Ngày lễ", "Kỳ nghỉ lễ"]
+    },
+    {
+        "name": "intent_amazon_signin",
+        "keyphrases": ["đăng nhập trợ lý ảo", "đăng ký trợ lý ảo"]
+    },
+    {
+        "name": "intent_amazon_signout",
+        "keyphrases": ["đăng xuất trợ lý ảo", "đăng xuất trợ lý ảo"]
+    },
+    {
+        "name": "intent_imperative_forward",
+        "keyphrases": ["Tiến lên", "Đi tới"]
+    },
+    {
+        "name": "intent_imperative_turnaround",
+        "keyphrases": ["Quay lại", "Quay đầu", "Quay người"]
+    },
+    {
+        "name": "intent_imperative_turnleft",
+        "keyphrases": ["Rẽ trái", "Quay trái"]
+    },
+    {
+        "name": "intent_imperative_turnright",
+        "keyphrases": ["Rẽ phải", "Quay phải"]
+    },
+    {
+        "name": "intent_play_rollcube",
+        "keyphrases": ["Chơi khối vuông"]
+    },
+    {
+        "name": "intent_play_popawheelie",
+        "keyphrases": ["Giơ tay"]
+    },
+    {
+        "name": "intent_play_fistbump",
+        "keyphrases": ["Cụng tay", "Đập tay"]
+    },
+    {
+        "name": "intent_play_blackjack",
+        "keyphrases": ["Chơi bài", "Đánh bài"]
+    },
+    {
+        "name": "intent_imperative_affirmative",
+        "keyphrases": ["Đúng", "Tất nhiên", "Chính xác", "Phải"]
+    },
+    {
+        "name": "intent_imperative_negative",
+        "keyphrases": ["Không", "Sai"]
+    },
+    {
+        "name": "intent_photo_take_extend",
+        "keyphrases": ["Chụp ảnh"]
+    },
+    {
+        "name": "intent_imperative_praise",
+        "keyphrases": ["Tuyệt vời", "Thông minh"]
+    },
+    {
+        "name": "intent_imperative_abuse",
+        "keyphrases": ["Ngốc", "Ngu ngốc"]
+    },
+    {
+        "name": "intent_imperative_apologize",
+        "keyphrases": ["Xin lỗi", "Lỗi của tôi"]
+    },
+    {
+        "name": "intent_imperative_backup",
+        "keyphrases": ["Lại đây", "Quay lại", "võ duy linh"]
+    },
+    {
+        "name": "intent_imperative_volumedown",
+        "keyphrases": ["Giảm âm lượng", "Nhỏ tiếng"]
+    },
+    {
+        "name": "intent_imperative_volumeup",
+        "keyphrases": ["Tăng âm lượng", "To tiếng"]
+    },
+    {
+        "name": "intent_imperative_lookatme",
+        "keyphrases": ["Nhìn tôi", "Nhìn vào tôi"]
+    },
+    {
+        "name": "intent_imperative_volumelevel_extend",
+        "keyphrases": ["Âm lượng"]
+    },
+    {
+        "name": "intent_imperative_shutup",
+        "keyphrases": ["Im miệng"]
+    },
+    {
+        "name": "intent_greeting_hello",
+        "keyphrases": ["Xin chào", "Chào bạn"]
+    },
+    {
+        "name": "intent_imperative_come",
+        "keyphrases": ["Lại đây"]
+    },
+    {
+        "name": "intent_imperative_love",
+        "keyphrases": ["Yêu thích", "Yêu"]
+    },
+    {
+        "name": "intent_knowledge_promptquestion",
+        "keyphrases": ["Câu hỏi", "Trả lời"]
+    },
+    {
+        "name": "intent_clock_checktimer",
+        "keyphrases": ["Kiểm tra báo thức", "Xem báo thức"]
+    },
+    {
+        "name": "intent_global_stop_extend",
+        "keyphrases": ["Hủy báo thức", "Tắt báo thức"]
+    },
+    {
+        "name": "intent_clock_settimer_extend",
+        "keyphrases": ["Đặt báo thức", "Cài báo thức"]
+    },
+    {
+        "name": "intent_clock_time",
+        "keyphrases": ["Thời gian", "Mấy giờ rồi"]
+    },
+    {
+        "name": "intent_imperative_quiet",
+        "keyphrases": ["Yên lặng", "Nghỉ ngơi"]
+    },
+    {
+        "name": "intent_imperative_dance",
+        "keyphrases": ["Nhảy múa", "Nhảy đi"]
+    },
+    {
+        "name": "intent_play_pickupcube",
+        "keyphrases": ["Nhặt khối vuông", "Đưa khối vuông cho tôi"]
+    },
+    {
+        "name": "intent_imperative_fetchcube",
+        "keyphrases": ["Lấy khối vuông"]
+    },
+    {
+        "name": "intent_imperative_findcube",
+        "keyphrases": ["Tìm khối vuông"]
+    },
+    {
+        "name": "intent_play_anytrick",
+        "keyphrases": ["Kỹ năng"]
+    },
+    {
+        "name": "intent_message_recordmessage_extend",
+        "keyphrases": ["Ghi lại"]
+    },
+    {
+        "name": "intent_message_playmessage_extend",
+        "keyphrases": ["Phát tin nhắn"]
+    },
+    {
+        "name": "intent_blackjack_hit",
+        "keyphrases": ["Đánh"]
+    },
+    {
+        "name": "intent_blackjack_stand",
+        "keyphrases": ["Đứng"]
+    },
+    {
+        "name": "intent_play_keepaway",
+        "keyphrases": ["Đi chỗ khác", "Xa ra"]
+    }
+]
