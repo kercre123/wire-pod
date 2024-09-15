@@ -366,7 +366,7 @@ function getCurrentSettings() {
     if (`${tempFormatS}` == "true") {
       var tempFormatT = "Fahrenheit";
     } else {
-      var tempFormatT = "Celcius";
+      var tempFormatT = "Celsius";
     }
     if (`${buttonS}` == 0) {
       var buttonT = "Hey Vector";
@@ -415,3 +415,5 @@ function getCurrentSettings() {
     s11.appendChild(s11P);
   };
 }
+
+renderBatteryInfo(esn);

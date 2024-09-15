@@ -129,6 +129,11 @@ func getRobot(serial string) (Robot, int, error) {
 // if connection is inactive for more than 5 minutes, remove robot
 // run this as a goroutine
 func connTimer(ind int) {
+	// Check if the index is in the list
+	if len(robots) <= ind {
+		return
+	}
+
 	robots[ind].ConnTimer = 0
 	for {
 		time.Sleep(time.Second)
@@ -150,7 +155,7 @@ func connTimer(ind int) {
 			logger.Println("Closing SDK connection for " + robots[ind].ESN + ", source: connTimer")
 			removeRobot(robots[ind].ESN, "connTimer")
 			return
-		}
+		}  
 		robots[ind].ConnTimer = robots[ind].ConnTimer + 1
 	}
 }

@@ -15,6 +15,8 @@
   <div id="outer">
     <div id="content" class="">
       <h1>Wire-Pod</h1>
+      <!-- Bot stats, connected and battery -->
+      <div id="botStats"></div>
       <hr />
 
       <div class="main-nav-parent">
@@ -155,8 +157,8 @@
           </div>
         </div>
         <textarea id="botTranscriptedTextArea" rows="7" cols="50">
-         loading log...
-      </textarea>
+          loading log...
+        </textarea>
         <hr class="log-hr" />
       </div>
 
@@ -207,12 +209,15 @@
 <script src="./js/ble.js"></script>
 <script src="./js/ssh.js"></script>
 <script src="./js/ui.js"></script>
+<script src="./sdkapp/js/common.js"></script>
+<script src="./js/battery.js"></script>
 <!-- <script src="./sdkapp/js/main.js"></script> -->
 <script>
   checkInited();
   updateIntentSelection("editSelect");
   updateIntentSelection("deleteSelect");
   createIntentSelect("intentAddSelect");
+  processBotStats();
 </script>
 
 </html>
