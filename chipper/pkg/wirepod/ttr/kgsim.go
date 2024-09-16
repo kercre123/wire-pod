@@ -155,7 +155,7 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 
 	aireq := openai.ChatCompletionRequest{
 		Model:            model,
-		MaxTokens:        256,
+		MaxTokens:        2048,
 		Temperature:      1,
 		TopP:             1,
 		FrequencyPenalty: 0,
