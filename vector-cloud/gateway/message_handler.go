@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -1014,7 +1013,7 @@ func checkFilters(event *extint.Event, whiteList, blackList *extint.FilterList) 
 func (service *rpcService) onConnect(id string) {
 	// Call DAS WiFi connection event to indicate start of a WiFi connection.
 	// Log the connection id for the primary connection, which is the first person to connect.
-	log.Das("wifi_conn_id.start", (&log.DasFields{}).SetStrings(id))
+	//log.Das("wifi_conn_id.start", (&log.DasFields{}).SetStrings(id))
 }
 
 // Should be called on WiFi disconnect.
@@ -1022,7 +1021,7 @@ func (service *rpcService) onDisconnect() {
 	// Message engine that app disconnected
 	SendAppDisconnected()
 	// Call DAS WiFi connection event to indicate stop of a WiFi connection
-	log.Das("wifi_conn_id.stop", (&log.DasFields{}).SetStrings(""))
+	//log.Das("wifi_conn_id.stop", (&log.DasFields{}).SetStrings(""))
 	connectionId = ""
 }
 
@@ -1061,11 +1060,11 @@ func (service *rpcService) checkConnectionID(id string) bool {
 
 // SDK-only message to pass version info for device OS, Python version, etc.
 func (service *rpcService) SDKInitialization(ctx context.Context, in *extint.SDKInitializationRequest) (*extint.SDKInitializationResponse, error) {
-	log.Das("sdk.module_version", (&log.DasFields{}).SetStrings(in.SdkModuleVersion))
-	log.Das("sdk.python_version", (&log.DasFields{}).SetStrings(in.PythonVersion))
-	log.Das("sdk.python_implementation", (&log.DasFields{}).SetStrings(in.PythonImplementation))
-	log.Das("sdk.os_version", (&log.DasFields{}).SetStrings(in.OsVersion))
-	log.Das("sdk.cpu_version", (&log.DasFields{}).SetStrings(in.CpuVersion))
+	//log.Das("sdk.module_version", (&log.DasFields{}).SetStrings(in.SdkModuleVersion))
+	//log.Das("sdk.python_version", (&log.DasFields{}).SetStrings(in.PythonVersion))
+	//log.Das("sdk.python_implementation", (&log.DasFields{}).SetStrings(in.PythonImplementation))
+	//log.Das("sdk.os_version", (&log.DasFields{}).SetStrings(in.OsVersion))
+	//log.Das("sdk.cpu_version", (&log.DasFields{}).SetStrings(in.CpuVersion))
 
 	return &extint.SDKInitializationResponse{
 		Status: &extint.ResponseStatus{
@@ -1259,15 +1258,15 @@ func (service *rpcService) BehaviorControlResponseHandler(out extint.ExternalInt
 
 // SDK-only method. SDK DAS connect/disconnect events are sent from here.
 func (service *rpcService) BehaviorControl(bidirectionalStream extint.ExternalInterface_BehaviorControlServer) error {
-	sdkStartTime := time.Now()
+	//sdkStartTime := time.Now()
 
 	numCommandsSentFromSDK = 0
 
-	log.Das("sdk.connection_started", (&log.DasFields{}).SetStrings(""))
+	//log.Das("sdk.connection_started", (&log.DasFields{}).SetStrings(""))
 
 	defer func() {
-		sdkElapsedSeconds := time.Since(sdkStartTime)
-		log.Das("sdk.connection_ended", (&log.DasFields{}).SetStrings(sdkElapsedSeconds.String(), fmt.Sprint(numCommandsSentFromSDK)))
+		//sdkElapsedSeconds := time.Since(sdkStartTime)
+		//log.Das("sdk.connection_ended", (&log.DasFields{}).SetStrings(sdkElapsedSeconds.String(), fmt.Sprint(numCommandsSentFromSDK)))
 		numCommandsSentFromSDK = 0
 	}()
 
@@ -1926,7 +1925,7 @@ func (service *rpcService) UserAuthentication(ctx context.Context, in *extint.Us
 		response := make(chan struct{})
 		tokenManager.ForceUpdate(response)
 		<-response
-		log.Das("sdk.activate", &log.DasFields{})
+		//log.Das("sdk.activate", &log.DasFields{})
 	} else {
 		token = ""
 	}

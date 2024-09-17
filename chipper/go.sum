@@ -160,6 +160,8 @@ github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4
 github.com/fsouza/go-dockerclient v1.6.6/go.mod h1:3/oRIWoe7uT6bwtAayj/EmJmepBjeL4pYvt7ZxC7Rnk=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240618151033-bf4cb4abad4e h1:np99/bjGH4/khEujoGbwc0ohMLh32GjovhEv2mJRNfs=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240618151033-bf4cb4abad4e/go.mod h1:QIjZ9OktHFG7p+/m3sMvrAJKKdWrr1fZIK0rM6HZlyo=
+github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240917125632-5b1ce40fa882 h1:qH7ENKV0reL2gbvyzQ1mSWwML+eJ+IAEkTz5DmO4Ilg=
+github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240917125632-5b1ce40fa882/go.mod h1:QIjZ9OktHFG7p+/m3sMvrAJKKdWrr1fZIK0rM6HZlyo=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-audio/audio v1.0.0 h1:zS9vebldgbQqktK4H0lUqWrG8P0NxCJVqcj7ZpNnwd4=
 github.com/go-audio/audio v1.0.0/go.mod h1:6uAu0+H2lHkwdGsAY+j2wHPNPpPoeg5AaEFh9FlA+Zs=
