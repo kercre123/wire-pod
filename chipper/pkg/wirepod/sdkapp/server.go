@@ -3,7 +3,6 @@ package sdkapp
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -643,12 +642,11 @@ func rgbToBytes(rgbValues [][][3]uint8) ([]byte, error) {
 
 	for _, row := range rgbValues {
 		for _, pixel := range row {
-			err := binary.Write(&buffer, binary.LittleEndian, pixel)
-			if err != nil {
-				return nil, err
-			}
+			// Adiciona diretamente os valores R, G e B no buffer
+			buffer.WriteByte(pixel[2]) // R
+			buffer.WriteByte(pixel[1]) // G
+			buffer.WriteByte(pixel[0]) // B
 		}
-
 	}
 
 	return buffer.Bytes(), nil
