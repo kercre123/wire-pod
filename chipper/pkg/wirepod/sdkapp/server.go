@@ -3,6 +3,7 @@ package sdkapp
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -142,11 +143,39 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case r.URL.Path == "/api-sdk/display_image":
 
-		r.ParseMultipartForm(2 << 20)
+		r.ParseMultipartForm(3 << 20)
 		imgPath, _, err := r.FormFile("image")
 
+		img, _, err := image.Decode(imgPath)
+		if err != nil {
+			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		bounds := img.Bounds()
+
+		rgbValues := make([][][3]uint8, bounds.Dy()) // height
+
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			rgbRow := make([][3]uint8, bounds.Dx()) // width
+
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				//get current pixel color
+				f := img.At(x, y)
+
+				r, g, b, _ := f.RGBA()
+				r8 := uint8(r >> 8)
+				g8 := uint8(g >> 8)
+				b8 := uint8(b >> 8)
+
+				//store RGB values
+				rgbRow[x] = [3]uint8{r8, g8, b8}
+			}
+
+			rgbValues[y] = rgbRow
+		}
+
 		// Lê a imagem e trata possíveis erros
-		faceBytes, err := io.ReadAll(imgPath)
+		faceBytes, err := rgbToBytes(rgbValues)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -165,6 +194,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			DurationMs:       uint32(duration), // Certifique-se de que este campo é exportado
 			InterruptRunning: true,             // Certifique-se de que este campo é exportado
 		})
+
 		if err != nil {
 			http.Error(w, "Error displaying face image: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -606,4 +636,20 @@ func BeginServer() {
 			logger.Println("A process is already using port 80 - connCheck functionality will not work")
 		}
 	}
+}
+
+func rgbToBytes(rgbValues [][][3]uint8) ([]byte, error) {
+	var buffer bytes.Buffer
+
+	for _, row := range rgbValues {
+		for _, pixel := range row {
+			err := binary.Write(&buffer, binary.LittleEndian, pixel)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	}
+
+	return buffer.Bytes(), nil
 }
