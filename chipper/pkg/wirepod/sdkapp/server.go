@@ -20,6 +20,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/nfnt/resize"
 )
 
 var serverFiles string = "./webroot/sdkapp"
@@ -150,7 +151,8 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		bounds := img.Bounds()
+		resizedImg := resize.Resize(184, 96, img, resize.Lanczos3)
+		bounds := resizedImg.Bounds()
 
 		rgbValues := make([][][3]uint8, bounds.Dy()) // height
 
@@ -643,9 +645,9 @@ func rgbToBytes(rgbValues [][][3]uint8) ([]byte, error) {
 	for _, row := range rgbValues {
 		for _, pixel := range row {
 			// Adiciona diretamente os valores R, G e B no buffer
-			buffer.WriteByte(pixel[2]) // R
+			buffer.WriteByte(pixel[0]) // R
 			buffer.WriteByte(pixel[1]) // G
-			buffer.WriteByte(pixel[0]) // B
+			buffer.WriteByte(pixel[2]) // B
 		}
 	}
 
