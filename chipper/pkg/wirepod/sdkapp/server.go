@@ -140,6 +140,40 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(json))
 			return
 		}
+	case r.URL.Path == "/api-sdk/display_image":
+
+		r.ParseMultipartForm(2 << 20)
+		imgPath, _, err := r.FormFile("image")
+
+		// Lê a imagem e trata possíveis erros
+		faceBytes, err := io.ReadAll(imgPath)
+		if err != nil {
+			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		ctx := r.Context()
+		ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+
+		// Defina a duração e o bloqueio
+		duration := 3000 // Duração em milissegundos
+
+		// Chamada da função DisplayFaceImageRGB e tratamento de erro
+		resp, err := robot.Conn.DisplayFaceImageRGB(ctx, &vectorpb.DisplayFaceImageRGBRequest{
+			FaceData:         faceBytes,        // Certifique-se de que este campo é exportado
+			DurationMs:       uint32(duration), // Certifique-se de que este campo é exportado
+			InterruptRunning: true,             // Certifique-se de que este campo é exportado
+		})
+		if err != nil {
+			http.Error(w, "Error displaying face image: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Responda com um status de sucesso
+		fmt.Fprintf(w, "Face image displayed successfully: %+v", resp)
+		return
+
 	case r.URL.Path == "/api-sdk/get_battery":
 		// Ensure the endpoint times out after 15 seconds
 		ctx := r.Context() // Get the request context
