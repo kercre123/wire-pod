@@ -644,9 +644,9 @@ func rgbToBytes(rgbValues [][][3]uint8) ([]byte, error) {
 	for _, row := range rgbValues {
 		for _, pixel := range row {
 			// Adiciona diretamente os valores R, G e B no buffer
-			buffer.WriteByte(pixel[0]) // R
+			buffer.WriteByte(pixel[2]) // R
 			buffer.WriteByte(pixel[1]) // G
-			buffer.WriteByte(pixel[2]) // B
+			buffer.WriteByte(pixel[0]) // B
 		}
 	}
 
