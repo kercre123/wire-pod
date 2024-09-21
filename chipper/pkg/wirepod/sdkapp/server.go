@@ -20,7 +20,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
-	"github.com/nfnt/resize"
 )
 
 var serverFiles string = "./webroot/sdkapp"
@@ -151,7 +150,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		resizedImg := resize.Resize(184, 96, img, resize.Lanczos3)
+		resizedImg := resizeImage(img, 184, 96)
 		bounds := resizedImg.Bounds()
 
 		rgbValues := make([][][3]uint8, bounds.Dy()) // height
@@ -652,4 +651,25 @@ func rgbToBytes(rgbValues [][][3]uint8) ([]byte, error) {
 	}
 
 	return buffer.Bytes(), nil
+}
+
+func resizeImage(original image.Image, width, height int) image.Image {
+	if width <= 0 || height <= 0 {
+		return original
+	}
+
+	newImage := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	scaleX := float64(original.Bounds().Dx()) / float64(width)
+	scaleY := float64(original.Bounds().Dy()) / float64(height)
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			srcX := int(float64(x) * scaleX)
+			srcY := int(float64(y) * scaleY)
+			newImage.Set(x, y, original.At(srcX, srcY))
+		}
+	}
+
+	return newImage
 }
