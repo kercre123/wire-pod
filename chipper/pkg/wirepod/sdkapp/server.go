@@ -176,7 +176,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Reads the image and handles possible errors
-		faceBytes, err := rgbToBytes(rgbValues)
+		//faceBytes, err := rgbToBytes(rgbValues)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -190,7 +190,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 
 		// call DisplayFaceImageRGB e handle error
 		resp, err := robot.Conn.DisplayFaceImageRGB(ctx, &vectorpb.DisplayFaceImageRGBRequest{
-			FaceData:         faceBytes,
+			FaceData:         rgbValues,
 			DurationMs:       uint32(duration),
 			InterruptRunning: true,
 		})
