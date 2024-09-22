@@ -178,7 +178,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Reads the image and handles possible errors
-		faceBytes, err := rgbToBytes(rgbValues)
+		faceBytes, err := imageToBytes(img)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -648,6 +648,25 @@ func rgbToBytes(rgbValues [][][3]uint8) ([]byte, error) {
 			buffer.WriteByte(pixel[0]) // R
 			buffer.WriteByte(pixel[1]) // G
 			buffer.WriteByte(pixel[2]) // B
+		}
+	}
+
+	return buffer.Bytes(), nil
+}
+func imageToBytes(img image.Image) ([]byte, error) {
+	bounds := img.Bounds()
+	var buffer bytes.Buffer
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			// Obtém a cor do pixel
+			c := img.At(x, y)
+			r, g, b, _ := c.RGBA() // Ignorando o valor Alpha
+
+			// Converte de uint32 para uint8
+			buffer.WriteByte(uint8(r >> 8))
+			buffer.WriteByte(uint8(g >> 8))
+			buffer.WriteByte(uint8(b >> 8))
 		}
 	}
 
