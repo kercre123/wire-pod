@@ -150,9 +150,9 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		resizedImg := resizeImage(img, 184, 96)
+		//resizedImg := resizeImage(img, 184, 96)
 
-		bounds := resizedImg.Bounds()
+		bounds := img.Bounds()
 
 		rgbValues := make([][][3]uint8, bounds.Dy()) // height
 
@@ -161,7 +161,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 
 			for x := bounds.Min.X; x < bounds.Max.X; x++ {
 				//get current pixel color
-				f := resizedImg.At(x, y)
+				f := img.At(x, y)
 
 				r, g, b, _ := f.RGBA()
 				r8 := uint8(r >> 8)
