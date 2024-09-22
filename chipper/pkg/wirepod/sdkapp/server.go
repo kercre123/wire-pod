@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	"image/png"
 	"io"
 	"net/http"
 	"os"
@@ -154,36 +155,38 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		//resizedImg := resizeImage(img, 184, 96)
 
-		bounds := img.Bounds()
+		// bounds := img.Bounds()
 
-		rgbValues := make([][][3]uint8, bounds.Dy()) // height
+		// rgbValues := make([][][3]uint8, bounds.Dy()) // height
 
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			rgbRow := make([][3]uint8, bounds.Dx()) // width
+		// for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		// 	rgbRow := make([][3]uint8, bounds.Dx()) // width
 
-			for x := bounds.Min.X; x < bounds.Max.X; x++ {
-				//get current pixel color
-				f := img.At(x, y)
+		// 	for x := bounds.Min.X; x < bounds.Max.X; x++ {
+		// 		//get current pixel color
+		// 		f := img.At(x, y)
 
-				r, g, b, _ := f.RGBA()
-				r8 := uint8(r >> 8)
-				g8 := uint8(g >> 8)
-				b8 := uint8(b >> 8)
+		// 		r, g, b, _ := f.RGBA()
+		// 		r8 := uint8(r >> 8)
+		// 		g8 := uint8(g >> 8)
+		// 		b8 := uint8(b >> 8)
 
-				//store RGB values
-				rgbRow[x] = [3]uint8{r8, g8, b8}
-			}
+		// 		//store RGB values
+		// 		rgbRow[x] = [3]uint8{r8, g8, b8}
+		// 	}
 
-			rgbValues[y] = rgbRow
-		}
+		// 	rgbValues[y] = rgbRow
+		// }
 
 		// Reads the image and handles possible errors
-		faceBytes, err := imageToBytes(img)
+		var buf bytes.Buffer
+		err = png.Encode(&buf, img)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
+		faceBytes := buf.Bytes()
 		ctx := r.Context()
 		ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 		defer cancel()
