@@ -147,7 +147,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 
 		defer imgPath.Close()
 
-		solidFaceBytes := make([]byte, 17664*1) // 17664 pixels, 3 bytes por pixel
+		solidFaceBytes := make([]byte, 17664*10) // 17664 pixels, 3 bytes por pixel
 		for i := 0; i < len(solidFaceBytes); i += 3 {
 			solidFaceBytes[i] = 255 // R
 			solidFaceBytes[i+1] = 0 // G
