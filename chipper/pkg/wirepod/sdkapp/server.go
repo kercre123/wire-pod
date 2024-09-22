@@ -147,13 +147,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 
 		defer imgPath.Close()
 
-		solidFaceBytes := make([]byte, 17664*10) // 17664 pixels, 3 bytes por pixel
-		for i := 0; i < len(solidFaceBytes); i += 3 {
-			solidFaceBytes[i] = 255 // R
-			solidFaceBytes[i+1] = 0 // G
-			solidFaceBytes[i+2] = 0 // B
-		}
-
 		img, _, err := image.Decode(imgPath)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
@@ -185,7 +178,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Reads the image and handles possible errors
-		//faceBytes, err := rgbToBytes(rgbValues)
+		faceBytes, err := rgbToBytes(rgbValues)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -199,7 +192,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 
 		// call DisplayFaceImageRGB e handle error
 		resp, err := robot.Conn.DisplayFaceImageRGB(ctx, &vectorpb.DisplayFaceImageRGBRequest{
-			FaceData:         solidFaceBytes,
+			FaceData:         faceBytes,
 			DurationMs:       uint32(duration),
 			InterruptRunning: true,
 		})
