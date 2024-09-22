@@ -175,7 +175,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			rgbValues[y] = rgbRow
 		}
 
-		// Lê a imagem e trata possíveis erros
+		// Reads the image and handles possible errors
 		faceBytes, err := rgbToBytes(rgbValues)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
@@ -186,14 +186,13 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 		defer cancel()
 
-		// Defina a duração e o bloqueio
-		duration := 3000 // Duração em milissegundos
+		duration := 3000
 
-		// Chamada da função DisplayFaceImageRGB e tratamento de erro
+		// call DisplayFaceImageRGB e handle error
 		resp, err := robot.Conn.DisplayFaceImageRGB(ctx, &vectorpb.DisplayFaceImageRGBRequest{
-			FaceData:         faceBytes,        // Certifique-se de que este campo é exportado
-			DurationMs:       uint32(duration), // Certifique-se de que este campo é exportado
-			InterruptRunning: true,             // Certifique-se de que este campo é exportado
+			FaceData:         faceBytes,
+			DurationMs:       uint32(duration),
+			InterruptRunning: true,
 		})
 
 		if err != nil {
@@ -201,7 +200,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Responda com um status de sucesso
 		fmt.Fprintf(w, "Face image displayed successfully: %+v", resp)
 		return
 
@@ -644,10 +642,10 @@ func rgbToBytes(rgbValues [][][3]uint8) ([]byte, error) {
 
 	for _, row := range rgbValues {
 		for _, pixel := range row {
-			// Adiciona diretamente os valores R, G e B no buffer
-			buffer.WriteByte(pixel[2]) // R
+			// Directly add the R, G and B values ​​to the buffer
+			buffer.WriteByte(pixel[0]) // R
 			buffer.WriteByte(pixel[1]) // G
-			buffer.WriteByte(pixel[0]) // B
+			buffer.WriteByte(pixel[2]) // B
 		}
 	}
 
