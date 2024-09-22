@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	"image/png"
 	"io"
 	"net/http"
 	"os"
@@ -179,14 +178,12 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		// }
 
 		// Reads the image and handles possible errors
-		var buf bytes.Buffer
-		err = png.Encode(&buf, img)
+		faceBytes, err := imageToBytes(img)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		faceBytes := buf.Bytes()
 		ctx := r.Context()
 		ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 		defer cancel()
