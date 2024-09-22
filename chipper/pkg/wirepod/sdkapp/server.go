@@ -6,9 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"image/color"
 	"image/jpeg"
-	"image/png"
 	"io"
 	"net/http"
 	"os"
@@ -144,20 +142,19 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case r.URL.Path == "/api-sdk/display_image":
 
-		//r.ParseMultipartForm(3 << 20)
-		//imgPath, _, err := r.FormFile("image")
+		r.ParseMultipartForm(3 << 20)
+		imgPath, _, err := r.FormFile("image")
 
-		//defer imgPath.Close()
-		imgT := image.NewRGBA(image.Rect(0, 0, 184, 96))
-		for y := 0; y < 96; y++ {
-			for x := 0; x < 184; x++ {
-				imgT.Set(x, y, color.RGBA{0, 255, 0, 255}) // Verde
-			}
+		defer imgPath.Close()
+
+		solidFaceBytes := make([]byte, 17664*3) // 17664 pixels, 3 bytes por pixel
+		for i := 0; i < len(solidFaceBytes); i += 3 {
+			solidFaceBytes[i] = 0     // R
+			solidFaceBytes[i+1] = 255 // G
+			solidFaceBytes[i+2] = 0   // B
 		}
-		f, _ := os.Create("solid_green.png")
-		defer f.Close()
-		png.Encode(f, imgT)
-		img := imgT
+
+		img, _, err := image.Decode(imgPath)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -188,7 +185,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Reads the image and handles possible errors
-		faceBytes, err := rgbToBytes(rgbValues)
+		//faceBytes, err := rgbToBytes(rgbValues)
 		if err != nil {
 			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -202,7 +199,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 
 		// call DisplayFaceImageRGB e handle error
 		resp, err := robot.Conn.DisplayFaceImageRGB(ctx, &vectorpb.DisplayFaceImageRGBRequest{
-			FaceData:         faceBytes,
+			FaceData:         solidFaceBytes,
 			DurationMs:       uint32(duration),
 			InterruptRunning: true,
 		})
