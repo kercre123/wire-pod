@@ -140,69 +140,57 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(json))
 			return
 		}
-	case r.URL.Path == "/api-sdk/display_image":
 
-		r.ParseMultipartForm(3 << 20)
-		imgPath, _, err := r.FormFile("image")
-
-		defer imgPath.Close()
-
-		img, _, err := image.Decode(imgPath)
+	case r.URL.Path == "/api-sdk/play_sound":
+		file, _, err := r.FormFile("sound")
 		if err != nil {
-			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
+			println("Error retrieving the file:", err)
 			return
 		}
-		//resizedImg := resizeImage(img, 184, 96)
+		defer file.Close()
 
-		// bounds := img.Bounds()
-
-		// rgbValues := make([][][3]uint8, bounds.Dy()) // height
-
-		// for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		// 	rgbRow := make([][3]uint8, bounds.Dx()) // width
-
-		// 	for x := bounds.Min.X; x < bounds.Max.X; x++ {
-		// 		//get current pixel color
-		// 		f := img.At(x, y)
-
-		// 		r, g, b, _ := f.RGBA()
-		// 		r8 := uint8(r >> 8)
-		// 		g8 := uint8(g >> 8)
-		// 		b8 := uint8(b >> 8)
-
-		// 		//store RGB values
-		// 		rgbRow[x] = [3]uint8{r8, g8, b8}
-		// 	}
-
-		// 	rgbValues[y] = rgbRow
-		// }
-
-		// Reads the image and handles possible errors
-		faceBytes, err := imageToBytes(img)
+		// Lê o conteúdo do arquivo em um slice de bytes
+		pcmFile, err := io.ReadAll(file)
 		if err != nil {
-			http.Error(w, "Error reading image: "+err.Error(), http.StatusInternalServerError)
+			println("Error reading the file:", err)
 			return
 		}
 
-		ctx := r.Context()
-		ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-		defer cancel()
+		var audioChunks [][]byte
+		for len(pcmFile) >= 1024 {
+			audioChunks = append(audioChunks, pcmFile[:1024])
+			pcmFile = pcmFile[1024:]
+		}
 
-		duration := 3000
-
-		// call DisplayFaceImageRGB e handle error
-		resp, err := robot.Conn.DisplayFaceImageRGB(ctx, &vectorpb.DisplayFaceImageRGBRequest{
-			FaceData:         faceBytes,
-			DurationMs:       uint32(duration),
-			InterruptRunning: true,
+		var audioClient vectorpb.ExternalInterface_ExternalAudioStreamPlaybackClient
+		audioClient, _ = robot.Conn.ExternalAudioStreamPlayback(ctx)
+		audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
+			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamPrepare{
+				AudioStreamPrepare: &vectorpb.ExternalAudioStreamPrepare{
+					AudioFrameRate: 16000,
+					AudioVolume:    uint32(100),
+				},
+			},
 		})
 
-		if err != nil {
-			http.Error(w, "Error displaying face image: "+err.Error(), http.StatusInternalServerError)
-			return
+		for _, chunk := range audioChunks {
+			audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
+				AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamChunk{
+					AudioStreamChunk: &vectorpb.ExternalAudioStreamChunk{
+						AudioChunkSizeBytes: uint32(len(chunk)),
+						AudioChunkSamples:   chunk,
+					},
+				},
+			})
+			time.Sleep(time.Millisecond * 30)
 		}
 
-		fmt.Fprintf(w, "Face image displayed successfully: %+v", resp)
+		audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
+			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamComplete{
+				AudioStreamComplete: &vectorpb.ExternalAudioStreamComplete{},
+			},
+		})
+
 		return
 
 	case r.URL.Path == "/api-sdk/get_battery":
