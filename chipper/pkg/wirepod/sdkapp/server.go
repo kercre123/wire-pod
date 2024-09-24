@@ -167,7 +167,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
 			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamPrepare{
 				AudioStreamPrepare: &vectorpb.ExternalAudioStreamPrepare{
-					AudioFrameRate: 16000,
+					AudioFrameRate: 8000,
 					AudioVolume:    uint32(100),
 				},
 			},
@@ -182,7 +182,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 					},
 				},
 			})
-			time.Sleep(time.Millisecond * 30)
+			time.Sleep(time.Millisecond * 60)
 		}
 
 		audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
