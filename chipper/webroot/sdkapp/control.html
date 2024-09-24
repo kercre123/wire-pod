@@ -88,6 +88,17 @@
         <button onclick="sayText()" type="submit">Submit</button>
       </div>
       <hr />
+      <h2 class="center">Play Audio</h2>
+        <div class="center">
+          <input type="file" id="fileInput" accept=".wav">
+        </div>
+        <button id="uploadButton" style="display: none;" type="submit">Send Audio</button>
+        <div div class="center">
+          <audio id="audioOutput" controls></audio>
+        </div>
+        
+      </div>
+      <hr />
     </div>
   </div>
   <hr>
@@ -98,6 +109,8 @@
   <script src="./js/iro.min.js"></script>
   <script src="./js/control.js"></script>
   <script src="../js/ui.js"></script>
+  <script src="../js/play_audio.js"></script>
+
   <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
 </body>
 
