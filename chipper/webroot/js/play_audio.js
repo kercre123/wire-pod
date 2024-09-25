@@ -16,18 +16,40 @@ document.getElementById('fileInput').addEventListener('change', async () => {
 
     try {
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        let newBuffer;
+
+        //Verify is audio is stereio or mono and convert to mono if necessary
+        if(audioBuffer.numberOfChannels >1){
+            const monoLength = audioBuffer.length;
+            newBuffer = audioContext.createBuffer(1, monoLength, audioBuffer.sampleRate);
+
+            const channelData = newBuffer.getChannelData(0);
+            for (let i = 0; i < monoLength; i++){
+
+                channelData[i] = 0.5 * (audioBuffer.getChannelData(0)[i] + audioBuffer.getChannelData(1)[i]);
+
+                
+            }
+
+        }else{
+            // if already mono, just copy
+            newBuffer = audioBuffer;
+            }
+            
         
+
         // adjust frame rate to 8000 Hz
         const newSampleRate = 8000;
-        const newLength = Math.round(audioBuffer.length * newSampleRate / audioBuffer.sampleRate);
-        const newBuffer = audioContext.createBuffer(audioBuffer.numberOfChannels, newLength, newSampleRate);
+        const newLength = Math.round(newBuffer.length * newSampleRate / newBuffer.sampleRate);
+        const resampledBuffer  = audioContext.createBuffer(newBuffer.numberOfChannels, newLength, newSampleRate);
 
-        for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-            const oldData = audioBuffer.getChannelData(channel);
-            const newData = newBuffer.getChannelData(channel);
+        for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
+            const oldData = newBuffer.getChannelData(channel);
+            const newData = resampledBuffer .getChannelData(channel);
 
             for (let i = 0; i < newLength; i++) {
-                const oldIndex = i * audioBuffer.sampleRate / newSampleRate;
+                const oldIndex = i * newBuffer.sampleRate / newSampleRate;
                 const index0 = Math.floor(oldIndex);
                 const index1 = Math.min(index0 + 1, oldData.length - 1);
                 const fraction = oldIndex - index0;
@@ -37,7 +59,7 @@ document.getElementById('fileInput').addEventListener('change', async () => {
         }
 
         // Create a new WAV file
-        processedAudioBlob = await bufferToWave(newBuffer);
+        processedAudioBlob = await bufferToWave(resampledBuffer );
         const url = URL.createObjectURL(processedAudioBlob);
 
         // play processed audio
