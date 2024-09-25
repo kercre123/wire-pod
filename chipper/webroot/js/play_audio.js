@@ -108,7 +108,8 @@ async function uploadAudio(blob) {
 
     try {
         const dominio = window.location.hostname;
-        const response = await fetch(dominio + '/api-sdk/play_sound', {
+        esn = urlParams.get("serial");
+        const response = await fetch('/api-sdk/play_sound?serial='+esn, {
             method: 'POST',
             body: formData,
         });
