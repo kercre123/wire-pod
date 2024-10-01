@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
 )
 
 // URLs represents a set of URLs where Anki's cloud services can be reached
@@ -43,12 +44,17 @@ func SetGlobal(filename string) error {
 }
 
 var defaultFilename = "/anki/data/assets/cozmo_resources/config/server_config.json"
+var wirepodFilename = "/data/data/server_config.json"
 
 // LoadURLs attempts to load a URL config from the given filename. If the given filename
 // is blank, a known hardcoded location for server_config.json on the robot is used.
 func LoadURLs(filename string) (*URLs, error) {
 	if filename == "" {
-		filename = defaultFilename
+		if _, err := os.Open(wirepodFilename); err != nil {
+			filename = defaultFilename
+		} else {
+			filename = wirepodFilename
+		}
 	}
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
