@@ -66,7 +66,27 @@ func Remember(user, ai openai.ChatCompletionMessage, esn string) {
 }
 
 func isMn(r rune) bool {
-	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
+	// Remove the characters that are not related to Vietnamese.
+	// Retain the tonal marks and diacritics such as the circumflex, ơ, and ư in Vietnamese.
+	keepMarks := []rune{
+		'\u0300', // Dấu huyền
+		'\u0301', // Dấu sắc
+		'\u0303', // Dấu ngã
+		'\u0309', // Dấu hỏi
+		'\u0323', // Dấu nặng
+		'\u0302', // Dấu mũ (â, ê, ô)
+		'\u031B', // Dấu ơ và ư
+		'\u0306', // Dấu trầm
+	}
+	if unicode.Is(unicode.Mn, r) {
+		for _, mark := range keepMarks {
+			if r == mark {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 func removeSpecialCharacters(str string) string {
