@@ -156,9 +156,9 @@ func SetupBotViaSSH(ip string, key []byte) error {
 					}
 				}
 			} else {
-				resp, _ := http.Get("https://github.com/kercre123/wire-pod/raw/main/vector-cloud/build/vic-cloud")
+				resp, err := http.Get("https://github.com/kercre123/wire-pod/raw/main/vector-cloud/build/vic-cloud")
 				if err != nil {
-					return doErr(err, "transferring new vic-cloud")
+					return doErr(err, "transferring new vic-cloud (download)")
 				}
 				SetupSSHStatus = "Transferring new vic-cloud..."
 				scpClient, err = scp.NewClientBySSH(client)
@@ -228,7 +228,7 @@ func SSHSetup(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: must provide ssh key ("+err.Error()+")")
 			return
 		}
-		keyBytes, _ := io.ReadAll(key)
+		keyBytes, err := io.ReadAll(key)
 		if len(keyBytes) < 5 {
 			fmt.Fprint(w, "error: must provide ssh key ("+err.Error()+")")
 			return

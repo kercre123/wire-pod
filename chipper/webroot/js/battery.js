@@ -52,6 +52,9 @@ async function updateBatteryInfo(serial, i) {
     // Do nothing
   }
   if (!batteryStatus) {
+    if (charging) {
+      charging.remove();
+    }
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
     tooltip.innerHTML = `<b>${serial}</b><br/>??%<br/> (Unable to connect)`;
@@ -76,6 +79,7 @@ async function updateBatteryInfo(serial, i) {
     batteryPercentage = Math.min(15, batteryPercentage);
     batteryStatus["battery_level"] = 0; // Set color to red
   }
+
 
   // Set the battery level based on the battery_level value and handle the rest in css
   const batteryLevelClass = "batteryLevel battery" + batteryStatus["battery_level"];
@@ -105,6 +109,8 @@ async function updateBatteryInfo(serial, i) {
       chargeTimeRemaining.innerHTML = "";
     }else {
       chargeTimeRemaining.innerHTML = "Full";
+      // assume 100% if Full
+      batteryLevel.style.width = "100%";
       vectorFace.style.backgroundImage = "url(/assets/face.gif)";
     }
   } else {
