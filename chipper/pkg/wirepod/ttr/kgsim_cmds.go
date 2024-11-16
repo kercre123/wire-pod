@@ -476,7 +476,7 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		c = openai.NewClientWithConfig(conf)
 	} else if vars.APIConfig.Knowledge.Provider == "openai" {
 		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
-	} else {
+	} else if vars.APIConfig.Knowledge.Provider == "custom" {
         conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
 		conf.BaseURL = vars.APIConfig.Knowledge.Endpoint
 		c = openai.NewClientWithConfig(conf)
