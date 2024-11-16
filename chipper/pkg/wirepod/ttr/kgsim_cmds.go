@@ -480,7 +480,7 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
         conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
 		conf.BaseURL = vars.APIConfig.Knowledge.Endpoint
 		c = openai.NewClientWithConfig(conf)
-    }
+    	}
 	ctx := context.Background()
 	speakReady := make(chan string)
 
