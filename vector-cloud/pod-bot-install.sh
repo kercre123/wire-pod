@@ -3,7 +3,6 @@
 systemctl stop anki-robot.target
 echo "Resetting Vector to Onboarding mode (user data is NOT being reset, all faces and photos and stuff will persist), screen will be blank for a minute"
 sleep 2
-chmod +rwx /anki/data/assets/cozmo_resources/config/server_config.json
 rm -f /data/data/com.anki.victor/persistent/token/token.jwt
 rm -f /data/data/com.anki.victor/persistent/onboarding/onboardingState.json
 rm -f /data/etc/robot.pem

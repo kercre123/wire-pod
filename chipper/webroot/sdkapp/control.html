@@ -3,6 +3,10 @@
 
 <head>
   <title>Vector Web App</title>
+  <!-- Meta Apple tags for a PWA like experience. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#1e1e1e">
   <link rel="stylesheet" type="text/css" href="../css/style.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
@@ -86,8 +90,18 @@
           <input class="tinput" name="textSay" id="textSay" type="text" placeholder="Put text here" disabled />
         </div>
         <button onclick="sayText()" type="submit">Submit</button>
+      <hr />
+      <h2 class="center">Play Audio</h2>
+        <div class="center">
+          <input type="file" id="fileInput" accept=".wav">
+        </div>
+        <button id="uploadButton" style="display: none;" type="submit">Send Audio</button>
+        <div div class="center">
+          <audio id="audioOutput" controls></audio>
+        </div>
       </div>
       <hr />
+    </div>
     </div>
   </div>
   <hr>
@@ -98,6 +112,8 @@
   <script src="./js/iro.min.js"></script>
   <script src="./js/control.js"></script>
   <script src="../js/ui.js"></script>
+  <script src="../js/play_audio.js"></script>
+
   <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
 </body>
 

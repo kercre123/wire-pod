@@ -118,6 +118,14 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 		SupportedModels: []string{"all"},
 	},
 	{
+		Command:     "getImage",
+		Description: "Gets an image from the robot's camera and places it in the next message. If you want to do this, tell the user what you are about to do THEN use the command. This command should END a sentence. Your response will be stopped when this command is recognized. If a user says something like 'what do you see', you should assume that you need to take a new photo. Do NOT automatically assume that you are analyzing a previous photo.",
+		// not impl yet
+		ParamChoices:    "front, lookingUp",
+		Action:          ActionGetImage,
+		SupportedModels: []string{"all"},
+	},
+	{
 		Command:         "newVoiceRequest",
 		Description:     "Starts a new voice command from the robot. You must use this at the end of your response.",
 		ParamChoices:    "now",
@@ -144,7 +152,11 @@ func ModelIsSupported(cmd LLMCommand, model string) bool {
 func CreatePrompt(origPrompt string, model string, isKG bool) string {
 	prompt := origPrompt + "\n\n" + "Keep in mind, user input comes from speech-to-text software, so respond accordingly. No special characters, especially these: & ^ * # @ - . No lists. No formatting."
 	if vars.APIConfig.Knowledge.CommandsEnable {
+<<<<<<< HEAD
 		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\n You MUST use the command newVoiceRequest at the end of your response. You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
+=======
+               prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nUse the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
+>>>>>>> 32280277df20ec452b3779a6a8bc4e240bf86b02
 		for _, cmd := range ValidLLMCommands {
 			if ModelIsSupported(cmd, model) {
 				promptAppendage := "\n\nCommand Name: " + cmd.Command + "\nDescription: " + cmd.Description + "\nParameter choices: " + cmd.ParamChoices
@@ -468,7 +480,11 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		c = openai.NewClientWithConfig(conf)
 	} else if vars.APIConfig.Knowledge.Provider == "openai" {
 		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
-	}
+	} else if vars.APIConfig.Knowledge.Provider == "custom" {
+        conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
+		conf.BaseURL = vars.APIConfig.Knowledge.Endpoint
+		c = openai.NewClientWithConfig(conf)
+    	}
 	ctx := context.Background()
 	speakReady := make(chan string)
 
