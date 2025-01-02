@@ -169,7 +169,7 @@
   },
   {
     "name": "intent_clock_time",
-    "keyphrases": ["Wie ist die Uhrzeit jetzt", "Wie ist die Uhrzeit", "Wie spät ist es", "Wie ist die Zeit", "Wie viel Uhr ist es", "Uhrzeit", "Zeig mir die Uhrzeit", "Zeige die Uhrzeit", "Zeig die Uhrzeit", "Uhrzeit anzeigen", "Uhrzeit zeigen", "Uhrzeit ansehen"]
+    "keyphrases": ["Wie ist die Uhrzeit jetzt", "Wie ist die Uhrzeit", "Wie spät ist es", "Wie ist die Zeit", "Wieviel Uhr ist es", "Wieviel Uhr haben wir", "Uhrzeit", "Zeig mir die Uhrzeit", "Zeige die Uhrzeit", "Zeig die Uhrzeit", "Uhrzeit anzeigen", "Uhrzeit zeigen", "Uhrzeit ansehen"]
   },
   {
     "name": "intent_imperative_quiet",
