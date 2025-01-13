@@ -267,12 +267,6 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
 	tokenString, _ := token.SignedString(rsaKey)
 	bundle.Token = tokenString
-	bundle.StsToken = &tokenpb.StsToken{
-		AccessKeyId:     "",
-		SessionToken:    "",
-		SecretAccessKey: "",
-		Expiration:      "",
-	}
 	return bundle
 }
 
