@@ -347,7 +347,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 
             		if (len(response.Choices) == 0) {
                 		logger.Println("Empty response")
-                	return
+                		return
             		}
 
 			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
