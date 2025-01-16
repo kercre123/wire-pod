@@ -345,6 +345,11 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 				return
 			}
 
+            if (len(response.Choices) == 0) {
+                logger.Println("Empty response")
+                return
+            }
+
 			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
