@@ -63,7 +63,8 @@ function sendSetupInfo() {
             });
         }, 500);
       } else if (response.includes("vosk")) {
-        initWeatherAPIKey();
+        console.log(response)
+        setConn();
       } else if (response.includes("error")) {
         updateSetupStatus(response);
         document.getElementById("config-options").style.display = "block";
