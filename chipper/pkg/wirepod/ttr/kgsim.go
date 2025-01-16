@@ -261,7 +261,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
-        log.Printf("Error creating chat completion stream: %v", err)
+        	log.Printf("Error creating chat completion stream: %v", err)
 		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
@@ -345,10 +345,10 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 				return
 			}
 
-            if (len(response.Choices) == 0) {
-                logger.Println("Empty response")
-                return
-            }
+            		if (len(response.Choices) == 0) {
+                		logger.Println("Empty response")
+                	return
+            		}
 
 			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
