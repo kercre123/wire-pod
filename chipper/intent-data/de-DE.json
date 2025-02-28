@@ -13,7 +13,7 @@
   },
   {
     "name": "intent_imperative_eyecolor",
-    "keyphrases": ["Ändere die Augenfarbe", "Ändere deine Augenfarbe", "Augenfarbe", "Augenfarbe ändern", "Farbe ändern", "Augen"]
+    "keyphrases": ["Ändere die Augenfarbe", "Ändere deine Augenfarbe", "Augenfarbe", "Augenfarbe ändern", "Farbe ändern", "Farbe der Augen ändern", "Augen"]
   },
   {
     "name": "intent_character_age",
@@ -21,19 +21,19 @@
   },
   {
     "name": "intent_explore_start",
-    "keyphrases": ["Gehe Erkunden", "Erforschen", "Erforsche", "Erkunde etwas", "Gehe auf Erkundung"]
+    "keyphrases": ["Gehe Erkunden", "Geh Erkunden", "Gehe Erforschen", "Geh Erforschen", "Erforschen", "Erforsche", "Erkunden", "Erkunde", "Erkunde etwas", "Erforsche etwas", "Gehe auf Erkundung", "Geh auf Erkundung", "Gehe auf Erforschung", "Geh auf Erforschung", "Erkunden gehen", "Erforschen gehen"]
   },
   {
     "name": "intent_system_charger",
-    "keyphrases": ["Gehe nach Hause", "Geh nach Hause", "Nach Hause", "Nach Hause gehen", "Aufladen", "Lade dich auf", "Gehe dich aufladen", "Gehe laden", "Finde das Ladegerät", "Gehe heim", "Zurück nach hause", "Ab nach hause"]
+    "keyphrases": ["Gehe nach Hause", "Geh nach Hause", "Nach Hause", "Nach Hause gehen", "Aufladen", "Lade dich auf", "Gehe dich aufladen", "Geh dich aufladen", "Gehe dich laden", "Geh dich laden", "Gehe laden", "Finde das Ladegerät", "Ladegerät finden", "Gehe heim", "Geh heim", "Zurück nach hause", "Ab nach hause", "Zuhause"]
   },
   {
     "name": "intent_system_sleep",
-    "keyphrases": ["Schlaf", "Schlafen gehen", "Gehe schlafen", "Geh schlafen", "Gehe ins Bett", "Geh ins Bett", "Ins Bett", "Ins Bett gehen", "Ab ins Bett", "Zum Bett gehen", "Gehe zum Bett", "Bett", "Gute nacht", "Schlaf gut", "Schlaf schön"]
+    "keyphrases": ["Schlaf", "Schlafen gehen", "Gehe schlafen", "Geh schlafen", "Gehe ins Bett", "Geh ins Bett", "Ins Bett", "Ins Bett gehen", "Ab ins Bett", "Zum Bett gehen", "Gehe zum Bett", "Bett", "Gute nacht", "Schlaf gut", "Schlaf schön", "Schöne Träume", "Träum was schönes"]
   },
   {
     "name": "intent_greeting_goodmorning",
-    "keyphrases": ["Guten Tag", "Guten Morgen", "Guten Nachmittag"]
+    "keyphrases": ["Guten Tag", "Guten Morgen", "Guten Nachmittag", "Morgen"]
   },
   {
     "name": "intent_greeting_goodnight",
@@ -53,7 +53,7 @@
   },
   {
     "name": "intent_amazon_signin",
-    "keyphrases": ["Gehe in Alexa rein", "Trete Alexa bei", "Alexa beitreten", "Registriere dich bei Alexa", "Alexa aktivieren", "Schalte Alexa ein", "Aktiviere Alexa", "Alexa aktivieren"]
+    "keyphrases": ["Gehe in Alexa rein", "Trete Alexa bei", "Alexa beitreten", "Registriere dich bei Alexa", "Alexa einschalten", "Schalte Alexa ein", "Aktiviere Alexa", "Alexa aktivieren"]
   },
   {
     "name": "intent_amazon_signin",
@@ -77,15 +77,15 @@
   },
   {
     "name": "intent_play_rollcube",
-    "keyphrases": ["Spiele mit dem Würfel", "Spiel mit dem Würfel", "Spiele mit deinem Würfel", "Spiel mit deinem Würfel", "Bewege den Würfel", "Beweg den Würfel", "Bewege deinen Würfel", "Beweg deinen Würfel", "Rolle den Würfel", "Rolle deinen Würfel", "Roll den Würfel", "Roll deinen Würfel"]
+    "keyphrases": ["Rolle den Würfel", "Drehe den Würfel", "Dreh den Würfel", "Drehe deinen Würfel", "Dreh deinen Würfel", "Rolle deinen Würfel", "Roll den Würfel", "Roll deinen Würfel", "Würfel rollen", "Würfel drehen", "Würfel umdrehen"]
   },
   {
     "name": "intent_play_popawheelie",
-    "keyphrases": ["Wheelie", "Mach einen Wheelie", "Mach nen Wheelie", "Mach Wheelie", "Wheelie", "Handstand", "Mache einen Handstand", "Mach Handstand", "Handstand machen", "Kopfstand", "Mach Kopfstand", "Mache einen Kopfstand", "Kopfstand machen"]
+    "keyphrases": ["Wheelie", "Willi", "Vheli", "Wheelie ausführen", "Willi ausführen", "Vheli ausführen", "Mach einen Wheelie", "Mach einen Vheli", "Mach einen Willi", "Mache einen Wheelie", "Mache einen Vheli", "Mache einen Willi", "Mach nen Wheelie", "Mach nen Willi", "Mach nen Vheli", "Mach Wheelie", "Mache Wheelie", "Handstand", "Handstand ausführen", "Mache einen Handstand", "Mach einen Handstand", "Mach Handstand", "Mache Handstand", "Handstand machen", "Kopfstand", "Mach Kopfstand", "Mache Kopfstand", "Mach einen Kopfstand", "Mache einen Kopfstand", "Kopfstand machen", "Kopfstand ausführen"]
   },
   {
     "name": "intent_play_fistbump",
-    "keyphrases": ["Gib mir fünf", "Gib mir die fünf", "Hebe deine Hand", "Heb deine Hand", "Hand heben", "High five"]
+    "keyphrases": ["Gib mir fünf", "Gib mir die fünf", "Hebe deine Hand", "Hebe deinen Arm", "Heb deine Hand", "Heb deinen Arm", "Hand heben", "Arm heben", "High five", "Hi Five"]
   },
   {
     "name": "intent_play_blackjack",
@@ -93,11 +93,11 @@
   },
   {
     "name": "intent_imperative_affirmative",
-    "keyphrases": ["Ja", "Richtig", "Korrekt", "Wahr"]
+    "keyphrases": ["Ja", "Richtig", "Korrekt", "Wahr", "Stimmt"]
   },
   {
     "name": "intent_imperative_negative",
-    "keyphrases": ["Nein", "Nicht", "Falsch", "Inkorrekt", "Unwahr"]
+    "keyphrases": ["Nein", "Nicht", "Falsch", "Inkorrekt", "Unwahr", "Stimmt nicht"]
   },
   {
     "name": "intent_photo_take_extend",
@@ -105,7 +105,7 @@
   },
   {
     "name": "intent_imperative_praise",
-    "keyphrases": ["Gut", "großartig", "mythisch", "stark", "beeindruckend", "toll", "super", "Guter"]
+    "keyphrases": ["Gut", "Großartig", "mythisch", "stark", "beeindruckend", "toll", "super", "Guter", "Fantastisch"]
   },
   {
     "name": "intent_imperative_abuse",
@@ -117,7 +117,7 @@
   },
   {
     "name": "intent_imperative_backup",
-    "keyphrases": ["Zurück", "Abbrechen"]
+    "keyphrases": ["Zurück", "Abrechen", "Abbruch"]
   },
   {
     "name": "intent_imperative_volumedown",
@@ -141,7 +141,7 @@
   },
   {
     "name": "intent_greeting_hello",
-    "keyphrases": ["Hallo", "Wie geht es dir", "Wie geht's", "Wie geht's dir", "Guten Morgen", "Morgen", "Guten Abend", "Abend", "Guten Tag", "Tag", "Hey", "Hallo", "Hi"]
+    "keyphrases": ["Hallo", "Wie geht es dir", "Wie geht's", "Wie gehts", "Wie geht's dir", "Wie gehts dir", "Guten Morgen", "Morgen", "Guten Abend", "Abend", "Guten Tag", "Tag", "Hey", "Hallo", "Hi", "Moin"]
   },
   {
     "name": "intent_imperative_come",
@@ -153,7 +153,7 @@
   },
   {
     "name": "intent_knowledge_promptquestion",
-    "keyphrases": ["Frage", "Ich habe eine Frage", "Ich hab eine Frage"]
+    "keyphrases": ["Frage", "Ich habe eine Frage", "Ich hab eine Frage", "Reden wir", "Reden", "Lass uns quatschen", "Ich brauche Antworten"]
   },
   {
     "name": "intent_clock_checktimer",
@@ -169,19 +169,19 @@
   },
   {
     "name": "intent_clock_time",
-    "keyphrases": ["Wie ist die Uhrzeit jetzt", "Wie ist die Uhrzeit", "Wie spät ist es", "Wie ist die Zeit", "Wieviel Uhr ist es", "Wieviel Uhr haben wir", "Uhrzeit", "Zeig mir die Uhrzeit", "Zeige die Uhrzeit", "Zeig die Uhrzeit", "Uhrzeit anzeigen", "Uhrzeit zeigen", "Uhrzeit ansehen"]
+    "keyphrases": ["Wie ist die Uhrzeit jetzt", "Wie ist die Uhrzeit", "Wie spät ist es", "Wie ist die Zeit", "Wieviel Uhr ist es", "Wieviel Uhr haben wir", "Uhrzeit", "Zeig mir die Uhrzeit", "Zeige die Uhrzeit", "Zeig die Uhrzeit", "Uhrzeit anzeigen", "Uhrzeit zeigen", "Uhrzeit ansehen", "Uhrzeit sagen", "Sag mir die Uhrzeit", "Sage mir die Uhrzeit"]
   },
   {
     "name": "intent_imperative_quiet",
-    "keyphrases": ["Genug", "Stopp", "Bleib brav", "Bleib ruhig", "Hör auf", "Hör auf damit"]
+    "keyphrases": ["Genug", "Stopp", "Stoppen", "Bleib brav", "Bleib ruhig", "Hör auf", "Hör auf damit", "Aufhören"]
   },
   {
     "name": "intent_imperative_dance",
-    "keyphrases": ["Höre auf die Musik", "Höre auf dem Rhythmus", "Höre auf das Lied", "Höre der Musik zu", "Höre dem Lied zu", "Höre dem Rhythmus zu", "Tanz", "Tanzen", "Musik zuhören", "Lied zuhören", "Tanz zur Musik", "Tanz zum Rhythmus", "Tanz zum Lied"]
+    "keyphrases": ["Höre auf die Musik", "Hör auf die Musik", "Höre auf dem Rhythmus", "Hör auf dem Rhythmus", "Höre auf das Lied", "Hör auf das Lied", "Höre auf dem Song", "Hör auf dem Song", "Höre der Musik zu", "Hör der Music zu","Höre dem Lied zu", "Hör dem Lied zu", "Höre dem Song zu", "Höre dem Rhythmus zu", "Hör dem Rhythmus zu", "Tanz", "Tanzen", "Musik zuhören", "Lied zuhören", "Tanz zur Musik", "Tanz zum Rhythmus", "Tanz zum Lied", "Tanz zum Song"]
   },
   {
     "name": "intent_play_pickupcube",
-    "keyphrases": ["Hebe den Würfel auf", "Heb den Würfel auf", "Hebe deinen Würfel auf", "Heb deinen Würfel auf"]
+    "keyphrases": ["Hebe den Würfel auf", "Heb den Würfel auf", "Hebe deinen Würfel auf", "Heb deinen Würfel auf", "Nimm deinen Würfel", "Nimm deinen Würfel hoch", "Nehme deinen Würfel", "Nehme deinen Würfel auf", "Nehm den Würfel", "Nehm den Würfel hoch", "Nehm deinen Würfel", "Nehm deinen Würfel hoch", "Würfel hocheben", "Würfel aufheben", "Würfel nehmen"]
   },
   {
     "name": "intent_imperative_fetchcube",
@@ -201,18 +201,18 @@
   },
   {
     "name": "intent_message_playmessage_extend",
-    "keyphrases": ["Lies die Nachricht", "Die Nachricht lesen", "Spiel die Nachricht ab", "Naricht abspielen"]
+    "keyphrases": ["Lies die Nachricht", "Lese die Naricht", "Sage mir die Naricht", "Sag mir die Naricht", "Die Nachricht lesen", "Spiel die Nachricht ab", "Naricht abspielen"]
   },
   {
     "name": "intent_blackjack_hit",
-    "keyphrases": ["Hit", "Eine weitere karte", "Noch eine", "Weitere Karte", "Noch eine Karte", "Ja"]
+    "keyphrases": ["Hit", "Eine weitere karte", "Noch eine", "Weitere Karte", "Noch eine Karte", "Ja", "Weitere", "Jep"]
   },
   {
     "name": "intent_blackjack_stand",
-    "keyphrases": ["Stand", "Keine mehr", "Das wars", "Keine weiteren Karten", "Nicht weiter", "Nein", "Nicht"]
+    "keyphrases": ["Stand", "Keine mehr", "Das wars", "Das war's", "Keine weiteren Karten", "Nicht weiter", "Nein", "Nicht"]
   },
   {
     "name": "intent_play_keepaway",
-    "keyphrases": ["Geh weg", "Weg", "Weg gehen", "Entferne dich", "Zurück gehen", "Gehe zurück", "Geh zurück"]
+    "keyphrases": ["Geh weg", "Weg", "Weg gehen", "Entfern dich", "Entferne dich", "Zurück gehen", "Gehe zurück", "Geh zurück", "Hau ab", "Haue ab", "Verziehe dich", "Verzieh dich", "Lass mich in Ruhe", "Zieh ab", "Verschwinde", "Verschwinde gefälligst", "Mach dich vom Acker", "Verpiss dich"]
   }
 ]
