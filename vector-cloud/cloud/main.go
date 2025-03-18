@@ -18,7 +18,6 @@ import (
 	"github.com/digital-dream-labs/vector-cloud/internal/ipc"
 	"github.com/digital-dream-labs/vector-cloud/internal/jdocs"
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
-	"github.com/digital-dream-labs/vector-cloud/internal/logcollector"
 	"github.com/digital-dream-labs/vector-cloud/internal/robot"
 	"github.com/digital-dream-labs/vector-cloud/internal/token"
 	"github.com/digital-dream-labs/vector-cloud/internal/voice"
@@ -145,7 +144,7 @@ func main() {
 	ms := flag.Bool("ms", false, "force microsoft handling on the server end")
 	lex := flag.Bool("lex", false, "force amazon handling on the server end")
 
-	awsRegion := flag.String("region", "us-west-2", "AWS Region")
+	//awsRegion := flag.String("region", "us-west-2", "AWS Region")
 
 	flag.Parse()
 
@@ -207,11 +206,12 @@ func main() {
 	options = append(options, cloudproc.WithTokenOptions(tokenOpts...))
 	options = append(options, cloudproc.WithJdocs(jdocs.WithServer()))
 
-	logcollectorOpts := []logcollector.Option{logcollector.WithServer()}
-	logcollectorOpts = append(logcollectorOpts, logcollector.WithHTTPClient(getHTTPClient()))
-	logcollectorOpts = append(logcollectorOpts, logcollector.WithS3UrlPrefix(config.Env.LogFiles))
-	logcollectorOpts = append(logcollectorOpts, logcollector.WithAwsRegion(*awsRegion))
-	options = append(options, cloudproc.WithLogCollectorOptions(logcollectorOpts...))
+	// disable the STUPID log collector. holy shit
+	// logcollectorOpts := []logcollector.Option{logcollector.WithServer()}
+	// logcollectorOpts = append(logcollectorOpts, logcollector.WithHTTPClient(getHTTPClient()))
+	// logcollectorOpts = append(logcollectorOpts, logcollector.WithS3UrlPrefix(config.Env.LogFiles))
+	// logcollectorOpts = append(logcollectorOpts, logcollector.WithAwsRegion(*awsRegion))
+	//options = append(options, cloudproc.WithLogCollectorOptions(logcollectorOpts...))
 
 	cloudproc.Run(context.Background(), options...)
 
