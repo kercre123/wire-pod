@@ -89,9 +89,9 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(err, "checking if cfw")
 		}
 		var doCloud bool = true
-		var initCommand string = "mount -o rw,remount / && mount -o rw,remount,exec /data && systemctl stop anki-robot.target"
+		var initCommand string = "mount -o rw,remount / && mount -o rw,remount,exec /data && systemctl stop anki-robot.target mm-anki-camera mm-qcamera-daemon"
 		if strings.Contains(output, "wire_os") {
-			initCommand = "mount -o rw,remount,exec /data && systemctl stop anki-robot.target"
+			initCommand = "mount -o rw,remount,exec /data && systemctl stop anki-robot.target mm-anki-camera mm-qcamera-daemon"
 			// my cfw already has a wire-pod compatible vic-cloud
 			doCloud = false
 		}
