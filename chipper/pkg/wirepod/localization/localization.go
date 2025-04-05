@@ -38,6 +38,40 @@ const STR_NAME_IS = "str_name_is"
 const STR_NAME_IS2 = "str_name_is1"
 const STR_NAME_IS3 = "str_name_is2"
 const STR_FOR = "str_for"
+const STR_ZERO = "str_zero"
+const STR_ONE = "str_one"
+const STR_TWO = "str_two"
+const STR_THREE = "str_three"
+const STR_FOUR = "str_four"
+const STR_FIVE = "str_five"
+const STR_SIX = "str_six"
+const STR_SEVEN = "str_seven"
+const STR_EIGHT = "str_eight"
+const STR_NINE = "str_nine"
+const STR_TEN = "str_ten"
+const STR_ELEVEN = "str_eleven"
+const STR_TWELVE = "str_twelve"
+const STR_THIRTEEN = "str_thirteen"
+const STR_FOURTEEN = "str_fourteen"
+const STR_FIFTEEN = "str_fifteen"
+const STR_SIXTEEN = "str_sixteen"
+const STR_SEVENTEEN = "str_seventeen"
+const STR_EIGHTEEN = "str_eighteen"
+const STR_NINETEEN = "str_nineteen"
+const STR_TWENTY = "str_twenty"
+const STR_THIRTY = "str_thirty"
+const STR_FOURTY = "str_fourty"
+const STR_FIFTY = "str_fifty"
+const STR_SIXTY = "str_sixty"
+const STR_SEVENTY = "str_seventy"
+const STR_EIGHTY = "str_eighty"
+const STR_NINETY = "str_ninety"
+const STR_ONE_HUNDRED = "str_one_hundred"
+const STR_ONE_HOUR = "str_one_hour"
+const STR_ONE_HOUR_ALT = "str_one_hour_alt"
+const STR_HOUR = "str_hour"
+const STR_MINUTE = "str_minute"
+const STR_SECOND = "str_second"
 
 // for grammer
 var ALL_STR []string = []string{
@@ -75,6 +109,40 @@ var ALL_STR []string = []string{
 	"str_name_is1",
 	"str_name_is2",
 	"str_for",
+	"str_zero",
+	"str_one",
+	"str_two",
+	"str_three",
+	"str_four",
+	"str_five",
+	"str_six",
+	"str_seven",
+	"str_eight",
+	"str_nine",
+	"str_ten",
+	"str_eleven",
+	"str_twelve",
+	"str_thirteen",
+	"str_fourteen",
+	"str_fifteen",
+	"str_sixteen",
+	"str_seventeen",
+	"str_eighteen",
+	"str_nineteen",
+	"str_twenty",
+	"str_thirty",
+	"str_fourty",
+	"str_fifty",
+	"str_sixty",
+	"str_seventy",
+	"str_eighty",
+	"str_ninety",
+	"str_one_hundred",
+	"str_one_hour",
+	"str_one_hour_alt",
+	"str_hour",
+	"str_minute",
+	"str_second",
 }
 
 // All text must be lowercase!
@@ -92,21 +160,21 @@ var texts = map[string][]string{
 	STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir", "szafir", "天蓝", "safir", "синий", "saffier", "синій", "màu ngọc bích"},
 	STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb", "żółty", "黄色", "sarı", "жёлтый", "geel", "жовтий", "màu vàng"},
 	STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün", "morski", "浅绿", "teal", "бирюзовый", "wintertaling", "бірюзовий", "xanh lá cây"},
-	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarina", "acquamarina", "akwamaryn", "蓝绿", "turkuaz", "аквамарин", "vertellen", "аквамариновий", "màu xanh ngọc"},
+	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarine", "acquamarina", "akwamaryn", "蓝绿", "turkuaz", "аквамарин", "vertellen", "аквамариновий", "màu xanh ngọc"},
 	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony", "绿色", "yeşil", "зелёный", "groente", "зелений", "màu xanh lá"},
 	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy", "橙色", "turuncu", "оранжевый", "oranje", "оранжевий", "màu cam"},
 	STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie", "我", "ben", "меня", "mij", "мене", "tôi"},
 	STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja", "自己", "kendim", "себя", "zelf", "себе", "bản thân"},
 	STR_VOLUME_LOW:                     {"low", "basso", "bajo", "bas", "niedrig", "niski", "低", "düşük", "низкий", "laag", "на мінімум", "thấp"},
 	STR_VOLUME_QUIET:                   {"quiet", "poco rumoroso", "tranquilo", "silencieux", "ruhig", "cichy", "安静", "sessiz", "тихо", "rustig", "тихо", "yên tĩnh"},
-	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen-doux", "mittelschwer", "średnio niski", "中低", "orta düşük", "ниже среднего", "middel laag", "нижче середнього", "vừa thấp"},
+	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen bas", "mittelschwer", "średnio niski", "中低", "orta düşük", "ниже среднего", "middel laag", "нижче середнього", "vừa thấp"},
 	STR_VOLUME_MEDIUM:                  {"medium", "medio", "medio", "moyen", "mittel", "średni", "中档", "orta", "средний", "medium", "середню", "vừa"},
 	STR_VOLUME_NORMAL:                  {"normal", "normale", "normal", "normal", "normal", "normalny", "正常", "normal", "нормальный", "normaal", "нормальна", "bình thường"},
-	STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "régulier", "regulär", "zwyczajny", "标准", "düzenli", "обычный", "normaal", "звичайна", "thông thường"},
+	STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "standard", "regulär", "zwyczajny", "标准", "düzenli", "обычный", "normaal", "звичайна", "thông thường"},
 	STR_VOLUME_MEDIUM_HIGH:             {"medium high", "medio alto", "medio-alto", "moyen-élevé", "mittelhoch", "średno wysoki", "中高", "orta yüksek", "выше среднего", "gemiddeld hoog", "вище середнього", "vừa cao"},
 	STR_VOLUME_HIGH:                    {"high", "alto", "alto", "élevé", "hoch", "wysoki", "高档", "yüksek", "высокий", "hoog", "висока", "cao"},
 	STR_VOLUME_LOUD:                    {"loud", "rumoroso", "fuerte", "fort", "laut", "głośny", "高", "gürültülü", "громкий", "luidruchtig", "гучний", "to"},
-	STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "", "stumm", "wyciszony", "静音", "sessiz", "немой", "stom", "німий", "im lặng"},
+	STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "muet", "stumm", "wyciszony", "静音", "sessiz", "немой", "stom", "німий", "im lặng"},
 	STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts", "nic", "无声", "hiçbir şey", "", "Niets", "нічого", "không có gì"},
 	STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still", "cichy", "悄声", "sessiz", "тихий", "stil", "тихий", "yên lặng"},
 	STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus", "wyłączony", "关闭", "kapalı", "выключить", "uit", "вимкнути", "tắt"},
@@ -115,6 +183,40 @@ var texts = map[string][]string{
 	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się ", "的", "'nin", "", "", "", "của"},
 	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię", "名字", "adlar", "имена", "namen", "імена", "tên"},
 	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla ", "给", " için ", "для", " voor ", " для ", " cho "},
+	STR_ZERO:							{"zero","zero","zero","zéro","zero","zero","zero","zero","zero","zero","zero","zero",},
+	STR_ONE:							{"one","one","one","un","one","one","one","one","one","one","one","one"},
+	STR_TWO:							{"two","two","two","deux","two","two","two","two","two","two","two","two"},
+	STR_THREE:							{"three","three","three","trois","three","three","three","three","three","three","three","three"},
+	STR_FOUR:							{"four","four","four","quatre","four","four","four","four","four","four","four","four"},
+	STR_FIVE:							{"five","five","five","cinq","five","five","five","five","five","five","five","five"},
+	STR_SIX:							{"six","six","six","six","six","six","six","six","six","six","six","six"},
+	STR_SEVEN:							{"seven","seven","seven","sept","seven","seven","seven","seven","seven","seven","seven","seven"},
+	STR_EIGHT:							{"eight","eight","eight","huit","eight","eight","eight","eight","eight","eight","eight","eight"},
+	STR_NINE:							{"nine","nine","nine","neuf","nine","nine","nine","nine","nine","nine","nine","nine"},
+	STR_TEN:							{"ten","ten","ten","dix","ten","ten","ten","ten","ten","ten","ten","ten"},
+	STR_ELEVEN:							{"eleven","eleven","eleven","onze","eleven","eleven","eleven","eleven","eleven","eleven","eleven","eleven"},
+	STR_TWELVE:							{"twelve","twelve","twelve","douze","twelve","twelve","twelve","twelve","twelve","twelve","twelve","twelve"},
+	STR_THIRTEEN:						{"thirteen","thirteen","thirteen","treize","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen"},
+	STR_FOURTEEN:						{"fourteen","fourteen","fourteen","quatorze","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen"},
+	STR_FIFTEEN:						{"fifteen","fifteen","fifteen","quinze","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen"},
+	STR_SIXTEEN:						{"sixteen","sixteen","sixteen","seize","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen"},
+	STR_SEVENTEEN:						{"seventeen","seventeen","seventeen","dix-sept","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen"},
+	STR_EIGHTEEN:						{"eighteen","eighteen","eighteen","dix-huit","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen"},
+	STR_NINETEEN:						{"nineteen","nineteen","nineteen","dix-neuf","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen"},
+	STR_TWENTY:							{"twenty","twenty","twenty","vingt","twenty","twenty","twenty","twenty","twenty","twenty","twenty","twenty"},
+	STR_THIRTY:							{"thirty","thirty","thirty","trente","thirty","thirty","thirty","thirty","thirty","thirty","thirty","thirty"},
+	STR_FOURTY:							{"fourty","fourty","fourty","quarante","fourty","fourty","fourty","fourty","fourty","fourty","fourty","fourty"},
+	STR_FIFTY:							{"fifty","fifty","fifty","cinquante","fifty","fifty","fifty","fifty","fifty","fifty","fifty","fifty"},
+	STR_SIXTY:							{"sixty","sixty","sixty","soixante","sixty","sixty","sixty","sixty","sixty","sixty","sixty","sixty"},
+	STR_SEVENTY:						{"seventy","seventy","seventy","soixante-dix","seventy","seventy","seventy","seventy","seventy","seventy","seventy","seventy"},
+	STR_EIGHTY:							{"eighty","eighty","eighty","quatre-vingt","eighty","eighty","eighty","eighty","eighty","eighty","eighty","eighty"},
+	STR_NINETY:							{"ninety","ninety","ninety","quatre vingt dix","ninety","ninety","ninety","ninety","ninety","ninety","ninety","ninety"},
+	STR_ONE_HUNDRED:					{"one hundred","one hundred","one hundred","cent","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred"},
+	STR_ONE_HOUR:						{"one hour","one hour","one hour","une heure","one hour","one hour","one hour","one hour","one hour","one hour","one hour","one hour"},
+	STR_ONE_HOUR_ALT:					{"an hour","an hour","an hour","une heure","an hour","an hour","an hour","an hour","an hour","an hour","an hour","an hour"},
+	STR_HOUR:							{"hour","hour","hour","heure","hour","hour","hour","hour","hour","hour","hour","hour"},
+	STR_MINUTE:							{"minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute"},
+	STR_SECOND:							{"second","second","second","seconde","second","second","second","second","second","second","second","second"},
 }
 
 func GetText(key string) string {
