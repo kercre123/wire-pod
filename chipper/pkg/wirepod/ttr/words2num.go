@@ -1,7 +1,6 @@
 package wirepod_ttr
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"strconv"
