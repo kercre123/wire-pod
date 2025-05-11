@@ -186,7 +186,7 @@
 	},
 	{	
 		"name": "intent_imperative_come", 
-		"keyphrases" : ["나한테 와", "나한테 와줘", "나에게 와", "나에게 와줘", ],
+		"keyphrases" : ["나한테 와", "나한테 와줘", "나에게 와", "나에게 와줘", "컴 히얼" ],
 		"requiresexact": false
 	},
 	{	
