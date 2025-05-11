@@ -1,5 +1,8 @@
 # wire-pod
 
+## 🌐 Other Languages
+- 🇰🇷 [README (Korean)](README_ko.md)
+
 `wire-pod` is fully-featured server software for the Anki (now Digital Dream Labs) [Vector](https://web.archive.org/web/20190417120536if_/https://www.anki.com/en-us/vector) robot. It was created thanks to Digital Dream Labs' [open-sourced code](https://github.com/digital-dream-labs/chipper).
 
 It allows voice commands to work with any Vector 1.0 or 2.0 for no fee, including regular production robots.
