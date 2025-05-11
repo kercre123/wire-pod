@@ -35,6 +35,8 @@ func DownloadVoskModel(language string) {
 	filename := "vosk-model-small-"
 	if language == "en-US" {
 		filename = filename + "en-us-0.15.zip"
+	} else if language == "ko-KR" {
+		filename = filename + "ko-0.22.zip"
 	} else if language == "it-IT" {
 		filename = filename + "it-0.22.zip"
 	} else if language == "es-ES" {
