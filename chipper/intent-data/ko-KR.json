@@ -1,1 +1,277 @@
-
+[
+	{
+		"name" : "intent_names_username_extend", 
+		"keyphrases": ["이름은", "원래 이름은", "이름들", "의 이름", "내 이름은" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_weather_extend", 
+		"keyphrases" : ["날씨", "날씨 어때", "비 와", "해가 나나나", "흐림", "폭풍", "일기예보", "비 올까", "덥니", "춥니", "쌀쌀하나", "습하나", "쌀쌀", "습"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_names_ask", 
+		"keyphrases" : ["내 이", "내가 누구", "내가 누구"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_eyecolor",
+		"keyphrases" : ["눈 색 바꿔", "으로 눈 색 바꿔", "아이컬러 바꿔", "에컬러", "에케", "아그리콜라", "바꿔", "오라클", "으로 눈 색깔 설정해줘""],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_character_age", 
+		"keyphrases" : ["나이", "몇살", "몇 살", "너 몇 살이야", "너 몇살이야", "너몇살이야", "너 나이 많아", "나이가 어떻게 돼"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_explore_start", 
+		"keyphrases" : ["시작", "탐색", "시작해", "탐샠 시작", "탐색시작", "돌아 다녀", "움직여도 돼", "탐색 시작해"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_charger", 
+		"keyphrases" : ["충전", "집", "로 가", "으로 가", "충천", "충전기를 찾아", "충전기" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_sleep",
+		"keyphrases" : ["flee", "잠", "쟘", "자러 가", "자", "잘 자" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_noaudio",
+		"keyphrases" : ["[blank_audio]", "[door opens]", "[sighs]" ],
+		"requiresexact": true
+	},
+	{	
+		"name": "intent_greeting_goodmorning", 
+		"keyphrases" : ["아침", "아칩", "아친", "좋은 저녁", "점심", "좋은 점심", "좋은 쩜심", "좋은 아침" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_greeting_goodnight", 
+		"keyphrases" : ["밤", "밞", "좋은 밤" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_greeting_goodbye", 
+		"keyphrases" : ["잘 가", "안녕히 계세요", "잘가", "잘 강", "안녕", "잘 있어" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_seasonal_happynewyear",
+		"keyphrases" : ["불꽃", "새해", "새해 복", "해피", "하피", "뉴이어", "새 해", "해피", "뉴 이어", ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_seasonal_happyholidays", 
+		"keyphrases" : ["해피 홀리데이", "크리스마스", "그리스마스", "성탄절" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["알렉사 연결", "알레사에", "알렉사에서", "알렉사 로그인", "알렉사에", "알렉사 온", "알렉사 켜줘", "알렉사 켜기", "알렉사에 로그인" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["in outlet", "i now of elea", "out alexa", "out of ale" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_forward",
+		"keyphrases" : ["앞으로", "앞 으로", "앞 으", "앞으로 전진", "앞으로 가", "전진", "앞" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnaround", 
+		"keyphrases" : ["돌기", "돌아봐", "돌아서봐", "돌아" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnleft", 
+		"keyphrases" : ["좌회전", "왼쪽으로", "왼쪽으로 돌아", "왼쪽으로 가", "왼족", "왼쪽으로 돌기", "왼쪽" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnright", 
+		"keyphrases" : ["우회전", "오른쪽으로", "오른쪽으로 돌아", "오른족", "오른쪽으로 가", "오른쪽으로 돌기", "오른쪽" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_rollcube",
+		"keyphrases" : ["큐브 굴려", "큐바 굴려", "쿠바 굴려봐", "큐브 굴려줘", "큐브 돌려", "굴려줘", "큐브 굴려" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_popawheelie", 
+		"keyphrases" : ["팝 어 휠리", "팝 어 윌리", "어윌리", "어휠리", "휠 올려", "휠", "윌", "어 릴리", "오 윌리", "팝어 윌리", "휠 스탠드", "휠 세워", "휠 세우기" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_fistbump", 
+		"keyphrases" : ["주먹 치기", "주먹", "치기", "주먹치", "주먹", "하이파이브", "highfive", "주먹 치자", "주먹 치기 하자", "하이 파이브", "하이바이브", "주먹 쳐줘", "wisdom", "this bu", "주 먹치기", "fistbump" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_play_blackjack", 
+		"keyphrases" : ["블랙", "카드", "게임", "블랙잭 하자", "블랙잭 고고" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_imperative_affirmative",
+		"keyphrases" : ["응", "어", "맞아", "그래", "응 부탁해" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_negative", 
+		"keyphrases" : ["아니", "하지마", "아니 괜찮아" ],
+		"requiresexact": true
+	},
+	{	
+		"name": "intent_photo_take_extend", 
+		"keyphrases" : ["사진", "포토", "셀피", "캡쳐", "사진 찍", "내 사진을 찍어줄래?", "사진 찍어줘" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_praise", 
+		"keyphrases" : ["좋아", "굉장한데", "굉장해", "놀랍다", "잘했어", "고마워", "놀라워", "좋은 로봇", "착한 로봇", "사랑스러운 로봇" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_abuse",
+		"keyphrases" : ["나빠", "싫어", "끔찍해", "나쁜 로봇", "쓰레기" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_apologize", 
+		"keyphrases" : ["미안해", "사과", "사과할께", "미안", "괜찮아", "괜찬아", "정말 미안" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_backup", 
+		"keyphrases" : ["back", "back up", "backwards","beck"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumedown",
+		"keyphrases" : ["소리 줄여", "볼륨 줄여", "소리 줄여줘", "볼륨 줄여줘", "더 조용히", "볼륨 줄여줄래?", "줄여" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumeup", 
+		"keyphrases" : ["소리 높여", "볼륨 높여", "소리 높여줘", "볼륨 높여줘", "더 시끄럽게", "더 활발히" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_lookatme", 
+		"keyphrases" : ["나를 봐줘", "나를 봐", "나 봐", "나를 봐줄래", "나 봐줘" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumelevel_extend",
+		"keyphrases" : ["소리 볼륨", "볼륨", "소리 크기" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_shutup", 
+		"keyphrases" : ["닥쳐", "아가리" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_greeting_hello", 
+		"keyphrases" : ["안녕", "안녕하세요", "하이", "헬로우", "헬로", "오늘 어때", "너는 어때" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_come", 
+		"keyphrases" : ["나한테 와", "나한테 와줘", "나에게 와", "나에게 와줘", ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_love",
+		"keyphrases" : ["사랑해", "싸랑해", "나는 너를 사랑해", "하트 뿅뿅" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_knowledge_promptquestion", 
+		"keyphrases" : ["질문", "궁금", "질문이 있어", "대화 하자자", "이야기 하자", "이야기 할래" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_checktimer", 
+		"keyphrases" : ["타이머 체크", "타이머 체크 부탁해", "타이머 체크 해줘", "체크 타이머", "채크 타이머", "타이머 채크 해줘", "타이머 채크", "타이머 확인해 줘", "타이머 확인"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_global_stop_extend", 
+		"keyphrases" : ["타이머 꺼", "타이머 멈춰", "취소 타이머", "타이머 취소", "시간 멈춰", "타이머 멈추기", "타이머 끄기", "멈춰 타이머" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_settimer_extend",
+		"keyphrases" : ["타이머", "시간 동안", "시간 동 안", "시간동안", "시간동안 타이머 설정해 줘", "시간 동안 타이머 설정해줘", "타이머 설정해 줘", "타이머 설정해줘" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_time", 
+		"keyphrases" : ["몇 시지", "시간", "몇 시야", "시계", "지금 몇시야", "지금 몇 시야", "몇 시니", "몇시니" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_quiet", 
+		"keyphrases" : ["조용", "멈춰", "조용히 해줘", "조용히" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_dance", 
+		"keyphrases" : ["춤", "춤 춰줘", "댄스", "비트 맞춰서 춤춰줘", "비트", "boogie", "노래 들어봐", "노래" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_pickupcube",
+		"keyphrases" : ["들어 올려", "집어", "잡아", "집어" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_fetchcube", 
+		"keyphrases" : ["큐브 찾아와", "큐브 물어와", "큐브 주워와", "큐브 가져와줘", "큐브 가져와", "큐브 찾", "나한테 큐브를 가져와줘", "큐브 가", "큐브 주", "큐브 물" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_findcube", 
+		"keyphrases" : ["너 큐브", "큐브", "큐브를 찾아" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_anytrick", 
+		"keyphrases" : ["재주", "멋진 것", "쿨한 거", "재주 부려" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_message_recordmessage_extend",
+		"keyphrases" : ["녹음" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_message_playmessage_extend", 
+		"keyphrases" : ["메세지 재생", "재생 메세지", "메세지 재생해", "메세지 재생해 줘" ],
+		"requiresexact": false
+	},
+		{	
+		"name": "intent_blackjack_hit", 
+		"keyphrases" : ["히트"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_blackjack_stand", 
+		"keyphrases" : ["스탠드", "스탠" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_keepaway",
+		"keyphrases": ["큐브 잡아봐", "키프어웨이 놀이하자", "킵어웨이 놀이", "킵어웨이", "키프어웨이", "큐브 잡아" ],
+		"requiresexact": false
+	}
+]
