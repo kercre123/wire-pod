@@ -61,7 +61,7 @@
 	},
 	{	
 		"name": "intent_seasonal_happynewyear",
-		"keyphrases" : ["불꽃", "새해", "새해 복", "해피", "하피", "뉴이어", "새 해", "해피", "뉴 이어", ],
+		"keyphrases" : ["불꽃", "새해", "새해 복", "해피", "하피", "뉴이어", "새 해", "해피", "뉴 이어", "새해 복 많이 받" ],
 		"requiresexact": false
 	},
 	{	
