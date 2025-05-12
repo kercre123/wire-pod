@@ -117,7 +117,7 @@
 		{	
 		"name": "intent_imperative_affirmative",
 		"keyphrases" : ["응", "어", "맞아", "그래", "응 부탁해", "허", "니", "영희" ],
-		"requiresexact": true
+		"requiresexact": false
 	},
 	{	
 		"name": "intent_imperative_negative", 
