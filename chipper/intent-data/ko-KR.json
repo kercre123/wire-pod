@@ -216,7 +216,7 @@
 	},
 	{	
 		"name": "intent_imperative_quiet", 
-		"keyphrases" : ["조용", "멈춰", "조용히 해줘", "조용히" ],
+		"keyphrases" : ["조용", "멈춰", "조용히 해줘", "조용히", "가만히 있어" ],
 		"requiresexact": false
 	},
 	{	
