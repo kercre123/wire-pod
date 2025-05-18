@@ -194,8 +194,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		base64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
 		fmt.Fprint(w, base64Str)
-	
-		return
+		return 
 	
 
 	case r.URL.Path == "/api-sdk/play_sound":
