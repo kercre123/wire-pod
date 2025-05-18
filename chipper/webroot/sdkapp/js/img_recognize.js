@@ -12,5 +12,8 @@ function sendForm(formURL) {
     }
     xhr.open("POST", formURL);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send();
+    let request = xhr.send();
+    xhr.onreadystatechange = function(){
+        return request;
+    }
   }
