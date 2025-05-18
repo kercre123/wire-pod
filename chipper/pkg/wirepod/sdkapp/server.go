@@ -193,7 +193,75 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		base64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
-		fmt.Fprint(w, base64Str)
+		imageDataURL := "data:image/jpeg;base64," + base64Str
+		//OpenIAReq
+		url := "https://api.openai.com/v1/chat/completions"
+
+		requestBody := map[string]interface{}{
+			"model": "gpt-4o",
+			"messages": []map[string]interface{}{
+				{
+					"role": "user",
+					"content": []map[string]interface{}{
+						{
+							"type": "text",
+							"text": "What is in this image?",
+						},
+						{
+							"type": "image_url",
+							"image_url": map[string]string{
+								"url": imageDataURL,
+							},
+						},
+					},
+				},
+			},
+			"max_tokens": 300,
+		}
+
+
+		// Codifica para JSON
+		jsonBody, err := json.Marshal(requestBody)
+		if err != nil {
+			panic(err)
+		}
+
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+		if err != nil {
+			panic(err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_KEY"))
+
+		client_this := &http.Client{}
+		resp, err := client_this.Do(req)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+		responseBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		var result struct {
+			Choices []struct {
+				Message struct {
+					Content string `json:"content"`
+				} `json:"message"`
+			} `json:"choices"`
+		}
+
+		err = json.Unmarshal(responseBody, &result)
+		if err != nil {
+			panic(err)
+		}
+		if len(result.Choices) > 0 {
+			fmt.Fprint(w, result.Choices[0].Message.Content)
+		} else {
+			fmt.Fprint(w, "I dont know")
+		}
+
 		return 
 	
 
