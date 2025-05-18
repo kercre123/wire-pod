@@ -1,5 +1,5 @@
 function img_recognize() {
-    request = sendForm("/api-sdk/api-sdk/image_detection?");
+    request = sendForm("/api-sdk/api-sdk/image_detection");
     request.onreadystatechange = function() {
         if (request.readyState === 4 && request.status === 200) {
             const response = JSON.parse(request.responseText);
