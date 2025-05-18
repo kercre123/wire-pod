@@ -241,26 +241,27 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer resp.Body.Close()
 		responseBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-		var result struct {
-			Choices []struct {
-				Message struct {
-					Content string `json:"content"`
-				} `json:"message"`
-			} `json:"choices"`
-		}
+		fmt.Println("Response Body:", string(responseBody))
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// var result struct {
+		// 	Choices []struct {
+		// 		Message struct {
+		// 			Content string `json:"content"`
+		// 		} `json:"message"`
+		// 	} `json:"choices"`
+		// }
 
-		err = json.Unmarshal(responseBody, &result)
-		if err != nil {
-			panic(err)
-		}
-		if len(result.Choices) > 0 {
-			fmt.Fprint(w, result.Choices[0].Message.Content)
-		} else {
-			fmt.Fprint(w, "I dont know")
-		}
+		// err = json.Unmarshal(responseBody, &result)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// if len(result.Choices) > 0 {
+		// 	fmt.Fprint(w, result.Choices[0].Message.Content)
+		// } else {
+		// 	fmt.Fprint(w, "I dont know")
+		// }
 
 		return 
 	
