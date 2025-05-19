@@ -235,12 +235,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		apiKey := vars.APIConfig.Knowledge.Key
+		apiKey := os.Getenv("KNOWLEDGE_KEY")
 		if apiKey == "" {
 			fmt.Fprint(w, "error: OPENAI_KEY environment variable is not set")
 			return
-		}else{
-			fmt.Fprint(w, "API Key: "+apiKey)
 		}
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
 		req.Header.Set("Content-Type", "application/json")
@@ -258,26 +256,26 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		defer resp.Body.Close()
 		responseBody, err := io.ReadAll(resp.Body)
 		fmt.Println("Response Body:", string(responseBody))
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// var result struct {
-		// 	Choices []struct {
-		// 		Message struct {
-		// 			Content string `json:"content"`
-		// 		} `json:"message"`
-		// 	} `json:"choices"`
-		// }
+		if err != nil {
+			panic(err)
+		}
+		var result struct {
+			Choices []struct {
+				Message struct {
+					Content string `json:"content"`
+				} `json:"message"`
+			} `json:"choices"`
+		}
 
-		// err = json.Unmarshal(responseBody, &result)
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// if len(result.Choices) > 0 {
-		// 	fmt.Fprint(w, result.Choices[0].Message.Content)
-		// } else {
-		// 	fmt.Fprint(w, "I dont know")
-		// }
+		err = json.Unmarshal(responseBody, &result)
+		if err != nil {
+			panic(err)
+		}
+		if len(result.Choices) > 0 {
+			fmt.Fprint(w, result.Choices[0].Message.Content)
+		} else {
+			fmt.Fprint(w, "I dont know")
+		}
 
 		return 
 	
