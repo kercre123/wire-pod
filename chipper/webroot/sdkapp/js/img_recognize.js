@@ -1,34 +1,28 @@
-function img_recognize() {
-    response = sendForm("/api-sdk/image_detection");
-    if (response) {
-        console.log("Teste: "+response);
+async function img_recognize() {
+    try {
+    let response = await sendForm("/api-sdk/image_detection");
+    console.log("Teste: "+response);
+    } catch (error) {
+        console.error('Error:', error);
     }
+   
 }
 
-function sendForm(formURL) {
-    let xhr = new XMLHttpRequest();
+async function sendForm(formURL) {
+
     if (formURL.includes("?")) {
         formURL = formURL + "&serial=" + esn;
     } else {
         formURL = formURL + "?serial=" + esn;
     }
-    xhr.open("POST", formURL);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            //response from server
-            let response = xhr.responseText;
-            return response;
-            
-        } else {
-            console.error("Erro na requisição:", xhr.status, xhr.statusText);
+    let response = await fetch(formURL, {
+        method: 'POST',
+        headers: {
+           'Content-Type': 'application/x-www-form-urlencoded',
         }
-    };
-
-    xhr.onerror = function () {
-        console.error("Erro de rede ou CORS.");
-    };
-
-    xhr.send();
+    });
+    if (!response.ok) {
+        throw new Error('Request Error: ' + response.statusText);
+    }
+    return await response.text();
 }
