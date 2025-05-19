@@ -227,13 +227,13 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_KEY"))
 		if err != nil {
 			panic(err)
 		}
 
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_KEY"))
-
+	
 		client_this := &http.Client{}
 		resp, err := client_this.Do(req)
 		if err != nil {
