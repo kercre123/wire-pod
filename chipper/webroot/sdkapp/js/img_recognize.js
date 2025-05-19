@@ -5,7 +5,7 @@ async function img_recognize() {
     try {
         let response = await sendForm("/api-sdk/image_detection");
         console.log("Teste: " + response);
-        sendForm("/api-sdk/say_text?text=I see " + response);
+        sendForm("/api-sdk/say_text?text=" + response);
     } catch (error) {
         console.error('Error:', error);
     }

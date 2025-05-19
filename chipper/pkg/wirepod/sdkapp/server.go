@@ -214,7 +214,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 					"content": []map[string]interface{}{
 						{
 							"type": "text",
-							"text": "briefly describe the image in a few words",
+							"text": "briefly describe the image in a few words, always starting the sentence with 'I see'",
 						},
 						{
 							"type": "image_url",
@@ -237,7 +237,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 
 		apiKey := vars.APIConfig.Knowledge.Key
 		if apiKey == "" {
-			fmt.Fprint(w, "error: OPENAI_KEY environment variable is not set")
+			fmt.Fprint(w, "Please, configure the OPENAI API key")
 			return
 		}
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
