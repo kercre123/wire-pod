@@ -25,6 +25,14 @@ import (
 
 var serverFiles string = "./webroot/sdkapp"
 
+func Init() error {
+	if os.Getenv("OPENAI_KEY") == "" {
+		logger.Println("This is an early implementation of the Whisper API which has not been implemented into the web interface. You must set the OPENAI_KEY env var.")
+		//os.Exit(1)
+	}
+	return nil
+}
+
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
 	robot := robotObj.Vector
