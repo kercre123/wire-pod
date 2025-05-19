@@ -2,7 +2,7 @@ function img_recognize() {
     response = sendForm("/api-sdk/image_detection");
     if (response) {
         // Aqui você pode fazer algo com a resposta
-        console.log("Resposta do servidor:", response);
+        console.log(response);
     }
 }
 
@@ -18,10 +18,10 @@ function sendForm(formURL) {
 
     xhr.onload = function () {
         if (xhr.status === 200) {
-            // Captura a string base64 retornada pelo servidor
-            let base64String = xhr.responseText;
-            console.log("Base64 String:", base64String);
-            // Aqui você pode fazer algo com a string base64
+            //response from server
+            let response = xhr.responseText;
+            console.log(response);
+            
         } else {
             console.error("Erro na requisição:", xhr.status, xhr.statusText);
         }
