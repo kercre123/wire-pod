@@ -214,7 +214,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 					"content": []map[string]interface{}{
 						{
 							"type": "text",
-							"text": "briefly describe the main object of the image",
+							"text": "briefly describe the image in a few words",
 						},
 						{
 							"type": "image_url",
