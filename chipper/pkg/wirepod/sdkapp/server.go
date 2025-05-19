@@ -235,7 +235,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		apiKey := os.Getenv("KNOWLEDGE_KEY")
+		apiKey := vars.APIConfig.Knowledge.Key
 		if apiKey == "" {
 			fmt.Fprint(w, "error: OPENAI_KEY environment variable is not set")
 			return
