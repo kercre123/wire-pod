@@ -1,11 +1,13 @@
 async function img_recognize() {
+    sendForm('/api-sdk/assume_behavior_control?priority=high')
     try {
     let response = await sendForm("/api-sdk/image_detection");
     console.log("Teste: "+response);
+    sendForm("/api-sdk/say_text?text=" + response);
     } catch (error) {
         console.error('Error:', error);
     }
-   
+   sendForm("/api-sdk/release_behavior_control")
 }
 
 async function sendForm(formURL) {
