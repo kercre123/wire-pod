@@ -226,9 +226,14 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
+		apiKey := os.Getenv("OPENAI_KEY")
+		if apiKey == "" {
+			fmt.Fprint(w, "error: OPENAI_KEY environment variable is not set")
+			return
+		}
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_KEY"))
+		req.Header.Set("Authorization", "Bearer "+apiKey)
 		if err != nil {
 			panic(err)
 		}
