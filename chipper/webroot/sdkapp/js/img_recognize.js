@@ -1,5 +1,9 @@
 function img_recognize() {
-    sendForm("/api-sdk/image_detection");
+    response = sendForm("/api-sdk/image_detection");
+    if (response) {
+        // Aqui você pode fazer algo com a resposta
+        console.log("Resposta do servidor:", response);
+    }
 }
 
 function sendForm(formURL) {
@@ -28,4 +32,6 @@ function sendForm(formURL) {
     };
 
     xhr.send();
+    return xhr.responseText;
+
 }
