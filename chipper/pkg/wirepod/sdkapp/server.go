@@ -26,7 +26,7 @@ import (
 var serverFiles string = "./webroot/sdkapp"
 
 func Init() error {
-	if os.Getenv("OPENAI_KEY") == "" {
+	if os.Getenv("KNOWLEDGE_KEY") == "" {
 		logger.Println("This is an early implementation of the Whisper API which has not been implemented into the web interface. You must set the OPENAI_KEY env var.")
 		//os.Exit(1)
 	}
@@ -205,6 +205,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		//OpenIAReq
 		url := "https://api.openai.com/v1/chat/completions"
 
+		
 		requestBody := map[string]interface{}{
 			"model": "gpt-4o",
 			"messages": []map[string]interface{}{
@@ -234,7 +235,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		apiKey := os.Getenv("OPENAI_KEY")
+		apiKey := os.Getenv("KNOWLEDGE_KEY")
 		if apiKey == "" {
 			fmt.Fprint(w, "error: OPENAI_KEY environment variable is not set")
 			return
