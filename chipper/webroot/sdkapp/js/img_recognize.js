@@ -10,7 +10,7 @@ async function img_recognize() {
         console.error('Error:', error);
     }
     //release behavior control
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 3000));
     sendForm("/api-sdk/release_behavior_control")
 }
 
