@@ -68,7 +68,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 				ssh.PublicKeys(signer),
 			},
 			HostKeyCallback:   ssh.InsecureIgnoreHostKey(),
-			HostKeyAlgorithms: []string{"ssh-rsa"},
+			HostKeyAlgorithms: []string{"ssh-rsa", "ecdsa-sha2-nistp256"},
 			Timeout:           time.Second * 5,
 		}
 		client, err := ssh.Dial("tcp", ip+":22", config)
