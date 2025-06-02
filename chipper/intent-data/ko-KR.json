@@ -146,7 +146,7 @@
 	},
 	{	
 		"name": "intent_imperative_backup", 
-		"keyphrases" : ["back", "back up", "backwards","beck"],
+		"keyphrases" : ["뒤로", "취소", "중단" ],
 		"requiresexact": false
 	},
 	{	
@@ -171,7 +171,7 @@
 	},
 	{	
 		"name": "intent_imperative_shutup", 
-		"keyphrases" : ["닥쳐", "아가리", "박 쳐", "닭 죠" ],
+		"keyphrases" : ["닥쳐", "아가리", "박 쳐", "닭 죠", "셧업", "셧 업" ],
 		"requiresexact": false
 	},
 	{	
