@@ -3,6 +3,7 @@ package sdkapp
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -23,6 +24,14 @@ import (
 )
 
 var serverFiles string = "./webroot/sdkapp"
+
+func Init() error {
+	if os.Getenv("KNOWLEDGE_KEY") == "" {
+		logger.Println("This is an early implementation of the Whisper API which has not been implemented into the web interface. You must set the OPENAI_KEY env var.")
+		//os.Exit(1)
+	}
+	return nil
+}
 
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
@@ -140,6 +149,136 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(json))
 			return
 		}
+	
+	case r.URL.Path == "/api-sdk/image_detection":
+		var client vectorpb.ExternalInterface_CameraFeedClient
+		client, err = robotObj.Vector.Conn.CameraFeed(
+			robotObj.Ctx,
+			&vectorpb.CameraFeedRequest{})
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		camStreamEnabled := true
+		defer client.CloseSend()
+	
+		i := image.NewRGBA(image.Rectangle{
+			Min: image.Point{X: 0, Y: 0},
+			Max: image.Point{X: 640, Y: 360},
+		})
+		if camStreamEnabled {
+			response, err := client.Recv()
+			if err != nil {
+				fmt.Fprint(w, "error: "+err.Error())
+				return
+			}
+			imageBytes := response.GetData()
+			img, _, err := image.Decode(bytes.NewReader(imageBytes))
+			if err != nil {
+				fmt.Fprint(w, "error: "+err.Error())
+				return
+			}
+	
+			// Converte a imagem para o formato RGBA, se necessário
+			if rgbaImg, ok := img.(*image.RGBA); ok {
+				i = rgbaImg // Se a imagem já for do tipo RGBA, apenas atribua
+			} else if ycbcrImg, ok := img.(*image.YCbCr); ok {
+				i = convertToRGBA(ycbcrImg) // Se for YCbCr, converta
+			} else {
+				fmt.Fprint(w, "error: unsupported image format")
+				return
+			}
+		}
+	
+		var imageGen = i.SubImage(image.Rectangle{
+			Min: image.Point{X: 0, Y: 0},
+			Max: image.Point{X: 640, Y: 360},
+		})
+	
+		var buf bytes.Buffer
+		if err := jpeg.Encode(&buf, imageGen, nil); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		base64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
+		imageDataURL := "data:image/jpeg;base64," + base64Str
+		//OpenIAReq
+		url := "https://api.openai.com/v1/chat/completions"
+
+		
+		requestBody := map[string]interface{}{
+			"model": "gpt-4o",
+			"messages": []map[string]interface{}{
+				{
+					"role": "user",
+					"content": []map[string]interface{}{
+						{
+							"type": "text",
+							"text": "briefly describe the image in a few words, always starting the sentence with 'I see'",
+						},
+						{
+							"type": "image_url",
+							"image_url": map[string]string{
+								"url": imageDataURL,
+							},
+						},
+					},
+				},
+			},
+			"max_tokens": 300,
+		}
+
+
+		// Codifica para JSON
+		jsonBody, err := json.Marshal(requestBody)
+		if err != nil {
+			panic(err)
+		}
+
+		apiKey := vars.APIConfig.Knowledge.Key
+		if apiKey == "" {
+			fmt.Fprint(w, "Please, configure the OPENAI API key")
+			return
+		}
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+		if err != nil {
+			panic(err)
+		}
+
+	
+		client_this := &http.Client{}
+		resp, err := client_this.Do(req)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+		responseBody, err := io.ReadAll(resp.Body)
+		fmt.Println("Response Body:", string(responseBody))
+		if err != nil {
+			panic(err)
+		}
+		var result struct {
+			Choices []struct {
+				Message struct {
+					Content string `json:"content"`
+				} `json:"message"`
+			} `json:"choices"`
+		}
+
+		err = json.Unmarshal(responseBody, &result)
+		if err != nil {
+			panic(err)
+		}
+		if len(result.Choices) > 0 {
+			fmt.Fprint(w, result.Choices[0].Message.Content)
+		} else {
+			fmt.Fprint(w, "I dont know")
+		}
+
+		return 
+	
 
 	case r.URL.Path == "/api-sdk/play_sound":
 		file, _, err := r.FormFile("sound")
@@ -521,6 +660,17 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "done")
 		return
 	}
+}
+
+func convertToRGBA(ycbcr *image.YCbCr) *image.RGBA {
+    rgba := image.NewRGBA(ycbcr.Bounds())
+    for y := ycbcr.Rect.Min.Y; y < ycbcr.Rect.Max.Y; y++ {
+        for x := ycbcr.Rect.Min.X; x < ycbcr.Rect.Max.X; x++ {
+            c := ycbcr.YCbCrAt(x, y)
+            rgba.Set(x, y, c)
+        }
+    }
+    return rgba
 }
 
 func camStreamHandler(w http.ResponseWriter, r *http.Request) {
