@@ -67,14 +67,14 @@ if [[ ${STT_SERVICE} == "leopard" ]]; then
         export C_INCLUDE_PATH="../whisper.cpp"
         export LIBRARY_PATH="../whisper.cpp"
         export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp:$(pwd)/../whisper.cpp/build:$(pwd)/../whisper.cpp/build/src"
-        export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
+        export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp/build_go/src"
         export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
         ./chipper
     else
         export C_INCLUDE_PATH="../whisper.cpp"
         export LIBRARY_PATH="../whisper.cpp"
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp:$(pwd)/../whisper.cpp/build"
-        export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp -L$(pwd)/../whisper.cpp/build -L$(pwd)/../whisper.cpp/build/src -L$(pwd)/../whisper.cpp/build/ggml/src"
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp:$(pwd)/../whisper.cpp/build:$(pwd)/../whisper.cpp/build_go/src:$(pwd)/../whisper.cpp/build_go/ggml/src"
+        export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp -L$(pwd)/../whisper.cpp/build -L$(pwd)/../whisper.cpp/build/src -L$(pwd)/../whisper.cpp/build_go/ggml/src -L$(pwd)/../whisper.cpp/build_go/src"
         export CGO_CFLAGS="-I$(pwd)/../whisper.cpp -I$(pwd)/../whisper.cpp/include -I$(pwd)/../whisper.cpp/ggml/include"
         if [[ ${UNAME} == *"Darwin"* ]]; then
             export GGML_METAL_PATH_RESOURCES="../whisper.cpp"
