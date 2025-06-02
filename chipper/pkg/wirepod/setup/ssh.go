@@ -88,9 +88,11 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err, "checking if cfw")
 		}
+		// outputWired, _ := runCmd(client, "cat /etc/wired/webroot/index.html")
 		var doCloud bool = true
 		var initCommand string = "mount -o rw,remount / && mount -o rw,remount,exec /data && systemctl stop anki-robot.target mm-anki-camera mm-qcamera-daemon"
 		if strings.Contains(output, "wire_os") {
+			//|| strings.Contains(outputWired, "revertDefaultWakeWord") {
 			initCommand = "mount -o rw,remount,exec /data && systemctl stop anki-robot.target mm-anki-camera mm-qcamera-daemon"
 			// my cfw already has a wire-pod compatible vic-cloud
 			doCloud = false
@@ -118,7 +120,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err, "copying pod-bot-install")
 		}
-		scpClient.Session.Close()
+		scpClient.Close()
 		serverConfig, err := os.Open(vars.ServerConfigPath)
 		if err != nil {
 			return doErr(err, "opening server config on disk")
@@ -131,7 +133,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err, "copying server-config.json")
 		}
-		scpClient.Session.Close()
+		scpClient.Close()
 		if doCloud {
 			if runtime.GOOS != "android" && !vars.Packaged {
 				cloud, err := os.Open("../vector-cloud/build/vic-cloud")
@@ -179,7 +181,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 				}
 			}
 		}
-		scpClient.Session.Close()
+		scpClient.Close()
 		certPath := vars.CertPath
 		if vars.APIConfig.Server.EPConfig {
 			if runtime.GOOS == "android" || runtime.GOOS == "ios" {
@@ -200,7 +202,7 @@ func SetupBotViaSSH(ip string, key []byte) error {
 		if err != nil {
 			return doErr(err, "copying wire-pod cert")
 		}
-		scpClient.Session.Close()
+		scpClient.Close()
 		SetupSSHStatus = "Generating new robot certificate (this may take a while)..."
 		_, err = runCmd(client, "chmod +rwx /data/data/server_config.json /data/data/wirepod-cert.crt /data/pod-bot-install.sh && /data/pod-bot-install.sh")
 		if err != nil {
