@@ -19,7 +19,7 @@ document.getElementById('fileInput').addEventListener('change', async () => {
 
         let newBuffer;
 
-        //Verify is audio is stereio or mono and convert to mono if necessary
+        //Verify is audio is stereo or mono and convert to mono if necessary
         if(audioBuffer.numberOfChannels >1){
             const monoLength = audioBuffer.length;
             newBuffer = audioContext.createBuffer(1, monoLength, audioBuffer.sampleRate);
