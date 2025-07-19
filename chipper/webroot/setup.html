@@ -82,6 +82,7 @@
             <select name="kgProvider" id="kgProvider" form="kgAPIAddForm" onchange="checkKG()">
               <option value="" selected>None</option>
               <option value="openai">OpenAI</option>
+              <option value="gemini">Gemini</option>
               <option value="houndify">Houndify</option>
               <option value="together">Together</option>
               <option value="custom">Custom</option>
@@ -133,6 +134,26 @@
                 <option value="nova">Nova</option>
                 <option value="shimmer">Shimmer</option>
               </select>
+            </span>
+
+            <span id="geminiInput" style="display: none">
+              <small class="desc">To use Gemini, create an account at
+                <a href="https://aistudio.google.com/app/apikey">Google AI Studio</a>,
+                create a free API key, and enter it here.</small><br />
+              <label for="geminiKey">Gemini API Key:</label>
+              <input type="text" name="geminiKey" id="geminiKey" /><br />
+              <label for="geminiPrompt">Gemini Prompt <small class="desc">(leave blank for default):</small></label><br />
+              <small><label class="desc" for="geminiPrompt">(default: "You are a helpful, animated robot called
+                  Vector. Keep the response concise yet
+                  informative.")</label></small>
+              <input type="text" name="geminiPrompt" id="geminiPrompt" /><br />
+              <label for="geminiModel">Gemini Model:</label>
+              <select name="geminiModel" id="geminiModel">
+                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                <option value="gemini-2.0-pro">Gemini 2.0 Pro</option>
+              </select><br />
             </span>
 
             <span id="customAIInput" style="display: none">
