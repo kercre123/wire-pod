@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Vector Web App</title>
+  <!-- Meta Apple tags for a PWA like experience. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#1e1e1e">
+  <link rel="stylesheet" type="text/css" href="../css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
+  <style>
+    .joystick-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .joystick-area {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: #333;
+      border: 3px solid #555;
+      margin: 10px;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .joystick-knob {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #00ff88;
+      border: 2px solid #00cc66;
+      cursor: pointer;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: none;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .button-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-button {
+      padding: 15px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #00ff88;
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+      min-width: 120px;
+    }
+
+    .control-button:hover {
+      background: #00cc66;
+    }
+
+    .control-button:active {
+      background: #009944;
+    }
+
+    .control-button:disabled {
+      background: #666;
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    .joystick-label {
+      font-size: 18px;
+      font-weight: bold;
+      color: #00ff88;
+      margin-bottom: 10px;
+    }
+
+    .speed-control {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .speed-slider {
+      width: 200px;
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<body onload="initJoystickControl()">
+  <div id="outer">
+    <div id="content">
+      <h1 class="center">Vector Joystick Control (beta)</h1>
+      <hr />
+      <div class="main-nav-parent">
+        <div class="main-nav-child">
+          <a href="#" onclick="goBackToSettings()"><i class="fa-solid fa-reply"></i><br />Back</a>
+        </div>
+      </div>
+      <hr />
+
+      <div id="sdkActions">
+        <h2 class="center">Camera Feed</h2>
+        <hr class="small-hr">
+        <div class="center" id="camStream"></div>
+        <div style="text-align: left;" class="center">
+          <label>
+            <input type="radio" name="cam" id="cam" onclick="showCamStream()">Begin Camera Stream<br>
+          </label>
+          <label>
+            <input type="radio" name="cam" id="cam" onclick="stopCamStream()" checked>Stop Camera Stream<br>
+          </label>
+        </div>
+        <hr />
+
+        <h2 class="center">Behavior Control</h2>
+        <hr class="small-hr">
+        <small class="center">You must assume behavior control before performing any action</small>
+        <div style="text-align: left;" class="center">
+          <label>
+            <input type="radio" name="control" id="assume_control"
+              onclick="sendForm('/api-sdk/assume_behavior_control?priority=high'); updateControlButtons();">Assume<br>
+          </label>
+          <label>
+            <input type="radio" name="control" id="release_control"
+              onclick="sendForm('/api-sdk/release_behavior_control'); updateControlButtons();" checked>Release<br>
+          </label>
+        </div>
+        <hr />
+
+        <h2 class="center">Joystick Controls</h2>
+        <hr class="small-hr">
+
+        <div class="speed-control">
+          <label class="joystick-label">Speed Control: <span id="speedValue">50</span>%</label><br>
+          <input type="range" min="10" max="100" value="50" class="speed-slider" id="speedSlider" oninput="updateSpeed()">
+        </div>
+
+        <div class="joystick-container">
+          <div class="controls-row">
+            <div class="control-group">
+              <div class="joystick-label">Movement</div>
+              <div class="joystick-area" id="movementJoystick">
+                <div class="joystick-knob" id="movementKnob"></div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="joystick-label">Head & Lift</div>
+              <div class="button-controls">
+                <button class="control-button" id="headUpBtn" onmousedown="startHeadMovement('up')" onmouseup="stopHeadMovement()" ontouchstart="startHeadMovement('up')" ontouchend="stopHeadMovement()">Head Up</button>
+                <button class="control-button" id="headDownBtn" onmousedown="startHeadMovement('down')" onmouseup="stopHeadMovement()" ontouchstart="startHeadMovement('down')" ontouchend="stopHeadMovement()">Head Down</button>
+                <button class="control-button" id="liftUpBtn" onmousedown="startLiftMovement('up')" onmouseup="stopLiftMovement()" ontouchstart="startLiftMovement('up')" ontouchend="stopLiftMovement()">Lift Up</button>
+                <button class="control-button" id="liftDownBtn" onmousedown="startLiftMovement('down')" onmouseup="stopLiftMovement()" ontouchstart="startLiftMovement('down')" ontouchend="stopLiftMovement()">Lift Down</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+
+        <h2 class="center">Mirror Mode</h2>
+        <hr class="small-hr">
+        <div style="text-align: left;" class="center">
+          <label>
+            <input type="radio" name="mirror" id="mirror_on" onclick="sendForm('/api-sdk/mirror_mode?enable=true')"
+              disabled>On<br>
+          </label>
+          <label>
+            <input type="radio" name="mirror" id="mirror_off" onclick="sendForm('/api-sdk/mirror_mode?enable=false')"
+              checked disabled>Off<br>
+          </label>
+        </div>
+        <hr />
+
+        <h2 class="center">Say Text</h2>
+        <div class="center">
+          <input class="tinput" name="textSay" id="textSay" type="text" placeholder="Put text here" disabled />
+        </div>
+        <button onclick="sayText()" type="submit">Submit</button>
+        <hr />
+        <h2 class="center">Play Audio</h2>
+        <div class="center">
+          <input type="file" id="fileInput" accept=".wav">
+        </div>
+        <button id="uploadButton" style="display: none;" type="submit">Send Audio</button>
+        <div div class="center">
+          <audio id="audioOutput" controls></audio>
+        </div>
+      </div>
+      <hr />
+    </div>
+  </div>
+
+  <script src="./js/httprequest.js"></script>
+  <script src="./js/iro.min.js"></script>
+  <script src="./js/joystick-control.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/play_audio.js"></script>
+
+  <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
+</body>
+
+</html>

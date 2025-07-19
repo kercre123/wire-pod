@@ -177,6 +177,10 @@ function goToControlPage() {
   window.location.href = "./control.html?serial=" + esn;
 }
 
+function goToJoystickControlPage() {
+  window.location.href = "./joystick-control.html?serial=" + esn;
+}
+
 function sendLocation() {
   locationInput = document.getElementById("locationInput").value;
   if (locationInput == "") {
