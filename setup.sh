@@ -90,16 +90,16 @@ function getPackages() {
     echo "Installing required packages"
     if [[ ${TARGET} == "debian" ]]; then
         apt update -y
-        apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev
+        apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev cmake
         elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config 
+        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config cmake
         elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
-        dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel
+        dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel cmake
         elif [[ ${TARGET} == "darwin" ]]; then
         sudo -u $SUDO_USER brew update
-        sudo -u $SUDO_USER brew install wget pkg-config opus opusfile
+        sudo -u $SUDO_USER brew install wget pkg-config opus opusfile cmake
     fi
     touch ./vector-cloud/packagesGotten
     echo
@@ -143,7 +143,7 @@ function getSTT() {
         echo "1: Coqui (local, no usage collection, less accurate, a little slower)"
         echo "2: Picovoice Leopard (local, usage collected, accurate, account signup required)"
         echo "3: VOSK (local, accurate, multilanguage, fast, recommended)"
-        # echo "4: Whisper (local, accurate, multilanguage, a little slower, recommended for more powerful hardware)"
+        echo "4: Whisper (local, accurate, multilanguage, recommended ONLY for more powerful hardware, please don't run on a Pi)"
         echo
         read -p "Enter a number (3): " sttServiceNum
         if [[ ! -n ${sttServiceNum} ]]; then
@@ -257,8 +257,10 @@ function getSTT() {
         }
         whichWhisperModel
         ./models/download-ggml-model.sh $whispermodel
-        cd bindings/go
-        make whisper
+        rm -rf build_go
+	cmake -B build_go \
+	-DCMAKE_POSITION_INDEPENDENT_CODE=ON
+	cmake --build build_go --config Release
         cd ${origDir}
         echo "export WHISPER_MODEL=$whispermodel" >> ./chipper/source.sh
     else
