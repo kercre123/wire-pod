@@ -93,7 +93,7 @@
   },
   {
     "name": "intent_imperative_affirmative",
-    "keyphrases": ["sì", "giusto", "corretto", "si", "vero", "ok", "okey", "okay", "vai", "hotel", "hoc", "se", "sì", "oh che"]
+    "keyphrases": ["sì", "giusto", "corretto", "si", "vero", "ok", "okey", "okay", "vai", "hotel", "hoc", "sì", "oh che"]
   },
   {
     "name": "intent_imperative_negative",
