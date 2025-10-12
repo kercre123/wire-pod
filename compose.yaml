@@ -1,18 +1,25 @@
 services:
   wire-pod:
+    container_name: wire-pod
     hostname: escapepod
     image: ghcr.io/kercre123/wire-pod:main
     restart: unless-stopped
+    environment:
+      WIREPOD_DATA_DIR: /data
     ports:
-      - 443:443
-      - 8080:8080
-      - 80:80
-      - 8084:8084
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      - "8084:8084"
     volumes:
-      - wire-pod-data:/chipper/
-      - wire-pod-model:/vosk/
+      - wire-pod-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/ok"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 volumes:
   wire-pod-data:
-    driver: local
-  wire-pod-model:
     driver: local
