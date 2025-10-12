@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 
-FROM --platform=$BUILDPLATFORM golang:1.22.4-bookworm AS builder
+FROM --platform=$BUILDPLATFORM golang:bookworm AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -15,16 +15,20 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \ 
         build-essential \ 
         ca-certificates \ 
-        curl \ 
-        git \ 
-        libasound2-dev \ 
-        libopus-dev \ 
-        libopusfile-dev \ 
-        libsox-dev \ 
-        libsodium-dev \ 
-        pkg-config \ 
-        unzip \ 
-        wget \ 
+        curl \
+        git \
+        libasound2-dev \
+        libopus-dev \
+        libopusfile-dev \
+        libsox-dev \
+        libsodium-dev \
+        pkg-config \
+        unzip \
+        wget \
+        gcc-aarch64-linux-gnu \
+        g++-aarch64-linux-gnu \
+        gcc-arm-linux-gnueabihf \
+        g++-arm-linux-gnueabihf \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
@@ -75,6 +79,21 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     fi; \
     mkdir -p /build; \
     cd /src/chipper; \
+    CC_VALUE=""; \
+    CXX_VALUE=""; \
+    if [ "${GOARCH_VALUE}" = "arm64" ]; then \
+        CC_VALUE="aarch64-linux-gnu-gcc"; \
+        CXX_VALUE="aarch64-linux-gnu-g++"; \
+    elif [ "${GOARCH_VALUE}" = "arm" ]; then \
+        CC_VALUE="arm-linux-gnueabihf-gcc"; \
+        CXX_VALUE="arm-linux-gnueabihf-g++"; \
+    fi; \
+    if [ -n "${CC_VALUE}" ]; then \
+        export CC=${CC_VALUE}; \
+    fi; \
+    if [ -n "${CXX_VALUE}" ]; then \
+        export CXX=${CXX_VALUE}; \
+    fi; \
     GOOS=${GOOS_VALUE} GOARCH=${GOARCH_VALUE} \
     CGO_CFLAGS="-I/opt/vosk/libvosk" \
     CGO_LDFLAGS="-L/opt/vosk/libvosk -lvosk -ldl -lpthread" \
