@@ -13,8 +13,9 @@ services:
       - "8084:8084"
     volumes:
       - wire-pod-data:/data
+      - wire-pod-images:/images
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/ok"]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:8080/ok" ]
       interval: 30s
       timeout: 5s
       retries: 5
