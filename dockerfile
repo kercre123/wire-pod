@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 
-FROM --platform=$BUILDPLATFORM golang:bookworm AS builder
+FROM --platform=$BUILDPLATFORM golang:1.22.4-bookworm AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -11,25 +11,45 @@ ARG COMMIT_SHA=unknown
 ENV DEBIAN_FRONTEND=noninteractive \
     CGO_ENABLED=1
 
-RUN apt-get update \ 
-    && apt-get install -y --no-install-recommends \ 
+RUN set -eux; \ 
+    apt-get update; \ 
+    apt-get install -y --no-install-recommends \ 
         build-essential \ 
         ca-certificates \ 
-        curl \
-        git \
-        libasound2-dev \
-        libopus-dev \
-        libopusfile-dev \
-        libsox-dev \
-        libsodium-dev \
-        pkg-config \
-        unzip \
-        wget \
-        gcc-aarch64-linux-gnu \
-        g++-aarch64-linux-gnu \
-        gcc-arm-linux-gnueabihf \
-        g++-arm-linux-gnueabihf \
-    && rm -rf /var/lib/apt/lists/*
+        curl \ 
+        git \ 
+        libasound2-dev \ 
+        libopus-dev \ 
+        libopusfile-dev \ 
+        libsox-dev \ 
+        libsodium-dev \ 
+        pkg-config \ 
+        unzip \ 
+        wget \ 
+        gcc-aarch64-linux-gnu \ 
+        g++-aarch64-linux-gnu \ 
+        gcc-arm-linux-gnueabihf \ 
+        g++-arm-linux-gnueabihf; \ 
+    if [ "${TARGETARCH}" = "arm64" ]; then \ 
+        dpkg --add-architecture arm64; \ 
+        apt-get update; \ 
+        apt-get install -y --no-install-recommends \ 
+            libasound2-dev:arm64 \ 
+            libopus-dev:arm64 \ 
+            libopusfile-dev:arm64 \ 
+            libsox-dev:arm64 \ 
+            libsodium-dev:arm64; \ 
+    elif [ "${TARGETARCH}" = "arm" ]; then \ 
+        dpkg --add-architecture armhf; \ 
+        apt-get update; \ 
+        apt-get install -y --no-install-recommends \ 
+            libasound2-dev:armhf \ 
+            libopus-dev:armhf \ 
+            libopusfile-dev:armhf \ 
+            libsox-dev:armhf \ 
+            libsodium-dev:armhf; \ 
+    fi; \ 
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 
@@ -94,9 +114,17 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     if [ -n "${CXX_VALUE}" ]; then \
         export CXX=${CXX_VALUE}; \
     fi; \
+    LIB_DIR="/usr/lib/x86_64-linux-gnu"; \
+    if [ "${GOARCH_VALUE}" = "arm64" ]; then \
+        LIB_DIR="/usr/lib/aarch64-linux-gnu"; \
+    elif [ "${GOARCH_VALUE}" = "arm" ]; then \
+        LIB_DIR="/usr/lib/arm-linux-gnueabihf"; \
+    fi; \
+    export PKG_CONFIG_PATH="${LIB_DIR}/pkgconfig"; \
+    export PKG_CONFIG_LIBDIR="${PKG_CONFIG_PATH}"; \
+    export CGO_CFLAGS="-I/opt/vosk/libvosk"; \
+    export CGO_LDFLAGS="-L/opt/vosk/libvosk -L${LIB_DIR} -lvosk -lopus -lopusfile -lsodium -lasound -ldl -lpthread"; \
     GOOS=${GOOS_VALUE} GOARCH=${GOARCH_VALUE} \
-    CGO_CFLAGS="-I/opt/vosk/libvosk" \
-    CGO_LDFLAGS="-L/opt/vosk/libvosk -lvosk -ldl -lpthread" \
     go build -tags "nolibopusfile" -ldflags "-s -w -X github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${BUILD_COMMIT}" \
         -o /build/chipper ./cmd/vosk; \
     echo "${BUILD_COMMIT}" >/build/.wirepod-version
