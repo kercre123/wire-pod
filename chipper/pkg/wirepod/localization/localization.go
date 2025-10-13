@@ -3,6 +3,7 @@ package localization
 import "github.com/kercre123/wire-pod/chipper/pkg/vars"
 
 var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL", "zh-CN", "tr-TR", "ru-RU", "nt-NL", "uk-UA", "vi-VN"}
+var ValidTTSLanguages []string = []string{"en-US", "de-DE", "fr-FR", "es-ES", "it-IT"}
 
 const STR_WEATHER_IN = "str_weather_in"
 const STR_WEATHER_FORECAST = "str_weather_forecast"
@@ -183,70 +184,99 @@ var texts = map[string][]string{
 	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się ", "的", "'nin", "", "", "", "của"},
 	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię", "名字", "adlar", "имена", "namen", "імена", "tên"},
 	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla ", "给", " için ", "для", " voor ", " для ", " cho "},
-	STR_ZERO:							{"zero","zero","zero","zéro","zero","zero","zero","zero","zero","zero","zero","zero",},
-	STR_ONE:							{"one","one","one","un","one","one","one","one","one","one","one","one"},
-	STR_TWO:							{"two","two","two","deux","two","two","two","two","two","two","two","two"},
-	STR_THREE:							{"three","three","three","trois","three","three","three","three","three","three","three","three"},
-	STR_FOUR:							{"four","four","four","quatre","four","four","four","four","four","four","four","four"},
-	STR_FIVE:							{"five","five","five","cinq","five","five","five","five","five","five","five","five"},
-	STR_SIX:							{"six","six","six","six","six","six","six","six","six","six","six","six"},
-	STR_SEVEN:							{"seven","seven","seven","sept","seven","seven","seven","seven","seven","seven","seven","seven"},
-	STR_EIGHT:							{"eight","eight","eight","huit","eight","eight","eight","eight","eight","eight","eight","eight"},
-	STR_NINE:							{"nine","nine","nine","neuf","nine","nine","nine","nine","nine","nine","nine","nine"},
-	STR_TEN:							{"ten","ten","ten","dix","ten","ten","ten","ten","ten","ten","ten","ten"},
-	STR_ELEVEN:							{"eleven","eleven","eleven","onze","eleven","eleven","eleven","eleven","eleven","eleven","eleven","eleven"},
-	STR_TWELVE:							{"twelve","twelve","twelve","douze","twelve","twelve","twelve","twelve","twelve","twelve","twelve","twelve"},
-	STR_THIRTEEN:						{"thirteen","thirteen","thirteen","treize","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen"},
-	STR_FOURTEEN:						{"fourteen","fourteen","fourteen","quatorze","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen"},
-	STR_FIFTEEN:						{"fifteen","fifteen","fifteen","quinze","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen"},
-	STR_SIXTEEN:						{"sixteen","sixteen","sixteen","seize","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen"},
-	STR_SEVENTEEN:						{"seventeen","seventeen","seventeen","dix-sept","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen"},
-	STR_EIGHTEEN:						{"eighteen","eighteen","eighteen","dix-huit","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen"},
-	STR_NINETEEN:						{"nineteen","nineteen","nineteen","dix-neuf","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen"},
-	STR_TWENTY:							{"twenty","twenty","twenty","vingt","twenty","twenty","twenty","twenty","twenty","twenty","twenty","twenty"},
-	STR_THIRTY:							{"thirty","thirty","thirty","trente","thirty","thirty","thirty","thirty","thirty","thirty","thirty","thirty"},
-	STR_FOURTY:							{"fourty","fourty","fourty","quarante","fourty","fourty","fourty","fourty","fourty","fourty","fourty","fourty"},
-	STR_FIFTY:							{"fifty","fifty","fifty","cinquante","fifty","fifty","fifty","fifty","fifty","fifty","fifty","fifty"},
-	STR_SIXTY:							{"sixty","sixty","sixty","soixante","sixty","sixty","sixty","sixty","sixty","sixty","sixty","sixty"},
-	STR_SEVENTY:						{"seventy","seventy","seventy","soixante-dix","seventy","seventy","seventy","seventy","seventy","seventy","seventy","seventy"},
-	STR_EIGHTY:							{"eighty","eighty","eighty","quatre-vingt","eighty","eighty","eighty","eighty","eighty","eighty","eighty","eighty"},
-	STR_NINETY:							{"ninety","ninety","ninety","quatre vingt dix","ninety","ninety","ninety","ninety","ninety","ninety","ninety","ninety"},
-	STR_ONE_HUNDRED:					{"one hundred","one hundred","one hundred","cent","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred"},
-	STR_ONE_HOUR:						{"one hour","one hour","one hour","une heure","one hour","one hour","one hour","one hour","one hour","one hour","one hour","one hour"},
-	STR_ONE_HOUR_ALT:					{"an hour","an hour","an hour","une heure","an hour","an hour","an hour","an hour","an hour","an hour","an hour","an hour"},
-	STR_HOUR:							{"hour","hour","hour","heure","hour","hour","hour","hour","hour","hour","hour","hour"},
-	STR_MINUTE:							{"minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute"},
-	STR_SECOND:							{"second","second","second","seconde","second","second","second","second","second","second","second","second"},
+	STR_ZERO:							{"zero","zero","zero","zéro","null","zero","zero","zero","zero","zero","zero","zero",},
+	STR_ONE:							{"one","uno","uno","un","eins","jeden","one","one","one","one","one","one"},
+	STR_TWO:							{"two","due","dos","deux","zwei","dwa","two","two","two","two","two","two"},
+	STR_THREE:							{"three","tre","tres","trois","drei","trzy","three","three","three","three","three","three"},
+	STR_FOUR:							{"four","quattro","cuatro","quatre","vier","cztery","four","four","four","four","four","four"},
+	STR_FIVE:							{"five","cinque","cinco","cinq","fünf","pięć","five","five","five","five","five","five"},
+	STR_SIX:							{"six","sei","seis","six","sechs","sześć","six","six","six","six","six","six"},
+	STR_SEVEN:							{"seven","sette","siete","sept","sieben","siedem","seven","seven","seven","seven","seven","seven"},
+	STR_EIGHT:							{"eight","otto","ocho","huit","acht","osiem","eight","eight","eight","eight","eight","eight"},
+	STR_NINE:							{"nine","nove","nueve","neuf","neun","dziewięć","nine","nine","nine","nine","nine","nine"},
+	STR_TEN:							{"ten","dieci","diez","dix","zehn","dziesięć","ten","ten","ten","ten","ten","ten"},
+	STR_ELEVEN:							{"eleven","undici","once","onze","elf","jedenaście","eleven","eleven","eleven","eleven","eleven","eleven"},
+	STR_TWELVE:							{"twelve","dodici","doce","douze","zwölf","dwanaście","twelve","twelve","twelve","twelve","twelve","twelve"},
+	STR_THIRTEEN:						{"thirteen","tredici","trece","treize","dreizehn","trzynaście","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen"},
+	STR_FOURTEEN:						{"fourteen","quattordici","catorce","quatorze","vierzehn","czternaście","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen"},
+	STR_FIFTEEN:						{"fifteen","quindici","quince","quinze","fünfzehn","piętnaście","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen"},
+	STR_SIXTEEN:						{"sixteen","sedici","dieciséis","seize","sechzehn","szesnaście","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen"},
+	STR_SEVENTEEN:						{"seventeen","diciassette","diecisiete","dix-sept","siebzehn","siedemnaście","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen"},
+	STR_EIGHTEEN:						{"eighteen","diciotto","dieciocho","dix-huit","achtzehn","osiemnaście","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen"},
+	STR_NINETEEN:						{"nineteen","diciannove","diecinueve","dix-neuf","neunzehn","dziewiętnaście","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen"},
+	STR_TWENTY:							{"twenty","venti","veinte","vingt","zwanzig","dwadzieścia","twenty","twenty","twenty","twenty","twenty","twenty"},
+	STR_THIRTY:							{"thirty","trenta","treinta","trente","dreißig","trzydzieści","thirty","thirty","thirty","thirty","thirty","thirty"},
+	STR_FOURTY:							{"fourty","quaranta","cuarenta","quarante","vierzig","czterdzieści","fourty","fourty","fourty","fourty","fourty","fourty"},
+	STR_FIFTY:							{"fifty","cinquanta","cincuenta","cinquante","fünfzig","pięćdziesiąt","fifty","fifty","fifty","fifty","fifty","fifty"},
+	STR_SIXTY:							{"sixty","sessanta","sesenta","soixante","sechzig","sześćdziesiąt","sixty","sixty","sixty","sixty","sixty","sixty"},
+	STR_SEVENTY:						{"seventy","settanta","setenta","soixante-dix","siebzig","siedemdziesiąt","seventy","seventy","seventy","seventy","seventy","seventy"},
+	STR_EIGHTY:							{"eighty","ottanta","ochenta","quatre-vingt","achtzig","osiemdziesiąt","eighty","eighty","eighty","eighty","eighty","eighty"},
+	STR_NINETY:							{"ninety","novanta","noventa","quatre vingt dix","neunzig","dziewięćdziesiąt","ninety","ninety","ninety","ninety","ninety","ninety"},
+	STR_ONE_HUNDRED:					{"one hundred","cento","cien","cent","einhundert","sto","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred"},
+	STR_ONE_HOUR:						{"one hour","un'ora","una hora","une heure","eine stunde","jedna godzina","one hour","one hour","one hour","one hour","one hour","one hour"},
+	STR_ONE_HOUR_ALT:					{"an hour","un'ora","una hora","une heure","eine stunde","godzina","an hour","an hour","an hour","an hour","an hour","an hour"},
+	STR_HOUR:							{"hour","ora","hora","heure","stunde","godzina","hour","hour","hour","hour","hour","hour"},
+	STR_MINUTE:							{"minute","minuto","minuto","minute","minute","minuta","minute","minute","minute","minute","minute","minute"},
+	STR_SECOND:							{"second","secondo","segundo","seconde","sekunde","sekunda","second","second","second","second","second","second"},
 }
 
 func GetText(key string) string {
 	var data = texts[key]
 	if data != nil {
-		if vars.APIConfig.STT.Language == "it-IT" {
+		// Use TTS language for text output, fallback to STT language
+		lang := vars.APIConfig.TTS.Language
+		if lang == "" {
+			lang = vars.APIConfig.STT.Language
+		}
+		
+		if lang == "it-IT" {
 			return data[1]
-		} else if vars.APIConfig.STT.Language == "es-ES" {
+		} else if lang == "es-ES" {
 			return data[2]
-		} else if vars.APIConfig.STT.Language == "fr-FR" {
+		} else if lang == "fr-FR" {
 			return data[3]
-		} else if vars.APIConfig.STT.Language == "de-DE" {
+		} else if lang == "de-DE" {
 			return data[4]
-		} else if vars.APIConfig.STT.Language == "pl-PL" {
+		} else if lang == "pl-PL" {
 			return data[5]
-		} else if vars.APIConfig.STT.Language == "zh-CN" {
+		} else if lang == "zh-CN" {
 			return data[6]
-		} else if vars.APIConfig.STT.Language == "tr-TR" {
+		} else if lang == "tr-TR" {
 			return data[7]
-		} else if vars.APIConfig.STT.Language == "ru-RU" {
+		} else if lang == "ru-RU" {
 			return data[8]
-		} else if vars.APIConfig.STT.Language == "nt-NL" {
+		} else if lang == "nt-NL" {
 			return data[9]
-		} else if vars.APIConfig.STT.Language == "uk-UA" {
+		} else if lang == "uk-UA" {
 			return data[10]
-		} else if vars.APIConfig.STT.Language == "vi-VN" {
+		} else if lang == "vi-VN" {
 			return data[11]
 		}
 	}
 	return data[0]
+}
+
+func GetTTSLanguage() string {
+	if vars.APIConfig.TTS.Language != "" {
+		return vars.APIConfig.TTS.Language
+	}
+	// Fallback to STT language
+	return vars.APIConfig.STT.Language
+}
+
+func GetTTSVoice() string {
+	if vars.APIConfig.TTS.Voice != "" {
+		return vars.APIConfig.TTS.Voice
+	}
+	// Default voice based on language
+	switch GetTTSLanguage() {
+	case "de-DE":
+		return "thorsten"
+	case "en-US":
+		return "ljspeech"
+	default:
+		return "ljspeech"
+	}
 }
 
 func ReloadVosk() {
