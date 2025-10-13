@@ -238,6 +238,38 @@
             </button>
           </div>
         </div>
+        
+        <hr class="small-hr">
+        <h2>TTS Language & Voice</h2>
+        <hr class="small-hr">
+        <p>Set the text-to-speech language and voice for Vector's responses.</p>
+        <hr class="small-hr">
+        <div id="ttsLanguageStatus"></div>
+        <div id="ttsLanguageSelectionDiv">
+          <div>
+            <label for="ttsLanguageSelection">TTS Language:</label>
+            <select name="ttsLanguageSelection" id="ttsLanguageSelection" onchange="updateTTSVoiceOptions()">
+              <option value="en-US">English (US)</option>
+              <option value="de-DE">German (DE)</option>
+              <option value="fr-FR">French (FR)</option>
+              <option value="es-ES">Spanish (ES)</option>
+              <option value="it-IT">Italian (IT)</option>
+            </select>
+          </div>
+          <div>
+            <label for="ttsVoiceSelection">TTS Voice:</label>
+            <select name="ttsVoiceSelection" id="ttsVoiceSelection">
+              <option value="ljspeech">LJSpeech (English)</option>
+              <option value="thorsten">Thorsten (German)</option>
+            </select>
+          </div>
+          <div>
+            <hr class="small-hr">
+            <button onclick="setTTSLanguage()">
+              Set TTS Language & Voice
+            </button>
+          </div>
+        </div>
         <hr />
       </div>
     </div>
@@ -249,6 +281,24 @@
 <script>
   updateWeatherAPI();
   updateKGAPI();
+  updateTTSSettings();
+  
+  function updateTTSVoiceOptions() {
+    const language = document.getElementById('ttsLanguageSelection').value;
+    const voiceSelect = document.getElementById('ttsVoiceSelection');
+    
+    // Clear existing options
+    voiceSelect.innerHTML = '';
+    
+    // Add voice options based on language
+    if (language === 'de-DE') {
+      voiceSelect.innerHTML = '<option value="thorsten">Thorsten (German Male)</option>';
+    } else if (language === 'en-US') {
+      voiceSelect.innerHTML = '<option value="ljspeech">LJSpeech (English Female)</option>';
+    } else {
+      voiceSelect.innerHTML = '<option value="default">Default Voice</option>';
+    }
+  }
 </script>
 
 </html>

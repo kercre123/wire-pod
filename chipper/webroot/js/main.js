@@ -411,6 +411,47 @@ function setSTTLanguage() {
     });
 }
 
+function setTTSLanguage() {
+  const data = {
+    language: getE("ttsLanguageSelection").value,
+    voice: getE("ttsVoiceSelection").value
+  };
+
+  displayMessage("ttsLanguageStatus", "Setting TTS language...");
+
+  fetch("/api/set_tts_info", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => response.text())
+    .then((response) => {
+      displayMessage("ttsLanguageStatus", response);
+      alert(response);
+    });
+}
+
+function updateTTSSettings() {
+  fetch("/api/get_tts_info")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.language) {
+        getE("ttsLanguageSelection").value = data.language;
+        updateTTSVoiceOptions();
+        if (data.voice) {
+          getE("ttsVoiceSelection").value = data.voice;
+        }
+      }
+    })
+    .catch(() => {
+      // Default to English if no TTS config exists
+      getE("ttsLanguageSelection").value = "en-US";
+      updateTTSVoiceOptions();
+    });
+}
+
 function updateSTTLanguageDownload() {
 
   const interval = setInterval(() => {

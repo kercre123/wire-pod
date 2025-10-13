@@ -41,6 +41,11 @@ type apiConfig struct {
 		Service  string `json:"provider"`
 		Language string `json:"language"`
 	} `json:"STT"`
+	TTS struct {
+		Service  string `json:"provider"`
+		Language string `json:"language"`
+		Voice    string `json:"voice"`
+	} `json:"TTS"`
 	Server struct {
 		// false for ip, true for escape pod
 		EPConfig bool   `json:"epconfig"`
@@ -77,6 +82,7 @@ func CreateConfigFromEnv() {
 		APIConfig.Knowledge.Enable = false
 	}
 	WriteSTT()
+	WriteTTS()
 	APIConfig.HasReadFromEnv = true
 	writeBytes, _ := json.Marshal(APIConfig)
 	os.WriteFile(ApiConfigPath, writeBytes, 0644)
@@ -88,6 +94,37 @@ func WriteSTT() {
 	APIConfig.STT.Service = os.Getenv("STT_SERVICE")
 	if os.Getenv("STT_SERVICE") == "vosk" || os.Getenv("STT_SERVICE") == "whisper.cpp" {
 		APIConfig.STT.Language = os.Getenv("STT_LANGUAGE")
+	}
+}
+
+func WriteTTS() {
+	// TTS configuration with default values
+	APIConfig.TTS.Service = os.Getenv("TTS_SERVICE")
+	if APIConfig.TTS.Service == "" {
+		APIConfig.TTS.Service = "coqui" // default TTS service
+	}
+	
+	APIConfig.TTS.Language = os.Getenv("TTS_LANGUAGE")
+	if APIConfig.TTS.Language == "" {
+		// Use STT language as default, fallback to en-US
+		if APIConfig.STT.Language != "" {
+			APIConfig.TTS.Language = APIConfig.STT.Language
+		} else {
+			APIConfig.TTS.Language = "en-US"
+		}
+	}
+	
+	APIConfig.TTS.Voice = os.Getenv("TTS_VOICE")
+	if APIConfig.TTS.Voice == "" {
+		// Set default voice based on language
+		switch APIConfig.TTS.Language {
+		case "de-DE":
+			APIConfig.TTS.Voice = "thorsten" // German voice
+		case "en-US":
+			APIConfig.TTS.Voice = "ljspeech" // English voice
+		default:
+			APIConfig.TTS.Voice = "ljspeech"
+		}
 	}
 }
 
@@ -117,6 +154,12 @@ func ReadConfig() {
 		if APIConfig.STT.Service != os.Getenv("STT_SERVICE") {
 			WriteSTT()
 		}
+		
+		// Initialize TTS config if not present
+		if APIConfig.TTS.Service == "" {
+			WriteTTS()
+		}
+		
 		if !APIConfig.HasReadFromEnv {
 			if APIConfig.Server.Port != os.Getenv("DDL_RPC_PORT") {
 				APIConfig.HasReadFromEnv = true
