@@ -176,6 +176,14 @@
           <button onclick="sendForm('/api-sdk/cloud_intent?intent=intent_system_charger')">Go
             Home</button>
         </div>
+        <hr class="small-hr">
+        <h3 class="center">Trigger Hey Vector</h3>
+        <p class="center">Trigger the "Hey Vector" wakeword remotely</p>
+        <p class="center">(Dev firmware and 2.0.1.6085ep or later)</p>
+        <div id="heyVectorStatus" class="center"></div>
+        <div class="center">
+          <button onclick="triggerHeyVector()">Trigger "Hey Vector"</button>
+        </div>
         <hr>
       </div>
 
@@ -392,6 +400,7 @@
   <script src="./js/main.js"></script>
   <script src="./js/faces.js"></script>
   <script src="../js/ui.js"></script>
+  <script src="./js/heyvector.js"></script>
   <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
 
 </body>
