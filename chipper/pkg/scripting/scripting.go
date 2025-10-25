@@ -87,8 +87,9 @@ func sleep(L *lua.LState) int {
 
 func moveHead(L *lua.LState) int {
 	headSpeed := L.ToInt(1)
+	headSpeedF := float32(headSpeed) / float32(100)
 	executeWithGoroutine(L, func(L *lua.LState) error {
-		_, err := gRfLS(L).Conn.MoveHead(L.Context(), &vectorpb.MoveHeadRequest{SpeedRadPerSec: float32(headSpeed)})
+		_, err := gRfLS(L).Conn.MoveHead(L.Context(), &vectorpb.MoveHeadRequest{SpeedRadPerSec: headSpeedF})
 		return err
 	}, true)
 	return 0
@@ -96,8 +97,9 @@ func moveHead(L *lua.LState) int {
 
 func moveLift(L *lua.LState) int {
 	liftSpeed := L.ToInt(1)
+	liftSpeedF := float32(liftSpeed) / float32(100)
 	executeWithGoroutine(L, func(L *lua.LState) error {
-		_, err := gRfLS(L).Conn.MoveLift(L.Context(), &vectorpb.MoveLiftRequest{SpeedRadPerSec: float32(liftSpeed)})
+		_, err := gRfLS(L).Conn.MoveLift(L.Context(), &vectorpb.MoveLiftRequest{SpeedRadPerSec: liftSpeedF})
 		return err
 	}, true)
 	return 0
