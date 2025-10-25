@@ -1,11 +1,15 @@
 package scripting
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"image"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
@@ -31,7 +35,9 @@ moveLift(radpersecond int)
 moveHead(radpersecond int)
 // leftWheelmmps2 and rightWheelmmps2 are what you want the wheels to accelerate to. if you want
 // the wheels to accelerate immediately, just set leftWheelmmps2 and rightWheelmmps2 to 0
-moveWheels(leftWheelmmps, rightWheelmmps, leftWheelmmps2, rightWheelmmps2)
+moveWheels(leftWheelmmps, rightWheelmmps, leftWheelmmps2, rightWheelmmps2 int)
+// won't block
+showImage(filePath string, durationMs int)
 
 */
 
@@ -101,26 +107,40 @@ func moveWheels(L *lua.LState) int {
 				RightWheelMmps2: float32(rightWheelSpeed2),
 			})
 		return err
-	}, false)
+	}, true)
 	return 0
 }
 
 // later
-// func showImageOnScreen(L *lua.LState) int {
-// 	filePath := L.ToString(1)
-// 	f, err := os.Open(filePath)
-// 	if err != nil {
-// 		logger.Println("Lua error: unable to open image file:", err)
-// 		return 1
-// 	}
-// 	img, _, err := image.Decode(f)
-// 	if err != nil {
-// 		logger.Println("Lua error: file is not an image:", err)
-// 		return 1
-// 	}
-// 	resize.Resize()
-
-// }
+func showImageOnScreen(L *lua.LState) int {
+	filePath := L.ToString(1)
+	duration := L.ToInt(2)
+	f, err := os.Open(filePath)
+	if err != nil {
+		logger.Println("Lua error: unable to open image file:", err)
+		return 1
+	}
+	img, _, err := image.Decode(f)
+	if err != nil {
+		logger.Println("Lua error: file is not an image:", err)
+		return 1
+	}
+	pixels := ConvertPixelsToRawBitmap(img, 100)
+	buf := new(bytes.Buffer)
+	for _, ui := range pixels {
+		binary.Write(buf, binary.LittleEndian, ui)
+	}
+	executeWithGoroutine(L, func(L *lua.LState) error {
+		_, err := gRfLS(L).Conn.DisplayFaceImageRGB(L.Context(),
+			&vectorpb.DisplayFaceImageRGBRequest{
+				FaceData:         buf.Bytes(),
+				DurationMs:       uint32(duration),
+				InterruptRunning: true,
+			})
+		return err
+	}, true)
+	return 0
+}
 
 // get robot from LState
 func gRfLS(L *lua.LState) *vector.Vector {
@@ -139,6 +159,7 @@ func MakeLuaState(esn string, validating bool) (*lua.LState, error) {
 	L.SetGlobal("moveHead", L.NewFunction(moveHead))
 	L.SetGlobal("moveLift", L.NewFunction(moveLift))
 	L.SetGlobal("moveWheels", L.NewFunction(moveWheels))
+	L.SetGlobal("showImage", L.NewFunction(showImageOnScreen))
 	SetBControlFunctions(L)
 	ud := L.NewUserData()
 	if !validating {
