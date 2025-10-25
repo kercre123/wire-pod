@@ -33,11 +33,21 @@ playAnimation(animation string, goroutine bool)
 sleep(milliseconds int)
 moveLift(radpersecond int)
 moveHead(radpersecond int)
+
 // leftWheelmmps2 and rightWheelmmps2 are what you want the wheels to accelerate to. if you want
 // the wheels to accelerate immediately, just set leftWheelmmps2 and rightWheelmmps2 to 0
 moveWheels(leftWheelmmps, rightWheelmmps, leftWheelmmps2, rightWheelmmps2 int)
+
 // won't block
 showImage(filePath string, durationMs int)
+
+// wrapper for http.Post and http.Get respectively
+// timeout is in seconds
+// set timeout to 0 for default
+// each return response as strings
+postHTTPRequest(url, contentType, body string, timeout int) (resp string)
+getHTTPRequest(url, timeout int) (resp string)
+
 
 */
 
@@ -117,13 +127,13 @@ func showImageOnScreen(L *lua.LState) int {
 	duration := L.ToInt(2)
 	f, err := os.Open(filePath)
 	if err != nil {
-		logger.Println("Lua error: unable to open image file:", err)
-		return 1
+		logger.LogUI("Lua error: unable to open image file:", err)
+		return 0
 	}
 	img, _, err := image.Decode(f)
 	if err != nil {
-		logger.Println("Lua error: file is not an image:", err)
-		return 1
+		logger.LogUI("Lua error: file is not an image:", err)
+		return 0
 	}
 	pixels := ConvertPixelsToRawBitmap(img, 100)
 	buf := new(bytes.Buffer)
@@ -140,6 +150,56 @@ func showImageOnScreen(L *lua.LState) int {
 		return err
 	}, true)
 	return 0
+}
+
+func postHTTPRequest(L *lua.LState) int {
+	url := L.ToString(1)
+	contentType := L.ToString(2)
+	body := L.ToString(3)
+	timeout := L.ToInt(4)
+	r := bytes.NewReader([]byte(body))
+	cl := http.DefaultClient
+	if timeout > 0 {
+		cl.Timeout = time.Second * time.Duration(timeout)
+	}
+	resp, err := cl.Post(url, contentType, r)
+	if err != nil {
+		logger.LogUI("Lua postHTTPRequest error:", err)
+		L.Push(lua.LString("http error: " + err.Error()))
+		return 1
+	}
+	b, err := io.ReadAll(resp.Body)
+	L.Push(lua.LString(string(b)))
+	if err != nil {
+		logger.LogUI("Lua postHTTPRequest error:", err)
+		L.Push(lua.LString("http error: " + err.Error()))
+	} else {
+		L.Push(lua.LString(string(b)))
+	}
+	return 1
+}
+
+func getHTTPRequest(L *lua.LState) int {
+	url := L.ToString(1)
+	timeout := L.ToInt(2)
+	cl := http.DefaultClient
+	if timeout > 0 {
+		cl.Timeout = time.Second * time.Duration(timeout)
+	}
+	resp, err := cl.Get(url)
+	if err != nil {
+		logger.LogUI("Lua getHTTPRequest error:", err)
+		L.Push(lua.LString("http error: " + err.Error()))
+		return 1
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.LogUI("Lua getHTTPRequest error:", err)
+		L.Push(lua.LString("http error: " + err.Error()))
+	} else {
+		L.Push(lua.LString(string(b)))
+	}
+	return 1
 }
 
 // get robot from LState
@@ -160,6 +220,8 @@ func MakeLuaState(esn string, validating bool) (*lua.LState, error) {
 	L.SetGlobal("moveLift", L.NewFunction(moveLift))
 	L.SetGlobal("moveWheels", L.NewFunction(moveWheels))
 	L.SetGlobal("showImage", L.NewFunction(showImageOnScreen))
+	L.SetGlobal("postHTTPRequest", L.NewFunction(postHTTPRequest))
+	L.SetGlobal("getHTTPRequest", L.NewFunction(getHTTPRequest))
 	SetBControlFunctions(L)
 	ud := L.NewUserData()
 	if !validating {
@@ -190,13 +252,13 @@ func executeWithGoroutine(L *lua.LState, fn func(L *lua.LState) error, force boo
 		go func() {
 			err := fn(L)
 			if err != nil {
-				logger.Println("LUA: failure: " + err.Error())
+				logger.LogUI("LUA: failure: " + err.Error())
 			}
 		}()
 	} else {
 		err := fn(L)
 		if err != nil {
-			logger.Println("LUA: failure: " + err.Error())
+			logger.LogUI("LUA: failure: " + err.Error())
 		}
 	}
 }
