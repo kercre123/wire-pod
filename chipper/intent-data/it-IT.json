@@ -1,218 +1,218 @@
 [
-	{
-		"name" : "intent_names_username_extend", 
-		"keyphrases" : [ "il mio nome è", "mi chiamo", "io sono", "qui c'è" ]
-	},
-	{	
-		"name": "intent_weather_extend", 
-		"keyphrases" : [ "che tempo fa", "com'è il tempo", "com'è fuori", "previsioni del tempo", "che tempo farà" ]
-	},
-	{	
-		"name": "intent_names_ask", 
-		"keyphrases" : [ "qual è il mio nome", "come mi chiamo", "chi sono" ]
-	},
-	{	
-		"name": "intent_imperative_eyecolor",
-		"keyphrases" : [ "colore degli occhi", "colore agli occhi", "cambia colore", "occhi" ]
-	},
-	{	
-		"name": "intent_character_age", 
-		"keyphrases" : [ "quanti anni hai", "qual è la tua età", "quanto sei vecchio" ]
-	},
-	{	
-		"name": "intent_explore_start", 
-		"keyphrases" : [ "vai ad esplorare", "esplora", "vai in esplorazione", "fatti un giro" ]
-	},
-	{	
-		"name": "intent_system_charger", 
-		"keyphrases" : [ "vai a casa", "a casa", "ricaricati", "mettiti in carica", "trova il caricabatterie", "vai in carica" ]
-	},
-	{	
-		"name": "intent_system_sleep",
-		"keyphrases" : [ "dormi", "vai a dormire", "a nanna", "vai a nanna", "fai la nanna", "nanna" ]
-	},
-	{	
-		"name": "intent_greeting_goodmorning", 
-		"keyphrases" : [ "giorno", "mattina", "pomeriggio" ]
-	},
-	{	
-		"name": "intent_greeting_goodnight", 
-		"keyphrases" : [ "notte", "sera" ]
-	},
-	{	
-		"name": "intent_greeting_goodbye", 
-		"keyphrases" : [ "ciao", "arrivederci", "ci vediamo" ]
-	},
-	{	
-		"name": "intent_seasonal_happynewyear",
-		"keyphrases" : [ "fuochi d'artificio", "buon anno", "buon anno nuovo" ]
-	},
-	{	
-		"name": "intent_seasonal_happyholidays", 
-		"keyphrases" : [ "natale", "vacanza", "vacanze", "feste" ]
-	},
-	{	
-		"name": "intent_amazon_signin", 
-		"keyphrases" : [ "entra in alexa", "registrati su alexa", "attiva alexa", "accendi alexa" ]
-	},
-	{	
-		"name": "intent_amazon_signin", 
-		"keyphrases" : [ "esci da alexa", "disattiva alexa", "spegni alexa" ]
-	},
-	{	
-		"name": "intent_imperative_forward",
-		"keyphrases" : [ "avanti" ]
-	},
-	{	
-		"name": "intent_imperative_turnaround", 
-		"keyphrases" : [ "gira" ]
-	},
-	{	
-		"name": "intent_imperative_turnleft", 
-		"keyphrases" : [ "gira a sinistra", "vai a sinistra" ]
-	},
-	{	
-		"name": "intent_imperative_turnright", 
-		"keyphrases" : [ "gira a destra", "vai a destra" ]
-	},
-	{	
-		"name": "intent_play_rollcube",
-		"keyphrases" : [ "gioca col cubo", "fai rotolare il cubo", "sposta il cubo" ]
-	},
-	{	
-		"name": "intent_play_popawheelie", 
-		"keyphrases" : [ "fischia", "fischio", "fischietta" ]
-	},
-	{	
-		"name": "intent_play_fistbump", 
-		"keyphrases" : [ "dammi cinque", "dammi il cinque" ]
-	},
-	{	
-		"name": "intent_play_blackjack", 
-		"keyphrases" : [ "ventuno", "blackjack" ]
-	},
-	{	
-		"name": "intent_imperative_affirmative",
-		"keyphrases" : [ "si", "giusto", "corretto", "sì", "vero" ]
-	},
-	{	
-		"name": "intent_imperative_negative", 
-		"keyphrases" : [ "no", "non", "sbagliato", "falso" ]
-	},
-	{	
-		"name": "intent_photo_take_extend", 
-		"keyphrases" : [ "foto", "selfie", "immagine" ]
-	},
-	{	
-		"name": "intent_imperative_praise", 
-		"keyphrases" : [ "bravo", "grande", "mitico", "forte", "impressionante" ]
-	},
-	{	
-		"name": "intent_imperative_abuse",
-		"keyphrases" : [ "cattivo", "stupido", "così non va" ]
-	},
-	{	
-		"name": "intent_imperative_apologize", 
-		"keyphrases" : [ "mi dispiace", "scusa", "scusami", "sono dispiaciuto" ]
-	},
-	{	
-		"name": "intent_imperative_backup", 
-		"keyphrases" : [ "indietro", "annulla" ]
-	},
-	{	
-		"name": "intent_imperative_volumedown",
-		"keyphrases" : [ "abbassa il volume" ]
-	},
-	{	
-		"name": "intent_imperative_volumeup", 
-		"keyphrases" : [ "alza il volume" ]
-	},
-	{	
-		"name": "intent_imperative_lookatme", 
-		"keyphrases" : [ "guardami" ]
-	},
-	{	
-		"name": "intent_imperative_volumelevel_extend",
-		"keyphrases" : [ "volume" ]
-	},
-	{	
-		"name": "intent_imperative_shutup", 
-		"keyphrases" : [ "zitto", "fai silenzio", "stai zitto" ]
-	},
-	{	
-		"name": "intent_greeting_hello", 
-		"keyphrases" : [ "ciao", "come stai", "buongiorno", "buonasera", "buon pomeriggio", "ehi", "salve" ]
-	},
-	{	
-		"name": "intent_imperative_come", 
-		"keyphrases" : [ "vieni", "da me", "qui" ]
-	},
-	{	
-		"name": "intent_imperative_love",
-		"keyphrases" : [ "ti voglio bene", "sei il mio amore", "ti amo" ]
-	},
-	{	
-		"name": "intent_knowledge_promptquestion", 
-		"keyphrases" : [ "domanda" ]
-	},
-	{	
-		"name": "intent_clock_checktimer", 
-		"keyphrases" : [ "controlla il cronometro", "controlla il timer" ]
-	},
-	{	
-		"name": "intent_global_stop_extend", 
-		"keyphrases" : [ "ferma il cronometro", "ferma il timer", "stoppa il timer" ]
-	},
-	{	
-		"name": "intent_clock_settimer_extend",
-		"keyphrases" : [ "avvia il cronometro", "fai partire il cronometro", "cronometra" ]
-	},
-	{	
-		"name": "intent_clock_time", 
-		"keyphrases" : [ "che ora è", "che ore sono", "qual è l'ora", "che ora fai" ]
-	},
-	{	
-		"name": "intent_imperative_quiet", 
-		"keyphrases" : [ "basta", "fermo", "stai buono", "stai calmo" ]
-	},
-	{	
-		"name": "intent_imperative_dance", 
-		"keyphrases" : [ "balla", "fai un balletto", "danza" ]
-	},
-	{	
-		"name": "intent_play_pickupcube",
-		"keyphrases" : [ "raccogli" ]
-	},
-	{	
-		"name": "intent_imperative_fetchcube", 
-		"keyphrases" : [ "prendi il cubo", "prendi il tuo cubo", "raccogli il cubo" ]
-	},
-	{	
-		"name": "intent_imperative_findcube", 
-		"keyphrases" : [ "trova il cubo", "trova il tuo cubo" ]
-	},
-	{	
-		"name": "intent_play_anytrick", 
-		"keyphrases" : [ "fai qualcosa di figo", "stupiscimi", "impressionami", "inventa qualcosa" ]
-	},
-	{	
-		"name": "intent_message_recordmessage_extend",
-		"keyphrases" : [ "registra" ]
-	},
-	{	
-		"name": "intent_message_playmessage_extend", 
-		"keyphrases" : [ "riproduci il messaggio", "leggi il messaggio" ]
-	},
-	{	
-		"name": "intent_blackjack_hit", 
-		"keyphrases" : [ "hit" ]
-	},
-	{	
-		"name": "intent_blackjack_stand", 
-		"keyphrases" : [ "stand" ]
-	},
-	{	
-		"name": "intent_play_keepaway",
-		"keyphrases" : [ "stai lontano", "via", "allontanati", "indietro" ]
-	}
+  {
+    "name": "intent_names_username_extend",
+    "keyphrases": ["il mio nome è", "mi chiamo", "io sono", "qui c'è", "sono"]
+  },
+  {
+    "name": "intent_weather_extend",
+    "keyphrases": ["che tempo fa", "com'è il tempo", "com'è fuori", "previsioni del tempo", "che tempo farà", "com'è il meteo", "meteo", "come il meteo"]
+  },
+  {
+    "name": "intent_names_ask",
+    "keyphrases": ["qual è il mio nome", "come mi chiamo", "chi sono"]
+  },
+  {
+    "name": "intent_imperative_eyecolor",
+    "keyphrases": ["colore degli occhi", "colore agli occhi", "cambia colore", "occhi"]
+  },
+  {
+    "name": "intent_character_age",
+    "keyphrases": ["quanti anni hai", "qual è la tua età", "quanto sei vecchio"]
+  },
+  {
+    "name": "intent_explore_start",
+    "keyphrases": ["vai ad esplorare", "esplora", "vai in esplorazione", "fatti un giro"]
+  },
+  {
+    "name": "intent_system_charger",
+    "keyphrases": ["vai a casa", "a casa", "ricaricati", "mettiti in carica", "trova il caricabatterie", "vai in carica"]
+  },
+  {
+    "name": "intent_system_sleep",
+    "keyphrases": ["dormi", "vai a dormire", "a nanna", "vai a nanna", "fai la nanna", "nanna"]
+  },
+  {
+    "name": "intent_greeting_goodmorning",
+    "keyphrases": ["giorno", "mattina", "pomeriggio", "buona sera"]
+  },
+  {
+    "name": "intent_greeting_goodnight",
+    "keyphrases": ["notte", "sera"]
+  },
+  {
+    "name": "intent_greeting_goodbye",
+    "keyphrases": ["a dopo", "arrivederci", "ci vediamo"]
+  },
+  {
+    "name": "intent_seasonal_happynewyear",
+    "keyphrases": ["fuochi d'artificio", "buon anno", "buon anno nuovo"]
+  },
+  {
+    "name": "intent_seasonal_happyholidays",
+    "keyphrases": ["natale", "vacanza", "vacanze", "feste", "buone vacanze", "felici vacanze", "buone feste"]
+  },
+  {
+    "name": "intent_amazon_signin",
+    "keyphrases": ["entra in alexa", "registrati su alexa", "attiva alexa", "accendi alexa"]
+  },
+  {
+    "name": "intent_amazon_signout",
+    "keyphrases": ["esci da alexa", "disattiva alexa", "spegni alexa"]
+  },
+  {
+    "name": "intent_imperative_forward",
+    "keyphrases": ["avanti", "vai avanti"]
+  },
+  {
+    "name": "intent_imperative_turnaround",
+    "keyphrases": ["gira"]
+  },
+  {
+    "name": "intent_imperative_turnleft",
+    "keyphrases": ["gira a sinistra", "vai a sinistra"]
+  },
+  {
+    "name": "intent_imperative_turnright",
+    "keyphrases": ["gira a destra", "vai a destra"]
+  },
+  {
+    "name": "intent_play_rollcube",
+    "keyphrases": ["gioca col cubo", "fai rotolare il cubo", "sposta il cubo", "gira il cubo", "ruota il cubo"]
+  },
+  {
+    "name": "intent_play_popawheelie",
+    "keyphrases": ["in piedi", "su due ruote", "acrobazia", "impenna", "impennata"]
+  },
+  {
+    "name": "intent_play_fistbump",
+    "keyphrases": ["dammi cinque", "dammi il cinque", "batti il cinque", "batti il pugno", "pugno", "batti cinque", "cinque"]
+  },
+  {
+    "name": "intent_play_blackjack",
+    "keyphrases": ["ventuno", "blackjack"]
+  },
+  {
+    "name": "intent_imperative_affirmative",
+    "keyphrases": ["sì", "giusto", "corretto", "si", "vero", "ok", "okey", "okay", "vai", "hotel", "hoc", "sì", "oh che"]
+  },
+  {
+    "name": "intent_imperative_negative",
+    "keyphrases": ["no", "non", "sbagliato", "falso"]
+  },
+  {
+    "name": "intent_photo_take_extend",
+    "keyphrases": ["foto", "selfie", "immagine", "scatta"]
+  },
+  {
+    "name": "intent_imperative_praise",
+    "keyphrases": ["bravo", "grande", "mitico", "forte", "impressionante"]
+  },
+  {
+    "name": "intent_imperative_abuse",
+    "keyphrases": ["cattivo", "stupido", "così non va"]
+  },
+  {
+    "name": "intent_imperative_apologize",
+    "keyphrases": ["mi dispiace", "scusa", "scusami", "sono dispiaciuto"]
+  },
+  {
+    "name": "intent_imperative_backup",
+    "keyphrases": ["indietro", "annulla"]
+  },
+  {
+    "name": "intent_imperative_volumedown",
+    "keyphrases": ["abbassa il volume"]
+  },
+  {
+    "name": "intent_imperative_volumeup",
+    "keyphrases": ["alza il volume"]
+  },
+  {
+    "name": "intent_imperative_lookatme",
+    "keyphrases": ["guardami", "guarda", "walden"]
+  },
+  {	
+    "name": "intent_imperative_volumelevel_extend",
+    "keyphrases" : [ "volume", "imposta il volume a", "imposta volume", "metti il volume a", "metti il volume" ]
+  },
+  {
+    "name": "intent_imperative_shutup",
+    "keyphrases": ["zitto", "fai silenzio", "stai zitto"]
+  },
+  {
+    "name": "intent_greeting_hello",
+    "keyphrases": ["ciao", "come stai", "buongiorno", "buonasera", "buon pomeriggio", "ehi", "salve"]
+  },
+  {
+    "name": "intent_imperative_come",
+    "keyphrases": ["vieni", "da me", "qui"]
+  },
+  {
+    "name": "intent_imperative_love",
+    "keyphrases": ["ti voglio bene", "sei il mio amore", "ti amo"]
+  },
+  {
+    "name": "intent_knowledge_promptquestion",
+    "keyphrases": ["domanda", "ho una domanda"]
+  },
+  {
+    "name": "intent_clock_checktimer",
+    "keyphrases": ["controlla il cronometro", "controlla il timer", "quanto manca al timer", "quanto manca"]
+  },
+  {
+    "name": "intent_global_stop_extend",
+    "keyphrases": ["ferma il cronometro", "ferma il timer", "stoppa il timer"]
+  },
+  {
+    "name": "intent_clock_settimer_extend",
+    "keyphrases": ["avvia il cronometro", "fai partire il cronometro", "cronometra", "imposta un timer di", "metti un timer di"]
+  },
+  {
+    "name": "intent_clock_time",
+    "keyphrases": ["che ora è", "che ore sono", "qual è l'ora", "che ora fai"]
+  },
+  {
+    "name": "intent_imperative_quiet",
+    "keyphrases": ["basta", "fermo", "stai buono", "stai calmo"]
+  },
+  {
+    "name": "intent_imperative_dance",
+    "keyphrases": ["balla", "fai un balletto", "danza", "ascolta la musica", "palla", "galla", "musica", "ascolta", "senti"]
+  },
+  {
+    "name": "intent_play_pickupcube",
+    "keyphrases": ["raccogli"]
+  },
+  {
+    "name": "intent_imperative_fetchcube",
+    "keyphrases": ["prendi il cubo", "prendi il tuo cubo", "raccogli il cubo", "rendi il cubo", "rendi incubo"]
+  },
+  {
+    "name": "intent_imperative_findcube",
+    "keyphrases": ["trova il cubo", "trova il tuo cubo", "cerca il cubo"]
+  },
+  {
+    "name": "intent_play_anytrick",
+    "keyphrases": ["fai qualcosa di figo", "stupiscimi", "impressionami", "inventa qualcosa", "gioca col cubo", "gioca"]
+  },
+  {
+    "name": "intent_message_recordmessage_extend",
+    "keyphrases": ["registra"]
+  },
+  {
+    "name": "intent_message_playmessage_extend",
+    "keyphrases": ["riproduci il messaggio", "leggi il messaggio"]
+  },
+  {
+    "name": "intent_blackjack_hit",
+    "keyphrases": ["hit", "carta"]
+  },
+  {
+    "name": "intent_blackjack_stand",
+    "keyphrases": ["stand", "sto bene"]
+  },
+  {
+    "name": "intent_play_keepaway",
+    "keyphrases": ["stai lontano", "via", "allontanati", "indietro", "avvia keepaway", "tira il cubo", "chi è più veloce"]
+  }
 ]
