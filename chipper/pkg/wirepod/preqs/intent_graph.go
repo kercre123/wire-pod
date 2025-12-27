@@ -65,7 +65,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 				if len([]rune(transcribedText)) >= 8 {
 					logger.Println("No intent matched, forwarding to Houndify for device " + req.Device + "...")
 					InitKnowledge() // Errors without this for whatever reason even though I think it should be inited already
-					apiResponse := getCachedOrFetch(transcribedText, req.Device, req.Session)
+					apiResponse := houndifyTextRequest(transcribedText, req.Device, req.Session)
 					if apiResponse != "" && !strings.Contains(apiResponse, "not enabled") && !strings.Contains(apiResponse, "Knowledge graph is not enabled") && !strings.Contains(apiResponse, "Didn't get that!") {
 						ttr.KnowledgeGraphResponseIG(req, apiResponse, transcribedText)
 						logger.Println("Bot " + speechReq.Device + " request served via Houndify.")
