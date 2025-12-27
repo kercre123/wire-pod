@@ -260,6 +260,7 @@ function checkKG() {
   if (provider) {
     if (provider === "houndify") {
       getE("houndifyInput").style.display = "block";
+      getE("intentGraphInput").style.display = "block";
     } else if (provider === "openai") {
       getE("intentGraphInput").style.display = "block";
       getE("openAIInput").style.display = "block";
@@ -323,6 +324,7 @@ function sendKGAPIKey() {
   } else if (provider === "houndify") {
     data.key = getE("houndKey").value;
     data.id = getE("houndID").value;
+    data.intentgraph = getE("intentyes").checked
   } else {
     data.enable = false;
   }
@@ -382,6 +384,7 @@ function updateKGAPI() {
       } else if (data.provider === "houndify") {
         getE("houndKey").value = data.key;
         getE("houndID").value = data.id;
+        getE("intentyes").checked = data.intentgraph
       }
       checkKG();
     });

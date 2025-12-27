@@ -314,3 +314,24 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 	}
 	return successMatched
 }
+
+func KnowledgeGraphResponseIG(req *vtt.IntentGraphRequest, spokenText string, queryText string) error {
+	intentResult := pb.IntentResult{
+		QueryText: queryText,
+		Action:    "intent_knowledge_response",
+	}
+
+	intentGraphSend := pb.IntentGraphResponse{
+		ResponseType: pb.IntentGraphMode_KNOWLEDGE_GRAPH,
+		IsFinal:      true,
+		IntentResult: &intentResult,
+		SpokenText:   spokenText,
+		QueryText:    queryText,
+		CommandType:  pb.RobotMode_VOICE_COMMAND.String(),
+	}
+	
+	if err := req.Stream.Send(&intentGraphSend); err != nil {
+		return err
+	}
+	return nil
+}
