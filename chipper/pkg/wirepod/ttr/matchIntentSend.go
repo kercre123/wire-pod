@@ -318,7 +318,7 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 func KnowledgeGraphResponseIG(req *vtt.IntentGraphRequest, spokenText string, queryText string) error {
 	intentResult := pb.IntentResult{
 		QueryText: queryText,
-		Action:    "intent_knowledge_response",
+		Action:    "intent_knowledge_response_extend_bypass",
 	}
 
 	intentGraphSend := pb.IntentGraphResponse{
