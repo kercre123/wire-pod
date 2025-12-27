@@ -127,13 +127,14 @@ func customIntentHandler(req interface{}, voiceText string, botSerial string) bo
 
 					var args []string
 					for _, arg := range c.ExecArgs {
-						if arg == "!botSerial" {
+						switch arg {
+						case "!botSerial":
 							arg = botSerial
-						} else if arg == "!speechText" {
+						case "!speechText":
 							arg = "\"" + voiceText + "\""
-						} else if arg == "!intentName" {
+						case "!intentName":
 							arg = c.Name
-						} else if arg == "!locale" {
+						case "!locale":
 							arg = vars.APIConfig.STT.Language
 						}
 						args = append(args, arg)
