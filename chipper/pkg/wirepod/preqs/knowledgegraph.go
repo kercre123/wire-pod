@@ -3,6 +3,7 @@ package processreqs
 import (
 	"encoding/json"
 	"strings"
+	"regexp"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -117,4 +118,43 @@ func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.Kno
 	}
 	return nil, nil
 
+}
+
+func cleanHoundifyResponse(response string) string {
+	// This should remove the "Redirected from" text
+	re := regexp.MustCompile(`^Redirected from [^.]+\.\s*`)
+	cleaned := re.ReplaceAllString(response, "")
+	return cleaned
+}
+
+func houndifyTextRequest(queryText string, device string, session string) string {
+	if !vars.APIConfig.Knowledge.Enable || vars.APIConfig.Knowledge.Provider != "houndify" {
+		return "Houndify is not enabled."
+	}
+	
+	logger.Println("Sending text request to Houndify...")
+	
+	req := houndify.TextRequest{
+		Query:     queryText,
+		UserID:    device,
+		RequestID: session,
+	}
+	
+	serverResponse, err := HKGclient.TextSearch(req)
+	if err != nil {
+		logger.Println("Error sending text request to Houndify:", err)
+		return ""
+	}
+	
+	apiResponse, err := ParseSpokenResponse(serverResponse)
+	if err != nil {
+		logger.Println("Error parsing Houndify response:", err)
+		logger.Println("Raw response:", serverResponse)
+		return ""
+	}
+
+	apiResponse = cleanHoundifyResponse(apiResponse)
+	
+	logger.Println("Houndify response:", apiResponse)
+	return apiResponse
 }
