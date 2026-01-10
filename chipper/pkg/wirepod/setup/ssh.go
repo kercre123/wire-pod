@@ -84,18 +84,20 @@ func SetupBotViaSSH(ip string, key []byte) error {
 			return doErr(fmt.Errorf("the remote device is not a vector"), "checking if vector")
 		}
 		SetupSSHStatus = "Checking if Vector is running CFW..."
-		output, err = runCmd(client, "cat /build.prop")
-		if err != nil {
-			return doErr(err, "checking if cfw")
-		}
 		// outputWired, _ := runCmd(client, "cat /etc/wired/webroot/index.html")
 		var doCloud bool = true
 		var initCommand string = "mount -o rw,remount / && mount -o rw,remount,exec /data && systemctl stop anki-robot.target mm-anki-camera mm-qcamera-daemon"
-		if strings.Contains(output, "wire_os") {
-			//|| strings.Contains(outputWired, "revertDefaultWakeWord") {
-			initCommand = "mount -o rw,remount,exec /data && systemctl stop anki-robot.target mm-anki-camera mm-qcamera-daemon"
-			// my cfw already has a wire-pod compatible vic-cloud
-			doCloud = false
+		output, err = runCmd(client, "head -n1 /anki/bin/vic-gateway")
+		if err != nil {
+			if err.Error() == "Process exited with status 1" {
+				logger.Println("SSH setup: modern CFW detected, not copying vic-cloud")
+				//|| strings.Contains(outputWired, "revertDefaultWakeWord") {
+				initCommand = "mount -o rw,remount,exec /data && systemctl stop anki-robot.target mm-anki-camera mm-qcamera-daemon"
+				// my cfw already has a wire-pod compatible vic-cloud
+				doCloud = false
+			} else {
+				return doErr(err, "checking if cfw")
+			}
 		}
 		SetupSSHStatus = "Running initial commands before transfers (screen will go blank, this is normal)..."
 		_, err = runCmd(client, initCommand)
