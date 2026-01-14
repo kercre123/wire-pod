@@ -52,7 +52,7 @@ func LoadPlugins() {
 				if _, ok := a.(func(string, string, string, string) (string, string)); ok {
 					logger.Println("Action func in plugin " + file.Name() + " is OK")
 				} else {
-					logger.Println("Error: Action func in plugin " + file.Name() + " is not of type func(string, string) string")
+					logger.Println("Error: Action func in plugin " + file.Name() + " is not of type func(string, string, string, string) (string, string)")
 					continue
 				}
 			}
