@@ -548,6 +548,8 @@ function setupSystemd() {
     source ./chipper/source.sh
     echo "[Unit]" >wire-pod.service
     echo "Description=Wire Escape Pod (coqui)" >>wire-pod.service
+    echo "Wants=network.target" >>wire-pod.service
+    echo "After=network.target" >>wire-pod.service
     echo "StartLimitIntervalSec=500" >>wire-pod.service
     echo "StartLimitBurst=5" >>wire-pod.service
     echo >>wire-pod.service
