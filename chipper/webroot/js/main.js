@@ -250,6 +250,7 @@ function checkKG() {
     "customAIInput",
     "intentGraphInput",
     "openAIInput",
+    "geminiInput",
     "saveChatInput",
     "llmCommandInput",
     "openAIVoiceForEnglishInput",
@@ -267,6 +268,11 @@ function checkKG() {
       getE("saveChatInput").style.display = "block";
       getE("llmCommandInput").style.display = "block";
       getE("openAIVoiceForEnglishInput").style.display = "block";
+    } else if (provider === "gemini") {
+      getE("intentGraphInput").style.display = "block";
+      getE("geminiInput").style.display = "block";
+      getE("saveChatInput").style.display = "block";
+      getE("llmCommandInput").style.display = "block";
     } else if (provider === "together") {
       getE("intentGraphInput").style.display = "block";
       getE("togetherInput").style.display = "block";
@@ -306,6 +312,13 @@ function sendKGAPIKey() {
     data.commands_enable = getE("commandYes").checked
     data.openai_voice = getE("openaiVoice").value
     data.openai_voice_with_english = getE("voiceEnglishYes").checked
+  } else if (provider === "gemini") {
+    data.key = getE("geminiKey").value;
+    data.openai_prompt = getE("geminiPrompt").value;
+    data.model = getE("geminiModel").value;
+    data.intentgraph = getE("intentyes").checked;
+    data.save_chat = getE("saveChatYes").checked;
+    data.commands_enable = getE("commandYes").checked;
   } else if (provider === "custom") {
     data.key = getE("customKey").value;
     data.model = getE("customModel").value;
@@ -366,6 +379,13 @@ function updateKGAPI() {
         getE("intentyes").checked = data.intentgraph
         getE("saveChatYes").checked = data.save_chat
         getE("voiceEnglishYes").checked = data.openai_voice_with_english
+      } else if (data.provider === "gemini") {
+        getE("geminiKey").value = data.key;
+        getE("geminiPrompt").value = data.openai_prompt;
+        getE("geminiModel").value = data.model;
+        getE("commandYes").checked = data.commands_enable
+        getE("intentyes").checked = data.intentgraph
+        getE("saveChatYes").checked = data.save_chat
       } else if (data.provider === "together") {
         getE("togetherKey").value = data.key;
         getE("togetherModel").value = data.model;

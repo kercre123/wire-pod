@@ -286,22 +286,28 @@ func DoPlaySound(sound string, robot *vector.Vector) error {
 }
 
 func DoSayText(input string, robot *vector.Vector) error {
-
 	// just before vector speaks
-	removeSpecialCharacters(input)
+	cleanInput := removeSpecialCharacters(input)
 
 	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || vars.APIConfig.Knowledge.OpenAIVoiceWithEnglish {
-		err := DoSayText_OpenAI(robot, input)
+		err := DoSayText_OpenAI(robot, cleanInput)
 		return err
 	}
-	robot.Conn.SayText(
-		context.Background(),
+	// Use context with timeout to prevent hanging
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	_, err := robot.Conn.SayText(
+		ctx,
 		&vectorpb.SayTextRequest{
-			Text:           input,
+			Text:           cleanInput,
 			UseVectorVoice: true,
 			DurationScalar: 0.95,
 		},
 	)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -483,7 +489,7 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		c = openai.NewClientWithConfig(conf)
 	}
 	ctx := context.Background()
-	speakReady := make(chan string)
+	speakReady := make(chan string, 10) // Buffered channel to prevent blocking
 
 	aireq := openai.ChatCompletionRequest{
 		MaxTokens:        2048,
@@ -591,18 +597,17 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		if stopImaging {
 			return
 		}
-		respSlice := fullRespSlice
-		if len(respSlice)-1 < numInResp {
-			if !isDone {
-				logger.Println("Waiting for more content from LLM...")
-				for range speakReady {
-					respSlice = fullRespSlice
+					respSlice := fullRespSlice
+			if len(respSlice)-1 < numInResp {
+				if !isDone {
+					for range speakReady {
+						respSlice = fullRespSlice
+						break
+					}
+				} else {
 					break
 				}
-			} else {
-				break
 			}
-		}
 		logger.Println(respSlice[numInResp])
 		acts := GetActionsFromString(respSlice[numInResp])
 		PerformActions(msgs, acts, robot, stopStop)
@@ -670,7 +675,6 @@ func StartAnim_Queue(esn string) {
 		if q.ESN == esn {
 			if q.AnimCurrentlyPlaying {
 				for range AnimationQueues[i].AnimDone {
-					logger.Println("(waiting for animation to be done...)")
 					break
 				}
 			} else {
