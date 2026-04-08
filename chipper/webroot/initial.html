@@ -41,6 +41,9 @@
               IP Address (recommended for OSKR/dev-unlocked robots)
             </option>
           </select>
+          <div id="androidEpWarning" style="display:none;color:#e67e22;margin-top:8px;">
+            Android cannot resolve <strong>escapepod.local</strong> via mDNS. If you are activating Vector from an Android device or using the wire-pod Android APK, select <strong>IP Address</strong> mode instead.
+          </div>
           <div class="center" id="portViz" style="display: none">
             <label for="portInput">Input custom port here (default is 443)</label>
             <input type="text" id="portInput" name="portInput" placeholder="443" />
@@ -90,6 +93,7 @@
 <!-- <script src="./sdkapp/js/main.js"></script> -->
 <script>
   checkLanguage();
+  checkConn();
 </script>
 
 </html>

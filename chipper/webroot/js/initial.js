@@ -72,9 +72,17 @@ function sendSetupInfo() {
     });
 }
 
+function isMobile() {
+  return /android/i.test(navigator.userAgent);
+}
+
 function checkConn() {
   const connValue = document.getElementById("connSelection").value;
   document.getElementById("portViz").style.display = connValue === "ip" ? "block" : "none";
+  const warn = document.getElementById("androidEpWarning");
+  if (warn) {
+    warn.style.display = (connValue === "ep" && isMobile()) ? "block" : "none";
+  }
 }
 
 function setConn() {
