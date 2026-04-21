@@ -4,7 +4,11 @@ services:
     build: .
     network_mode: host # b/c mDNS escapepod.local broadcast... why use mDNS? people hosting a custom vector "server" are clearly capable of setting up a DNS record...
     platform: linux/arm64
-    image: ghcr.io/kercre123/wire-pod:main
+    # image: ghcr.io/kercre123/wire-pod:main
+    image: ghcr_io_kercre123__wire-pod_last_known_working_main_23months_ago
+    # docker image tag 9756be63cb9b ghcr_io_kercre123__wire-pod_last_known_working_main_23months_ago
+    #    I had pulled a newer main image and it didn't work (git repo error)... so I still had old image and tagged it and switched back to it
+    #    FYI tried updating to see if I can configure openai endpoint for completions... cuz that setting isn't in UX currently... for knowledge graph
     restart: unless-stopped
     ports:
       - 443:443
