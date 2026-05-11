@@ -428,6 +428,90 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprint(w, "error: must start event stream")
 		return
+	case r.URL.Path == "/api-sdk/begin_cliff_stream":
+		// subscribe to robot_state events; the cliff-detected flag lives in
+		// RobotState.Status as bit 16384 (ROBOT_STATUS_CLIFF_DETECTED).
+		// the DDL gRPC interface does not expose raw 16-bit cliff sensor
+		// values, so only the aggregate detected bool is available.
+		if robots[robotIndex].CliffStreaming {
+			fmt.Fprint(w, "done")
+			return
+		}
+		robots[robotIndex].CliffStreaming = true
+		go func() {
+			client, err := robot.Conn.EventStream(
+				ctx,
+				&vectorpb.EventRequest{
+					ListType: &vectorpb.EventRequest_WhiteList{
+						WhiteList: &vectorpb.FilterList{
+							List: []string{"robot_state"},
+						},
+					},
+					ConnectionId: "wirepod-cliff",
+				},
+			)
+			if err != nil {
+				logger.Println("begin_cliff_stream: " + err.Error())
+				robots[robotIndex].CliffStreaming = false
+				return
+			}
+			for {
+				if !robots[robotIndex].CliffStreaming {
+					return
+				}
+				resp, err := client.Recv()
+				if err != nil {
+					logger.Println("cliff stream recv: " + err.Error())
+					robots[robotIndex].CliffStreaming = false
+					return
+				}
+				rs := resp.Event.GetRobotState()
+				if rs == nil {
+					continue
+				}
+				status := rs.GetStatus()
+				robots[robotIndex].CliffStatus = status
+				robots[robotIndex].CliffDetected = (status & uint32(vectorpb.RobotStatus_ROBOT_STATUS_CLIFF_DETECTED)) != 0
+				robots[robotIndex].CliffStampMs = time.Now().UnixMilli()
+			}
+		}()
+		fmt.Fprint(w, "done")
+		return
+	case r.URL.Path == "/api-sdk/stop_cliff_stream":
+		robots[robotIndex].CliffStreaming = false
+		robots[robotIndex].CliffStatus = 0
+		robots[robotIndex].CliffDetected = false
+		fmt.Fprint(w, "done")
+		return
+	case r.URL.Path == "/api-sdk/get_cliff_status":
+		if !robots[robotIndex].CliffStreaming {
+			fmt.Fprint(w, "error: must start cliff stream")
+			return
+		}
+		// DDL's external gRPC interface only exposes a single aggregate
+		// CLIFF_DETECTED bit on RobotState.Status; raw per-sensor values
+		// are not available. The sensors/detected arrays are length 4 to
+		// match the physical hardware layout (FL, FR, BL, BR) but every
+		// element mirrors the aggregate bit until the firmware/SDK is
+		// extended to expose per-sensor data.
+		detected := robots[robotIndex].CliffDetected
+		resp := struct {
+			Sensors     [4]uint32 `json:"sensors"`
+			Detected    [4]bool   `json:"detected"`
+			AnyDetected bool      `json:"any_detected"`
+			Status      uint32    `json:"status"`
+			StampMs     int64     `json:"stamp_ms"`
+		}{
+			Sensors:     [4]uint32{0, 0, 0, 0},
+			Detected:    [4]bool{detected, detected, detected, detected},
+			AnyDetected: detected,
+			Status:      robots[robotIndex].CliffStatus,
+			StampMs:     robots[robotIndex].CliffStampMs,
+		}
+		writeBytes, _ := json.Marshal(resp)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(writeBytes)
+		return
 	case r.URL.Path == "/api-sdk/begin_cam_stream":
 		//robots[robotIndex].CamStreaming = true
 		fmt.Fprint(w, "done")

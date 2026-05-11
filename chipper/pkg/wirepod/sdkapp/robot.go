@@ -29,6 +29,10 @@ type Robot struct {
 	EventStreamClient vectorpb.ExternalInterface_EventStreamClient
 	EventsStreaming   bool
 	StimState         float32
+	CliffStreaming    bool
+	CliffStatus       uint32
+	CliffDetected     bool
+	CliffStampMs      int64
 	ConnTimer         int32
 	Ctx               context.Context
 }
@@ -172,6 +176,7 @@ func removeRobot(serial, source string) {
 			}
 			robots[ind].CamStreaming = false
 			robots[ind].EventsStreaming = false
+			robots[ind].CliffStreaming = false
 			robots[ind].BcAssumption = false
 			// give time for all of that to stop
 			time.Sleep(time.Second * 3)
