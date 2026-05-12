@@ -14,6 +14,7 @@ import (
 	"github.com/digital-dream-labs/hugh/log"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/mdnshandler"
+	"github.com/kercre123/wire-pod/chipper/pkg/productivity"
 	chipperserver "github.com/kercre123/wire-pod/chipper/pkg/servers/chipper"
 	jdocsserver "github.com/kercre123/wire-pod/chipper/pkg/servers/jdocs"
 	tokenserver "github.com/kercre123/wire-pod/chipper/pkg/servers/token"
@@ -112,6 +113,7 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 		vars.APIConfig.PastInitialSetup = false
 	} else {
 		go StartChipper()
+		go productivity.StartScheduler()
 	}
 	// main thread is configuration ws
 	wpweb.StartWebServer()

@@ -33,6 +33,10 @@
               name="icon"></i><br />Knowledge Graph</a>
         </div>
         <div class="main-nav-child">
+          <a href="#" onclick="showProductivity(); return false;"><i class="fa-solid fa-calendar-days" id="icon-Productivity"
+              name="icon"></i><br />Productivity</a>
+        </div>
+        <div class="main-nav-child">
           <a href="#" onclick="showLanguage(); return false;"><i class="fa-solid fa-language" id="icon-Language"
               name="icon"></i><br />Set Language</a>
         </div>
@@ -192,6 +196,61 @@
         <hr />
       </div>
 
+      <div id="section-productivity" style="display: none">
+        <h3>Productivity API Setup</h3>
+        
+        <div class="prod-layout">
+            <div class="prod-left">
+                <p>Configure external task management.</p>
+                <form id="productivityAPIAddForm" enctype="multipart/form-data">
+                    <label for="targetBot">Target Robot:</label>
+                    <select name="targetBot" class="prod-select" id="targetBot" form="productivityAPIAddForm">
+                    <option value="" selected>None (First Available)</option>
+                    </select><br />
+                    <small class="desc" style="display:block; margin-bottom:20px;">Select the robot that will perform the reminders.</small>
+
+                    <div style="margin-bottom: 15px;">
+                        <input type="checkbox" id="todoistEnable" onchange="checkProductivity()">
+                        <label class="checkbox-label" for="todoistEnable">Use Todoist API</label>
+                    </div>
+
+                    <span id="productivityKeySpan" style="display: none">
+                        <label id="prodKeyLabel" for="prodApiKey">Todoist API Token:</label><br />
+                        <textarea class="tinput" name="prodApiKey" id="prodApiKey" placeholder="Enter your Todoist API token..." style="height: 80px; width: 100%; font-family: monospace; box-sizing: border-box;"></textarea><br />
+                    </span>
+                </form>
+            </div>
+            
+            <div class="prod-right">
+                <button onclick="sendProductivityAPIKey()" class="btn-outline-green">
+                    Apply Productivity Settings
+                </button>
+                <div id="addProductivityProviderAPIStatus" style="margin-top:10px; font-size:0.9em; min-height: 20px;"></div>
+            </div>
+        </div>
+
+        <hr class="small-hr" style="width: 100px; border-color: #333;">
+
+        <div id="manualInputSection" style="text-align: left; margin-top: 20px;">
+           <div class="manual-header">
+               <div>
+                  <input type="checkbox" id="enableManualReminders" onchange="toggleManualReminders()">
+                  <label class="checkbox-label" for="enableManualReminders">Enable Native Reminders</label>
+               </div>
+               
+               <button id="manualAddBtn" type="button" onclick="addReminderBlock()" class="btn-solid-green" style="display:none;">
+                   + Add Reminder
+               </button>
+           </div>
+           
+           <div id="manualRemindersWrapper" style="display: none;">
+              <div id="manualRemindersContainer">
+              </div>
+           </div>
+        </div>
+        <hr />
+      </div>
+
       <div id="section-restart" style="display: none">
         <h3>Restart Wire-Pod</h3>
         <div>
@@ -250,6 +309,7 @@
 <script>
   updateWeatherAPI();
   updateKGAPI();
+  updateProductivityAPI();
 </script>
 
 </html>

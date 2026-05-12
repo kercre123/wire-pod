@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/productivity"
 	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/localization"
@@ -21,6 +22,8 @@ import (
 )
 
 var SttInitFunc func() error
+
+var ProductivityImgPath = "./productivity-images"
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -65,6 +68,12 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetVersionInfo(w)
 	case "generate_certs":
 		handleGenerateCerts(w)
+	case "set_productivity_api":
+		handleSetProductivityAPI(w, r)
+	case "get_productivity_api":
+		handleGetProductivityAPI(w)
+	case "test_productivity_reminder":
+		handleTestProductivityReminder(w, r)
 	case "is_api_v3":
 		fmt.Fprintf(w, "it is!")
 	default:
@@ -200,6 +209,135 @@ func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
 func handleGetWeatherAPI(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(vars.APIConfig.Weather)
+}
+
+func handleSetProductivityAPI(w http.ResponseWriter, r *http.Request) {
+	// 10MB limit for image uploads
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Error parsing form data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	provider := r.FormValue("provider")
+	key := r.FormValue("key")
+	urlVal := r.FormValue("url")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	targetRobot := r.FormValue("target_robot")
+	manualConfig := r.FormValue("manual_config")
+
+	vars.APIConfig.Productivity.Enable = (provider != "" && provider != "None")
+	vars.APIConfig.Productivity.Provider = provider
+	vars.APIConfig.Productivity.Key = strings.TrimSpace(key)
+	vars.APIConfig.Productivity.Url = strings.TrimSpace(urlVal)
+	vars.APIConfig.Productivity.Username = strings.TrimSpace(username)
+	vars.APIConfig.Productivity.Password = strings.TrimSpace(password)
+	vars.APIConfig.Productivity.TargetRobot = strings.TrimSpace(targetRobot)
+	vars.APIConfig.Productivity.ManualConfig = manualConfig
+
+	files := r.MultipartForm.File["files"]
+	if len(files) > 0 {
+		if _, err := os.Stat(ProductivityImgPath); os.IsNotExist(err) {
+			os.MkdirAll(ProductivityImgPath, 0755)
+		}
+
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				logger.Println("Error opening uploaded file:", err)
+				continue
+			}
+			defer file.Close()
+
+			filename := filepath.Base(fileHeader.Filename)
+			dstPath := filepath.Join(ProductivityImgPath, filename)
+
+			dst, err := os.Create(dstPath)
+			if err != nil {
+				logger.Println("Error creating destination file:", err)
+				continue
+			}
+			defer dst.Close()
+
+			if _, err := io.Copy(dst, file); err != nil {
+				logger.Println("Error saving file:", err)
+			}
+		}
+	}
+
+	vars.WriteConfigToDisk()
+	fmt.Fprint(w, "Productivity settings applied.")
+}
+
+func handleGetProductivityAPI(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(vars.APIConfig.Productivity)
+}
+
+func handleTestProductivityReminder(w http.ResponseWriter, r *http.Request) {
+	logger.Println("Received request for /api/test_productivity_reminder")
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		logger.Println("Error parsing test form data: " + err.Error())
+		http.Error(w, "Error parsing form data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	targetRobot := r.FormValue("target_robot")
+	if targetRobot == "" {
+		http.Error(w, "Target robot is required", http.StatusBadRequest)
+		return
+	}
+
+	configStr := r.FormValue("reminder_config")
+	var reminder productivity.ManualReminder
+	if err := json.Unmarshal([]byte(configStr), &reminder); err != nil {
+		logger.Println("Error parsing reminder JSON: " + err.Error())
+		http.Error(w, "Invalid reminder config", http.StatusBadRequest)
+		return
+	}
+
+	files := r.MultipartForm.File["files"]
+	if len(files) > 0 {
+		logger.Println("Test Request contains image file(s)")
+		if _, err := os.Stat(ProductivityImgPath); os.IsNotExist(err) {
+			os.MkdirAll(ProductivityImgPath, 0755)
+		}
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				logger.Println("Error opening test image: " + err.Error())
+				continue
+			}
+			defer file.Close()
+			filename := filepath.Base(fileHeader.Filename)
+			dstPath := filepath.Join(ProductivityImgPath, filename)
+			dst, err := os.Create(dstPath)
+			if err != nil {
+				logger.Println("Error creating test image file: " + err.Error())
+				continue
+			}
+			defer dst.Close()
+			io.Copy(dst, file)
+			logger.Println("Saved test image: " + dstPath)
+		}
+	} else if reminder.Image != "" {
+		logger.Println("Test Request uses existing image: " + reminder.Image)
+	}
+
+	task := productivity.Task{
+		ID:                  reminder.ID,
+		RobotESN:            targetRobot,
+		Phrases:             reminder.Phrases,
+		Image:               reminder.Image,
+		Source:              "test",
+		RequireConfirmation: reminder.RequireConfirmation,
+		SnoozeMinutes:       reminder.SnoozeMinutes,
+	}
+
+	productivity.InjectTestTask(task)
+	fmt.Fprint(w, "Test reminder queued.")
 }
 
 func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
@@ -399,6 +537,8 @@ func StartWebServer() {
 	botsetup.RegisterBLEAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
+	http.Handle("/api/productivity-images/", http.StripPrefix("/api/productivity-images/", http.FileServer(http.Dir(ProductivityImgPath))))
+
 	var webRoot http.Handler
 	if runtime.GOOS == "darwin" && vars.Packaged {
 		appPath, _ := os.Executable()
