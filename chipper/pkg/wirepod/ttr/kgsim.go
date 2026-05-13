@@ -19,6 +19,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/sashabaranov/go-openai"
+	"google.golang.org/genai"
 )
 
 func GetChat(esn string) vars.RememberedChat {
@@ -134,40 +135,86 @@ func removeEmojis(input string) string {
 	return result
 }
 
-func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.ChatCompletionRequest {
+// Common function to build chat context (system prompt + chat history)
+func buildChatContext(esn string, isKG bool) (string, []openai.ChatCompletionMessage) {
 	defaultPrompt := "You are a helpful, animated robot called Vector. Keep the response concise yet informative."
 
-	var nChat []openai.ChatCompletionMessage
-
-	smsg := openai.ChatCompletionMessage{
-		Role: openai.ChatMessageRoleSystem,
-	}
+	var systemPrompt string
 	if strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt) != "" {
-		smsg.Content = strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt)
+		systemPrompt = strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt)
 	} else {
-		smsg.Content = defaultPrompt
+		systemPrompt = defaultPrompt
 	}
 
-	var model string
-
-	if gpt3tryagain {
-		model = openai.GPT3Dot5Turbo
-	} else if vars.APIConfig.Knowledge.Provider == "openai" {
-		model = openai.GPT4oMini
-		logger.Println("Using " + model)
-	} else {
-		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
-		model = vars.APIConfig.Knowledge.Model
-	}
-
-	smsg.Content = CreatePrompt(smsg.Content, model, isKG)
-
-	nChat = append(nChat, smsg)
+	var chatHistory []openai.ChatCompletionMessage
 	if vars.APIConfig.Knowledge.SaveChat {
 		rchat := GetChat(esn)
-		logger.Println("Using remembered chats, length of " + fmt.Sprint(len(rchat.Chats)) + " messages")
-		nChat = append(nChat, rchat.Chats...)
+		if len(rchat.Chats) > 0 {
+			logger.Println("Using remembered chats, length of " + fmt.Sprint(len(rchat.Chats)) + " messages")
+			chatHistory = rchat.Chats
+		}
 	}
+
+	return systemPrompt, chatHistory
+}
+
+// Get the appropriate model for the provider
+func getModelForProvider(gpt3tryagain bool) string {
+	if gpt3tryagain {
+		return openai.GPT3Dot5Turbo
+	} else if vars.APIConfig.Knowledge.Provider == "openai" {
+		model := openai.GPT4oMini
+		logger.Println("Using " + model)
+		return model
+	} else {
+		if vars.APIConfig.Knowledge.Model == "" {
+			if vars.APIConfig.Knowledge.Provider == "gemini" {
+				return "gemini-2.0-flash"
+			} else if vars.APIConfig.Knowledge.Provider == "together" {
+				return "meta-llama/Llama-3-70b-chat-hf"
+			}
+		}
+		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
+		return vars.APIConfig.Knowledge.Model
+	}
+}
+
+// Create Gemini prompt string from chat context
+func createGeminiPrompt(transcribedText, esn string, isKG bool) string {
+	systemPrompt, chatHistory := buildChatContext(esn, isKG)
+	model := getModelForProvider(false)
+	systemPrompt = CreatePrompt(systemPrompt, model, isKG)
+
+	prompt := systemPrompt + "\n\nUser: " + transcribedText
+
+	// Add chat history if available
+	if len(chatHistory) > 0 {
+		conversationHistory := ""
+		for _, msg := range chatHistory {
+			if msg.Role == openai.ChatMessageRoleUser {
+				conversationHistory += "User: " + msg.Content + "\n"
+			} else if msg.Role == openai.ChatMessageRoleAssistant {
+				conversationHistory += "Assistant: " + msg.Content + "\n"
+			}
+		}
+		prompt = systemPrompt + "\n\nConversation history:\n" + conversationHistory + "\nUser: " + transcribedText
+	}
+
+	return prompt
+}
+
+func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.ChatCompletionRequest {
+	systemPrompt, chatHistory := buildChatContext(esn, isKG)
+	model := getModelForProvider(gpt3tryagain)
+
+	smsg := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleSystem,
+		Content: CreatePrompt(systemPrompt, model, isKG),
+	}
+
+	var nChat []openai.ChatCompletionMessage
+	nChat = append(nChat, smsg)
+	nChat = append(nChat, chatHistory...)
 	nChat = append(nChat, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
 		Content: transcribedText,
@@ -254,9 +301,17 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		c = openai.NewClientWithConfig(conf)
 	case "openai":
 		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
+	} else if vars.APIConfig.Knowledge.Provider == "gemini" {
+		// Gemini uses a different approach - will be handled separately below
+		c = nil
 	}
-	speakReady := make(chan string)
+	speakReady := make(chan string, 10) // Buffered channel to prevent blocking
 	successIntent := make(chan bool)
+
+	// Handle Gemini separately due to different API structure (after KG setup)
+	if vars.APIConfig.Knowledge.Provider == "gemini" {
+		return streamingGeminiKG(ctx, robot, transcribedText, esn, isKG, start, stop, &kgStopLooping, kgReadyToAnswer, speakReady, successIntent, fullRespSlice, fullRespText, fullfullRespText, isDone, req, stopStop)
+	}
 
 	aireq := CreateAIReq(transcribedText, esn, false, isKG)
 
@@ -644,4 +699,289 @@ func KGSim(esn string, textToSay string) error {
 		}
 	}()
 	return nil
+}
+
+// streamingGeminiKG handles streaming responses from Gemini API
+func streamingGeminiKG(ctx context.Context, robot *vector.Vector, transcribedText, esn string, isKG bool, start, stop chan bool, kgStopLooping *bool, kgReadyToAnswer chan bool, speakReady chan string, successIntent chan bool, fullRespSlice []string, fullRespText, fullfullRespText string, isDone bool, req interface{}, stopStop chan bool) (string, error) {
+	// Initialize variables for TTS animations
+	var TTSLoopAnimation string
+	var TTSGetinAnimation string
+	if isKG {
+		TTSLoopAnimation = "anim_knowledgegraph_answer_01"
+		TTSGetinAnimation = "anim_knowledgegraph_searching_getout_01"
+	} else {
+		TTSLoopAnimation = "anim_tts_loop_02"
+		TTSGetinAnimation = "anim_getin_tts_01"
+	}
+
+	var stopTTSLoop bool
+	TTSLoopStopped := make(chan bool)
+	interrupted := false
+
+	// Initialize Gemini client
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey:  vars.APIConfig.Knowledge.Key,
+		Backend: genai.BackendGeminiAPI,
+	})
+	if err != nil {
+		if isKG {
+			*kgStopLooping = true
+			for range kgReadyToAnswer {
+				break
+			}
+			stop <- true
+			time.Sleep(time.Second / 3)
+			KGSim(esn, "There was an error connecting to Gemini.")
+		}
+		return "", err
+	}
+
+	// Get model name using shared function
+	model := getModelForProvider(false)
+
+	// Create prompt using shared function
+	prompt := createGeminiPrompt(transcribedText, esn, isKG)
+
+	// Create content for Gemini
+	content := []*genai.Content{{
+		Parts: []*genai.Part{{Text: prompt}},
+	}}
+
+	// Generate streaming response
+	resultIterator := client.Models.GenerateContentStream(ctx, model, content, nil)
+
+	// Use response variables passed as parameters
+
+	fmt.Println("Gemini stream response: ")
+	// Start response streaming goroutine - simplified version
+	go func() {
+		// Add a timeout to ensure we always signal successIntent
+		responseReceived := false
+		go func() {
+			time.Sleep(25 * time.Second) // Slightly less than main timeout
+			if !responseReceived && !isDone {
+				select {
+				case successIntent <- false:
+				default:
+				}
+			}
+		}()
+
+		for response, err := range resultIterator {
+			if err != nil {
+				return
+			}
+
+			// Extract text from response and process like OpenAI
+			if response != nil && len(response.Candidates) > 0 {
+				candidate := response.Candidates[0]
+				if candidate.Content != nil && len(candidate.Content.Parts) > 0 {
+					for _, part := range candidate.Content.Parts {
+						if part.Text != "" {
+							cleanText := removeSpecialCharacters(part.Text)
+							fullfullRespText = fullfullRespText + cleanText
+							fullRespText = fullRespText + cleanText
+							fmt.Print(cleanText)
+
+							// Split on sentence endings like OpenAI implementation
+							if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
+								var sepStr string
+								if strings.Contains(fullRespText, "...") {
+									sepStr = "..."
+								} else if strings.Contains(fullRespText, ".'") {
+									sepStr = ".'"
+								} else if strings.Contains(fullRespText, ".\"") {
+									sepStr = ".\""
+								} else if strings.Contains(fullRespText, ".") {
+									sepStr = "."
+								} else if strings.Contains(fullRespText, "?") {
+									sepStr = "?"
+								} else if strings.Contains(fullRespText, "!") {
+									sepStr = "!"
+								}
+								splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
+								fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
+								fullRespText = splitResp[1]
+								if !responseReceived {
+									responseReceived = true
+									select {
+									case successIntent <- true:
+									default:
+									}
+								}
+								select {
+								case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
+								default:
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Stream finished - handle remaining content
+		isDone = true
+
+		// If we got text but no sentence endings, add it as a chunk
+		if len(fullRespSlice) == 0 && strings.TrimSpace(fullfullRespText) != "" {
+			fullRespSlice = append(fullRespSlice, strings.TrimSpace(fullfullRespText))
+			if !responseReceived {
+				responseReceived = true
+				select {
+				case successIntent <- true:
+				default:
+				}
+			}
+		}
+
+		// prevents a crash if no response
+		if len(fullRespSlice) == 0 {
+			if !responseReceived {
+				select {
+				case successIntent <- false:
+				default:
+				}
+			}
+			return
+		}
+
+		// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
+		newStr := fullRespSlice[0]
+		for i, str := range fullRespSlice {
+			if i == 0 {
+				continue
+			}
+			newStr = newStr + " " + str
+		}
+		if strings.TrimSpace(newStr) != strings.TrimSpace(fullfullRespText) {
+			extraBit := strings.TrimPrefix(fullRespText, newStr)
+			fullRespSlice = append(fullRespSlice, extraBit)
+		}
+		if vars.APIConfig.Knowledge.SaveChat {
+			Remember(openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleUser,
+				Content: transcribedText,
+			}, openai.ChatCompletionMessage{
+				Role:    openai.ChatMessageRoleAssistant,
+				Content: newStr,
+			}, esn)
+		}
+		logger.LogUI("Gemini response for " + esn + ": " + newStr)
+	}()
+
+	// Wait for first response chunk with timeout
+	select {
+	case is := <-successIntent:
+		if is {
+			if !isKG {
+				IntentPass(req, "intent_greeting_hello", transcribedText, map[string]string{}, false)
+			}
+		} else {
+			return "", errors.New("gemini returned no response")
+		}
+	case <-time.After(30 * time.Second):
+		if isKG {
+			*kgStopLooping = true
+			for range kgReadyToAnswer {
+				break
+			}
+			stop <- true
+			time.Sleep(time.Second / 3)
+			KGSim(esn, "There was a timeout getting data from Gemini.")
+		}
+		return "", errors.New("gemini response timeout")
+	}
+	time.Sleep(time.Millisecond * 200)
+	go func() {
+		interrupted = InterruptKGSimWhenTouchedOrWaked(robot, stop, stopStop)
+	}()
+
+	// Handle robot animations and TTS similar to OpenAI implementation
+	for range start {
+		if isKG {
+			*kgStopLooping = true
+			for range kgReadyToAnswer {
+				break
+			}
+		} else {
+			time.Sleep(time.Millisecond * 300)
+		}
+
+		robot.Conn.PlayAnimation(
+			ctx,
+			&vectorpb.PlayAnimationRequest{
+				Animation: &vectorpb.Animation{
+					Name: TTSGetinAnimation,
+				},
+				Loops: 1,
+			},
+		)
+
+		if !vars.APIConfig.Knowledge.CommandsEnable {
+			go func() {
+				for {
+					if stopTTSLoop {
+						TTSLoopStopped <- true
+						break
+					}
+					robot.Conn.PlayAnimation(
+						ctx,
+						&vectorpb.PlayAnimationRequest{
+							Animation: &vectorpb.Animation{
+								Name: TTSLoopAnimation,
+							},
+							Loops: 1,
+						},
+					)
+				}
+			}()
+		}
+
+		var disconnect bool
+		numInResp := 0
+		// Create the persistent nChat array like OpenAI version
+		nChat := []openai.ChatCompletionMessage{{
+			Role: openai.ChatMessageRoleAssistant,
+		}}
+		for {
+			respSlice := fullRespSlice
+			if len(respSlice)-1 < numInResp {
+				if !isDone {
+					for range speakReady {
+						respSlice = fullRespSlice
+						break
+					}
+				} else {
+					break
+				}
+			}
+			if interrupted {
+				break
+			}
+			acts := GetActionsFromString(respSlice[numInResp])
+			// Update the last message content like OpenAI version (uses fullRespText, not fullfullRespText)
+			nChat[len(nChat)-1].Content = fullRespText
+			disconnect = PerformActions(nChat, acts, robot, stopStop)
+			if disconnect {
+				break
+			}
+			numInResp = numInResp + 1
+		}
+
+		if !vars.APIConfig.Knowledge.CommandsEnable {
+			stopTTSLoop = true
+			for range TTSLoopStopped {
+				break
+			}
+		}
+		time.Sleep(time.Millisecond * 100)
+
+		if !interrupted {
+			stopStop <- true
+			stop <- true
+		}
+	}
+
+	return "", nil
 }
