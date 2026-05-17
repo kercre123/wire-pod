@@ -211,8 +211,15 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		if err != nil {
 			return err.Error(), err
 		}
+		// Release the gRPC connection when this request finishes — otherwise
+		// every voice query leaks a connection and the robot's SDK wedges.
+		defer robot.Close()
 	}
-	_, err := robot.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
+	// 5s timeout: if the robot's SDK is unresponsive this fails fast instead
+	// of hanging forever on context.Background().
+	batCtx, batCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	_, err := robot.Conn.BatteryState(batCtx, &vectorpb.BatteryStateRequest{})
+	batCancel()
 	if err != nil {
 		return "", err
 	}
@@ -532,6 +539,8 @@ func KGSim(esn string, textToSay string) error {
 		},
 	}
 	go func() {
+		// Release the robot connection when this speak-goroutine finishes.
+		defer robot.Close()
 		start := make(chan bool)
 		stop := make(chan bool)
 
