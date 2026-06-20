@@ -41,3 +41,7 @@
 /whisper.cpp
 .DS_Store
 /chipper/openaiChats.json
+chipper/source.sh
+chipper/pico.key
+chipper/chipper
+chipper/main
