@@ -72,6 +72,9 @@ const STR_ONE_HOUR_ALT = "str_one_hour_alt"
 const STR_HOUR = "str_hour"
 const STR_MINUTE = "str_minute"
 const STR_SECOND = "str_second"
+const STR_HOUR_PLURAL = "str_hour_plural"
+const STR_MINUTE_PLURAL = "str_minute_plural"
+const STR_SECOND_PLURAL = "str_second_plural"
 
 // for grammer
 var ALL_STR []string = []string{
@@ -217,6 +220,9 @@ STR_ONE_HOUR_ALT:                   {"an hour","un ora","an hour","une heure","a
 STR_HOUR:                           {"hour","ore","hour","heure","hour","hour","hour","hour","hour","hour","hour","hour","시간","ώρα"},
 STR_MINUTE:                         {"minute","minuti","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","분","λεπτό"},
 STR_SECOND:                         {"second","secondi","secondo","seconde","second","seconda","seconda","seconda","seconda","seconda","seconda","seconda","초","δευτερόλεπτο"},
+STR_HOUR_PLURAL:                    {"hour","ore","hour","heure","hour","hour","hour","hour","hour","hour","hour","hour","시간","ώρες"},
+STR_MINUTE_PLURAL:                  {"minute","minuti","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","분","λεπτά"},
+STR_SECOND_PLURAL:                  {"second","secondi","secondo","seconde","second","seconda","seconda","seconda","seconda","seconda","seconda","seconda","초","δευτερόλεπτα"},
 }
 
 func GetText(key string) string {
