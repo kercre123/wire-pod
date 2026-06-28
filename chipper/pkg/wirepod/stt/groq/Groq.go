@@ -42,9 +42,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -79,6 +81,40 @@ type groqResp struct {
 		Type    string `json:"type"`
 		Code    string `json:"code"`
 	} `json:"error"`
+}
+
+// defaultSilenceRMSThreshold is the RMS amplitude below which captured audio is
+// treated as silence/noise and NOT sent for transcription. This prevents Whisper
+// from "hallucinating" common phrases (e.g. "thank you", "bye") on near-silent
+// audio, which happens when the wake word triggers but nothing is actually said.
+//
+// Scale: 16-bit samples (-32768..32767). Silence ~0, ambient noise tens,
+// whispering hundreds, normal speech thousands. Tune via GROQ_STT_SILENCE_RMS.
+const defaultSilenceRMSThreshold = 200.0
+
+func silenceThreshold() float64 {
+	if v := strings.TrimSpace(os.Getenv("GROQ_STT_SILENCE_RMS")); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return f
+		}
+	}
+	return defaultSilenceRMSThreshold
+}
+
+// rmsAmplitude computes the root-mean-square amplitude of little-endian signed
+// 16-bit mono PCM. Returns 0 for empty or odd-length input.
+func rmsAmplitude(pcm []byte) float64 {
+	n := len(pcm) / 2
+	if n == 0 {
+		return 0
+	}
+	var sumSquares float64
+	for i := 0; i < n; i++ {
+		sample := int16(binary.LittleEndian.Uint16(pcm[i*2:]))
+		f := float64(sample)
+		sumSquares += f * f
+	}
+	return math.Sqrt(sumSquares / float64(n))
 }
 
 func apiURL() string {
@@ -293,6 +329,16 @@ func STT(req sr.SpeechRequest) (string, error) {
 		if done {
 			break
 		}
+	}
+
+	// Silence gate: if the captured audio is near-silent, skip transcription
+	// entirely. This avoids Whisper hallucinating phrases like "thank you" or
+	// "bye" on empty audio from a false wake-word trigger.
+	rms := rmsAmplitude(req.DecodedMicData)
+	if rms < silenceThreshold() {
+		logger.Println(fmt.Sprintf("Bot %s (Groq) skipping near-silent audio (rms=%.1f < %.1f)",
+			req.Device, rms, silenceThreshold()))
+		return "", nil
 	}
 
 	pcmBuf := &writerseeker.WriterSeeker{}
