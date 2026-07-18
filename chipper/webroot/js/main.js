@@ -484,16 +484,20 @@ function closeSection(sectionID) {
 }
 
 function updateColor(id) {
+  // Hub nav active-state: only the chosen icon is "selected".
+  // Previously every icon was given nowselectedicon, and gold CSS
+  // styled nowselectedicon like selectedicon — so all 5 glowed.
   const l_id = id.replace("section", "icon");
   const elements = document.getElementsByName("icon");
 
   elements.forEach((element) => {
-    element.classList.remove("selectedicon");
-    element.classList.add("nowselectedicon");
+    element.classList.remove("selectedicon", "nowselectedicon");
+    element.classList.add("notselectedicon");
   });
 
   const targetElement = document.getElementById(l_id);
-  targetElement.classList.remove("notselectedicon");
+  if (!targetElement) return;
+  targetElement.classList.remove("notselectedicon", "nowselectedicon");
   targetElement.classList.add("selectedicon");
 }
 
@@ -609,8 +613,45 @@ function toggleVisibility(sections, sectionToShow, iconId) {
     GetLog = false;
   }
   sections.forEach((section) => {
-    getE(section).style.display = "none";
+    const el = getE(section);
+    if (el) el.style.display = "none";
   });
-  getE(sectionToShow).style.display = "block";
+  const shown = getE(sectionToShow);
+  if (shown) shown.style.display = "block";
   updateColor(iconId);
+  onHubSectionShown(sectionToShow);
+}
+
+/**
+ * Hub progressive disclosure (index.html):
+ * when a tool section opens, hide the robots CTA so the panel isn't
+ * pushed below the fold, and scroll it into view under the sticky dock.
+ * No-ops on pages without .robots-panel (setup, etc.).
+ */
+function onHubSectionShown(sectionId) {
+  const robots = document.querySelector(".robots-panel");
+  if (!robots) return;
+
+  document.body.classList.add("hub-section-open");
+
+  const shown = getE(sectionId);
+  if (!shown) return;
+
+  const preferReduced =
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  requestAnimationFrame(() => {
+    const dock = document.getElementById("hub-nav");
+    const label = document.querySelector(".hub-tools-label");
+    let offset = 8;
+    if (dock) offset += dock.getBoundingClientRect().height;
+    if (label) offset += label.getBoundingClientRect().height;
+    const top =
+      shown.getBoundingClientRect().top + window.pageYOffset - offset - 6;
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: preferReduced ? "auto" : "smooth",
+    });
+  });
 }

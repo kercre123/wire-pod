@@ -6,24 +6,30 @@
   <!-- Meta Apple tags for a PWA like experience. -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#1e1e1e">
+  <meta name="theme-color" content="#101215">
   <link rel="stylesheet" type="text/css" href="../css/style.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
+
 </head>
 
 <body>
 
   <div id="outer">
     <div id="content" class="">
-      <h1 class="center">Vector Configuration</h1>
-      <div id="botStats"></div>
-      <hr>
-      <div class="main-nav-parent">
-        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-reply"></i><br />Back</a></div>
+
+      <!-- sticky header: back / title / live bot telemetry -->
+      <div class="app-head">
+        <a class="back-btn" href="/sdkapp" aria-label="Back"><i class="fa-solid fa-reply"></i></a>
+        <h1>Vector Configuration</h1>
+        <div id="botStats"></div>
+      </div>
+
+      <!-- the dock: sticky scrolling tab rail (was: full-screen icon wall) -->
+      <div class="main-nav-parent" id="dock">
         <div class="main-nav-child"><a href="#" onclick="goToControlPage()"><i
               class="fa-solid fa-gamepad"></i><br />Control<br /></a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i
@@ -37,7 +43,7 @@
         <div class="main-nav-child"><a href="#" onclick="showSection('section-stim'); return false;"><i
               class="fa-solid fa-face-laugh-beam" id="icon-stim" name="icon"></i><br />Stim</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-stats'); return false;"><i
-              class="fa-solid fa-chart-simple" id="icon-stim" name="icon"></i><br />Statistics</a></div>
+              class="fa-solid fa-chart-simple" id="icon-stats" name="icon"></i><br />Statistics</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-photos'); getPhotos(); return false;"><i
               class="fa-solid fa-images" id="icon-photos" name="icon"></i><br />Photos</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-locale'); return false;"><i
@@ -55,10 +61,9 @@
         <div class="main-nav-child"><a href="#" onclick="showSection('section-timezone'); return false;"><i
               class="fa-solid fa-hourglass" id="icon-timezone" name="icon"></i><br />Time Zone</a></div>
       </div>
-      <hr>
 
       <div id="section-volume" class="toggleable-section" style="display:none;">
-        <h2 class="center">Volume</h2>
+        <h2>Volume</h2>
         <hr class="small-hr">
         <div id="currentVolume" class="center"></div>
         <div style="text-align: left;" class="center">
@@ -84,14 +89,12 @@
             <input type="radio" name="vol" id="High" value="High" onclick="sendForm('/api-sdk/volume?volume=5')">High
           </label>
         </div>
-        <br>
-        <hr>
       </div>
 
       <div id="section-eyes" class="toggleable-section" style="display:none;">
-        <h2 style="margin-bottom: 0px;">Eye Color</h2>
+        <h2>Eye Color</h2>
         <hr class="small-hr">
-        <h4 style="margin-bottom: 0px; margin-top:0px;">Preset Eye Colors:</h4>
+        <h4>Preset Eye Colors</h4>
         <div style="text-align: left;" class="center">
           <label>
             <input type="radio" name="eye" id="Teal" value="Teal"
@@ -122,21 +125,19 @@
               onclick="sendForm('/api-sdk/eye_color?color=6')">Other Green<br>
           </label>
         </div>
-        <br />
         <hr class="small-hr">
-        <h4 style="margin-top: 0px;" class="center">Custom Eye Color:</h4>
-        <div class="center" id="picker"></div><br />
+        <h4>Custom Eye Color</h4>
+        <div class="center" id="picker"></div>
         <div class="center">
-          <button class="settings" onclick="sendCustomColor()">Submit</button>
+          <button class="settings" onclick="sendCustomColor()">Apply custom color</button>
         </div>
-        <hr>
       </div>
 
       <div id="section-face" class="toggleable-section" style="display:none;">
-        <h2 class="center">Face Manager</h2>
+        <h2>Face Manager</h2>
         <hr class="small-hr">
-        <h3 class="center">Modify existing faces:</h3>
-        <p class="center">Choose the face you would like to modify.</p>
+        <h3>Modify existing faces</h3>
+        <p>Choose the face you would like to modify.</p>
         <div class="center">
           <select id="faceList" name="faceList"></select>
         </div>
@@ -150,19 +151,18 @@
           </div>
         </div>
         <hr class="small-hr">
-        <h3 class="center">Add a new face:</h3>
-        <p class="center">Enter a name you'd like to add:</p>
+        <h3>Add a new face</h3>
+        <p>Enter a name you'd like to add:</p>
         <div class="center">
           <input class="tinput" id="faceInput" name="faceInput" type="text" placeholder="Put name here">
         </div>
         <div class="center">
           <button onclick="addFace()">Add Face</button>
         </div>
-        <hr>
       </div>
 
       <div id="section-actions" class="toggleable-section" style="display:none;">
-        <h2 class="center">Quick Actions</h2>
+        <h2>Quick Actions</h2>
         <hr class="small-hr">
         <div class="center">
           <button onclick="sendForm('/api-sdk/cloud_intent?intent=explore_start')">Explore
@@ -177,35 +177,32 @@
             Home</button>
         </div>
         <hr class="small-hr">
-        <h3 class="center">Trigger Hey Vector</h3>
-        <p class="center">Trigger the "Hey Vector" wakeword remotely</p>
-        <p class="center">(Only Dev firmware and 2.0.1.6085ep or later)</p>
+        <h3>Trigger Hey Vector</h3>
+        <p>Trigger the "Hey Vector" wakeword remotely</p>
+        <p><small class="desc">(Only Dev firmware and 2.0.1.6085ep or later)</small></p>
         <div id="heyVectorStatus" class="center"></div>
         <div class="center">
           <button onclick="triggerHeyVector()">Trigger "Hey Vector"</button>
         </div>
-        <hr>
       </div>
 
       <div id="section-stim" class="toggleable-section" style="display:none;">
-        <h2 class="center">Stimulation</h2>
+        <h2>Stimulation</h2>
         <hr class="small-hr">
         <div class="center">
           <canvas id="stimChart"></canvas>
         </div>
-        <hr>
       </div>
 
       <div id="section-stats" class="toggleable-section" style="display:none;">
-        <h2 class="center">Statistics</h2>
+        <h2>Statistics</h2>
         <hr class="small-hr">
-        <button onclick="updateStats()">Refresh</button><br>
+        <button onclick="updateStats()">Refresh</button>
         <div id="statsSection"></div>
-        <hr>
       </div>
 
       <div id="section-photos" class="toggleable-section" style="display:none;">
-        <h2 class="center">Photos</h2>
+        <h2>Photos</h2>
         <hr class="small-hr">
         <div class="center">
           <button onclick="getPhotos()">Refresh List</button>
@@ -213,11 +210,10 @@
         <div class="center">
           <div id="photoSection"></div>
         </div>
-        <hr>
       </div>
 
       <div id="section-locale" class="toggleable-section" style="display:none;">
-        <h2 class="center">Locale</h2>
+        <h2>Locale</h2>
         <hr class="small-hr">
         <div id="currentLocale" class="center"></div>
         <div style="text-align: left;" class="center">
@@ -246,12 +242,10 @@
               onclick="sendForm('/api-sdk/locale?locale=ja-JP')">Japanese<br>
           </label>
         </div>
-        <br>
-        <hr>
       </div>
 
       <div id="section-time" class="toggleable-section" style="display:none;">
-        <h2 class="center">Time Format</h2>
+        <h2>Time Format</h2>
         <hr class="small-hr">
         <div id="currentTimeSet" class="center"></div>
         <div style="text-align: left;" class="center">
@@ -264,12 +258,10 @@
               onclick="sendForm('/api-sdk/time_format_24')">24 Hour<br>
           </label>
         </div>
-        <br>
-        <hr>
       </div>
 
       <div id="section-temp" class="toggleable-section" style="display:none;">
-        <h2 class="center">Temp Format</h2>
+        <h2>Temp Format</h2>
         <hr class="small-hr">
         <div id="currentTempFormat" class="center"></div>
         <div style="text-align: left;" class="center">
@@ -282,12 +274,10 @@
               onclick="sendForm('/api-sdk/temp_f')">Fahrenheit<br>
           </label>
         </div>
-        <br>
-        <hr>
       </div>
 
       <div id="section-button" class="toggleable-section" style="display:none;">
-        <h2 class="center">Button Action</h2>
+        <h2>Button Action</h2>
         <hr class="small-hr">
         <div id="currentButton" class="center"></div>
         <div style="text-align: left;" class="center">
@@ -300,39 +290,35 @@
               onclick="sendForm('/api-sdk/button_alexa')">Alexa<br>
           </label>
         </div>
-        <br>
-        <hr>
       </div>
 
       <div id="section-alexa" class="toggleable-section" style="display:none;">
-        <h2 class="center">Alexa</h2>
+        <h2>Alexa</h2>
         <hr class="small-hr">
         <div id="alexaStatus" class="center"></div>
-        <a class="center" target="_blank" rel="noopener noreferrer"
-          href="https://amazon.com/code">https://amazon.com/code</a>
-        <hr class="small-hr">
+        <p>Get your sign-in code at
+          <a class="center" target="_blank" rel="noopener noreferrer"
+            href="https://amazon.com/code">amazon.com/code</a>
+        </p>
         <div class="center">
           <button onclick="sendForm('/api-sdk/alexa_sign_in')">Signin Alexa</button>
           <button onclick="sendForm('/api-sdk/alexa_sign_out')">Signout Alexa</button>
         </div>
-        <hr>
       </div>
 
       <div id="section-location" class="toggleable-section" style="display:none;">
-        <h2 class="center">Set Location</h2>
+        <h2>Set Location</h2>
         <hr class="small-hr">
         <div id="currentLocation"></div>
         <small class="desc">Example: San Francisco, California</small>
         <div class="center">
           <input class="tinput" id="locationInput" name="locationInput" type="text" placeholder="Put location here">
         </div>
-        <hr class="small-hr">
         <button onclick="sendLocation()">Submit Location</button>
-        <hr>
       </div>
 
       <div id="section-timezone" class="toggleable-section" style="display:none;">
-        <h2 style="margin-bottom:0px;">Set Time Zone</h2>
+        <h2>Set Time Zone</h2>
         <hr class="small-hr">
         <div id="currentTimeZone" class="center"></div>
         <div class="center">
@@ -382,10 +368,7 @@
             <option value="Australia/Auckland">Australia/Auckland</option>
           </select>
         </div>
-        <br />
-        <hr class="small-hr">
         <button onclick="sendTimeZone()">Submit Time Zone</button>
-        <hr>
       </div>
 
     </div>
@@ -401,6 +384,65 @@
   <script src="./js/faces.js"></script>
   <script src="../js/ui.js"></script>
   <script src="./js/heyvector.js"></script>
+
+  <script>
+    /* ------------------------------------------------------------
+       Mobile UX layer (additive — no rewiring of main.js).
+       Wraps showSection so that on tap the section is revealed
+       right under the dock and scrolled into view, and the active
+       dock tab is highlighted + centered in the rail.
+       ------------------------------------------------------------ */
+    (function () {
+      var dock = document.getElementById("dock");
+
+      function markActive(id) {
+        var links = dock.querySelectorAll("a");
+        links.forEach(function (a) { a.classList.remove("dock-active"); });
+        // find the link whose onclick mentions this section id
+        links.forEach(function (a) {
+          var oc = a.getAttribute("onclick") || "";
+          if (oc.indexOf("'" + id + "'") !== -1) {
+            a.classList.add("dock-active");
+            // Only move the rail if the tab isn't fully visible —
+            // a tab the user just tapped is already under their finger,
+            // and yanking the rail around is disorienting.
+            var r = a.getBoundingClientRect();
+            var d = dock.getBoundingClientRect();
+            if (r.left < d.left || r.right > d.right) {
+              var target = dock.scrollLeft + (r.left - d.left) - (d.width - r.width) / 2;
+              dock.scrollTo({ left: Math.max(target, 0), behavior: "smooth" });
+            }
+          }
+        });
+      }
+
+      function revealSection(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        // scroll the page so the freshly opened card sits just
+        // below the sticky header + dock — no more "tap into the void"
+        var styles = getComputedStyle(document.documentElement);
+        var offset = 52 + 74 + 8; // header + dock + breathing room
+        var y = el.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top: Math.max(y, 0), behavior: "smooth" });
+      }
+
+      if (typeof showSection === "function") {
+        var _showSection = showSection;
+        window.showSection = function (id) {
+          try { _showSection(id); } catch (e) { console.error(e); }
+          markActive(id);
+          revealSection(id);
+        };
+      }
+
+      // open a sensible default so the page never looks empty
+      window.addEventListener("load", function () {
+        try { window.showSection("section-volume"); window.scrollTo(0, 0); } catch (e) { }
+      });
+    })();
+  </script>
+
   <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none;"></iframe>
 
 </body>

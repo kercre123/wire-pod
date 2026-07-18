@@ -18,6 +18,10 @@ function toggleSections(showSection, icon) {
   sections.forEach((section) => (document.getElementById(section).style.display = "none"));
   document.getElementById(showSection).style.display = "block";
   updateColor(icon);
+  // same hub disclosure + scroll-into-view as main.js toggleVisibility
+  if (typeof onHubSectionShown === "function") {
+    onHubSectionShown(showSection);
+  }
 }
 
 function checkBLECapability() {

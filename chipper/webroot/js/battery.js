@@ -163,9 +163,23 @@ async function renderBatteryInfo(serial, i = 0) {
   // For each robot, we'll create a new div to hold the battery information with a class of "batteryContainer"
   var batteryContainer = document.createElement("div");
   batteryContainer.className = "batteryContainer";
+  // Discoverable robot card: explicit label + keyboard (hub UX)
+  batteryContainer.setAttribute("role", "button");
+  batteryContainer.setAttribute("tabindex", "0");
+  batteryContainer.setAttribute(
+    "aria-label",
+    "Configure robot " + serial
+  );
   botStats.appendChild(batteryContainer);
-  batteryContainer.onclick = function() {
+  var goConfigure = function () {
     window.location.href = "/sdkapp/settings.html?serial=" + serial;
+  };
+  batteryContainer.onclick = goConfigure;
+  batteryContainer.onkeydown = function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      goConfigure();
+    }
   };
 
   // Create a tooltip for the robot's serial number, with class "tooltip"
@@ -242,9 +256,19 @@ async function renderBatteryInfo(serial, i = 0) {
   }, 3000);
 }
 
+function setBotStatsEmptyVisible(show) {
+  var empty = document.getElementById("botStatsEmpty");
+  if (!empty) return;
+  empty.style.display = show ? "block" : "none";
+}
+
 async function processBotStats() {
   try {
+    if (!botStats) return;
+
     // While loading, set a loading gif in a class div of "botLoader" to the botStats div
+    botStats.style.display = "";
+    setBotStatsEmptyVisible(false);
     var botLoader = document.createElement("div");
     botLoader.className = "botLoader";
     botStats.appendChild(botLoader);
@@ -252,10 +276,14 @@ async function processBotStats() {
     const sdkInfo = await getSDKInfo(); //{"global_guid":"tni1TRsTRTaNSapjo0Y+Sw==","robots":[{"esn":"00603f9b","ip_address":"10.42.0.248","guid":"5RlowyehhT8Qq7wEpF6JsQ==","activated":true},{"esn":"004047ef","ip_address":"10.42.0.175","guid":"ofoJZqLP3cwd9YpvXrdAfw==","activated":true}]}
     
     botLoader.remove();
-    if (!sdkInfo) {
+    if (!sdkInfo || !sdkInfo["robots"] || sdkInfo["robots"].length === 0) {
       botStats.style.display = "none";
+      setBotStatsEmptyVisible(true);
       return;
     }
+
+    setBotStatsEmptyVisible(false);
+    botStats.style.display = "";
 
     for (var i = 0; i < sdkInfo["robots"].length; i++) {
       const serial = sdkInfo["robots"][i]["esn"];
@@ -263,6 +291,8 @@ async function processBotStats() {
       renderBatteryInfo(serial, i);
     }
   } catch {
-    // Do nothing
+    // Show empty guidance when SDK probe fails on hub
+    if (botStats) botStats.style.display = "none";
+    setBotStatsEmptyVisible(true);
   }
 }
