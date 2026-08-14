@@ -12,8 +12,14 @@ let recMute = null;
 let recChunks = null; // array of Float32Array at context sampleRate
 let recSampleRate = 0;
 let recActive = false;
+let recMaxTimer = null;
+let recCapturedSamples = 0;
+let recContextClosing = null;
+let recStopping = false;
 
 const TARGET_RATE = 8000;
+const MAX_REC_SECONDS = 30;
+const FADE_MS = 40;
 
 function getSerial() {
   try {
@@ -70,24 +76,27 @@ function downsampleHQ(input, fromRate, toRate) {
   return output;
 }
 
-/** Soft peak normalize toward target peak (avoid clipping / too quiet) */
+/** Soft peak normalize toward target peak (avoid clipping / too quiet).
+ *  Skip gain when RMS/peak sit at the noise floor so hiss is not boosted. */
 function normalizeSpeech(samples, targetPeak) {
-  targetPeak = targetPeak || 0.85;
+  targetPeak = targetPeak || 0.82;
   let peak = 0;
+  let sumSq = 0;
   for (let i = 0; i < samples.length; i++) {
-    const a = Math.abs(samples[i]);
+    const s = samples[i];
+    const a = Math.abs(s);
     if (a > peak) peak = a;
+    sumSq += s * s;
   }
-  if (peak < 0.001 || peak > 0.99) {
-    // silence or already hot — only scale if quiet
-    if (peak >= 0.001 && peak < 0.2) {
-      const g = Math.min(targetPeak / peak, 4.0);
-      for (let i = 0; i < samples.length; i++) samples[i] *= g;
-    }
+  const rms = samples.length ? Math.sqrt(sumSq / samples.length) : 0;
+  const NOISE_FLOOR_RMS = 0.015;
+  const NOISE_FLOOR_PEAK = 0.04;
+  const MAX_GAIN = 2.5;
+  if (peak < NOISE_FLOOR_PEAK || rms < NOISE_FLOOR_RMS || peak >= targetPeak) {
     return samples;
   }
-  if (peak < targetPeak) {
-    const g = Math.min(targetPeak / peak, 3.5);
+  const g = Math.min(targetPeak / peak, MAX_GAIN);
+  if (g > 1.02) {
     for (let i = 0; i < samples.length; i++) samples[i] *= g;
   }
   return samples;
@@ -159,7 +168,7 @@ function toMonoFromAudioBuffer(audioBuffer) {
 function pcmToVectorWav(floatMono, fromRate) {
   let samples = downsampleHQ(floatMono, fromRate, TARGET_RATE);
   samples = normalizeSpeech(samples, 0.82);
-  applyShortFades(samples, 12, TARGET_RATE);
+  applyShortFades(samples, FADE_MS, TARGET_RATE);
   return floatTo16BitWavBlob(samples, TARGET_RATE);
 }
 
@@ -250,8 +259,43 @@ if (uploadBtn) {
 
 // --- High-quality Record (raw PCM, full session, then convert + auto-send) ---
 
+function micErrorMessage(err) {
+  const name = (err && err.name) || "";
+  if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+    return "Microphone permission was denied. Allow mic access for this site and try again.";
+  }
+  if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+    return "No microphone was found. Plug in a mic and try again.";
+  }
+  if (name === "NotReadableError" || name === "TrackStartError") {
+    return "Microphone is already in use by another application.";
+  }
+  if (name === "OverconstrainedError" || name === "ConstraintNotSatisfiedError") {
+    return "Microphone does not support the requested settings.";
+  }
+  if (name === "SecurityError") {
+    return "Microphone requires a secure (HTTPS) connection.";
+  }
+  if (name === "AbortError") {
+    return "Microphone request was interrupted. Try again.";
+  }
+  return "Could not open microphone: " + ((err && (err.message || err.name)) || "unknown error");
+}
+
+function clearRecMaxTimer() {
+  if (recMaxTimer) {
+    clearTimeout(recMaxTimer);
+    recMaxTimer = null;
+  }
+}
+
+function recSecondsSoFar() {
+  const rate = recSampleRate || 48000;
+  return recCapturedSamples / rate;
+}
+
 async function startRecording() {
-  if (recActive) return;
+  if (recActive || recStopping) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert("Microphone not available in this browser");
     return;
@@ -260,6 +304,10 @@ async function startRecording() {
     alert("No robot serial in URL. Open Vector control from the bot list.");
     return;
   }
+  if (recContextClosing) {
+    try { await recContextClosing; } catch (_) {}
+    recContextClosing = null;
+  }
   try {
     recStream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -267,13 +315,13 @@ async function startRecording() {
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
-        // Prefer highest rate the device allows; we downsample carefully later
         sampleRate: { ideal: 48000 },
       },
     });
 
+    // Let the browser pick the hardware rate; requested 48 kHz is only a hint
+    // on getUserMedia. Read sampleRate only after the context is running.
     recContext = new (window.AudioContext || window.webkitAudioContext)({
-      sampleRate: 48000, // request 48k if browser allows
       latencyHint: "interactive",
     });
     if (recContext.state === "suspended") {
@@ -281,17 +329,24 @@ async function startRecording() {
     }
     recSampleRate = recContext.sampleRate;
     recSource = recContext.createMediaStreamSource(recStream);
-    // Larger buffer = fewer callbacks, less chance of dropouts while recording
     const bufferSize = 4096;
     recProcessor = recContext.createScriptProcessor(bufferSize, 1, 1);
     recChunks = [];
+    recCapturedSamples = 0;
     recActive = true;
 
     recProcessor.onaudioprocess = (e) => {
       if (!recActive) return;
-      const input = e.inputBuffer.getChannelData(0);
-      // copy — input buffer is reused
+      const buf = e.inputBuffer;
+      if (buf && buf.sampleRate) recSampleRate = buf.sampleRate;
+      const input = buf.getChannelData(0);
       recChunks.push(new Float32Array(input));
+      recCapturedSamples += input.length;
+      if (recSecondsSoFar() >= MAX_REC_SECONDS) {
+        recActive = false;
+        setStatus("Reached " + MAX_REC_SECONDS + "s limit — processing…");
+        stopRecording();
+      }
     };
 
     recSource.connect(recProcessor);
@@ -300,21 +355,45 @@ async function startRecording() {
     recProcessor.connect(recMute);
     recMute.connect(recContext.destination);
 
+    clearRecMaxTimer();
+    recMaxTimer = setTimeout(() => {
+      if (recActive) {
+        setStatus("Reached " + MAX_REC_SECONDS + "s limit — processing…");
+        stopRecording();
+      }
+    }, MAX_REC_SECONDS * 1000);
+
     document.getElementById("recordButton").style.display = "none";
     document.getElementById("stopRecordButton").style.display = "inline-block";
     setStatus(
-      "Recording… (" + recSampleRate + " Hz capture). Speak clearly, then Stop recording, then Send."
+      "Recording… (" + recSampleRate + " Hz, max " + MAX_REC_SECONDS +
+        "s). Speak clearly, then Stop recording, then Send."
     );
   } catch (err) {
     console.error(err);
-    alert("Could not open microphone: " + err.message);
-    setStatus("Mic permission denied or unavailable");
+    const msg = micErrorMessage(err);
+    alert(msg);
+    setStatus(msg);
     cleanupRecGraph();
   }
 }
 
+function closeRecContext(ctx) {
+  if (!ctx || ctx.state === "closed") {
+    return Promise.resolve();
+  }
+  try {
+    const p = ctx.close();
+    if (p && typeof p.then === "function") {
+      return p.catch(() => {});
+    }
+  } catch (_) {}
+  return Promise.resolve();
+}
+
 function cleanupRecGraph() {
   recActive = false;
+  clearRecMaxTimer();
   try {
     if (recProcessor) {
       recProcessor.onaudioprocess = null;
@@ -326,41 +405,50 @@ function cleanupRecGraph() {
   try {
     if (recStream) recStream.getTracks().forEach((t) => t.stop());
   } catch (_) {}
-  try { if (recContext) recContext.close(); } catch (_) {}
+  const ctx = recContext;
   recProcessor = null;
   recSource = null;
   recMute = null;
   recStream = null;
   recContext = null;
+  if (ctx && ctx.state !== "closed") {
+    recContextClosing = closeRecContext(ctx);
+  }
 }
 
 async function stopRecording() {
+  if (recStopping) return;
+  recStopping = true;
   if (!recActive && (!recChunks || !recChunks.length)) {
     cleanupRecGraph();
+    recStopping = false;
     document.getElementById("recordButton").style.display = "inline-block";
     document.getElementById("stopRecordButton").style.display = "none";
     return;
   }
   recActive = false;
+  clearRecMaxTimer();
   setStatus("Processing recording…");
 
   // Small delay so last audio buffers flush
   await new Promise((r) => setTimeout(r, 80));
 
-  const rate = recSampleRate || 48000;
+  // Prefer the running context rate (settled after resume / first buffers)
+  const rate = (recContext && recContext.sampleRate) || recSampleRate || 48000;
+  recSampleRate = rate;
   const mono = mergeFloatChunks(recChunks || []);
   cleanupRecGraph();
   recChunks = null;
+  recCapturedSamples = 0;
 
   document.getElementById("recordButton").style.display = "inline-block";
   document.getElementById("stopRecordButton").style.display = "none";
 
-  if (!mono.length) {
-    setStatus("No audio captured");
-    return;
-  }
-
   try {
+    if (!mono.length) {
+      setStatus("No audio captured");
+      return;
+    }
     const blob = pcmToVectorWav(mono, rate);
     // Load into player for optional manual listen — do NOT auto-play
     previewBlob(blob);
@@ -371,6 +459,8 @@ async function stopRecording() {
   } catch (err) {
     console.error(err);
     setStatus("Process failed: " + err.message);
+  } finally {
+    recStopping = false;
   }
 }
 
