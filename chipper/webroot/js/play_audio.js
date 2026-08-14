@@ -16,6 +16,7 @@ let recMaxTimer = null;
 let recCapturedSamples = 0;
 let recContextClosing = null;
 let recStopping = false;
+let recStarting = false;
 
 const TARGET_RATE = 8000;
 const MAX_REC_SECONDS = 30;
@@ -294,8 +295,22 @@ function recSecondsSoFar() {
   return recCapturedSamples / rate;
 }
 
+function setRecButtons(recording) {
+  const recBtn = document.getElementById("recordButton");
+  const stopBtn = document.getElementById("stopRecordButton");
+  if (recBtn) recBtn.style.display = recording ? "none" : "inline-block";
+  if (stopBtn) stopBtn.style.display = recording ? "inline-block" : "none";
+}
+
+function stopTracks(stream) {
+  if (!stream) return;
+  try {
+    stream.getTracks().forEach((t) => t.stop());
+  } catch (_) {}
+}
+
 async function startRecording() {
-  if (recActive || recStopping) return;
+  if (recActive || recStopping || recStarting) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert("Microphone not available in this browser");
     return;
@@ -304,12 +319,15 @@ async function startRecording() {
     alert("No robot serial in URL. Open Vector control from the bot list.");
     return;
   }
-  if (recContextClosing) {
-    try { await recContextClosing; } catch (_) {}
-    recContextClosing = null;
-  }
+  recStarting = true;
+  setRecButtons(true);
+  setStatus("Requesting microphone…");
   try {
-    recStream = await navigator.mediaDevices.getUserMedia({
+    if (recContextClosing) {
+      try { await recContextClosing; } catch (_) {}
+      recContextClosing = null;
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         channelCount: 1,
         echoCancellation: true,
@@ -318,6 +336,12 @@ async function startRecording() {
         sampleRate: { ideal: 48000 },
       },
     });
+    if (!recStarting) {
+      stopTracks(stream);
+      return;
+    }
+    stopTracks(recStream);
+    recStream = stream;
 
     // Let the browser pick the hardware rate; requested 48 kHz is only a hint
     // on getUserMedia. Read sampleRate only after the context is running.
@@ -326,6 +350,11 @@ async function startRecording() {
     });
     if (recContext.state === "suspended") {
       await recContext.resume();
+    }
+    if (!recStarting) {
+      stopTracks(stream);
+      cleanupRecGraph();
+      return;
     }
     recSampleRate = recContext.sampleRate;
     recSource = recContext.createMediaStreamSource(recStream);
@@ -363,8 +392,6 @@ async function startRecording() {
       }
     }, MAX_REC_SECONDS * 1000);
 
-    document.getElementById("recordButton").style.display = "none";
-    document.getElementById("stopRecordButton").style.display = "inline-block";
     setStatus(
       "Recording… (" + recSampleRate + " Hz, max " + MAX_REC_SECONDS +
         "s). Speak clearly, then Stop recording, then Send."
@@ -375,6 +402,9 @@ async function startRecording() {
     alert(msg);
     setStatus(msg);
     cleanupRecGraph();
+    setRecButtons(false);
+  } finally {
+    recStarting = false;
   }
 }
 
@@ -418,12 +448,18 @@ function cleanupRecGraph() {
 
 async function stopRecording() {
   if (recStopping) return;
+  if (recStarting && !recActive) {
+    recStarting = false;
+    cleanupRecGraph();
+    setRecButtons(false);
+    setStatus("Recording cancelled");
+    return;
+  }
   recStopping = true;
   if (!recActive && (!recChunks || !recChunks.length)) {
     cleanupRecGraph();
     recStopping = false;
-    document.getElementById("recordButton").style.display = "inline-block";
-    document.getElementById("stopRecordButton").style.display = "none";
+    setRecButtons(false);
     return;
   }
   recActive = false;
@@ -441,8 +477,7 @@ async function stopRecording() {
   recChunks = null;
   recCapturedSamples = 0;
 
-  document.getElementById("recordButton").style.display = "inline-block";
-  document.getElementById("stopRecordButton").style.display = "none";
+  setRecButtons(false);
 
   try {
     if (!mono.length) {
