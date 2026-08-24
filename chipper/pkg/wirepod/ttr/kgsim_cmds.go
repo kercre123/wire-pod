@@ -486,13 +486,13 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	speakReady := make(chan string)
 
 	aireq := openai.ChatCompletionRequest{
-		MaxTokens:        2048,
-		Temperature:      1,
-		TopP:             1,
-		FrequencyPenalty: 0,
-		PresencePenalty:  0,
-		Messages:         msgs,
-		Stream:           true,
+		MaxCompletionTokens: 2048,
+		Temperature:         1,
+		TopP:                1,
+		FrequencyPenalty:    0,
+		PresencePenalty:     0,
+		Messages:            msgs,
+		Stream:              true,
 	}
 	if vars.APIConfig.Knowledge.Provider == "openai" {
 		aireq.Model = openai.GPT4oMini

@@ -174,14 +174,14 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	})
 
 	aireq := openai.ChatCompletionRequest{
-		Model:            model,
-		MaxTokens:        2048,
-		Temperature:      1,
-		TopP:             1,
-		FrequencyPenalty: 0,
-		PresencePenalty:  0,
-		Messages:         nChat,
-		Stream:           true,
+		Model:               model,
+		MaxCompletionTokens: 2048,
+		Temperature:         1,
+		TopP:                1,
+		FrequencyPenalty:    0,
+		PresencePenalty:     0,
+		Messages:            nChat,
+		Stream:              true,
 	}
 	return aireq
 }
