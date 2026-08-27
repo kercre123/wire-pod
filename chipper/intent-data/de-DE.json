@@ -93,11 +93,13 @@
   },
   {
     "name": "intent_imperative_affirmative",
-    "keyphrases": [ "Ja", "Richtig", "Korrekt", "Wahr", "Stimmt" ]
+    "keyphrases": [ "Ja", "Richtig", "Korrekt", "Wahr", "Stimmt" ],
+    "requiresexact": true
   },
   {
     "name": "intent_imperative_negative",
-    "keyphrases": [ "Nein", "Nicht", "Falsch", "Inkorrekt", "Unwahr", "Stimmt nicht" ]
+    "keyphrases": [ "Nein", "Nicht", "Falsch", "Inkorrekt", "Unwahr", "Stimmt nicht" ],
+    "requiresexact": true
   },
   {
     "name": "intent_photo_take_extend",
@@ -105,11 +107,13 @@
   },
   {
     "name": "intent_imperative_praise",
-    "keyphrases": [ "Gut", "Großartig", "mythisch", "stark", "beeindruckend", "toll", "super", "Guter", "Fantastisch" ]
+    "keyphrases": [ "Gut", "Großartig", "mythisch", "stark", "beeindruckend", "toll", "super", "Guter", "Fantastisch" ],
+    "requiresexact": true
   },
   {
     "name": "intent_imperative_abuse",
-    "keyphrases": [ "Gut", "Großartig", "Mythisch", "Stark", "Beeindruckend", "Toll", "Super", "Guter", "Guter Roboter", "Fantastisch", "Cool", "Klasse" ]
+    "keyphrases": [ "Gut", "Großartig", "Mythisch", "Stark", "Beeindruckend", "Toll", "Super", "Guter", "Guter Roboter", "Fantastisch", "Cool", "Klasse" ],
+    "requiresexact": true
   },
   {
     "name": "intent_imperative_apologize",
@@ -141,7 +145,8 @@
   },
   {
     "name": "intent_greeting_hello",
-    "keyphrases": [ "Hallo", "Wie geht es dir", "Wie geht's", "Wie gehts", "Wie geht's dir", "Wie gehts dir", "Guten Morgen", "Morgen", "Guten Abend", "Abend", "Guten Tag", "Tag", "Hey", "Hallo", "Hi", "Moin" ]
+    "keyphrases": [ "Hallo", "Wie geht es dir", "Wie geht's", "Wie gehts", "Wie geht's dir", "Wie gehts dir", "Guten Morgen", "Morgen", "Guten Abend", "Abend", "Guten Tag", "Tag", "Hey", "Hallo", "Hi", "Moin" ],
+    "requiresexact": true
   },
   {
     "name": "intent_imperative_come",
@@ -205,11 +210,13 @@
   },
   {
     "name": "intent_blackjack_hit",
-    "keyphrases": [ "Hit", "Eine weitere karte", "Noch eine", "Weitere Karte", "Noch eine Karte", "Ja", "Weitere", "Jep" ]
+    "keyphrases": [ "Hit", "Eine weitere karte", "Noch eine", "Weitere Karte", "Noch eine Karte", "Ja", "Weitere", "Jep" ],
+    "requiresexact": true
   },
   {
     "name": "intent_blackjack_stand",
-    "keyphrases": [ "Stand", "Keine mehr", "Das wars", "Das war's", "Keine weiteren Karten", "Nicht weiter", "Nein", "Nicht" ]
+    "keyphrases": [ "Stand", "Keine mehr", "Das wars", "Das war's", "Keine weiteren Karten", "Nicht weiter", "Nein", "Nicht" ],
+    "requiresexact": true
   },
   {
     "name": "intent_play_keepaway",
