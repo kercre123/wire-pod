@@ -13,6 +13,7 @@ import (
 	"github.com/go-audio/audio"
 	"github.com/go-audio/wav"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
 	"github.com/orcaman/writerseeker"
 )
@@ -76,12 +77,42 @@ func newAudioIntBuffer(r io.Reader) (*audio.IntBuffer, error) {
 	}
 }
 
+// buildVocabPrompt builds a vocabulary hint from the loaded intents. whisper-1
+// accepts a prompt to bias transcription towards expected wording, which helps a
+// lot with command phrases in languages other than English.
+func buildVocabPrompt() string {
+	var sb strings.Builder
+	for _, in := range vars.IntentList {
+		for _, kp := range in.Keyphrases {
+			k := strings.TrimSpace(kp)
+			if len(k) < 4 {
+				continue
+			}
+			if sb.Len()+len(k)+2 > 850 {
+				return sb.String()
+			}
+			sb.WriteString(k)
+			sb.WriteString(". ")
+			break
+		}
+	}
+	return sb.String()
+}
+
 func makeOpenAIReq(in []byte) string {
 	url := "https://api.openai.com/v1/audio/transcriptions"
 
 	buf := new(bytes.Buffer)
 	w := multipart.NewWriter(buf)
 	w.WriteField("model", "whisper-1")
+	// Without an explicit language whisper-1 guesses per utterance and gets short
+	// commands wrong, sometimes returning English for German speech.
+	if lang := strings.Split(vars.APIConfig.STT.Language, "-")[0]; lang != "" {
+		w.WriteField("language", lang)
+	}
+	if vp := buildVocabPrompt(); vp != "" {
+		w.WriteField("prompt", vp)
+	}
 	sendFile, _ := w.CreateFormFile("file", "audio.mp3")
 	sendFile.Write(in)
 	w.Close()
