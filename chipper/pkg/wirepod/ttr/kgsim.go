@@ -154,6 +154,9 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 		model = openai.GPT3Dot5Turbo
 	} else if vars.APIConfig.Knowledge.Provider == "openai" {
 		model = openai.GPT4oMini
+		if m := strings.TrimSpace(vars.APIConfig.Knowledge.Model); m != "" {
+			model = m
+		}
 		logger.Println("Using " + model)
 	} else {
 		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
@@ -174,14 +177,14 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	})
 
 	aireq := openai.ChatCompletionRequest{
-		Model:            model,
-		MaxTokens:        2048,
-		Temperature:      1,
-		TopP:             1,
-		FrequencyPenalty: 0,
-		PresencePenalty:  0,
-		Messages:         nChat,
-		Stream:           true,
+		Model:               model,
+		MaxCompletionTokens: 2048,
+		Temperature:         1,
+		TopP:                1,
+		FrequencyPenalty:    0,
+		PresencePenalty:     0,
+		Messages:            nChat,
+		Stream:              true,
 	}
 	return aireq
 }
