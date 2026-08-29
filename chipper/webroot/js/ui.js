@@ -76,3 +76,96 @@ function loadSettings() {
 // call loadSettings
 loadSettings();
 
+/**
+ * Horizontal dock (#hub-nav / #dock):
+ * - .dock-fits when all tabs fit → CSS centers (setup + hub)
+ * - .dock-overflow when not → flex-start + scroll (center+overflow
+ *   is a classic flex bug that hides the rightmost tabs)
+ * - edge fade classes for swipe affordance
+ * - vertical wheel → horizontal scroll when the rail overflows
+ *   (narrow desktop windows ~428px)
+ */
+function updateDockScrollFade(el) {
+    if (!el) return;
+
+    // Measure with start alignment so scrollWidth is trustworthy
+    var prevLeft = el.scrollLeft;
+    el.classList.add("dock-measuring");
+    el.classList.remove("dock-fits", "dock-overflow");
+    // force reflow
+    void el.offsetWidth;
+
+    var maxScroll = el.scrollWidth - el.clientWidth;
+    var overflow = maxScroll > 2;
+
+    el.classList.remove("dock-measuring");
+    el.classList.toggle("dock-overflow", overflow);
+    el.classList.toggle("dock-fits", !overflow);
+
+    if (!overflow) {
+        el.classList.remove("dock-fade-left", "dock-fade-right");
+        el.scrollLeft = 0;
+        return;
+    }
+
+    // restore scroll position within new max
+    el.scrollLeft = Math.min(prevLeft, Math.max(0, maxScroll));
+    maxScroll = el.scrollWidth - el.clientWidth;
+    var sl = el.scrollLeft;
+    el.classList.toggle("dock-fade-left", sl > 2);
+    el.classList.toggle("dock-fade-right", sl < maxScroll - 2);
+}
+
+function bindDockScrollFades(el) {
+    if (!el || el.dataset.dockFadeBound === "1") return;
+    el.dataset.dockFadeBound = "1";
+
+    var update = function () {
+        updateDockScrollFade(el);
+    };
+
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+
+    // Map vertical wheel to horizontal scroll when the rail overflows
+    // (desktop trackpad/mouse users on a narrow window).
+    el.addEventListener(
+        "wheel",
+        function (e) {
+            if (el.scrollWidth <= el.clientWidth + 2) return;
+            // Already horizontal gesture — leave it alone
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+            if (e.deltaY === 0) return;
+            el.scrollLeft += e.deltaY;
+            e.preventDefault();
+            updateDockScrollFade(el);
+        },
+        { passive: false }
+    );
+
+    if (typeof ResizeObserver !== "undefined") {
+        try {
+            var ro = new ResizeObserver(update);
+            ro.observe(el);
+        } catch (err) {
+            /* ignore */
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", update);
+    } else {
+        requestAnimationFrame(update);
+    }
+    // icon kit / fonts can change tab widths after first paint
+    setTimeout(update, 300);
+    setTimeout(update, 1000);
+}
+
+function initDockScrollFades() {
+    bindDockScrollFades(document.getElementById("hub-nav"));
+    bindDockScrollFades(document.getElementById("dock"));
+}
+
+initDockScrollFades();
+
