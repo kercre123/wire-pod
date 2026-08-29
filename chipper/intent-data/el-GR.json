@@ -1,0 +1,277 @@
+[
+	{
+		"name" : "intent_names_username_extend", 
+		"keyphrases": ["το όνομά μου είναι", "όνομα είναι", "όνομα", "το όνομά μου" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_weather_extend", 
+		"keyphrases" : ["καιρός", "πρόγνωση καιρού", "καιρός αύριο", "πώς είναι ο καιρός" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_names_ask", 
+		"keyphrases" : ["πώς ονομάζομαι", "ποιος είμαι", "ποιο είναι το όνομά μου"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_eyecolor",
+		"keyphrases" : ["χρώμα ματιών", "χρώμα", "κάνε τα μάτια σου να είναι", "αλλαξε το χρωμα των ματιων σου σε", "τα μάτια σου να είναι"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_character_age", 
+		"keyphrases" : ["πόσο χρονών", "πόσο χρονών είσαι", "χρονών είσαι", "ποια είναι η ηλικία σου", "ποσο χρονων είσαι" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_explore_start", 
+		"keyphrases" : ["άρχισε", "εξερεύνα", "πάνε να εξερευνήσεις", "άρχισε την εξερεύνηση" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_charger", 
+		"keyphrases" : ["φόρτισε", "σπίτι", "πάνε στο σπίτι σου", "πάνε να φορτίσεις", "βρες τον φορτιστή σου", "φορτιστής" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_sleep",
+		"keyphrases" : ["κοιμήσου", "πάνε για ύπνο", "ύπνος" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_system_noaudio",
+		"keyphrases" : ["[blank_audio]", "[door opens]", "[sighs]" ],
+		"requiresexact": true
+	},
+	{	
+		"name": "intent_greeting_goodmorning", 
+		"keyphrases" : ["καλημέρα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_greeting_goodnight", 
+		"keyphrases" : ["νύχτα", "καληνύχτα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_greeting_goodbye", 
+		"keyphrases" : ["αντίο", "αντιγεια", "τοπιο" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_seasonal_happynewyear",
+		"keyphrases" : ["πυροτεχνήματα", "καινούργιος χρόνος", "καλός καινούργιος", "καλή χρονιά" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_seasonal_happyholidays", 
+		"keyphrases" : ["διακοπές", "χριστούγεννα", "χριστού κερνάω", "καλά χριστούγεννα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_amazon_signin", 
+		"keyphrases" : ["αλέξ", "αλέξα", "στην αλέξα", "συνδέσου στην αλέξα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_amazon_signout", 
+		"keyphrases" : ["αποσυνδέσου", "αποσυνδέσου από την αλέξα", "αποσύνδεση" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_forward",
+		"keyphrases" : ["μπροστά", "εμπρός", "πήγαινε ευθεία", "πήγαινε μπροστά", "ευθεία" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnaround", 
+		"keyphrases" : ["γύρνα", "εκατόν ογδόντα", "γύρνα πίσω σου", "γύρνα γύρω" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnleft", 
+		"keyphrases" : ["στρίψε αριστερά", "πήγαινε αριστερά", "αριστερά", "γύρνα αριστερά" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_turnright", 
+		"keyphrases" : ["στρίψε δεξιά", "πήγαινε δεξιά", "δεξιά", "γύρνα δεξιά" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_rollcube",
+		"keyphrases" : ["γύρνα τον κύβο σου", "γύρνα τον κύβο", "γύρνα τον" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_popawheelie", 
+		"keyphrases" : ["κάνε σούζα", "σούζα", "πάνε στη μία ρόδα", "μία ρόδα", "σουσα", "σουζα", "ουζο", "σούσα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_fistbump", 
+		"keyphrases" : ["κόλλα το", "κόλλα πέντε", "γροθιά", "τροχια" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_blackjack", 
+		"keyphrases" : ["είκοσι ένα", "χαρτιά", "παιχνίδι", "παίξε είκοσι ένα", "μπλάκτζακ" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_affirmative",
+		"keyphrases" : ["ναι", "σωστά", "σίγουρα", "ναι παρακαλώ" ],
+		"requiresexact": true
+	},
+	{	
+		"name": "intent_imperative_negative", 
+		"keyphrases" : ["όχι", "μην", "όχι ευχαριστώ" ],
+		"requiresexact": true
+	},
+	{	
+		"name": "intent_photo_take_extend", 
+		"keyphrases" : ["φωτογραφία", "φωτό", "τράβηξε μια φωτογραφία", "τράβα μια", "βγάλε με φωτογραφία" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_praise", 
+		"keyphrases" : ["καλό", "τέλειο", "πολύ καλό", "καλό ρομπότ", "τέλεια" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_abuse",
+		"keyphrases" : ["κακό", "απαίσιο", "το μισώ", "μισώ", "χάλια", "κακό ρομπότ" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_apologize", 
+		"keyphrases" : ["συγνώμη", "σου ζητώ συγγνώμη", "άκυρο" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_backup", 
+		"keyphrases" : ["πίσω", "πάνε πίσω", "προς τα πίσω" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumedown",
+		"keyphrases" : ["κατέβασε τον ήχο", "κατέβασε τη φωνή", "χαμηλά", "πιο χαμηλά", "χαμηλό" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumeup", 
+		"keyphrases" : ["ανέβασε τον ήχο", "ανέβασε τη φωνή", "πιο δυνατά", "ποιο δυνατό", "με βάση τον ήχο" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_lookatme", 
+		"keyphrases" : ["κοίταμε", "δες με", "κοιτάμε" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_volumelevel_extend",
+		"keyphrases" : ["ήχος", "φωνή" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_shutup", 
+		"keyphrases" : ["σκάσε", "βούλωσέ το", "κλείσε το στόμα σου", "είσαι το στόμα σου" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_greeting_hello", 
+		"keyphrases" : ["γεια", "γεια σου", "τι κάνεις", "πώς είσαι", "ικα κάνεις" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_come", 
+		"keyphrases" : ["έλα εδώ", "έλα σε εμένα", "έλα έρθω", "αλλά σε μένα", "έλα σε μένα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_love",
+		"keyphrases" : ["σε αγαπώ", "αγαπώ" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_knowledge_promptquestion", 
+		"keyphrases" : ["ερώτηση", "έχω μια ερώτηση", "συζήτηση", "ας μιλήσουμε", "έλα να μιλήσουμε" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_checktimer", 
+		"keyphrases" : ["δες το χρονόμετρο", "πόση ώρα μένει", "πόσο χρόνο ακόμα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_global_stop_extend", 
+		"keyphrases" : ["σταμάτα το χρονόμετρο", "σταμάτα χρονόμετρο", "ακύρωση", "ακύρωσε το χρονόμετρο", "σταμάτα το ρολόι", "σταμάτα το" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_settimer_extend",
+		"keyphrases" : ["χρονόμετρο", "βάλε χρονόμετρο για", "βάλε χρονόμετρο" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_clock_time", 
+		"keyphrases" : ["τι ώρα είναι", "τι ώρα", "ώρα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_quiet", 
+		"keyphrases" : ["ησυχία", "κάνε ησυχία", "μείνε ήσυχος" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_dance", 
+		"keyphrases" : ["χόρεψε", "χορός", "χόρεψε στη μουσική", "στη μουσική" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_pickupcube",
+		"keyphrases" : ["σήκωσε", "σήκωσέ το" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_fetchcube", 
+		"keyphrases" : ["φέρε τον κύβο σου", "φέρτον", "φέρε μου", "δώσε μου", "δώσε μου τον κύβο σου", "μου τον κήπο σου" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_imperative_findcube", 
+		"keyphrases" : ["βρες τον κύβο σου", "βρες τον", "βρες τον κύβο" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_anytrick", 
+		"keyphrases" : ["κόλπο", "κάνε ένα κόλπο" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_message_recordmessage_extend",
+		"keyphrases" : ["ηχογράφησε" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_message_playmessage_extend", 
+		"keyphrases" : ["παίξε το μήνυμα", "παίξε μου το μήνυμα" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_blackjack_hit", 
+		"keyphrases" : ["χτύπα"],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_blackjack_stand", 
+		"keyphrases" : ["σταματώ", "σταματό" ],
+		"requiresexact": false
+	},
+	{	
+		"name": "intent_play_keepaway",
+		"keyphrases": ["κράτα μακριά", "μακριά", "παίξε κράτα μακριά" ],
+		"requiresexact": false
+	}
+]

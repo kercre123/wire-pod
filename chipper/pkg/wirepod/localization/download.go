@@ -32,7 +32,7 @@ var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
 var DownloadStatus string = "not downloading"
 
 func DownloadVoskModel(language string) {
-	filename := "vosk-model-small-"
+	filename := "vosk-model-"
 	if language == "en-US" {
 		filename = filename + "en-us-0.15.zip"
 	} else if language == "it-IT" {
@@ -61,7 +61,10 @@ func DownloadVoskModel(language string) {
 		filename = filename + "vn-0.4.zip"
 	} else if language == "ko-KR" {
 		filename = filename + "ko-0.22.zip"
-	} else {
+	} else if language == "el-GR" {
+		filename = "vosk-model-el-gr-0.7.zip"
+		URLPrefix = "https://alphacephei.com/vosk/models/"	
+		} else {
 		logger.Println("Language not valid? " + language)
 		return
 	}
