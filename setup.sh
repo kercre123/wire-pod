@@ -144,6 +144,7 @@ function getSTT() {
         echo "2: Picovoice Leopard (local, usage collected, accurate, account signup required)"
         echo "3: VOSK (local, accurate, multilanguage, fast, recommended)"
         echo "4: Whisper (local, accurate, multilanguage, recommended ONLY for more powerful hardware, please don't run on a Pi)"
+        echo "5: Groq Whisper (cloud, very accurate, multilanguage, fast even on low-power hardware like a Pi, free API key required)"
         echo
         read -p "Enter a number (3): " sttServiceNum
         if [[ ! -n ${sttServiceNum} ]]; then
@@ -161,6 +162,8 @@ function getSTT() {
             sttService="vosk"
             elif [[ ${sttServiceNum} == "4" ]]; then
             sttService="whisper"
+            elif [[ ${sttServiceNum} == "5" ]]; then
+            sttService="groq"
         else
             echo
             echo "Choose a valid number, or just press enter to use the default number."
@@ -263,6 +266,21 @@ function getSTT() {
 	cmake --build build_go --config Release
         cd ${origDir}
         echo "export WHISPER_MODEL=$whispermodel" >> ./chipper/source.sh
+        elif [[ ${sttService} == "groq" ]]; then
+        function groqApiPrompt() {
+            echo
+            echo "Create a free account at https://console.groq.com/keys and enter the API key it gives you."
+            echo
+            read -p "Enter your Groq API key: " groqKey
+            if [[ ! -n ${groqKey} ]]; then
+                echo
+                echo "You must enter a key."
+                groqApiPrompt
+            fi
+        }
+        groqApiPrompt
+        echo "export STT_SERVICE=groq" >> ./chipper/source.sh
+        echo "export GROQ_API_KEY=${groqKey}" >> ./chipper/source.sh
     else
         echo "export STT_SERVICE=coqui" >> ./chipper/source.sh
         if [[ ! -f ./stt/completed ]]; then
@@ -590,6 +608,10 @@ function setupSystemd() {
         export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
         export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
         /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/experimental/whisper.cpp/main.go
+        elif [[ ${STT_SERVICE} == "groq" ]]; then
+        echo "wire-pod.service created, building chipper with Groq cloud STT service..."
+        export CGO_ENABLED=1
+        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/groq/main.go
     else
         echo "wire-pod.service created, building chipper with Coqui STT service..."
         export CGO_LDFLAGS="-L/root/.coqui/"
