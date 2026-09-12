@@ -87,14 +87,18 @@ type RememberedChat struct {
 var RememberedChats []RememberedChat
 
 type RobotInfoStore struct {
-	GlobalGUID string `json:"global_guid"`
-	Robots     []struct {
-		Esn       string `json:"esn"`
-		IPAddress string `json:"ip_address"`
-		// 192.168.1.150:443
-		GUID      string `json:"guid"`
-		Activated bool   `json:"activated"`
-	} `json:"robots"`
+	GlobalGUID string      `json:"global_guid"`
+	Robots     []RobotInfo `json:"robots"`
+}
+
+// RobotInfo is WirePod's local enrollment record. DisplayName is only a local
+// label; it never changes the robot serial number or cloud identity.
+type RobotInfo struct {
+	Esn         string `json:"esn"`
+	IPAddress   string `json:"ip_address"`
+	GUID        string `json:"guid"`
+	Activated   bool   `json:"activated"`
+	DisplayName string `json:"display_name,omitempty"`
 }
 
 type RecurringInfoStore struct {

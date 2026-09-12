@@ -28,7 +28,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
 	robot := robotObj.Vector
 	ctx := robotObj.Ctx
-	if r.URL.Path != "/api-sdk/get_sdk_info" && r.URL.Path != "/api-sdk/debug" {
+	if r.URL.Path != "/api-sdk/get_sdk_info" && r.URL.Path != "/api-sdk/debug" && r.URL.Path != "/api-sdk/get_display_name" && r.URL.Path != "/api-sdk/set_display_name" {
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
@@ -106,6 +106,23 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fmt.Fprint(w, string(jsonBytes))
+		return
+	case r.URL.Path == "/api-sdk/get_display_name":
+		name, found := robotDisplayName(r.FormValue("serial"))
+		if !found {
+			http.Error(w, "robot not found", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]string{"display_name": name})
+		return
+	case r.URL.Path == "/api-sdk/set_display_name":
+		if err := setRobotDisplayName(r.FormValue("serial"), r.FormValue("name")); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": "saved"})
 		return
 	case r.URL.Path == "/api-sdk/get_sdk_settings":
 		i := 0

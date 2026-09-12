@@ -14,6 +14,35 @@ esn = urlParams.get("serial");
 
 var client = new HttpClient();
 getCurrentSettings();
+loadRobotDisplayName();
+
+async function loadRobotDisplayName() {
+  const field = document.getElementById("robotDisplayName");
+  if (!field || !esn) return;
+  try {
+    const response = await fetch("/api-sdk/get_display_name?serial=" + encodeURIComponent(esn), {cache: "no-store"});
+    if (response.ok) field.value = (await response.json()).display_name || "";
+  } catch {
+    // Naming is optional local metadata.
+  }
+}
+
+async function saveRobotDisplayName() {
+  const field = document.getElementById("robotDisplayName");
+  const status = document.getElementById("robotDisplayNameStatus");
+  if (!field || !status || !esn) return;
+  status.textContent = "Saving…";
+  try {
+    const response = await fetch(
+      "/api-sdk/set_display_name?serial=" + encodeURIComponent(esn) + "&name=" + encodeURIComponent(field.value.trim()),
+      {method: "POST", cache: "no-store"}
+    );
+    if (!response.ok) throw new Error("save failed");
+    status.textContent = field.value.trim() ? "Name saved." : "Name cleared; the serial number will be shown.";
+  } catch {
+    status.textContent = "Unable to save the name. Please try again.";
+  }
+}
 
 function revealSdkActions() {
   var x = document.getElementById("sdkActions");
@@ -283,6 +312,9 @@ function getCurrentSettings() {
   xhr.onload = function () {
     var jdocSdkSettingsResponse1 = JSON.stringify(xhr.response);
     jdocSdk = JSON.parse(jdocSdkSettingsResponse1);
+    if (typeof applyVectorEyeTint === "function") {
+      applyVectorEyeTint(document.querySelector("#botStats .vectorFace"), jdocSdk);
+    }
     let xhr2 = new XMLHttpRequest();
     if (jdocSdk["custom_eye_color"]) {
       var customECE = jdocSdk["custom_eye_color"]["enabled"];

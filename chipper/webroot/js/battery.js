@@ -15,6 +15,54 @@ const hnyGifs = [
 
 const hnyGif = hnyGifs[Math.floor(Math.random() * hnyGifs.length)];
 
+const vectorEyeTints = [
+  "#35e0cf", "#ff9a3d", "#ffd84d", "#b7f34d",
+  "#4db8ff", "#b68cff", "#6eea8f"
+];
+
+function applyVectorEyeTint(vectorFace, settings) {
+  if (!vectorFace || !settings) return;
+  const custom = settings.custom_eye_color;
+  if (custom && custom.enabled && Number.isFinite(Number(custom.hue))) {
+    const hue = ((Number(custom.hue) % 1) + 1) % 1 * 360;
+    const saturation = Math.max(0, Math.min(100, Number(custom.saturation) * 100 || 0));
+    vectorFace.style.setProperty("--vector-eye-tint", `hsl(${hue} ${saturation}% 58%)`);
+    return;
+  }
+  const preset = Number(settings.eye_color);
+  if (Number.isInteger(preset) && vectorEyeTints[preset]) {
+    vectorFace.style.setProperty("--vector-eye-tint", vectorEyeTints[preset]);
+  }
+}
+
+async function loadVectorEyeTint(vectorFace, serial) {
+  try {
+    const response = await fetch("/api-sdk/get_sdk_settings?serial=" + encodeURIComponent(serial), {
+      method: "POST", cache: "no-store"
+    });
+    if (response.ok) applyVectorEyeTint(vectorFace, await response.json());
+  } catch {
+    // A reconnecting Vector can still render a useful battery card.
+  }
+}
+
+function setRobotCardDetails(tooltip, serial, displayName, lines) {
+  tooltip.replaceChildren();
+  const name = document.createElement("b");
+  name.textContent = displayName || serial;
+  tooltip.appendChild(name);
+  if (displayName) {
+    tooltip.appendChild(document.createElement("br"));
+    const serialLine = document.createElement("span");
+    serialLine.textContent = serial;
+    tooltip.appendChild(serialLine);
+  }
+  for (const line of lines) {
+    tooltip.appendChild(document.createElement("br"));
+    tooltip.appendChild(document.createTextNode(line));
+  }
+}
+
 function getBatteryPercentage(voltage) {
   let percentage;
   const maxVoltage = 4.1; // Maximum voltage for the battery
@@ -43,7 +91,7 @@ function getBatteryPercentage(voltage) {
 }
 
 
-async function updateBatteryInfo(serial, i) {
+async function updateBatteryInfo(serial, i, displayName = "") {
   var batteryContainer = document.getElementsByClassName("batteryContainer")[i];
   if (!batteryContainer) {
     return;
@@ -72,10 +120,10 @@ async function updateBatteryInfo(serial, i) {
     }
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
-    tooltip.innerHTML = `<b>${serial}</b><br/>??%<br/> (Unable to connect)`;
+    setRobotCardDetails(tooltip, serial, displayName, ["??%", "(Unable to connect)"]);
     setTimeout(async () => {
       // Re-render the battery information
-      updateBatteryInfo(serial, i);
+      updateBatteryInfo(serial, i, displayName);
     }, 6000);
     return;
   }
@@ -106,7 +154,7 @@ async function updateBatteryInfo(serial, i) {
   batteryLevel.style.width = batteryPercentage + "%";
 
   // Clear tooltip, and replace serial number and the latest voltage
-  tooltip.innerHTML = `<b>${serial}</b><br/>~${batteryPercentage}%<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
+  setRobotCardDetails(tooltip, serial, displayName, [`~${batteryPercentage}%`, `(${batteryStatus["battery_volts"].toFixed(2)}V)`]);
 
   // Update the charging status
   if (batteryStatus["is_on_charger_platform"]) {
@@ -155,11 +203,11 @@ async function updateBatteryInfo(serial, i) {
 
   setTimeout(async () => {
     // Re-render the battery information
-    updateBatteryInfo(serial, i);
+    updateBatteryInfo(serial, i, displayName);
   }, 3000);
 }
 
-async function renderBatteryInfo(serial, i = 0) {
+async function renderBatteryInfo(serial, i = 0, displayName = "") {
   // For each robot, we'll create a new div to hold the battery information with a class of "batteryContainer"
   var batteryContainer = document.createElement("div");
   batteryContainer.className = "batteryContainer";
@@ -172,7 +220,7 @@ async function renderBatteryInfo(serial, i = 0) {
 
   var tooltip = document.createElement("span");
   tooltip.className = "tooltip";
-  tooltip.innerHTML = `<b>${serial}</b>`;
+  setRobotCardDetails(tooltip, serial, displayName, []);
   batteryContainer.appendChild(tooltip);
 
   // Create a new div to hold the battery status with a class of "batteryOutline", this will be the outline of the battery status
@@ -184,6 +232,7 @@ async function renderBatteryInfo(serial, i = 0) {
   vectorFace.className = "vectorFace";
   vectorFace.style.backgroundImage = "url(/assets/webface.gif)"; // default loading face
   batteryContainer.appendChild(vectorFace);
+  loadVectorEyeTint(vectorFace, serial);
 
   // Create the colored div that will represent the battery level, with a class of "batteryLevel"
   var batteryLevel = document.createElement("div");
@@ -208,10 +257,10 @@ async function renderBatteryInfo(serial, i = 0) {
   if (!batteryStatus) {
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
-    tooltip.innerHTML = `<b>${serial}</b><br/>??<br/> (Unable to connect)`;
+    setRobotCardDetails(tooltip, serial, displayName, ["??", "(Unable to connect)"]);
     setTimeout(async () => {
       // Re-render the battery information
-      updateBatteryInfo(serial, i);
+      updateBatteryInfo(serial, i, displayName);
     }, 6000);
     return;
   }
@@ -238,7 +287,7 @@ async function renderBatteryInfo(serial, i = 0) {
 
   setTimeout(async () => {
     // Re-render the battery information
-    updateBatteryInfo(serial, i);
+    updateBatteryInfo(serial, i, displayName);
   }, 3000);
 }
 
@@ -258,9 +307,8 @@ async function processBotStats() {
     }
 
     for (var i = 0; i < sdkInfo["robots"].length; i++) {
-      const serial = sdkInfo["robots"][i]["esn"];
-
-      renderBatteryInfo(serial, i);
+      const robot = sdkInfo["robots"][i];
+      renderBatteryInfo(robot["esn"], i, robot["display_name"] || "");
     }
   } catch {
     // Do nothing

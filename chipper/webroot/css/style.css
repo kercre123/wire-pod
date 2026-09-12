@@ -413,9 +413,26 @@ input[type='radio']:disabled:after {
 .vectorFace {
   height: 60px;
   width: 60px;
+  position: relative;
+  isolation: isolate;
+  --vector-eye-tint: #35e0cf;
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
+}
+
+/* Keep the original animated Vector artwork intact and tint only its eye field. */
+.vectorFace::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--vector-eye-tint);
+  opacity: .76;
+  mix-blend-mode: color;
+  /* One shared, rounded eye canvas. Individual circular masks clipped moving
+     expressions at their edges, especially on the red eye animation. */
+  clip-path: inset(29% 17% 29% 17% round 30%);
 }
 
 .batteryLevel {
