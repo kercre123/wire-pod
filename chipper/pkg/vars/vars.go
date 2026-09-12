@@ -143,6 +143,17 @@ type botjdoc struct {
 	Jdoc AJdoc `json:"jdoc"`
 }
 
+type ProductivityConfig struct {
+	Enable       bool   `json:"enable"`
+	Provider     string `json:"provider"`
+	Key          string `json:"key"`
+	Url          string `json:"url"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	TargetRobot  string `json:"target_robot"`
+	ManualConfig string `json:"manual_config"`
+}
+
 func join(p1, p2 string) string {
 	return filepath.Join(p1, p2)
 }
