@@ -74,7 +74,12 @@ function sendSetupInfo() {
 
 function checkConn() {
   const connValue = document.getElementById("connSelection").value;
+  const proxyMode = document.getElementById("proxyModeInput").checked;
   document.getElementById("portViz").style.display = connValue === "ip" ? "block" : "none";
+  // The robot-facing address only applies to the IP path. EP mode serves the
+  // bundled certificate and a hardcoded escapepod.local address.
+  document.getElementById("robotFacingViz").style.display =
+    connValue === "ip" && proxyMode ? "block" : "none";
 }
 
 function setConn() {
@@ -82,12 +87,28 @@ function setConn() {
   const connValue = document.getElementById("connSelection").value;
   let port = document.getElementById("portInput").value;
   port = port ? port : "443";
-  const url = connValue === "ep" ? "/api-chipper/use_ep" : `/api-chipper/use_ip?port=${port}`;
+  const proxyMode = document.getElementById("proxyModeInput").checked;
+
+  const params = new URLSearchParams();
+  params.set("proxy_mode", proxyMode ? "true" : "false");
+  if (connValue === "ip") {
+    params.set("port", port);
+    if (proxyMode) {
+      params.set("robot_facing_address", document.getElementById("robotFacingInput").value.trim());
+    }
+  }
+  const base = connValue === "ep" ? "/api-chipper/use_ep" : "/api-chipper/use_ip";
+  const url = base + "?" + params.toString();
 
   fetch(url)
     .then((response) => response.text())
     .then((response) => {
-      if (response) {
+      // Validation failures come back as a plain "error: ..." body with a 200,
+      // so the text has to be inspected rather than the status code.
+      if (response && response.startsWith("error")) {
+        updateSetupStatus(response);
+        document.getElementById("config-options").style.display = "block";
+      } else if (response) {
         updateSetupStatus("Setup is complete! Wire-pod has started. Redirecting to main page...");
         setTimeout(() => window.location.href = "/", 3000);
       } else {

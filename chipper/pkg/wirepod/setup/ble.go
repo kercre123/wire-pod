@@ -460,6 +460,7 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			}
 			if resp {
 				time.Sleep(time.Second)
+				captureRobotLANAddress(BleClient)
 				fmt.Fprint(w, "success")
 				return
 			} else {
@@ -515,6 +516,41 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// captureRobotLANAddress records the robot's real LAN address at the one
+// moment wire-pod is talking to it over a channel the proxy cannot distort.
+//
+// Only runs in proxy mode, where the address wire-pod observes over the
+// network is the proxy's rather than the robot's. Every failure is logged
+// and swallowed: a BLE hiccup must never turn an otherwise-successful
+// authentication into an error.
+func captureRobotLANAddress(client *ble.VectorBLE) {
+	if !vars.APIConfig.Server.ProxyMode {
+		return
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Println("Proxy mode: recovered while capturing robot LAN address:", r)
+		}
+	}()
+
+	status, err := client.GetStatus()
+	if err != nil {
+		logger.Println("Proxy mode: could not read robot status to capture its address: " + err.Error())
+		return
+	}
+	// Wi-Fi is connected before authentication runs, so this returns a real
+	// address by the time we get here.
+	wifi, err := client.WifiIP()
+	if err != nil {
+		logger.Println("Proxy mode: could not read Wi-Fi address for " +
+			strings.TrimSpace(status.ESN) + ": " + err.Error())
+		return
+	}
+
+	// Everything past this point is in lanaddress.go, which carries no build
+	// tag and so is covered by the test suite.
+	RecordRobotLANAddress(status.ESN, wifi.IPv4)
+}
 func RegisterBLEAPI() {
 	http.HandleFunc("/api-ble/", BluetoothSetupAPI)
 }

@@ -45,6 +45,39 @@
             <label for="portInput">Input custom port here (default is 443)</label>
             <input type="text" id="portInput" name="portInput" placeholder="443" />
           </div>
+          <!-- .center is display:grid, so every direct child becomes its own
+               row, and a checkbox will not stretch: as a direct child it
+               stranded at the left edge, away from its own label. The single
+               wrapper keeps the control on one line, as the log section does. -->
+          <div class="center">
+            <div>
+              <input type="checkbox" id="proxyModeInput" name="proxyModeInput" onchange="checkConn()" />
+              <label class="checkbox-label" for="proxyModeInput">wire-pod is behind a reverse proxy or
+                container network</label>
+              <br />
+              <small class="desc">Tick this if robots do not reach wire-pod
+                directly. Any reverse proxy, gateway, or container network
+                counts, whatever software it runs. wire-pod cannot discover its
+                own reachable address in that case, and the address it observes
+                for each robot is the proxy's rather than the robot's.</small>
+            </div>
+          </div>
+          <!-- Same wrapper. checkConn() sets an inline display:block here, which
+               overrides .center's grid; the wrapper makes both render alike. -->
+          <div class="center" id="robotFacingViz" style="display: none">
+            <div>
+              <label for="robotFacingInput">Address robots should use to reach
+                wire-pod</label>
+              <br />
+              <input class="tinput" type="text" id="robotFacingInput" name="robotFacingInput"
+                placeholder="e.g. wirepod.lan" />
+              <br />
+              <small class="desc">A bare hostname or IP with no port or scheme.
+                It is written into the robot's server config and into the
+                certificate, so the robot must be able to resolve it. A hostname
+                is required if your proxy routes by sub-domain.</small>
+            </div>
+          </div>
           <hr />
         </div>
 
