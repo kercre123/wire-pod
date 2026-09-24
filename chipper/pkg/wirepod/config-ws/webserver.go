@@ -63,6 +63,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetOTA(w, r)
 	case "get_version_info":
 		handleGetVersionInfo(w)
+	case "get_robots":
+		handleGetRobots(w)
+	case "set_robot_lan_address":
+		handleSetRobotLANAddress(w, r)
 	case "generate_certs":
 		handleGenerateCerts(w)
 	case "is_api_v3":
@@ -371,11 +375,78 @@ func handleGetVersionInfo(w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(verInfo)
 }
 
+// RobotDialInfo is one row of the Bot Setup address list. It deliberately
+// separates the observed peer address from the configured override so the
+// distinction stays visible to the admin: ip_address is what wire-pod saw,
+// and behind a proxy that is the gateway rather than the robot.
+type RobotDialInfo struct {
+	Esn string `json:"esn"`
+	// Passively observed peer address from botSdkInfo.json. Never written here.
+	ObservedAddress string `json:"observed_address"`
+	// Admin-configured LAN address, empty when none is set.
+	ConfiguredAddress string `json:"configured_address"`
+	// What wire-pod will actually dial: configured if set, else observed.
+	EffectiveTarget string `json:"effective_target"`
+	Activated       bool   `json:"activated"`
+}
+
+func handleGetRobots(w http.ResponseWriter) {
+	robots := make([]RobotDialInfo, 0, len(vars.BotInfo.Robots))
+	for _, bot := range vars.BotInfo.Robots {
+		robots = append(robots, RobotDialInfo{
+			Esn:               bot.Esn,
+			ObservedAddress:   bot.IPAddress,
+			ConfiguredAddress: vars.GetConfiguredLANAddress(bot.Esn),
+			EffectiveTarget:   vars.GetRobotDialTarget(bot.Esn, bot.IPAddress),
+			Activated:         bot.Activated,
+		})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(robots)
+}
+
+func handleSetRobotLANAddress(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Esn     string `json:"esn"`
+		Address string `json:"address"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	if strings.TrimSpace(req.Esn) == "" {
+		http.Error(w, "must provide an esn", http.StatusBadRequest)
+		return
+	}
+	// Same validation as the robot-facing address: a bare host or IPv4, no
+	// port. GetRobotDialTarget appends ":443", so an embedded port here would
+	// produce host:443:443 exactly as it would in server_config.json.
+	if err := vars.ValidateRobotFacingAddress(strings.TrimSpace(req.Address)); err != nil {
+		http.Error(w, "invalid address: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	vars.SetRobotLANAddress(req.Esn, req.Address)
+	vars.WriteConfigToDisk()
+	fmt.Fprint(w, "Changes successfully applied.")
+}
+
 func handleGenerateCerts(w http.ResponseWriter) {
+	// The robot appends wire-pod's leaf certificate to its own root pool, so
+	// a new certificate shares no trust with the old one. Every robot that
+	// pinned the previous certificate must be set up again.
+	if n := len(vars.BotInfo.Robots); n > 0 {
+		logger.Println(fmt.Sprint("WARNING: regenerating the certificate while ", n,
+			" robot(s) are known to wire-pod. Each pinned the previous certificate ",
+			"and will fail to connect until it is set up again."))
+	}
 	if err := botsetup.CreateCertCombo(); err != nil {
 		http.Error(w, "error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// Keep the pair coherent. The robot verifies the address in
+	// server_config.json against this certificate's SANs, so the two must
+	// never be written independently.
+	botsetup.CreateServerConfig()
 	fmt.Fprint(w, "done")
 }
 

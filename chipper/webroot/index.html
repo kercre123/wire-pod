@@ -120,6 +120,33 @@
       </div>
 
       <div id="section-botauth" style="display: none">
+        <!-- Shown only when server.proxy_mode is set. wire-pod behind a proxy
+             records the gateway as every robot's address, so dialing needs an
+             explicit per-robot LAN address. Sits above Authentication because
+             the address applies however the robot was adopted; under the OSKR
+             block it read as a step of that one method and was missed. -->
+        <div id="proxyRobotSection" style="display: none">
+          <h2>Robot LAN addresses</h2>
+          <hr class="small-hr">
+          <small class="desc">wire-pod sees every robot arriving at the proxy's
+            address, so it must be told each robot's real LAN address before it
+            can reach it for the SDK app, camera stream, and jdocs. Applies to
+            every robot, however it was adopted.</small>
+          <!-- The wrapper keeps the button off the end of the description:
+               <small> is inline and a button is inline-block, so without it
+               they share a line.
+
+               type="button" is deliberate. A bare <button> defaults to
+               type="submit", which would navigate the moment this section is
+               ever moved inside a form. -->
+          <div>
+            <button type="button" onclick="loadProxyRobots()">Re-check robots</button>
+          </div>
+          <div id="proxyRobotStatus"></div>
+          <div id="proxyRobotList"></div>
+          <hr />
+        </div>
+
         <h2>Authentication</h2>
         <hr class="small-hr">
         <div>
@@ -141,6 +168,9 @@
               your bot.</p>
             <hr class="small-hr">
             <input class="tinput" type="text" id="sshIp" name="sshIp" placeholder="Bot IP address" /><br />
+            <!-- Filled in by prefillSSHIp() from a LAN address already set
+                 above, so the same address is not asked for twice. -->
+            <div id="sshIpHint"></div>
             <input type="file" id="sshKeyFile" name="sshKeyFile" /><br />
             <hr class="small-hr">
             <button onclick="doSSHSetup()">Set up bot</button>

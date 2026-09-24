@@ -203,7 +203,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
-			target = bot.IPAddress + ":443"
+			target = vars.GetRobotDialTarget(bot.Esn, bot.IPAddress) + ":443"
 			matched = true
 			break
 		}
@@ -515,7 +515,7 @@ func KGSim(esn string, textToSay string) error {
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
-			target = bot.IPAddress + ":443"
+			target = vars.GetRobotDialTarget(bot.Esn, bot.IPAddress) + ":443"
 			matched = true
 			break
 		}

@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -415,6 +416,86 @@ func AddToRInfo(esn string, id string, ip string) {
 	RecurringInfo = append(RecurringInfo, rinfo)
 }
 
+// robotLANMu guards RobotLANAddresses, the only map in APIConfig. It is read
+// from request goroutines while the Bot Setup handler, the BLE capture and
+// NormalizeConfig mutate it, and a concurrent map read and write is a fatal
+// runtime error rather than a recoverable panic.
+var robotLANMu sync.RWMutex
+
+// GetRobotFacingAddress returns the address robots should use to reach
+// wire-pod. Empty configuration falls back to the outbound IP, which is
+// exactly today's behavior.
+//
+// This must appear in the generated certificate's SANs: the robot pins that
+// leaf and derives ServerName from the dial authority, so server_config.json
+// and the certificate have to agree or the handshake fails.
+func GetRobotFacingAddress() string {
+	if addr := strings.TrimSpace(APIConfig.Server.RobotFacingAddress); addr != "" {
+		return addr
+	}
+	return GetOutboundIP().String()
+}
+
+// GetRobotDialTarget returns the address wire-pod should dial for esn.
+//
+// observed is the caller's existing bot.IPAddress and is returned whenever no
+// override is configured, so a call site can never end up with an empty target.
+//
+// This affects outbound dialing only. ip_address keeps its meaning as the
+// passively observed peer address and remains the identity key.
+func GetRobotDialTarget(esn, observed string) string {
+	if addr := GetConfiguredLANAddress(esn); addr != "" {
+		return addr
+	}
+	return observed
+}
+
+// GetConfiguredLANAddress returns the admin-configured LAN address for esn, or
+// "" when none is set. Exported so callers outside this package never touch the
+// map directly, which is what keeps robotLANMu able to do its job.
+func GetConfiguredLANAddress(esn string) string {
+	esn = strings.TrimSpace(esn)
+	robotLANMu.RLock()
+	defer robotLANMu.RUnlock()
+	for k, v := range APIConfig.Server.RobotLANAddresses {
+		if strings.EqualFold(strings.TrimSpace(k), esn) {
+			if v = strings.TrimSpace(v); v != "" {
+				return v
+			}
+		}
+	}
+	return ""
+}
+
+// SetRobotLANAddress records the LAN address wire-pod should dial for esn.
+// An empty addr clears the entry. The caller persists via WriteConfigToDisk.
+func SetRobotLANAddress(esn, addr string) {
+	esn = strings.TrimSpace(esn)
+	addr = strings.TrimSpace(addr)
+	if esn == "" {
+		return
+	}
+	robotLANMu.Lock()
+	defer robotLANMu.Unlock()
+	// Drop any case-variant of this ESN so one robot cannot end up with two
+	// entries that disagree.
+	for k := range APIConfig.Server.RobotLANAddresses {
+		if strings.EqualFold(strings.TrimSpace(k), esn) {
+			delete(APIConfig.Server.RobotLANAddresses, k)
+		}
+	}
+	if addr == "" {
+		if len(APIConfig.Server.RobotLANAddresses) == 0 {
+			APIConfig.Server.RobotLANAddresses = nil
+		}
+		return
+	}
+	if APIConfig.Server.RobotLANAddresses == nil {
+		APIConfig.Server.RobotLANAddresses = make(map[string]string)
+	}
+	APIConfig.Server.RobotLANAddresses[esn] = addr
+}
+
 func GetRobot(esn string) (*vector.Vector, error) {
 	var guid string
 	var target string
@@ -422,7 +503,7 @@ func GetRobot(esn string) (*vector.Vector, error) {
 	for _, bot := range BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
-			target = bot.IPAddress + ":443"
+			target = GetRobotDialTarget(bot.Esn, bot.IPAddress) + ":443"
 			matched = true
 			break
 		}

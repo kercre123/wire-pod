@@ -37,21 +37,30 @@ type JdocsPingerRobot struct {
 // setting JDOCS_PINGER_ENABLED=false will disable jdocs pinger
 var PingerEnabled bool = true
 
-func pingJdocs(target string) {
-	ctx := context.Background()
-	target = strings.Split(target, ":")[0]
-	var serial string
-	matched := false
+// esnForAddress resolves an observed peer address to an ESN. Behind a proxy
+// every robot presents the same address, so this returns the first match --
+// which is why callers that can identify the robot directly should do so.
+func esnForAddress(target string) string {
+	target = strings.TrimSpace(strings.ToLower(strings.Split(target, ":")[0]))
 	for _, robot := range vars.BotInfo.Robots {
-		if strings.TrimSpace(strings.ToLower(robot.IPAddress)) == strings.TrimSpace(strings.ToLower(target)) {
-			matched = true
-			serial = robot.Esn
+		if strings.TrimSpace(strings.ToLower(robot.IPAddress)) == target {
+			return robot.Esn
 		}
 	}
-	if !matched {
+	return ""
+}
+
+func pingJdocs(target string) {
+	serial := esnForAddress(target)
+	if serial == "" {
 		logger.Println("jdocs pinger error: serial did not match any bot in bot json")
 		return
 	}
+	pingJdocsForESN(serial)
+}
+
+func pingJdocsForESN(serial string) {
+	ctx := context.Background()
 	robotTmp, err := NewWP(serial, false)
 	if err != nil {
 		logger.Println(err)
@@ -113,11 +122,11 @@ func InitJdocsPinger() {
 	}()
 }
 
-func ShouldPingJdocs(target string) bool {
-	var esn, guid, botip string
+func ShouldPingJdocsForESN(esn string) bool {
+	var guid, botip string
 	matched := false
 	for _, bot := range vars.BotInfo.Robots {
-		if target == bot.IPAddress {
+		if strings.EqualFold(strings.TrimSpace(bot.Esn), strings.TrimSpace(esn)) {
 			esn = bot.Esn
 			guid = bot.GUID
 			botip = bot.IPAddress
@@ -154,6 +163,28 @@ func ShouldPingJdocs(target string) bool {
 	return true
 }
 
+// resolveConnCheckESN identifies the robot behind a connCheck request, or ""
+// when it cannot. Behind a proxy every robot shares one peer address, so
+// identity comes from the robot instead: it sends HEAD /ok?emresn=<esn>.
+//
+// Gated because "" is what makes connCheck fall through to the mDNS browse that
+// repairs a stale stored address after DHCP moves a robot. Preferring emresn
+// everywhere would retire that self-heal on direct-LAN installs.
+func resolveConnCheckESN(r *http.Request) string {
+	if vars.APIConfig.Server.ProxyMode {
+		if reported := strings.TrimSpace(r.FormValue("emresn")); reported != "" {
+			for _, bot := range vars.BotInfo.Robots {
+				if strings.EqualFold(strings.TrimSpace(bot.Esn), reported) {
+					return bot.Esn
+				}
+			}
+			// A robot we have never stored. Fall through rather than inventing
+			// a record: adoption is what creates those, not a connection check.
+		}
+	}
+	return esnForAddress(r.RemoteAddr)
+}
+
 func connCheck(w http.ResponseWriter, r *http.Request) {
 	switch {
 	default:
@@ -167,13 +198,9 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		}
 		if PingerEnabled {
 			//logger.Println("connCheck request from " + r.RemoteAddr)
-			robotTarget := strings.Split(r.RemoteAddr, ":")[0]
-			jsonB, _ := json.Marshal(vars.BotInfo)
-			json := string(jsonB)
-			if strings.Contains(json, strings.TrimSpace(robotTarget)) {
-				ping := ShouldPingJdocs(robotTarget)
-				if ping {
-					pingJdocs(robotTarget)
+			if esn := resolveConnCheckESN(r); esn != "" {
+				if ShouldPingJdocsForESN(esn) {
+					pingJdocsForESN(esn)
 				}
 			} else {
 				go RunMDNS(strings.Split(r.RemoteAddr, ":")[0])
