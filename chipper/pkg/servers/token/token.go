@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/digital-dream-labs/api/go/tokenpb"
@@ -35,6 +36,9 @@ var (
 // array of {"target", "guid", "guidhash"}
 // for primary user auth
 var TokenHashStore [][3]string
+
+// guards TokenHashStore, which concurrent gRPC handlers read and modify
+var tokenHashStoreMu sync.Mutex
 
 // array of {"esn", "target", "guid", "guidhash"}
 // for secondary user auth
@@ -133,9 +137,32 @@ func RemoveFromSecondStore(index int) {
 	SecondaryTokenStore = append(SecondaryTokenStore[:index], SecondaryTokenStore[index+1:]...)
 }
 
-func RemoveFromPrimaryStore(index int) {
-	logger.Println("Removing " + TokenHashStore[index][0] + " from temporary token-hash store")
-	TokenHashStore = append(TokenHashStore[:index], TokenHashStore[index+1:]...)
+func AddToPrimaryStore(entry [3]string) {
+	tokenHashStoreMu.Lock()
+	defer tokenHashStoreMu.Unlock()
+	TokenHashStore = append(TokenHashStore, entry)
+}
+
+// PrimaryStoreEntries returns a copy of TokenHashStore that is safe to range over
+func PrimaryStoreEntries() [][3]string {
+	tokenHashStoreMu.Lock()
+	defer tokenHashStoreMu.Unlock()
+	return append([][3]string(nil), TokenHashStore...)
+}
+
+// RemoveFromPrimaryStore removes entry by value. A robot often sends two ReadDocs
+// at once, so the entry may already be gone; removing by index here used to panic
+// or drop another robot's entry.
+func RemoveFromPrimaryStore(entry [3]string) {
+	tokenHashStoreMu.Lock()
+	defer tokenHashStoreMu.Unlock()
+	for i, e := range TokenHashStore {
+		if e == entry {
+			logger.Println("Removing " + e[0] + " from temporary token-hash store")
+			TokenHashStore = append(TokenHashStore[:i], TokenHashStore[i+1:]...)
+			return
+		}
+	}
 }
 
 func RemoveFromSessionStore(index int) {
@@ -234,7 +261,7 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 		if !skipGuid {
 			logger.Println("Adding " + ipAddr + " to TokenHashStore")
 			guid, tokenHash, _ := CreateTokenAndHashedToken()
-			TokenHashStore = append(TokenHashStore, [3]string{ipAddr, guid, tokenHash})
+			AddToPrimaryStore([3]string{ipAddr, guid, tokenHash})
 			clientToken = guid
 		}
 	}

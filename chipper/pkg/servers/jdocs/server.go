@@ -80,7 +80,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			logger.Println("App tokens jdoc not found for this bot, trying bots in TokenHashStore")
 			matched := false
 			botGUID := ""
-			for num, pair := range tokenserver.TokenHashStore {
+			for _, pair := range tokenserver.PrimaryStoreEntries() {
 				if strings.EqualFold(pair[0], ipAddr) {
 					err := tokenserver.WriteTokenHash(strings.ToLower(strings.TrimSpace(esn)), pair[2])
 					if err != nil {
@@ -95,7 +95,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					}
 					logger.Println("ReadJdocs: bot " + esn + " matched with IP " + ipAddr + " in token store")
 					matched = true
-					tokenserver.RemoveFromPrimaryStore(num)
+					tokenserver.RemoveFromPrimaryStore(pair)
 				}
 			}
 			sessionMatched := false
