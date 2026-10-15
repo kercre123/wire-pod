@@ -76,12 +76,44 @@
         "CladType": "Rain"
     }, 
     {
+        "APIValue": "Dust", 
+        "CladType": "Windy"
+    }, 
+    {
+        "APIValue": "Saharan dust", 
+        "CladType": "Windy"
+    }, 
+    {
         "APIValue": "Blowing Dust / Sandstorm", 
+        "CladType": "Windy"
+    }, 
+    {
+        "APIValue": "Severe sandstorm", 
+        "CladType": "Windy"
+    }, 
+    {
+        "APIValue": "Smog", 
+        "CladType": "Windy"
+    }, 
+    {
+        "APIValue": "Severe smog", 
+        "CladType": "Windy"
+    }, 
+    {
+        "APIValue": "Dust storm", 
         "CladType": "Windy"
     }, 
     {
         "APIValue": "Foggy", 
         "CladType": "Cloudy"
+    }, 
+    {
+        "APIValue": "Dust haze", 
+        "CladType": "Windy"
+    }, 
+    {
+        "APIValue": "Smoky haze", 
+        "CladType": "Windy"
     }, 
     {
         "APIValue": "Haze / Windy", 
@@ -101,7 +133,7 @@
     }, 
     {
         "APIValue": "Frigid / Ice Crystals", 
-        "CladType": "Sunny"
+        "CladType": "Snow"
     }, 
     {
         "APIValue": "Cloudy", 
@@ -332,7 +364,15 @@
         "CladType": "Thunderstorms"
     }, 
     {
+        "APIValue": "Thundery outbreaks in nearby", 
+        "CladType": "Thunderstorms"
+    }, 
+    {
         "APIValue": "Patchy freezing drizzle possible", 
+        "CladType": "Rain"
+    }, 
+    {
+        "APIValue": "Patchy freezing drizzle nearby", 
         "CladType": "Rain"
     }, 
     {
@@ -340,13 +380,25 @@
         "CladType": "Rain"
     }, 
     {
+        "APIValue": "Patchy sleet nearby", 
+        "CladType": "Rain"
+    }, 
+    {
         "APIValue": "Patchy rain possible", 
+        "CladType": "Rain"
+    }, 
+    {
+        "APIValue": "Patchy rain nearby", 
         "CladType": "Rain"
     }, 
     {
         "APIValue": "Patchy snow possible", 
         "CladType": "Snow"
     },
+    {
+        "APIValue": "Patchy snow nearby", 
+        "CladType": "Snow"
+    }, 
     {
         "APIValue": "Overcast", 
         "CladType": "Cloudy"
