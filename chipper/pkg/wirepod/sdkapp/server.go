@@ -570,8 +570,11 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "error: "+err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=--boundary")
-	multi := io.MultiWriter(w)
+	// the boundary parameter must not include the leading "--"; each part
+	// is then delimited by "--" + boundary (RFC 2046). strict MJPEG clients
+	// (ffmpeg, go2rtc, Home Assistant) reject the stream otherwise.
+	w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+	flusher, _ := w.(http.Flusher)
 	robots[robotIndex].CamStreaming = true
 	for {
 		select {
@@ -589,11 +592,21 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 				response, err := client.Recv()
 				if err == nil {
 					imageBytes := response.GetData()
-					img, _, _ := image.Decode(bytes.NewReader(imageBytes))
-					fmt.Fprintf(multi, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
-					jpeg.Encode(multi, img, &jpeg.Options{
+					img, _, err := image.Decode(bytes.NewReader(imageBytes))
+					if err != nil {
+						// skip frames that can't be decoded instead of panicking on a nil image
+						continue
+					}
+					var frame bytes.Buffer
+					jpeg.Encode(&frame, img, &jpeg.Options{
 						Quality: 50,
 					})
+					fmt.Fprintf(w, "--frame\r\nContent-Type: image/jpeg\r\nContent-Length: %d\r\n\r\n", frame.Len())
+					w.Write(frame.Bytes())
+					fmt.Fprint(w, "\r\n")
+					if flusher != nil {
+						flusher.Flush()
+					}
 				}
 			} else {
 				robotObj.Vector.Conn.EnableImageStreaming(
