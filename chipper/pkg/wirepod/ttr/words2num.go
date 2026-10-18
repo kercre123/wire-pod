@@ -87,7 +87,7 @@ func words2num(input string) string {
 		return "3600"
 	}
 
-	str_regex_time_pattern := `(\d+|\w+(?:-\w+)?)\s*(`+lcztn.GetText(lcztn.STR_MINUTE)+`|`+lcztn.GetText(lcztn.STR_SECOND)+`|`+lcztn.GetText(lcztn.STR_HOUR)+`)s?`
+	str_regex_time_pattern := `(\d+|\w+(?:-\w+)?)\s*(`+lcztn.GetText(lcztn.STR_MINUTE_PLURAL)+`|`+lcztn.GetText(lcztn.STR_MINUTE)+`|`+lcztn.GetText(lcztn.STR_SECOND_PLURAL)+`|`+lcztn.GetText(lcztn.STR_SECOND)+`|`+lcztn.GetText(lcztn.STR_HOUR_PLURAL)+`|`+lcztn.GetText(lcztn.STR_HOUR)+`)s?`
 
 	// timePattern := regexp.MustCompile(`(\d+|\w+(?:-\w+)?)\s*(minute|second|hour)s?`)
 	timePattern := regexp.MustCompile(str_regex_time_pattern)
@@ -104,13 +104,13 @@ func words2num(input string) string {
 
 		switch unit {
 		// minute	
-		case lcztn.GetText(lcztn.STR_MINUTE):
+		case lcztn.GetText(lcztn.STR_MINUTE), lcztn.GetText(lcztn.STR_MINUTE_PLURAL):
 			totalSeconds += value * 60
 		// second	
-		case lcztn.GetText(lcztn.STR_SECOND):
+		case lcztn.GetText(lcztn.STR_SECOND), lcztn.GetText(lcztn.STR_SECOND_PLURAL):
 			totalSeconds += value
 		// hour	
-		case lcztn.GetText(lcztn.STR_HOUR):
+		case lcztn.GetText(lcztn.STR_HOUR), lcztn.GetText(lcztn.STR_HOUR_PLURAL):
 			totalSeconds += value * 3600
 		}
 	}

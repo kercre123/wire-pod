@@ -2,7 +2,7 @@ package localization
 
 import "github.com/kercre123/wire-pod/chipper/pkg/vars"
 
-var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL", "zh-CN", "tr-TR", "ru-RU", "nt-NL", "uk-UA", "vi-VN", "ko-KR"}
+var ValidVoskModels []string = []string{"en-US", "it-IT", "es-ES", "fr-FR", "de-DE", "pt-BR", "pl-PL", "zh-CN", "tr-TR", "ru-RU", "nt-NL", "uk-UA", "vi-VN", "ko-KR", "el-GR"}
 
 const STR_WEATHER_IN = "str_weather_in"
 const STR_WEATHER_FORECAST = "str_weather_forecast"
@@ -72,6 +72,9 @@ const STR_ONE_HOUR_ALT = "str_one_hour_alt"
 const STR_HOUR = "str_hour"
 const STR_MINUTE = "str_minute"
 const STR_SECOND = "str_second"
+const STR_HOUR_PLURAL = "str_hour_plural"
+const STR_MINUTE_PLURAL = "str_minute_plural"
+const STR_SECOND_PLURAL = "str_second_plural"
 
 // for grammer
 var ALL_STR []string = []string{
@@ -149,74 +152,77 @@ var ALL_STR []string = []string{
 
 var texts = map[string][]string{
 	//  key                 			en-US   it-IT   es-ES    fr-FR    de-DE    pl-PL   tr-TR	ru-RU    nt-NL     uk-UA  vi-VN   ko-KR
-	STR_WEATHER_IN:                     {" in ", " a ", " en ", " en ", " in ", " w ", " 的 ", " içinde ", " в ", " in ", " в ", " ở ", "의 "},
-	STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "wettervorhersage", "prognoza", "预报", "tahmin", "прогноз", "voorspelling", "прогноз", "dự báo", "일기 예보"},
-	STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "mañana", "demain", "morgen", "jutro", "明天", "yarın", "завтра", "morgen", "завтра", "ngày mai", "내일"},
-	STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am tag nach morgen", "pojutrze", "后天", "yarından sonra", "послезавтра", "overmorgen", "післязавтра", "ngày mốt", "모레"},
-	STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "heute abend", "dziś wieczorem", "今晚", "bu gece", "сегодня вечером", "vanavond", "сьогодні ввечері", "tối nay", "오늘 밤"},
-	STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "heute nachmittag", "popołudniu", "下午", "bu öğleden sonra", "после полудня", "middag", "після полудня", "chiều nay", "오후"},
-	STR_EYE_COLOR_PURPLE:               {"purple", "lilla", "violeta", "violet", "violett", "fioletowy", "紫色", "mor", "фиолетовый", "paars", "фіолетовий", "màu tím", "보라색"},
-	STR_EYE_COLOR_BLUE:                 {"blue", "blu", "azul", "bleu", "blau", "niebieski", "蓝色", "mavi", "голубой", "blauw", "голубий", "màu xanh", "파란색"},
-	STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir", "szafir", "天蓝", "safir", "синий", "saffier", "синій", "màu ngọc bích", "사파이어색"},
-	STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb", "żółty", "黄色", "sarı", "жёлтый", "geel", "жовтий", "màu vàng", "노란색"},
-	STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün", "morski", "浅绿", "teal", "бирюзовый", "wintertaling", "бірюзовий", "xanh lá cây", "청록색"},
-	STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarine", "acquamarina", "akwamaryn", "蓝绿", "turkuaz", "аквамарин", "vertellen", "аквамариновий", "màu xanh ngọc", "아쿠아마린색"},
-	STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony", "绿色", "yeşil", "зелёный", "groente", "зелений", "màu xanh lá", "초록색"},
-	STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy", "橙色", "turuncu", "оранжевый", "oranje", "оранжевий", "màu cam", "주황색"},
-	STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie", "我", "ben", "меня", "mij", "мене", "tôi", "나", "내"},
-	STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja", "自己", "kendim", "себя", "zelf", "себе", "bản thân", "본인", "자신"},
-	STR_VOLUME_LOW:                     {"low", "minimo", "bajo", "bas", "niedrig", "niski", "低", "düşük", "низкий", "laag", "на мінімум", "thấp", "아주 작게"},
-	STR_VOLUME_QUIET:                   {"quiet", "basso", "tranquilo", "silencieux", "ruhig", "cichy", "安静", "sessiz", "тихо", "rustig", "тихо", "yên tĩnh", "작게"},
-	STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen bas", "mittelschwer", "średnio niski", "中低", "orta düşük", "ниже среднего", "middel laag", "нижче середнього", "vừa thấp", "조금 작게"},
-	STR_VOLUME_MEDIUM:                  {"medium", "medio", "medio", "moyen", "mittel", "średni", "中档", "orta", "средний", "medium", "середню", "vừa", "중간"},
-	STR_VOLUME_NORMAL:                  {"normal", "normale", "normal", "normal", "normal", "normalny", "正常", "normal", "нормальный", "normaal", "нормальна", "bình thường", "보통"},
-	STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "standard", "regulär", "zwyczajny", "标准", "düzenli", "обычный", "normaal", "звичайна", "thông thường", "보통"},
-	STR_VOLUME_MEDIUM_HIGH:             {"medium high", "medio alto", "medio-alto", "moyen-élevé", "mittelhoch", "średno wysoki", "中高", "orta yüksek", "выше среднего", "gemiddeld hoog", "вище середнього", "vừa cao", "조금 크게"},
-	STR_VOLUME_HIGH:                    {"high", "alto", "alto", "élevé", "hoch", "wysoki", "高档", "yüksek", "высокий", "hoog", "висока", "cao", "크게"},
-	STR_VOLUME_LOUD:                    {"loud", "massimo", "fuerte", "fort", "laut", "głośny", "高", "gürültülü", "громкий", "luidruchtig", "гучний", "to", "아주 크게"},
-	STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "muet", "stumm", "wyciszony", "静音", "sessiz", "немой", "stom", "німий", "im lặng", "음소거"},
-	STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts", "nic", "无声", "hiçbir şey", "", "Niets", "нічого", "không có gì", "음소거"},
-	STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still", "cichy", "悄声", "sessiz", "тихий", "stil", "тихий", "yên lặng", "조용"},
-	STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus", "wyłączony", "关闭", "kapalı", "выключить", "uit", "вимкнути", "tắt", "꺼"},
-	STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "null", "zero", "零", "sıfır", "ноль", "nul", "нуль", "không", "영"},
-	STR_NAME_IS:                        {" is ", " è ", " es ", " est ", " ist ", " to ", "到", " olan ", "", " is ", "", " là ", "은 "},
-	STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się ", "的", "'nin", "", "", "", "của", "의 "},
-	STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię", "名字", "adlar", "имена", "namen", "імена", "tên", "이름은"},
-	STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla ", "给", " için ", "для", " voor ", " для ", " cho ", " 위해 "},
-	STR_ZERO:							{"zero","zero","zero","zéro","zero","zero","zero","zero","zero","zero","zero","zero","영"},
-	STR_ONE:							{"one","uno","one","un","one","one","one","one","one","one","one","one","일"},
-	STR_TWO:							{"two","due","two","deux","two","two","two","two","two","two","two","two","이"},
-	STR_THREE:							{"three","tre","three","trois","three","three","three","three","three","three","three","three","삼"},
-	STR_FOUR:							{"four","quattro","four","quatre","four","four","four","four","four","four","four","four","사"},
-	STR_FIVE:							{"five","cinque","five","cinq","five","five","five","five","five","five","five","five","오"},
-	STR_SIX:							{"six","sei","six","six","six","six","six","six","six","six","six","six","육"},
-	STR_SEVEN:							{"seven","sette","seven","sept","seven","seven","seven","seven","seven","seven","seven","seven","칠"},
-	STR_EIGHT:							{"eight","otto","eight","huit","eight","eight","eight","eight","eight","eight","eight","eight","팔"},
-	STR_NINE:							{"nine","nove","nine","neuf","nine","nine","nine","nine","nine","nine","nine","nine","구"},
-	STR_TEN:							{"ten","dieci","ten","dix","ten","ten","ten","ten","ten","ten","ten","ten","십"},
-	STR_ELEVEN:							{"eleven","undici","eleven","onze","eleven","eleven","eleven","eleven","eleven","eleven","eleven","eleven","십일"},
-	STR_TWELVE:							{"twelve","dodici","twelve","douze","twelve","twelve","twelve","twelve","twelve","twelve","twelve","twelve","십이"},
-	STR_THIRTEEN:						{"thirteen","tredici","thirteen","treize","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","십삼"},
-	STR_FOURTEEN:						{"fourteen","quattordici","fourteen","quatorze","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","십사"},
-	STR_FIFTEEN:						{"fifteen","quindici","fifteen","quinze","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","십오"},
-	STR_SIXTEEN:						{"sixteen","sedici","sixteen","seize","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","십육"},
-	STR_SEVENTEEN:						{"seventeen","diciassette","seventeen","dix-sept","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","십칠"},
-	STR_EIGHTEEN:						{"eighteen","diciotto","eighteen","dix-huit","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","십팔"},
-	STR_NINETEEN:						{"nineteen","diciannove","nineteen","dix-neuf","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","십구"},
-	STR_TWENTY:							{"twenty","venti","twenty","vingt","twenty","twenty","twenty","twenty","twenty","twenty","twenty","twenty","이십"},
-	STR_THIRTY:							{"thirty","trenta","thirty","trente","thirty","thirty","thirty","thirty","thirty","thirty","thirty","thirty","삼십"},
-	STR_FOURTY:							{"fourty","quaranta","fourty","quarante","fourty","fourty","fourty","fourty","fourty","fourty","fourty","fourty","사십"},
-	STR_FIFTY:							{"fifty","cinquanta","fifty","cinquante","fifty","fifty","fifty","fifty","fifty","fifty","fifty","fifty","오십"},
-	STR_SIXTY:							{"sixty","sessanta","sixty","soixante","sixty","sixty","sixty","sixty","sixty","sixty","sixty","sixty","육십"},
-	STR_SEVENTY:						{"seventy","settantta","seventy","soixante-dix","seventy","seventy","seventy","seventy","seventy","seventy","seventy","seventy","칠십"},
-	STR_EIGHTY:							{"eighty","ottanta","eighty","quatre-vingt","eighty","eighty","eighty","eighty","eighty","eighty","eighty","eighty","팔십"},
-	STR_NINETY:							{"ninety","novanta","ninety","quatre vingt dix","ninety","ninety","ninety","ninety","ninety","ninety","ninety","ninety","구십"},
-	STR_ONE_HUNDRED:					{"one hundred","cento","one hundred","cent","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","백"},
-	STR_ONE_HOUR:						{"one hour","un'ora","one hour","une heure","one hour","one hour","one hour","one hour","one hour","one hour","one hour","one hour","한 시간"},
-	STR_ONE_HOUR_ALT:					{"an hour","un ora","an hour","une heure","an hour","an hour","an hour","an hour","an hour","an hour","an hour","an hour","한 시간"},
-	STR_HOUR:							{"hour","ore","hour","heure","hour","hour","hour","hour","hour","hour","hour","hour","시간"},
-	STR_MINUTE:							{"minute","minuti","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","분"},
-	STR_SECOND:							{"second","secondi","second","seconde","second","second","second","second","second","second","second","second","초"},
+	STR_WEATHER_IN:                     {" in ", " a ", " en ", " en ", " in ", " w ", " 的 ", " içinde ", " в ", " in ", " в ", " ở ", "의 ", " στην "},
+STR_WEATHER_FORECAST:               {"forecast", "previsioni", "pronóstico", "prévisions", "wettervorhersage", "prognoza", "预报", "tahmin", "прогноз", "voorspelling", "прогноз", "dự báo", "일기 예보", "πρόγνωση"},
+STR_WEATHER_TOMORROW:               {"tomorrow", "domani", "mañana", "demain", "morgen", "jutro", "明天", "yarın", "завтра", "morgen", "завтра", "ngày mai", "내일", "αύριο"},
+STR_WEATHER_THE_DAY_AFTER_TOMORROW: {"day after tomorrow", "dopodomani", "el día después de mañana", "lendemain de demain", "am tag nach morgen", "pojutrze", "后天", "yarından sonra", "послезавтра", "overmorgen", "післязавтра", "ngày mốt", "모레", "μεθαύριο"},
+STR_WEATHER_TONIGHT:                {"tonight", "stasera", "esta noche", "ce soir", "heute abend", "dziś wieczorem", "今晚", "bu gece", "сегодня вечером", "vanavond", "сьогодні ввечері", "tối nay", "오늘 밤", "απόψε"},
+STR_WEATHER_THIS_AFTERNOON:         {"afternoon", "pomeriggio", "esta tarde", "après-midi", "heute nachmittag", "popołudniu", "下午", "bu öğleden sonra", "после полудня", "middag", "після полудня", "chiều nay", "오후", "απόγευμα"},
+STR_EYE_COLOR_PURPLE:               {"purple", "lilla", "violeta", "violet", "violett", "fioletowy", "紫色", "mor", "фиолетовый", "paars", "фіолетовий", "màu tím", "보라색", "μωβ"},
+STR_EYE_COLOR_BLUE:                 {"blue", "blu", "azul", "bleu", "blau", "niebieski", "蓝色", "mavi", "голубой", "blauw", "голубий", "màu xanh", "파란색", "μπλε"},
+STR_EYE_COLOR_SAPPHIRE:             {"sapphire", "zaffiro", "zafiro", "saphir", "saphir", "szafir", "天蓝", "safir", "синий", "saffier", "синій", "màu ngọc bích", "사파이어색", "ζαφείρι"},
+STR_EYE_COLOR_YELLOW:               {"yellow", "giallo", "amarillo", "jaune", "gelb", "żółty", "黄色", "sarı", "жёлтый", "geel", "жовтий", "màu vàng", "노란색", "κίτρινο"},
+STR_EYE_COLOR_TEAL:                 {"teal", "verde acqua", "verde azulado", "sarcelle", "blaugrün", "morski", "浅绿", "teal", "бирюзовый", "wintertaling", "бірюзовий", "xanh lá cây", "청록색", "πετρόλ"},
+STR_EYE_COLOR_TEAL2:                {"tell", "acquamarina", "aguamarina", "acquamarine", "acquamarina", "akwamaryn", "蓝绿", "turkuaz", "аквамарин", "vertellen", "аквамариновий", "màu xanh ngọc", "아쿠아마린색", "ακουαμαρίν"},
+STR_EYE_COLOR_GREEN:                {"green", "verde", "verde", "vert", "grün", "zielony", "绿色", "yeşil", "зелёный", "groente", "зелений", "màu xanh lá", "초록색", "πράσινο"},
+STR_EYE_COLOR_ORANGE:               {"orange", "arancio", "naranja", "orange", "orange", "pomarańczowy", "橙色", "turuncu", "оранжевый", "oranje", "оранжевий", "màu cam", "주황색", "πορτοκαλί"},
+STR_ME:                             {"me", "me", "me", "moi", "mir", "mnie", "我", "ben", "меня", "mij", "мене", "tôi", "나", "εμένα"},
+STR_SELF:                           {"self", "mi", "mía", "moi", "mein", "ja", "自己", "kendim", "себя", "zelf", "себе", "bản thân", "본인", "εαυτό μου"},
+STR_VOLUME_LOW:                     {"low", "minimo", "bajo", "bas", "niedrig", "niski", "低", "düşük", "низкий", "laag", "на мінімум", "thấp", "아주 작게", "χαμηλά"},
+STR_VOLUME_QUIET:                   {"quiet", "basso", "tranquilo", "silencieux", "ruhig", "cichy", "安静", "sessiz", "тихо", "rustig", "тихо", "yên tĩnh", "작게", "ήσυχα"},
+STR_VOLUME_MEDIUM_LOW:              {"medium low", "medio basso", "medio-bajo", "moyen bas", "mittelschwer", "średnio niski", "中低", "orta düşük", "ниже среднего", "middel laag", "нижче середнього", "vừa thấp", "조금 작게", "μέτρια χαμηλά"},
+STR_VOLUME_MEDIUM:                  {"medium", "medio", "medio", "moyen", "mittel", "średni", "中档", "orta", "средний", "medium", "середню", "vừa", "중간", "μέτρια"},
+STR_VOLUME_NORMAL:                  {"normal", "normale", "normal", "normal", "normal", "normalny", "正常", "normal", "нормальный", "normaal", "нормальна", "bình thường", "보통", "κανονικά"},
+STR_VOLUME_REGULAR:                 {"regular", "regolare", "regular", "standard", "regulär", "zwyczajny", "标准", "düzenli", "обычный", "normaal", "звичайна", "thông thường", "보통", "κανονικά"},
+STR_VOLUME_MEDIUM_HIGH:             {"medium high", "medio alto", "medio-alto", "moyen-élevé", "mittelhoch", "średno wysoki", "中高", "orta yüksek", "выше среднего", "gemiddeld hoog", "вище середнього", "vừa cao", "조금 크게", "μέτρια δυνατά"},
+STR_VOLUME_HIGH:                    {"high", "alto", "alto", "élevé", "hoch", "wysoki", "高档", "yüksek", "высокий", "hoog", "висока", "cao", "크게", "δυνατά"},
+STR_VOLUME_LOUD:                    {"loud", "massimo", "fuerte", "fort", "laut", "głośny", "高", "gürültülü", "громкий", "luidruchtig", "гучний", "to", "아주 크게", "πολύ δυνατά"},
+STR_VOLUME_MUTE:                    {"mute", "muto", "mudo", "muet", "stumm", "wyciszony", "静音", "sessiz", "немой", "stom", "німий", "im lặng", "음소거", "σίγαση"},
+STR_VOLUME_NOTHING:                 {"nothing", "nessuno", "nada", "rien", "nichts", "nic", "无声", "hiçbir şey", "", "Niets", "нічого", "không có gì", "음소거", "τίποτα"},
+STR_VOLUME_SILENT:                  {"silent", "silenzioso", "silencio", "silencieux", "still", "cichy", "悄声", "sessiz", "тихий", "stil", "тихий", "yên lặng", "조용", "αθόρυβα"},
+STR_VOLUME_OFF:                     {"off", "spento", "apagado", "éteindre", "aus", "wyłączony", "关闭", "kapalı", "выключить", "uit", "вимкнути", "tắt", "꺼", "απενεργοποίηση"},
+STR_VOLUME_ZERO:                    {"zero", "zero", "cero", "zéro", "null", "zero", "零", "sıfır", "ноль", "nul", "нуль", "không", "영", "μηδέν"},
+STR_NAME_IS:                        {" is ", " è ", " es ", " est ", " ist ", " to ", "到", " olan ", "", " is ", "", " là ", "은 ", " είναι "},
+STR_NAME_IS2:                       {"'s", "sono ", "soy ", "suis ", "bin ", " się ", "的", "'nin", "", "", "", "của", "의 ", "του "},
+STR_NAME_IS3:                       {"names", " chiamo ", " llamo ", "appelle ", "werde", "imię", "名字", "adlar", "имена", "namen", "імена", "tên", "이름은", "ονόματα"},
+STR_FOR:                            {" for ", " per ", " para ", " pour ", " für ", " dla ", "给", " için ", "для", " voor ", " для ", " cho ", " 위해 ", " για "},
+STR_ZERO:                           {"zero","zero","zero","zéro","zero","zero","zero","zero","zero","zero","zero","zero","영","μηδέν"},
+STR_ONE:                            {"one","uno","one","un","one","one","one","one","one","one","one","one","일","ένα"},
+STR_TWO:                            {"two","due","two","deux","two","two","two","two","two","two","two","two","이","δύο"},
+STR_THREE:                          {"three","tre","three","trois","three","three","three","three","three","three","three","three","삼","τρία"},
+STR_FOUR:                           {"four","quattro","four","quatre","four","four","four","four","four","four","four","four","사","τέσσερα"},
+STR_FIVE:                           {"five","cinque","five","cinq","five","five","five","five","five","five","five","five","오","πέντε"},
+STR_SIX:                            {"six","sei","six","six","six","six","six","six","six","six","six","six","육","έξι"},
+STR_SEVEN:                          {"seven","sette","seven","sept","seven","seven","seven","seven","seven","seven","seven","seven","칠","επτά"},
+STR_EIGHT:                          {"eight","otto","eight","huit","eight","eight","eight","eight","eight","eight","eight","eight","팔","οκτώ"},
+STR_NINE:                           {"nine","nove","nine","neuf","nine","nine","nine","nine","nine","nine","nine","nine","구","εννέα"},
+STR_TEN:                            {"ten","dieci","ten","dix","ten","ten","ten","ten","ten","ten","ten","ten","십","δέκα"},
+STR_ELEVEN:                         {"eleven","undici","eleven","onze","eleven","eleven","eleven","eleven","eleven","eleven","eleven","eleven","십일","έντεκα"},
+STR_TWELVE:                         {"twelve","dodici","twelve","douze","twelve","twelve","twelve","twelve","twelve","twelve","twelve","twelve","십이","δώδεκα"},
+STR_THIRTEEN:                       {"thirteen","tredici","thirteen","treize","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","thirteen","십삼","δεκατρία"},
+STR_FOURTEEN:                       {"fourteen","quattordici","fourteen","quatorze","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","fourteen","십사","δεκατέσσερα"},
+STR_FIFTEEN:                        {"fifteen","quindici","fifteen","quinze","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","fifteen","십오","δεκαπέντε"},
+STR_SIXTEEN:                        {"sixteen","sedici","sixteen","seize","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","sixteen","십육","δεκαέξι"},
+STR_SEVENTEEN:                      {"seventeen","diciassette","seventeen","dix-sept","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","seventeen","십칠","δεκαεπτά"},
+STR_EIGHTEEN:                       {"eighteen","diciotto","eighteen","dix-huit","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","eighteen","십팔","δεκαοκτώ"},
+STR_NINETEEN:                       {"nineteen","diciannove","nineteen","dix-neuf","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","nineteen","십구","δεκαεννέα"},
+STR_TWENTY:                         {"twenty","venti","twenty","vingt","twenty","twenty","twenty","twenty","twenty","twenty","twenty","twenty","이십","είκοσι"},
+STR_THIRTY:                         {"thirty","trenta","thirty","trente","thirty","thirty","thirty","thirty","thirty","thirty","thirty","thirty","삼십","τριάντα"},
+STR_FOURTY:                         {"fourty","quaranta","fourty","quarante","fourty","fourty","fourty","fourty","fourty","fourty","fourty","fourty","사십","σαράντα"},
+STR_FIFTY:                          {"fifty","cinquanta","fifty","cinquante","fifty","fifty","fifty","fifty","fifty","fifty","fifty","fifty","오십","πενήντα"},
+STR_SIXTY:                          {"sixty","sessanta","sixty","soixante","sixty","sixty","sixty","sixty","sixty","sixty","sixty","sixty","육십","εξήντα"},
+STR_SEVENTY:                        {"seventy","settantta","seventy","soixante-dix","seventy","seventy","seventy","seventy","seventy","seventy","seventy","seventy","칠십","εβδομήντα"},
+STR_EIGHTY:                         {"eighty","ottanta","eighty","quatre-vingt","eighty","eighty","eighty","eighty","eighty","eighty","eighty","eighty","팔십","ογδόντα"},
+STR_NINETY:                         {"ninety","novanta","ninety","quatre vingt dix","ninety","ninety","ninety","ninety","ninety","ninety","ninety","ninety","구십","ενενήντα"},
+STR_ONE_HUNDRED:                    {"one hundred","cento","one hundred","cent","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","one hundred","백","εκατό"},
+STR_ONE_HOUR:                       {"one hour","un'ora","one hour","une heure","one hour","one hour","one hour","one hour","one hour","one hour","one hour","one hour","한 시간","μία ώρα"},
+STR_ONE_HOUR_ALT:                   {"an hour","un ora","an hour","une heure","an hour","an hour","an hour","an hour","an hour","an hour","an hour","an hour","한 시간","μια ώρα"},
+STR_HOUR:                           {"hour","ore","hour","heure","hour","hour","hour","hour","hour","hour","hour","hour","시간","ώρα"},
+STR_MINUTE:                         {"minute","minuti","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","분","λεπτό"},
+STR_SECOND:                         {"second","secondi","secondo","seconde","second","seconda","seconda","seconda","seconda","seconda","seconda","seconda","초","δευτερόλεπτο"},
+STR_HOUR_PLURAL:                    {"hour","ore","hour","heure","hour","hour","hour","hour","hour","hour","hour","hour","시간","ώρες"},
+STR_MINUTE_PLURAL:                  {"minute","minuti","minute","minute","minute","minute","minute","minute","minute","minute","minute","minute","분","λεπτά"},
+STR_SECOND_PLURAL:                  {"second","secondi","secondo","seconde","second","seconda","seconda","seconda","seconda","seconda","seconda","seconda","초","δευτερόλεπτα"},
 }
 
 func GetText(key string) string {
@@ -246,6 +252,10 @@ func GetText(key string) string {
 			return data[11]
 		} else if vars.APIConfig.STT.Language == "ko-KR" {
 			return data[12]
+} else if vars.APIConfig.STT.Language == "el-GR" {
+			return data[13]
+		} else {
+			return data[0]
 		}
 	}
 	return data[0]
