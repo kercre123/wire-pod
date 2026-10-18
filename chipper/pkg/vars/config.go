@@ -37,6 +37,7 @@ type apiConfig struct {
 		TopP                   float32 `json:"top_p"`
 		Temperature            float32 `json:"temp"`
 	} `json:"knowledge"`
+	Productivity ProductivityConfig `json:"productivity"`
 	STT struct {
 		Service  string `json:"provider"`
 		Language string `json:"language"`
