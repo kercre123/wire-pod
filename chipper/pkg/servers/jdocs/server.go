@@ -112,7 +112,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
 					// export to ./session-certs
 					os.WriteFile(vars.SessionCertPath+"/"+esn, tokenserver.SessionWriteStoreCerts[num], 0755)
-					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
+					WriteToIniPrimary(pair[1], esn, botGUID, vars.GetRobotDialTarget(esn, ipAddr))
 					vars.AddToRInfo(esn, pair[1], ipAddr)
 					tokenserver.RemoveFromSessionStore(num)
 					logger.Println("Session certificate successfully output")
@@ -128,7 +128,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					// creates apptoken jdoc file
 					tokenserver.WriteTokenHash(esn, hash)
 					if !sessionMatched {
-						WriteToIniSecondary(esn, guid, ipAddr)
+						WriteToIniSecondary(esn, guid, vars.GetRobotDialTarget(esn, ipAddr))
 					}
 					// bot is not authenticated yet, do not write to botinfo json
 					tokenJdoc, _ := vars.GetJdoc(req.Thing, "vic.AppToken")

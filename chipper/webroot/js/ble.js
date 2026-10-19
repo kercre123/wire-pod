@@ -11,6 +11,7 @@ function showBotAuth() {
   GetLog = false;
   toggleSections("section-botauth", "icon-BotAuth");
   checkBLECapability();
+  checkProxyMode();
 }
 
 function toggleSections(showSection, icon) {
@@ -338,5 +339,205 @@ function doOnboard(withAnim) {
     disconnectButtonDiv.innerHTML = `
       <button onclick="checkBLECapability()">Return to pair instructions</button>
     `;
+  });
+}
+
+// --- Robot LAN addresses (proxy mode only) ---------------------------------
+//
+// Gated on server.proxy_mode via the existing /api/get_config, which already
+// returns the whole APIConfig, so no extra endpoint is needed for the gate.
+// A default install never sets the flag and never sees any of this.
+
+function checkProxyMode() {
+  fetch("/api/get_config")
+    .then((response) => response.json())
+    .then((config) => {
+      const enabled = config && config.server && config.server.proxy_mode === true;
+      document.getElementById("proxyRobotSection").style.display = enabled ? "block" : "none";
+      if (enabled) {
+        loadProxyRobots();
+      }
+    })
+    .catch(() => {
+      // A failed gate check must leave the section hidden rather than
+      // exposing controls that would not apply.
+      document.getElementById("proxyRobotSection").style.display = "none";
+    });
+}
+
+// `note` carries a message from a preceding save. Without it the refresh this
+// function performs would immediately wipe that confirmation off the screen.
+function loadProxyRobots(note) {
+  const list = document.getElementById("proxyRobotList");
+  const status = document.getElementById("proxyRobotStatus");
+  // Deliberately no "Loading..." placeholder when the table is already on
+  // screen. Emptying the list first collapsed it to a single line and dropped
+  // everything below it up the page, then put it back when the fetch landed
+  // ~10ms later -- a jolt that reads as a full page reload. Build the
+  // replacement off-DOM and swap it in one go, so the height never changes.
+  if (!list.hasChildNodes()) {
+    list.innerHTML = "<p>Loading robots...</p>";
+  }
+
+  fetch("/api/get_robots")
+    .then((response) => response.json())
+    .then((robots) => {
+      if (!robots || robots.length === 0) {
+        list.innerHTML = "<p>No robots known to wire-pod yet. Authenticate a robot first.</p>";
+      } else {
+        const parts = document.createDocumentFragment();
+        parts.appendChild(buildProxyRobotTable(robots));
+
+        // One Save under the whole table, centred like the rest of the page.
+        const saveRow = document.createElement("div");
+        const save = document.createElement("button");
+        save.type = "button";
+        save.innerHTML = "Save";
+        save.onclick = saveProxyRobotAddresses;
+        saveRow.appendChild(save);
+        parts.appendChild(saveRow);
+
+        list.replaceChildren(parts);
+        prefillSSHIp(robots);
+      }
+      // The list is rebuilt identically when nothing has changed, and on a LAN
+      // the fetch is too quick to see, so without a timestamp the button looks
+      // dead and the serial looks hard-coded. Both are the same missing signal.
+      const count = robots ? robots.length : 0;
+      status.innerHTML =
+        (note ? "<p>" + note + "</p>" : "") +
+        "<small class=\"desc\">Checked " + new Date().toLocaleTimeString() +
+        " — " + count + (count === 1 ? " robot" : " robots") +
+        " known to wire-pod.</small>";
+    })
+    .catch((err) => {
+      list.innerHTML = "";
+      status.innerHTML = "<p>Error loading robots: " + err + "</p>";
+    });
+}
+
+// The OSKR flow below asks for the same address this section configures. Fill
+// it in from what is already known rather than asking twice.
+//
+// Only ever from configured_address: effective_target falls back to the
+// observed peer address, which behind a proxy is the proxy itself -- prefilling
+// that would point an SSH setup at the wrong host entirely. The field stays
+// editable because a robot being set up for the first time is not yet known.
+function prefillSSHIp(robots) {
+  const sshIp = document.getElementById("sshIp");
+  const hint = document.getElementById("sshIpHint");
+  if (!sshIp || sshIp.value) {
+    return;
+  }
+  const known = robots.find((robot) => robot.configured_address);
+  if (!known) {
+    return;
+  }
+  sshIp.value = known.configured_address;
+  if (hint) {
+    hint.innerHTML =
+      "<small class=\"desc\">Filled in from the LAN address set above for " +
+      known.esn + ". Change it if you are setting up a different robot.</small>";
+  }
+}
+
+// One row per robot. A table because the interesting comparison is down the
+// columns -- every robot is seen at the same proxy address, and that repetition
+// is only visible when the values line up under each other.
+function buildProxyRobotTable(robots) {
+  const table = document.createElement("table");
+  table.className = "table";
+
+  const head = table.createTHead().insertRow();
+  ["Robot", "Seen at", "Dialling", "LAN address"].forEach((text) => {
+    const th = document.createElement("th");
+    th.innerHTML = text;
+    head.appendChild(th);
+  });
+
+  const body = table.createTBody();
+  robots.forEach((robot) => body.appendChild(buildProxyRobotRow(robot)));
+  return table;
+}
+
+// One line per robot. The proxy address is explained once in the section
+// description, so it is not repeated under every row -- that sub-line was what
+// made the rows double height.
+function buildProxyRobotRow(robot) {
+  const row = document.createElement("tr");
+
+  const esn = row.insertCell();
+  esn.innerHTML =
+    "<b>" + robot.esn + "</b>" +
+    (robot.activated ? "" : " <small class=\"desc\">(not authenticated)</small>");
+
+  row.insertCell().innerHTML = robot.observed_address;
+  row.insertCell().innerHTML = robot.effective_target;
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.id = "lanAddr-" + robot.esn;
+  input.placeholder = "blank to clear";
+  input.value = robot.configured_address || "";
+  // The original is kept on the element so Save can write only what changed,
+  // rather than re-POSTing every row on every press.
+  input.dataset.esn = robot.esn;
+  input.dataset.original = robot.configured_address || "";
+  input.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveProxyRobotAddresses();
+    }
+  };
+  row.insertCell().appendChild(input);
+
+  return row;
+}
+
+// A single Save for the whole table, so several robots can be corrected in one
+// pass. Only changed rows are sent.
+//
+// The API takes one robot per call, so this fans out and uses allSettled rather
+// than all: a partial failure must still report which rows did save, or the
+// operator cannot tell what state they are in.
+function saveProxyRobotAddresses() {
+  const status = document.getElementById("proxyRobotStatus");
+  const inputs = Array.from(
+    document.querySelectorAll("#proxyRobotList input[data-esn]")
+  );
+  const changed = inputs.filter((i) => i.value.trim() !== i.dataset.original);
+
+  if (changed.length === 0) {
+    status.innerHTML = "<p>No changes to save.</p>";
+    return;
+  }
+
+  Promise.allSettled(
+    changed.map((input) =>
+      fetch("/api/set_robot_lan_address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ esn: input.dataset.esn, address: input.value.trim() }),
+      }).then(async (response) => {
+        const text = (await response.text()).trim();
+        if (!response.ok) {
+          throw new Error(input.dataset.esn + ": " + text);
+        }
+        return input.dataset.esn;
+      })
+    )
+  ).then((results) => {
+    const saved = results.filter((r) => r.status === "fulfilled").map((r) => r.value);
+    const failed = results.filter((r) => r.status === "rejected").map((r) => r.reason.message);
+    let note = "";
+    if (saved.length) {
+      note += "Saved " + saved.join(", ") + ".";
+    }
+    if (failed.length) {
+      note += (note ? " " : "") + "Failed — " + failed.join("; ");
+    }
+    // Handed to the refresh rather than set here, or the refresh that follows
+    // would overwrite it before it could be read.
+    loadProxyRobots(note);
   });
 }

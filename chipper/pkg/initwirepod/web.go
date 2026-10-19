@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
@@ -29,6 +30,16 @@ func ChipperHTTPApi(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: port is invalid")
 			return
 		}
+		// Parse the proxy fields BEFORE generating anything: the certificate
+		// bakes in the robot-facing address, so the config must be populated
+		// first or the cert would cover the wrong name.
+		robotFacing := strings.TrimSpace(r.FormValue("robot_facing_address"))
+		if err := vars.ValidateRobotFacingAddress(robotFacing); err != nil {
+			fmt.Fprint(w, "error: robot-facing address is invalid: "+err.Error())
+			return
+		}
+		vars.APIConfig.Server.ProxyMode = r.FormValue("proxy_mode") == "true"
+		vars.APIConfig.Server.RobotFacingAddress = robotFacing
 		vars.APIConfig.Server.EPConfig = false
 		vars.APIConfig.Server.Port = port
 		err = botsetup.CreateCertCombo()
@@ -44,6 +55,10 @@ func ChipperHTTPApi(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-chipper/use_ep":
+		// proxy_mode is meaningful in EP mode too -- it gates the per-robot
+		// address UI, which is exactly what a proxied EP install needs. The
+		// robot-facing address is not: EP mode hardcodes escapepod.local.
+		vars.APIConfig.Server.ProxyMode = r.FormValue("proxy_mode") == "true"
 		vars.APIConfig.Server.EPConfig = true
 		vars.APIConfig.Server.Port = "443"
 		vars.APIConfig.PastInitialSetup = true

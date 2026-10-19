@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
 )
@@ -163,7 +164,7 @@ func ChangeGUIDInIni(esn string) {
 		for _, section := range userIniData.Sections() {
 			if strings.EqualFold(section.Name(), esn) {
 				matched = true
-				section.Key("ip").SetValue(robot.IPAddress)
+				section.Key("ip").SetValue(vars.GetRobotDialTarget(robot.Esn, robot.IPAddress))
 				if robot.GUID == "" {
 					section.Key("guid").SetValue(vars.BotInfo.GlobalGUID)
 				} else {
@@ -181,6 +182,75 @@ func ChangeGUIDInIni(esn string) {
 func GenerateUUID() string {
 	uuid := uuid.New()
 	return uuid.String()
+}
+
+// esnFromRequestToken returns the ESN that the robot's own token claims, or ""
+// when it cannot be determined.
+//
+// The robot presents its JWT as gRPC metadata "anki-access-token", carrying
+// requestor_id = "vic:<esn>" that wire-pod itself wrote when it issued the
+// token. Behind a proxy the peer address is shared by every robot, so this is
+// the only per-robot signal available on a refresh.
+//
+// It is a disambiguation hint, not an authentication check: wire-pod signs
+// every JWT with a freshly generated RSA key it then discards, so there is
+// nothing to verify a signature against. The result is used only when it names
+// a robot already in the store, so it can select among known robots but never
+// invent one, and its one caller is gated on proxy_mode.
+func esnFromRequestToken(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	values := md.Get("anki-access-token")
+	if len(values) == 0 {
+		return ""
+	}
+
+	claims := jwt.MapClaims{}
+	parser := jwt.Parser{SkipClaimsValidation: true}
+	if _, _, err := parser.ParseUnverified(strings.TrimSpace(values[0]), claims); err != nil {
+		return ""
+	}
+	requestor, _ := claims["requestor_id"].(string)
+	esn := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(requestor), "vic:"))
+	if esn == "" {
+		return ""
+	}
+
+	// Only trust it if it names a robot we already know. A token issued before
+	// association carries the hardcoded placeholder requestor_id, which will
+	// not match a stored robot and so falls through to the address path.
+	for _, robot := range vars.BotInfo.Robots {
+		if strings.EqualFold(strings.TrimSpace(robot.Esn), esn) {
+			return robot.Esn
+		}
+	}
+	return ""
+}
+
+// resolveTokenRequestESN decides which robot a token request belongs to. The
+// peer address wins, except behind a proxy where every robot shares one and the
+// token's claim is the only thing telling them apart.
+//
+// Gated because preferring the claim also clears the error, and that is what
+// routes CreateJWT into persisting SetBotGUID and ChangeGUIDInIni. The claim is
+// unverifiable, so ungated it would let anyone knowing an ESN rotate that
+// robot's GUID.
+func resolveTokenRequestESN(ctx context.Context, ipAddr string) (string, error) {
+	esn, err := GetEsnFromTarget(ipAddr)
+	if !vars.APIConfig.Server.ProxyMode {
+		return esn, err
+	}
+	tokenESN := esnFromRequestToken(ctx)
+	if tokenESN == "" {
+		return esn, err
+	}
+	if err != nil || !strings.EqualFold(tokenESN, esn) {
+		logger.Println("Token names robot " + tokenESN + " for request from " + ipAddr +
+			"; using it in preference to the peer address")
+	}
+	return tokenESN, nil
 }
 
 func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.TokenBundle {
@@ -201,7 +271,7 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 	// get esn using ip address of request
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
-	esn, err := GetEsnFromTarget(ipAddr)
+	esn, err := resolveTokenRequestESN(ctx, ipAddr)
 
 	// secondary handler
 	if err == nil {

@@ -593,3 +593,43 @@ input[type='checkbox']:checked:after {
   margin-left: 5px;
   word-break: break-word;
 }
+
+/* Robot LAN address table (proxy mode only).
+   Scoped to the section so the shared .table rules keep serving every other
+   table unchanged. .table is width:100% and left-aligned, which on this page --
+   centred throughout, 950px wide, 1.8em body text -- left a single robot's row
+   stranded across the full column. This sizes to its content and centres, and
+   drops the type down so the rows read as a compact list rather than a grid. */
+#proxyRobotList table {
+  width: auto;
+  margin: 0 auto 0.8em auto;
+}
+
+#proxyRobotList th,
+#proxyRobotList td {
+  /* td and th are absent from the h1..label rule that gives everything else the
+     page's font and white text, and neither html nor body sets a colour, so
+     cells fell back to the browser default in wing.css's -apple-system stack:
+     a different typeface in a different colour from the text around them.
+     0.8em is what <small> resolves to, which is the neighbouring copy. */
+  font-family: var(--body-font-family);
+  color: var(--text-color);
+  font-size: 0.8em;
+  /* .table sets text-align:left; the rest of this page is centred. */
+  text-align: center;
+  padding: 5px 16px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--bg-color-alt);
+}
+
+/* The shared rule uses #333030, which is invisible against this background. */
+#proxyRobotList thead th {
+  border-bottom: 2px solid var(--fg-color);
+}
+
+/* wing.css pads every input by 1.1rem, which on its own made each row nearly
+   three lines tall. */
+#proxyRobotList input[type="text"] {
+  padding: 7px 10px;
+  width: 185px;
+}

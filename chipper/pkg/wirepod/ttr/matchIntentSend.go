@@ -202,7 +202,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 				for _, bot := range vars.BotInfo.Robots {
 					if bot.Esn == botSerial {
 						guid = bot.GUID
-						target = bot.IPAddress + ":443"
+						target = vars.GetRobotDialTarget(bot.Esn, bot.IPAddress) + ":443"
 					}
 				}
 				intent, pluginResponse = PluginFunctions[num](voiceText, botSerial, guid, target)

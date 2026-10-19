@@ -21,6 +21,7 @@ import (
 	wpweb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/config-ws"
 	wp "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
+	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
 	"github.com/soheilhy/cmux"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
@@ -168,6 +169,17 @@ func StartChipper() {
 				logger.Println("wire-pod is not setup.")
 				return
 			}
+		}
+	}
+
+	// Read-only coherence check: regenerating to fix a mismatch would de-pair
+	// every robot, so this only reports. Skipped for the unspecified address,
+	// which is what GetOutboundIP returns with no route -- warning that a good
+	// certificate fails to cover 0.0.0.0 is noise. ParseIP is nil for a
+	// hostname and nil.IsUnspecified is false, so hostnames still get checked.
+	if !vars.APIConfig.Server.EPConfig {
+		if addr := vars.GetRobotFacingAddress(); !net.ParseIP(addr).IsUnspecified() {
+			botsetup.WarnIfCertMissesAddress(addr)
 		}
 	}
 
