@@ -1,5 +1,15 @@
 var botStats = document.getElementById("botStats");
 
+// serial -> nickname, filled from get_sdk_info
+var botNicknames = {};
+
+function tooltipTitle(serial) {
+  if (botNicknames[serial]) {
+    return `<b>${escapeHTML(botNicknames[serial])}</b><br/>${serial}`;
+  }
+  return `<b>${serial}</b>`;
+}
+
 const holidayLightGifs = [
   "faceholidaylights.gif",
   "faceholidaylights1.gif",
@@ -72,7 +82,7 @@ async function updateBatteryInfo(serial, i) {
     }
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
-    tooltip.innerHTML = `<b>${serial}</b><br/>??%<br/> (Unable to connect)`;
+    tooltip.innerHTML = `${tooltipTitle(serial)}<br/>??%<br/> (Unable to connect)`;
     setTimeout(async () => {
       // Re-render the battery information
       updateBatteryInfo(serial, i);
@@ -106,7 +116,7 @@ async function updateBatteryInfo(serial, i) {
   batteryLevel.style.width = batteryPercentage + "%";
 
   // Clear tooltip, and replace serial number and the latest voltage
-  tooltip.innerHTML = `<b>${serial}</b><br/>~${batteryPercentage}%<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
+  tooltip.innerHTML = `${tooltipTitle(serial)}<br/>~${batteryPercentage}%<br/> (${batteryStatus["battery_volts"].toFixed(2)}V)`;
 
   // Update the charging status
   if (batteryStatus["is_on_charger_platform"]) {
@@ -172,8 +182,15 @@ async function renderBatteryInfo(serial, i = 0) {
 
   var tooltip = document.createElement("span");
   tooltip.className = "tooltip";
-  tooltip.innerHTML = `<b>${serial}</b>`;
+  tooltip.innerHTML = tooltipTitle(serial);
   batteryContainer.appendChild(tooltip);
+
+  if (botNicknames[serial]) {
+    var botName = document.createElement("div");
+    botName.className = "botName";
+    botName.textContent = botNicknames[serial];
+    batteryContainer.appendChild(botName);
+  }
 
   // Create a new div to hold the battery status with a class of "batteryOutline", this will be the outline of the battery status
   var batteryOutline = document.createElement("div");
@@ -208,7 +225,7 @@ async function renderBatteryInfo(serial, i = 0) {
   if (!batteryStatus) {
     batteryLevel.className = "batteryLevel batteryUnknown";
     vectorFace.style.backgroundImage = "url(/assets/wififace.gif)";
-    tooltip.innerHTML = `<b>${serial}</b><br/>??<br/> (Unable to connect)`;
+    tooltip.innerHTML = `${tooltipTitle(serial)}<br/>??<br/> (Unable to connect)`;
     setTimeout(async () => {
       // Re-render the battery information
       updateBatteryInfo(serial, i);
@@ -259,6 +276,7 @@ async function processBotStats() {
 
     for (var i = 0; i < sdkInfo["robots"].length; i++) {
       const serial = sdkInfo["robots"][i]["esn"];
+      botNicknames[serial] = sdkInfo["robots"][i]["nickname"] || "";
 
       renderBatteryInfo(serial, i);
     }

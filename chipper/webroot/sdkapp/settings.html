@@ -19,13 +19,15 @@
 
   <div id="outer">
     <div id="content" class="">
-      <h1 class="center">Vector Configuration</h1>
+      <h1 class="center" id="robotTitle">Vector Configuration</h1>
       <div id="botStats"></div>
       <hr>
       <div class="main-nav-parent">
         <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-reply"></i><br />Back</a></div>
         <div class="main-nav-child"><a href="#" onclick="goToControlPage()"><i
               class="fa-solid fa-gamepad"></i><br />Control<br /></a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-name'); return false;"><i
+              class="fa-solid fa-signature" id="icon-name" name="icon"></i><br />Name</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i
               class="fa-solid fa-volume-high" id="icon-volume" name="icon"></i><br />Volume</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i
@@ -56,6 +58,18 @@
               class="fa-solid fa-hourglass" id="icon-timezone" name="icon"></i><br />Time Zone</a></div>
       </div>
       <hr>
+
+      <div id="section-name" class="toggleable-section" style="display:none;">
+        <h2 class="center">Name</h2>
+        <hr class="small-hr">
+        <p class="center">Give this robot a name to show in wire-pod instead of its serial number.</p>
+        <div class="center">
+          <input type="text" id="nicknameInput" maxlength="32" placeholder="e.g. Bluey">
+          <button onclick="saveNickname()">Save Name</button>
+        </div>
+        <p class="center" id="nicknameStatus"></p>
+        <hr>
+      </div>
 
       <div id="section-volume" class="toggleable-section" style="display:none;">
         <h2 class="center">Volume</h2>

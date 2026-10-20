@@ -8,7 +8,8 @@ getSDKInfo().then((jsonResp) => {
   }
   for (var i = 0; i < jsonResp["robots"].length; i++) {
     var option = document.createElement("option");
-    option.text = jsonResp["robots"][i]["esn"];
+    var robot = jsonResp["robots"][i];
+    option.text = robot["nickname"] ? `${robot["nickname"]} (${robot["esn"]})` : robot["esn"];
     option.value = jsonResp["robots"][i]["esn"];
     botList.add(option);
   }
