@@ -28,6 +28,8 @@
               class="fa-solid fa-gamepad"></i><br />Control<br /></a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-name'); return false;"><i
               class="fa-solid fa-signature" id="icon-name" name="icon"></i><br />Name</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-schedule'); return false;"><i
+              class="fa-solid fa-calendar-day" id="icon-schedule" name="icon"></i><br />Schedule</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i
               class="fa-solid fa-volume-high" id="icon-volume" name="icon"></i><br />Volume</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i
@@ -68,6 +70,31 @@
           <button onclick="saveNickname()">Save Name</button>
         </div>
         <p class="center" id="nicknameStatus"></p>
+        <hr>
+      </div>
+
+      <div id="section-schedule" class="toggleable-section" style="display:none;">
+        <h2 class="center">Schedule</h2>
+        <hr class="small-hr">
+        <div class="center">
+          <label><input type="checkbox" id="activeHoursEnabled"> Active hours</label>
+          <p>Outside these hours the robot goes to its charger and stays quiet
+            (times use this wire-pod computer's clock).</p>
+          <input type="time" id="activeStart" value="10:00"> to
+          <input type="time" id="activeEnd" value="20:00">
+          <br><br>
+          <label><input type="checkbox" id="playEnabled"> Play mode</label>
+          <p>During active hours, regularly start exploring, looking for people, or a trick.
+            Skipped when the battery is low or still charging.</p>
+          Every <input type="number" id="playInterval" min="1" max="1440" value="20" style="width: 4em;"> minutes
+          <br><br>
+          <label><input type="checkbox" id="playTogether"> Play with other robots</label>
+          <p>Sometimes play time becomes a joint activity with another robot that has this on:
+            exploring or dancing at the same time, or a short conversation
+            (written by your Knowledge Graph LLM if one is set up).</p>
+          <button onclick="saveSchedule()">Save Schedule</button>
+        </div>
+        <p class="center" id="scheduleStatus"></p>
         <hr>
       </div>
 

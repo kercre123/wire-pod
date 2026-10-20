@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -45,6 +46,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleSetKGAPI(w, r)
 	case "set_nickname":
 		handleSetNickname(w, r)
+	case "set_schedule":
+		handleSetSchedule(w, r)
 	case "get_kg_api":
 		handleGetKGAPI(w)
 	case "set_stt_info":
@@ -247,6 +250,45 @@ func handleSetNickname(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			logger.Println("Set nickname for " + bot.Esn + " to \"" + nickname + "\"")
+			fmt.Fprint(w, "success")
+			return
+		}
+	}
+	http.Error(w, "robot not found", http.StatusNotFound)
+}
+
+// handleSetSchedule stores a robot's active hours and play mode settings.
+func handleSetSchedule(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Esn      string             `json:"esn"`
+		Schedule vars.RobotSchedule `json:"schedule"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	sched := request.Schedule
+	if sched.ActiveHoursEnabled {
+		for _, clock := range []string{sched.ActiveStart, sched.ActiveEnd} {
+			if _, err := time.Parse("15:04", clock); err != nil {
+				http.Error(w, "active hours must be HH:MM (24-hour)", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+	if sched.PlayIntervalMinutes < 0 || sched.PlayIntervalMinutes > 24*60 {
+		http.Error(w, "play interval must be between 1 and 1440 minutes", http.StatusBadRequest)
+		return
+	}
+	for i, bot := range vars.BotInfo.Robots {
+		if bot.Esn == strings.TrimSpace(request.Esn) {
+			vars.BotInfo.Robots[i].Schedule = &sched
+			finalJsonBytes, _ := json.Marshal(vars.BotInfo)
+			if err := os.WriteFile(vars.BotInfoPath, finalJsonBytes, 0644); err != nil {
+				http.Error(w, "failed to save schedule: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			logger.Println("Set schedule for " + bot.Esn)
 			fmt.Fprint(w, "success")
 			return
 		}
