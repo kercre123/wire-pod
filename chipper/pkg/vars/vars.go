@@ -86,15 +86,19 @@ type RememberedChat struct {
 
 var RememberedChats []RememberedChat
 
+type RobotInfo struct {
+	Esn       string `json:"esn"`
+	IPAddress string `json:"ip_address"`
+	// 192.168.1.150:443
+	GUID      string `json:"guid"`
+	Activated bool   `json:"activated"`
+	// user-chosen display name, set from the bot settings page
+	Nickname string `json:"nickname,omitempty"`
+}
+
 type RobotInfoStore struct {
-	GlobalGUID string `json:"global_guid"`
-	Robots     []struct {
-		Esn       string `json:"esn"`
-		IPAddress string `json:"ip_address"`
-		// 192.168.1.150:443
-		GUID      string `json:"guid"`
-		Activated bool   `json:"activated"`
-	} `json:"robots"`
+	GlobalGUID string      `json:"global_guid"`
+	Robots     []RobotInfo `json:"robots"`
 }
 
 type RecurringInfoStore struct {

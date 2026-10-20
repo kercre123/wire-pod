@@ -17,6 +17,29 @@ async function getSDKInfo() {
 }
 
 
+function escapeHTML(text) {
+  var div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Nickname if one is set, otherwise the serial number.
+function robotDisplayName(robot) {
+  return robot["nickname"] ? robot["nickname"] : robot["esn"];
+}
+
+async function setRobotNickname(serial, nickname) {
+  var response = await fetch("/api/set_nickname", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ esn: serial, nickname: nickname }),
+  });
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
+
+
 async function getBatteryStatus(serial) {
   if (!serial) {
     return 'Serial number is required';

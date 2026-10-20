@@ -416,4 +416,32 @@ function getCurrentSettings() {
   };
 }
 
-renderBatteryInfo(esn);
+function showRobotName(nickname) {
+  botNicknames[esn] = nickname;
+  document.getElementById("robotTitle").textContent = nickname ? nickname : "Vector Configuration";
+  document.getElementById("nicknameInput").value = nickname;
+}
+
+async function saveNickname() {
+  var nickname = document.getElementById("nicknameInput").value.trim();
+  var status = document.getElementById("nicknameStatus");
+  try {
+    await setRobotNickname(esn, nickname);
+    showRobotName(nickname);
+    var tileName = document.querySelector("#botStats .botName");
+    if (tileName) {
+      tileName.textContent = nickname;
+    }
+    status.textContent = nickname ? "Saved." : "Name cleared.";
+  } catch (error) {
+    status.textContent = "Error: " + error.message;
+  }
+}
+
+getSDKInfo()
+  .then((sdkInfo) => {
+    var robot = sdkInfo && sdkInfo["robots"].find((r) => r["esn"] == esn);
+    showRobotName(robot && robot["nickname"] ? robot["nickname"] : "");
+  })
+  .catch(() => {})
+  .finally(() => renderBatteryInfo(esn));

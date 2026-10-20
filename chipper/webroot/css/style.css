@@ -366,6 +366,13 @@ input[type='radio']:disabled:after {
   cursor: pointer;
 }
 
+.botName {
+  color: var(--text-color);
+  font-weight: bold;
+  min-width: 60px;
+  overflow-wrap: anywhere;
+}
+
 .batteryContainer:hover .tooltip {
   display: block;
 }
