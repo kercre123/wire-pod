@@ -29,12 +29,14 @@ func Init() {
 
 func Println(a ...any) {
 	LogTray(a...)
+	writeLogFile(a...)
 	if debugLogging {
 		fmt.Println(a...)
 	}
 }
 
 func LogUI(a ...any) {
+	writeLogFile(a...)
 	LogArray = append(LogArray, time.Now().Format("2006.01.02 15:04:05")+": "+fmt.Sprint(a...)+"\n")
 	if len(LogArray) >= 50 {
 		LogArray = LogArray[1:]
