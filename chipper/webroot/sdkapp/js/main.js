@@ -416,4 +416,70 @@ function getCurrentSettings() {
   };
 }
 
-renderBatteryInfo(esn);
+function showRobotName(nickname) {
+  botNicknames[esn] = nickname;
+  document.getElementById("robotTitle").textContent = nickname ? nickname : "Vector Configuration";
+  document.getElementById("nicknameInput").value = nickname;
+}
+
+async function saveNickname() {
+  var nickname = document.getElementById("nicknameInput").value.trim();
+  var status = document.getElementById("nicknameStatus");
+  try {
+    await setRobotNickname(esn, nickname);
+    showRobotName(nickname);
+    var tileName = document.querySelector("#botStats .botName");
+    if (tileName) {
+      tileName.textContent = nickname;
+    }
+    status.textContent = nickname ? "Saved." : "Name cleared.";
+  } catch (error) {
+    status.textContent = "Error: " + error.message;
+  }
+}
+
+getSDKInfo()
+  .then((sdkInfo) => {
+    var robot = sdkInfo && sdkInfo["robots"].find((r) => r["esn"] == esn);
+    showRobotName(robot && robot["nickname"] ? robot["nickname"] : "");
+    showSchedule(robot && robot["schedule"]);
+  })
+  .catch(() => {})
+  .finally(() => renderBatteryInfo(esn));
+
+function showSchedule(schedule) {
+  if (!schedule) {
+    return;
+  }
+  document.getElementById("activeHoursEnabled").checked = schedule["active_hours_enabled"];
+  document.getElementById("activeStart").value = schedule["active_start"] || "10:00";
+  document.getElementById("activeEnd").value = schedule["active_end"] || "20:00";
+  document.getElementById("playEnabled").checked = schedule["play_enabled"];
+  document.getElementById("playInterval").value = schedule["play_interval_minutes"] || 20;
+  document.getElementById("playTogether").checked = schedule["play_together"];
+}
+
+async function saveSchedule() {
+  var status = document.getElementById("scheduleStatus");
+  var schedule = {
+    active_hours_enabled: document.getElementById("activeHoursEnabled").checked,
+    active_start: document.getElementById("activeStart").value,
+    active_end: document.getElementById("activeEnd").value,
+    play_enabled: document.getElementById("playEnabled").checked,
+    play_interval_minutes: parseInt(document.getElementById("playInterval").value) || 20,
+    play_together: document.getElementById("playTogether").checked,
+  };
+  try {
+    var response = await fetch("/api/set_schedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ esn: esn, schedule: schedule }),
+    });
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    status.textContent = "Saved. Changes take effect within a minute.";
+  } catch (error) {
+    status.textContent = "Error: " + error.message;
+  }
+}

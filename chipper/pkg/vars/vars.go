@@ -86,15 +86,34 @@ type RememberedChat struct {
 
 var RememberedChats []RememberedChat
 
+type RobotInfo struct {
+	Esn       string `json:"esn"`
+	IPAddress string `json:"ip_address"`
+	// 192.168.1.150:443
+	GUID      string `json:"guid"`
+	Activated bool   `json:"activated"`
+	// user-chosen display name, set from the bot settings page
+	Nickname string `json:"nickname,omitempty"`
+	// active hours and play mode, run by sdkapp's scheduler
+	Schedule *RobotSchedule `json:"schedule,omitempty"`
+}
+
+type RobotSchedule struct {
+	// outside ActiveStart-ActiveEnd (server local time, "HH:MM") the robot is sent
+	// to its charger and kept idle. start > end spans midnight.
+	ActiveHoursEnabled bool   `json:"active_hours_enabled"`
+	ActiveStart        string `json:"active_start"`
+	ActiveEnd          string `json:"active_end"`
+	// during active hours, periodically start a built-in explore/social behavior
+	PlayEnabled         bool `json:"play_enabled"`
+	PlayIntervalMinutes int  `json:"play_interval_minutes"`
+	// let play time sometimes be a joint activity with another robot that has this on
+	PlayTogether bool `json:"play_together"`
+}
+
 type RobotInfoStore struct {
-	GlobalGUID string `json:"global_guid"`
-	Robots     []struct {
-		Esn       string `json:"esn"`
-		IPAddress string `json:"ip_address"`
-		// 192.168.1.150:443
-		GUID      string `json:"guid"`
-		Activated bool   `json:"activated"`
-	} `json:"robots"`
+	GlobalGUID string      `json:"global_guid"`
+	Robots     []RobotInfo `json:"robots"`
 }
 
 type RecurringInfoStore struct {

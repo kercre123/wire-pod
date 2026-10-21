@@ -11,6 +11,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
@@ -41,6 +44,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetWeatherAPI(w)
 	case "set_kg_api":
 		handleSetKGAPI(w, r)
+	case "set_nickname":
+		handleSetNickname(w, r)
+	case "set_schedule":
+		handleSetSchedule(w, r)
 	case "get_kg_api":
 		handleGetKGAPI(w)
 	case "set_stt_info":
@@ -210,6 +217,83 @@ func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	vars.WriteConfigToDisk()
 	fmt.Fprint(w, "Changes successfully applied.")
+}
+
+const maxNicknameLength = 32
+
+// handleSetNickname stores a display name for a robot. An empty nickname clears it.
+func handleSetNickname(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Esn      string `json:"esn"`
+		Nickname string `json:"nickname"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	nickname := strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return -1
+		}
+		return r
+	}, strings.TrimSpace(request.Nickname))
+	if utf8.RuneCountInString(nickname) > maxNicknameLength {
+		http.Error(w, fmt.Sprintf("nickname must be %d characters or fewer", maxNicknameLength), http.StatusBadRequest)
+		return
+	}
+	for i, bot := range vars.BotInfo.Robots {
+		if bot.Esn == strings.TrimSpace(request.Esn) {
+			vars.BotInfo.Robots[i].Nickname = nickname
+			finalJsonBytes, _ := json.Marshal(vars.BotInfo)
+			if err := os.WriteFile(vars.BotInfoPath, finalJsonBytes, 0644); err != nil {
+				http.Error(w, "failed to save nickname: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			logger.Println("Set nickname for " + bot.Esn + " to \"" + nickname + "\"")
+			fmt.Fprint(w, "success")
+			return
+		}
+	}
+	http.Error(w, "robot not found", http.StatusNotFound)
+}
+
+// handleSetSchedule stores a robot's active hours and play mode settings.
+func handleSetSchedule(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Esn      string             `json:"esn"`
+		Schedule vars.RobotSchedule `json:"schedule"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	sched := request.Schedule
+	if sched.ActiveHoursEnabled {
+		for _, clock := range []string{sched.ActiveStart, sched.ActiveEnd} {
+			if _, err := time.Parse("15:04", clock); err != nil {
+				http.Error(w, "active hours must be HH:MM (24-hour)", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+	if sched.PlayIntervalMinutes < 0 || sched.PlayIntervalMinutes > 24*60 {
+		http.Error(w, "play interval must be between 1 and 1440 minutes", http.StatusBadRequest)
+		return
+	}
+	for i, bot := range vars.BotInfo.Robots {
+		if bot.Esn == strings.TrimSpace(request.Esn) {
+			vars.BotInfo.Robots[i].Schedule = &sched
+			finalJsonBytes, _ := json.Marshal(vars.BotInfo)
+			if err := os.WriteFile(vars.BotInfoPath, finalJsonBytes, 0644); err != nil {
+				http.Error(w, "failed to save schedule: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			logger.Println("Set schedule for " + bot.Esn)
+			fmt.Fprint(w, "success")
+			return
+		}
+	}
+	http.Error(w, "robot not found", http.StatusNotFound)
 }
 
 func handleGetKGAPI(w http.ResponseWriter) {
