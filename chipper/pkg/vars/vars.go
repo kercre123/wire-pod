@@ -185,6 +185,9 @@ func Init() {
 		os.Mkdir(JdocsDir, 0777)
 		os.Mkdir(SessionCertPath, 0777)
 		os.Mkdir(Certs, 0777)
+		if err := logger.SetLogFile(join(podDir, "wire-pod.log")); err != nil {
+			logger.Println("Could not open log file: " + err.Error())
+		}
 	}
 
 	if os.Getenv("WEBSERVER_PORT") != "" {
