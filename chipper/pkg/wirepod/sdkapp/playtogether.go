@@ -59,7 +59,7 @@ func findPlaymate(esn string, now time.Time) string {
 			continue
 		}
 		// only robots the scheduler has already seen awake
-		if st := schedStates[bot.Esn]; st == nil || st.holding || st.busy || !st.quietSince.IsZero() {
+		if st := schedStates[bot.Esn]; st == nil || st.busy || !st.quietSince.IsZero() {
 			continue
 		}
 		candidates = append(candidates, bot.Esn)

@@ -2,10 +2,11 @@ package sdkapp
 
 // Per-robot active hours and play mode.
 //
-// Outside a robot's active hours it is sent to its charger, then wire-pod holds
-// RESERVE_CONTROL (the lowest-priority SDK control level, meant for disabling
-// idle behaviors) so it stays quiet. During active hours with play mode on, a
-// built-in explore/social behavior is started every PlayIntervalMinutes.
+// Outside a robot's active hours it is sent to its charger and told to go to
+// sleep (the same as saying "go to sleep"). If it wakes up and drives off before
+// active hours start, it is sent back and put to sleep again. During active
+// hours with play mode on, a built-in explore/social behavior is started every
+// PlayIntervalMinutes.
 
 import (
 	"context"
@@ -23,7 +24,7 @@ import (
 
 const (
 	defaultPlayIntervalMinutes = 20
-	// how long to let a robot drive home before holding control anyway
+	// how long to let a robot drive home before it sleeps wherever it is
 	chargerTimeout = 5 * time.Minute
 )
 
@@ -44,8 +45,9 @@ var playIntents = []string{
 type schedState struct {
 	vec          *vector.Vector
 	quietSince   time.Time // zero while active
-	holding      bool
-	releaseHold  context.CancelFunc
+	chargerSent  time.Time // last time it was sent to the charger
+	asleep       bool      // told to sleep and hasn't left the charger since
+	sleptOff     bool      // couldn't dock, so it was put to sleep where it was
 	nextPlay     time.Time
 	lastSchedule vars.RobotSchedule
 	busy         bool // in a play-together session, owned by that goroutine
@@ -202,89 +204,55 @@ func sendIntent(esn string, st *schedState, intent string) error {
 }
 
 func goQuiet(esn string, st *schedState, now time.Time) {
-	if st.holding {
-		return
-	}
 	if st.quietSince.IsZero() {
 		st.quietSince = now
-		schedLog(esn + " is outside its active hours, sending it to the charger")
-		if b, err := battery(esn, st); err != nil {
-			schedLog(esn + ": " + err.Error())
-			return
-		} else if !b.IsOnChargerPlatform {
-			if err := sendIntent(esn, st, "intent_system_charger"); err != nil {
-				schedLog(esn + ": " + err.Error())
-			}
-			return
-		}
-	} else if now.Sub(st.quietSince) < chargerTimeout {
-		// still driving home? holding control now would interrupt it
-		if b, err := battery(esn, st); err != nil || !b.IsOnChargerPlatform {
-			return
-		}
+		schedLog(esn + " is outside its active hours, sending it to bed")
 	}
-	holdReserveControl(esn, st)
-}
-
-// holdReserveControl keeps RESERVE_CONTROL until st.releaseHold is called or
-// the stream breaks (then the next tick takes it again).
-func holdReserveControl(esn string, st *schedState) {
-	v, err := robotConn(esn, st)
+	b, err := battery(esn, st)
 	if err != nil {
 		schedLog(esn + ": " + err.Error())
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	stream, err := v.Conn.BehaviorControl(ctx)
-	if err == nil {
-		err = stream.Send(&vectorpb.BehaviorControlRequest{
-			RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{
-				ControlRequest: &vectorpb.ControlRequest{Priority: vectorpb.ControlRequest_RESERVE_CONTROL},
-			},
-		})
-	}
-	if err != nil {
-		cancel()
-		st.vec = nil
-		schedLog(esn + ": could not reserve control: " + err.Error())
-		return
-	}
-	st.holding = true
-	st.releaseHold = func() {
-		stream.Send(&vectorpb.BehaviorControlRequest{
-			RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{ControlRelease: &vectorpb.ControlRelease{}},
-		})
-		cancel()
-	}
-	schedLog(esn + " is now in quiet hours")
-	go func() {
-		// drain responses until the stream ends (released, or robot disconnected)
-		for {
-			if _, err := stream.Recv(); err != nil {
-				break
-			}
+	switch {
+	case b.IsOnChargerPlatform:
+		if !st.asleep {
+			goToSleep(esn, st)
 		}
-		if ctx.Err() != nil {
-			return // released by wakeUp
+	case st.sleptOff:
+		// it couldn't find the charger earlier; leave it asleep where it is
+	case st.asleep || st.chargerSent.IsZero():
+		// woke up and left the charger (or just entered quiet hours off it)
+		st.asleep = false
+		st.chargerSent = now
+		if err := sendIntent(esn, st, "intent_system_charger"); err != nil {
+			schedLog(esn + ": " + err.Error())
 		}
-		cancel()
-		schedMu.Lock()
-		defer schedMu.Unlock()
-		schedLog("lost quiet-hours control of " + esn + ", will retry")
-		st.vec = nil
-		st.holding = false
-		st.releaseHold = nil
-	}()
+	case now.Sub(st.chargerSent) >= chargerTimeout:
+		schedLog(esn + " didn't make it to the charger, letting it sleep where it is")
+		goToSleep(esn, st)
+		st.sleptOff = true
+	}
 }
 
-func wakeUp(esn string, st *schedState) {
-	if st.releaseHold != nil {
-		st.releaseHold()
-		schedLog(esn + " active hours started, releasing control")
+func goToSleep(esn string, st *schedState) {
+	if err := sendIntent(esn, st, "intent_system_sleep"); err != nil {
+		schedLog(esn + ": " + err.Error())
+		return
 	}
-	st.releaseHold = nil
-	st.holding = false
+	st.asleep = true
+	schedLog(esn + " is asleep for quiet hours")
+}
+
+// wakeUp resets quiet-hours state. The robot isn't woken explicitly: it wakes
+// on its own, or when play mode starts its next behavior.
+func wakeUp(esn string, st *schedState) {
+	if !st.quietSince.IsZero() {
+		schedLog(esn + " active hours started")
+	}
 	st.quietSince = time.Time{}
+	st.chargerSent = time.Time{}
+	st.asleep = false
+	st.sleptOff = false
 }
 
 func play(esn string, st *schedState) {
