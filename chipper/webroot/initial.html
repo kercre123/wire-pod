@@ -2,14 +2,13 @@
 <html>
 
 <head>
-    
   <title>Wire-Pod Initial Setup</title>
   <!-- Meta Apple tags for a PWA like experience. -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#1e1e1e">
+  <meta name="theme-color" content="#101215">
   <link rel="stylesheet" type="text/css" href="css/style.css" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
@@ -18,20 +17,25 @@
 
 <body>
   <div id="outer">
-    <div id="content" class="">
-      <h1>Wire-Pod Setup</h1>
-      <hr />
+    <div id="content">
+
+      <div class="app-head">
+        <h1>Wire-Pod Setup</h1>
+      </div>
+
       <div id="setup-status"></div>
+
       <div id="config-options" style="display: block">
-        <p>
-          Welcome to wire-pod! Configure these
-          options to your liking then click the "Submit Settings" button at the
-          bottom to finish setting up wire-pod.
-        </p>
-        <hr />
-        <div id="section-conn" style="display: block">
-          <h3>Connection Method</h3>
-          <hr class="small-hr">
+        <div class="card">
+          <p>
+            Welcome to wire-pod! Configure these
+            options to your liking then click the "Submit Settings" button at the
+            bottom to finish setting up wire-pod.
+          </p>
+        </div>
+
+        <div class="card" id="section-conn" style="display: block">
+          <h2>Connection Method</h2>
           <div class="center" id="connStatus"></div>
           <select onchange="checkConn()" name="connSelection" id="connSelection">
             <option value="ep">
@@ -42,15 +46,13 @@
             </option>
           </select>
           <div class="center" id="portViz" style="display: none">
-            <label for="portInput">Input custom port here (default is 443)</label>
+            <small class="desc">Input custom port here (default is 443)</small>
             <input type="text" id="portInput" name="portInput" placeholder="443" />
           </div>
-          <hr />
         </div>
 
-        <div id="section-language" style="display: none">
-          <h3>Speech-to-Text Language</h3>
-          <hr class="small-hr">
+        <div class="card" id="section-language" style="display: none">
+          <h2>Speech-to-Text Language</h2>
           <div class="center" id="languageStatus"></div>
           <div id="languageSelectionDiv">
             <select name="languageSelection" id="languageSelection">
@@ -70,17 +72,17 @@
               <option value="vi-VN">VietNamese (VN)</option>
             </select>
           </div>
-          <hr />
         </div>
 
-        <small class="desc">Weather and Knowledge Graph settings can be configured in the Server Settings page once
-          wire-pod is set up.</small>
-        <hr />
-
-        <button onclick="sendSetupInfo()">
-          Submit Settings
-        </button>
+        <div class="card">
+          <small class="desc">Weather and Knowledge Graph settings can be configured in the Server Settings page once
+            wire-pod is set up.</small>
+          <button onclick="sendSetupInfo()">
+            Submit Settings
+          </button>
+        </div>
       </div>
+
     </div>
   </div>
 </body>

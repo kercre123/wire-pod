@@ -1,349 +1,228 @@
-@import url("wing.css");
+/* ============================================================
+   wire-pod global design system
+   Copied from gold templates:
+     webroot/sdkapp/settings.html inline <style>
+     webroot/sdkapp/control.html shared shell/tokens
+   Plus legacy JS-required utilities from previous style.css.
+   Control cockpit lives in control.css — do not add it here.
+   ============================================================ */
 
-@font-face{
+@font-face {
   font-family: 'DroidSans';
   src: url('DroidSans.woff') format('woff');
-  /*font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans*/
+  /* font license Apache V2.00: https://www.fontsquirrel.com/license/droid-sans */
 }
 
-@font-face{
+@font-face {
   font-family: 'IBMVGA';
   src: url('PxPlus_IBM_VGA_8x16.ttf') format('truetype');
   /* VileR's old school font pack - int10h.org */
 }
 
-@font-face{
+@font-face {
   font-family: 'H1Weird';
   src: url('h1Font.ttf') format('truetype');
+  /* classic Wire-Pod hero / splash wordmark */
 }
 
-/* {
-  "TIP_OVER_TEAL" :
-  #00d16d
-    { "Hue" : 0.42, "Saturation" : 1.00 },
-  "OVERFIT_ORANGE" :
-    { "Hue" : 0.05, "Saturation" : 0.95 },
-  "UNCANNY_YELLOW" :
-    { "Hue" : 0.11, "Saturation" : 1.00 },
-  "NON_LINEAR_LIME" :
-    { "Hue" : 0.21, "Saturation" : 1.00 },
-  "SINGULARITY_SAPPHIRE" :
-    { "Hue" : 0.57, "Saturation" : 1.00 },
-  "FALSE_POSITIVE_PURPLE" :
-  #e237e6
-    { "Hue" : 0.83, "Saturation" : 0.76 },
-  "CONFUSION_MATRIX_GREEN" :
-    { "Hue" : 0.30, "Saturation" : 1.00 }
-} */
-
+/* ---------- design tokens (gold) ---------- */
 :root {
-  --bg-color: #1e1e1e;
-  --body-font-family: 'DroidSans', sans-serif;
-  --bg-color-alt: rgba(196,196,196,1);        /* light gray #C4C4C4*/
-  --button-color: rgba(75,75,75,1);        /* dark gray #4B4B4B */
-  --button-color-alt: rgba(164,164,164,1);    /* light gray #A4A4A4 */
-  --fg-color: #00ff80;            /* light green 33ED6D */
-  --medium-battery: #ced100;        /* bright yellow */
-  --low-battery: #ff0000;        /* bright red */
-  --fg-color-alt: rgba(51,237,109,.05);        /* light green 33ED6D */
-  --text-color: rgba(255,255,255,1);        /* white #FFFFFF */
-  --text-color-alt: rgba(34,34,34,1);        /* black #000000 */
+  --bg: #101215;
+  --panel: #191d22;
+  --panel-2: #21262d;
+  --line: #2b323b;
+  --ink: #e9edf1;
+  --muted: #8b95a1;
+  /* ui.js mutates --fg-color; settings.js reads --fg-color + --gg-color-alt */
+  --fg-color: #35e0cf;
+  --gg-color-alt: #6b7480;
+  --teal: var(--fg-color);
+  --amber: #ffb454;
+  --danger: #ff5d5d;
+  --radius: 14px;
+  --dock-h: 74px;
+  --head-h: 52px;
+  /* ui.js / legacy aliases */
+  --bg-color: var(--bg);
+  --body-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --medium-battery: #ced100;
+  --low-battery: #ff0000;
 }
 
-/* Modified icon styles */
-.selectedicon {
-  color: var(--fg-color);
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-.notselectedicon {
-  color: var(--fg-color);
-  filter: drop-shadow(0 0 8px var(--fg-color));
-}
-
-.notselectedicon:hover {
-  color: var(--text-color); /* White for hover */
-}
-
-.main-nav-child:hover .selectedicon {
-  color: var(--fg-color);
-}
-
-.selectedicon, .notselectedicon {
-  transition: all 0s ease-in-out;
-}
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-button:disabled, button[type="submit"]:disabled {
-  background: var(--bg-color);
-  color : var(--bg-color-alt);
-}
-button, button[type="submit"] {
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--body-font-family);
-  font-size: 0.8em;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 170px;
-  border: 2px solid var(--fg-color);
-  background-color: var (--button-color);
-  color: var(--text-color);
-  transition: border-color 0.3s, background-color 0.3s;
+  font-size: 16px;
+  line-height: 1.45;
 }
 
-button:hover, button[type="submit"]:disabled {
-  border-color: var(--fg-color-alt);
-  background-color: var(--fg-color);
-  color: var(--text-color-alt);
+/* neutralise old shell layout */
+#outer {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
 }
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: var(--bg-color);
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px var(--fg-color-alt);
-  padding: 12px 16px;
-  z-index: 1;
+#content {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 0 48px 0;
+  background: transparent;
+  box-shadow: none;
 }
-
-.dropdown:hover .dropdown-content {
-  display: block;
+#content > hr { display: none; }
+hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 14px 0;
 }
-
-input[type="text"], input[type="file"], select {
-  background-color: #2d2d2d;
-  color: #ffffff;
-  font-family: var(--body-font-family);
-  font-size: 1.0em;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  border: 2px solid var(--fg-color);
-  box-sizing: border-box;
-  transition: border-color 0.3s;
+hr.small-hr {
+  margin: 10px 0;
+  opacity: .7;
+  width: auto;
+  border: none;
+  border-top: 1px solid var(--line);
 }
-
-input[type="text"]:hover, input[type="file"]:hover, select:hover,
-input[type="text"]:focus, input[type="file"]:focus, select:focus {
-  border-color: white;
-  border: 2px solid;
-  box-sizing: border-box;
-  transition: border-color 0.3s;
-}
-
-input[type='text']:disabled {
-  cursor: not-allowed;
-}
-
-.small-hr {
-  border: 1px solid #3e3e3e;
-  width: 30%;
-}
-
-.log-hr {
+hr.log-hr {
   margin-bottom: 50px;
 }
 
-input[type="file"] {
-  width: auto;
-}
+a { color: var(--fg-color); }
+a:hover { text-decoration: none; color: var(--fg-color); }
 
-/* input[type="text"] {
-  width: ;
-} */
-
-select {
-  width: auto;
-}
-
-body {
-  background-color: var(--bg-color);
-  font-family: var(--body-font-family);
-  font-size: 1.8em;
-  display: flex;
-  justify-content: center;
+/* ---------- shared back button ---------- */
+.back-btn {
+  display: inline-flex;
   align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  flex-wrap: wrap;
-  text-align: center;
-  padding-top: env(safe-area-inset-top);
-}
-
-
-h1, h2, h3, h4, small, p, li, label {
-  font-family: var(--body-font-family);
-  color: var(--text-color);
-}
-
-h2, h3 {
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-
-.desc {
-  color: var(--bg-color-alt);
-}
-
-h1 {
-  color: var(--fg-color);
-  font-family: "H1Weird", sans-serif;
-  font-size: 3em;
-  font-weight: bold;
-  letter-spacing: 0em;
-  text-align: center;
-}
-
-textarea {
-  background-color: #2d2d2d;
-  color: #ffffff;
-  font-family: var(--body-font-family);
-  font-size: 0.9em;
-  height: 280px;
-  border: 2px solid var(--fg-color);
-  box-sizing: border-box;
-  transition: border-color 0.3s;
-}
-
-textarea:hover, textarea:focus {
-  border-color: white;
-  border: 2px solid;
-  box-sizing: border-box;
-  transition: border-color 0.3s;
-}
-
-/* p {
-  font-size: 1.2em;
-} */
-
-.content {
-  display: none;
-}
-
-.wrap {
-  overflow: hidden !important;
-  white-space: nowrap !important;
-}
-
-hr {
-  border: 2px solid #3e3e3e;
-  /* background-image: linear-gradient(to right, var(--fg-color-alt), var(--fg-color), var(--fg-color-alt)); */
-}
-
-a {
-  color:var(--fg-color);
-}
-a:hover {
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--ink);
   text-decoration: none;
-  color: var(--fg-color);
-}
-/*
-ul {
-  list-style-type:none;
-} */
-
-ul, li {
-  /* list-style-type: none; */
-  list-style-position:inside;
-  margin:0;
-  padding:0;
-}
-
-.tinput {
-  width: 315px !important;
-  background-color: var(--button-color) !important;
-  color: var(--text-color) !important;
-  border: 2px solid var(--fg-color); /* accent color */
-}
-
-.tinputauth {
-  width: 499px !important;
-  background-color: var(--button-color) !important;
-  color: var(--text-color) !important;
-  border: 2px solid var(--fg-color); /* accent color */
-}
-
-canvas{
-  width:750px !important;
-  height:400px !important;
-}
-
-/* RADIO BUTTON ######################### */
-input[type='radio'] {
-  appearance: none;
-  top: 13.333333px;
-  right: 50%;
-  bottom: 0px;
-  left: 0;
-  margin-top: 0px;
-  height: 40px;
-  width: 40px;
-  transition: all .2s ease;
-  background: var(--button-color);
-  border: none;
+  font-size: 15px;
   cursor: pointer;
-  outline: none;
-  position: relative;
-  z-index: 1000;
-  border-radius: 50%;
-  border: 1px solid var(--button-color-alt);
 }
 
-input[type='radio']:checked:after {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--fg-color);
-  content: '';
-  display: inline-block;
-}
-
-input[type='radio']:disabled {
-  cursor: not-allowed;
-}
-
-input[type='radio']:disabled:after {
-  background-color: var(--button-color-alt);
-  cursor: not-allowed;
-}
-
-/* ###################################### */
-#username, #password {
-  width: 499px !important;
-  background-color: var(--bg-color-alt) !important;
-  color: var(--text-color) !important;
-  border: 2px solid var(--fg-color); /* accent color */
-}
-
-#botAuth {
-  color: var(--text-color);
-}
-
-#content {
-  width: 950px !important;
-  /* word-break:break-all !important; */
-  /* word-wrap: break-all !important; */
-  white-space:normal !important;
-}
-#outer {
-  width: 100%;
+/* ---------- sticky app header (settings / hub) ---------- */
+.app-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
-  justify-content: center;
-  height: 100vh; /* Keeps things at the top*/
-  align-items: start;
-}
-
-#botStats {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 30px;
+  gap: 10px;
+  height: calc(var(--head-h) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0 12px;
+  background: rgba(16, 18, 21, .92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+/* small breathing room above header content on non-notch screens */
+.app-head {
+  padding-top: max(env(safe-area-inset-top), 4px);
+  height: calc(var(--head-h) + max(env(safe-area-inset-top), 4px));
+}
+.app-head .back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 15px;
+}
+.app-head h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  flex: 1;
+  text-align: left;
+  color: var(--ink);
 }
 
-/* a simple gif loading from /assets/cloudface.gif and is 60x60px */
+/* ---------- battery base (battery.js markup) ---------- */
+#botStats {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  height: 100%;
+  max-width: 50%;
+  position: relative;
+}
+#botStats .batteryContainer {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+#botStats .batteryOutline {
+  width: 54px;
+  height: 22px;
+  border-radius: 4px;
+  outline: 2px solid var(--line);
+  outline-offset: 2px;
+  position: relative;
+  flex: 0 0 auto;
+}
+#botStats .batteryOutline::before { border-radius: 4px; }
+/* battery terminal nub: stock puts it at left:102px for a 100px body */
+#botStats .batteryOutline::after {
+  left: 56px;
+  top: 5px;
+  width: 4px;
+  height: 12px;
+  border-radius: 0 2px 2px 0;
+}
+#botStats .batteryLevel { border-radius: 4px; }
+/* charging bolt: stock is 40x40 at left:30px — center it for any width */
+#botStats .charging {
+  width: 18px;
+  height: 18px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+#botStats .chargeTimeRemaining {
+  bottom: 1px;
+  left: 3px;
+  font-size: 8px;
+  line-height: 1;
+}
+#botStats .vectorFace { width: 34px; height: 34px; flex: 0 0 auto; }
+#botStats .botLoader { width: 34px; height: 34px; background-size: 34px 34px; margin: 0; }
+/* tooltip: stock drops it 145px down the page — anchor under the bar */
+#botStats .tooltip {
+  margin-top: 0;
+  top: calc(100% + 6px);
+  right: 0;
+  left: auto;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: normal;
+  border: 1px solid var(--line);
+}
+
+/* base battery pieces (used by #botStats overrides + standalone) */
 .botLoader {
   background-image: url('/assets/cloudface.gif');
   background-size: 60px 60px;
@@ -364,17 +243,15 @@ input[type='radio']:disabled:after {
   padding-bottom: 15px;
   gap: 15px;
   cursor: pointer;
+  position: relative;
 }
-
-.batteryContainer:hover .tooltip {
-  display: block;
-}
+.batteryContainer:hover .tooltip { display: block; }
 
 .tooltip {
   position: absolute;
   display: none;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--panel);
+  color: var(--ink);
   border-radius: 5px;
   padding: 5px;
   z-index: 1000;
@@ -383,7 +260,7 @@ input[type='radio']:disabled:after {
 }
 
 .batteryOutline {
-  outline: 2px solid var(--text-color);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
   border-radius: 5px;
   width: 100px;
@@ -393,11 +270,11 @@ input[type='radio']:disabled:after {
 .batteryOutline::before {
   content: '';
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--button-color);
+  background-color: var(--panel-2);
   border-radius: 5px;
 }
 .batteryOutline::after {
@@ -407,7 +284,7 @@ input[type='radio']:disabled:after {
   left: 102px;
   width: 6px;
   height: 18px;
-  background-color: var(--text-color);
+  background-color: var(--ink);
 }
 
 .vectorFace {
@@ -420,170 +297,1110 @@ input[type='radio']:disabled:after {
 
 .batteryLevel {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--button-color-alt);
+  background-color: var(--muted);
   border-radius: 5px;
 }
-
-.battery0 {
-  background-color: var(--low-battery);
-}
-
-.battery1 {
-  background-color: var(--medium-battery);
-}
-
-.battery3, .battery2  {
-  background-color: var(--fg-color);
-}
+.battery0 { background-color: var(--low-battery); }
+.battery1 { background-color: var(--medium-battery); }
+.battery3, .battery2 { background-color: var(--fg-color); }
 
 .charging {
   position: absolute;
-  top: 0px;
+  top: 0;
   left: 30px;
   width: 40px;
   height: 40px;
-  /* content is an svg of a lightning bolt */
   content: url('data:image/svg+xml;utf8,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 60"><polygon points="20,0 5,33 24,33 15,60 35,27 16,27" fill="white"/></svg>');
-  /* svg drop shadow */
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.4));
 }
 
 .chargeTimeRemaining {
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   left: 3px;
   font-size: 0.6em;
   color: white;
   text-shadow: 0 0 4px rgba(0, 0, 0, 1);
 }
 
+/* ---------- the dock: sticky, horizontally scrolling tab rail ---------- */
 .main-nav-parent {
+  position: sticky;
+  top: calc(var(--head-h) + max(env(safe-area-inset-top), 4px));
+  z-index: 39;
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin: 1rem auto;
-  padding: 1rem;
-  text-align: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  justify-content: flex-start !important;
+  align-items: center;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  height: var(--dock-h);
+  padding: 8px 10px;
+  background: rgba(16, 18, 21, .94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+  margin: 0;
   width: 100%;
-  max-width: 950px;
+  max-width: none;
+  text-align: center;
+  box-sizing: border-box;
+}
+.main-nav-parent::-webkit-scrollbar { display: none; }
+
+/* ---------- dock alignment + swipe affordance (#hub-nav / #dock) ----------
+   Classes from ui.js:
+     .dock-fits     — all tabs fit → center (setup + hub)
+     .dock-overflow — need scroll → flex-start (center + overflow breaks end access)
+     .dock-fade-*   — edge masks when more content that way
+   Never use overflow-x:visible with centered flex — mid-width desktop
+   windows (~428px) could not reach the rightmost tabs. */
+#hub-nav.main-nav-parent,
+#dock.main-nav-parent {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 12px;
+  /* default before JS: start-aligned so first paint can scroll if needed */
+  justify-content: flex-start !important;
+}
+/* all chips fit → center both rails (hub + setup) */
+#hub-nav.main-nav-parent.dock-fits,
+#dock.main-nav-parent.dock-fits {
+  justify-content: center !important;
+  /* still auto so a later resize can scroll without a reflow fight */
+  overflow-x: auto;
+}
+/* overflow → must be start-aligned or the trailing tabs are unreachable */
+#hub-nav.main-nav-parent.dock-overflow,
+#dock.main-nav-parent.dock-overflow {
+  justify-content: flex-start !important;
+  overflow-x: auto !important;
+}
+/* real scrollable end-padding (flex padding-right is unreliable for max scrollLeft) */
+#hub-nav.main-nav-parent.dock-overflow::after,
+#dock.main-nav-parent.dock-overflow::after {
+  content: "";
+  flex: 0 0 28px;
+  height: 1px;
+  pointer-events: none;
+}
+/* measuring pass: force start so scrollWidth is honest while centered */
+#hub-nav.main-nav-parent.dock-measuring,
+#dock.main-nav-parent.dock-measuring {
+  justify-content: flex-start !important;
+}
+
+#hub-nav.main-nav-parent.dock-fade-right:not(.dock-fade-left),
+#dock.main-nav-parent.dock-fade-right:not(.dock-fade-left) {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 calc(100% - 36px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 calc(100% - 36px),
+    transparent 100%
+  );
+}
+#hub-nav.main-nav-parent.dock-fade-left:not(.dock-fade-right),
+#dock.main-nav-parent.dock-fade-left:not(.dock-fade-right) {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 36px,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 36px,
+    #000 100%
+  );
+}
+#hub-nav.main-nav-parent.dock-fade-left.dock-fade-right,
+#dock.main-nav-parent.dock-fade-left.dock-fade-right {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 32px,
+    #000 calc(100% - 36px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 32px,
+    #000 calc(100% - 36px),
+    transparent 100%
+  );
+}
+/* mobile peek: slightly wider chips → more likely overflow + cut-off last tab */
+@media (max-width: 759px) {
+  #hub-nav.main-nav-parent .main-nav-child a,
+  #dock.main-nav-parent .main-nav-child a {
+    min-width: 70px;
+  }
+}
+/* narrow desktop: show a thin scrollbar so wheel/trackpad users see more exists */
+@media (hover: hover) and (pointer: fine) {
+  #hub-nav.main-nav-parent.dock-overflow,
+  #dock.main-nav-parent.dock-overflow {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+  #hub-nav.main-nav-parent.dock-overflow::-webkit-scrollbar,
+  #dock.main-nav-parent.dock-overflow::-webkit-scrollbar {
+    display: block;
+    height: 4px;
+  }
+  #hub-nav.main-nav-parent.dock-overflow::-webkit-scrollbar-thumb,
+  #dock.main-nav-parent.dock-overflow::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 4px;
+  }
 }
 
 .main-nav-child {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-radius: 12px;
-  border: 1px solid white;
-  padding: 8px 12px;
-  vertical-align: top;
+  border: none;
+  background: transparent;
+  padding: 0;
+  min-width: 0;
   width: auto;
-  background: rgba(30, 30, 30, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 85px;
-  transition: all 0.3s ease-in-out;
-  width: 85px;
+  box-shadow: none;
 }
-
-.main-nav-child:has(.selectedicon) {
-  background: rgba(25, 25, 25, 0.9);
-  border: 1px solid var(--fg-color);
-  box-shadow: 0 0 15px rgba(0, 255, 128, 0.1);
-}
-
-.main-nav-child:hover {
-  transform: translateY(-2px);
-  border-color: white;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1)
-}
-
-.main-nav-child i {
-  font-size: 32px;
-  margin-bottom: 8px;
-  transition: all 0.3s ease-in-out;
-}
-
 .main-nav-child a {
-  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 66px;
+  height: 58px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  color: var(--muted);
   text-decoration: none;
-  font-size: 100%;
-  color: var(--bg-color-alt);
+  text-align: center;
+  transition: background .15s ease, color .15s ease;
+  user-select: none;
+  width: auto;
 }
-
-.main-nav-child a:hover {
-  color: var(--text-color);
-}
-
 .main-nav-child a i {
-  text-decoration: none;
-  font-size: 60px;
-  /*padding-left: 20px;
-  padding-right: 20px;*/
-  padding-bottom: 10px;
+  font-size: 18px;
+  color: var(--gg-color-alt);
+  transition: color .15s ease, text-shadow .15s ease;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
-
+.main-nav-child a:active { background: var(--panel-2); }
+.main-nav-child a br { display: none; }
 .main-nav-child a img {
-  width: 40px;
-  height: 40px;
-  margin-bottom: 8px;
+  width: 22px;
+  height: 22px;
+  margin-bottom: 0;
   object-fit: contain;
 }
 
-/* no horizontal scroll on mobile, grid instead of line*/
+/* active tab: teal "eye glow" (settings.js dock-active + hub selectedicon) */
+.main-nav-child a.dock-active { color: var(--ink); background: var(--panel); }
+.main-nav-child a.dock-active i {
+  color: var(--fg-color) !important;
+  text-shadow: 0 0 12px rgba(53, 224, 207, .55);
+}
+.main-nav-child a.dock-active::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--fg-color);
+  box-shadow: 0 0 8px rgba(53, 224, 207, .7);
+}
 
-@media screen and (max-width: 768px) {
-  .main-nav-parent {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 15px;
-    padding: 0.5rem;
-    margin: 0;
-    width: 100%;
-  }
-  
-  #outer {
-    max-width: 100vw;
-    overflow-x: hidden;
-    box-sizing: border-box;
-  }
+/* ---------- icon states (main.js updateColor) ----------
+   Only .selectedicon is the active tab.
+   .nowselectedicon / .notselectedicon = inactive (muted).
+   Bugfix: styling nowselectedicon like selected made all hub icons glow. */
+.selectedicon {
+  color: var(--fg-color) !important;
+  text-shadow: 0 0 12px rgba(53, 224, 207, .55);
+  filter: none;
+  transition: color .15s ease, text-shadow .15s ease;
+}
+.nowselectedicon,
+.notselectedicon {
+  color: var(--gg-color-alt) !important;
+  text-shadow: none;
+  filter: none;
+  transition: color .15s ease, text-shadow .15s ease;
+}
+.main-nav-child:hover .selectedicon {
+  color: var(--fg-color) !important;
+}
+.main-nav-child:hover .nowselectedicon,
+.main-nav-child:hover .notselectedicon {
+  color: var(--muted) !important;
+}
+/* tile chrome only for the truly active icon */
+.main-nav-child:has(.selectedicon) a {
+  color: var(--ink);
+  background: var(--panel);
+}
+.main-nav-child:has(.selectedicon) a i {
+  color: var(--fg-color) !important;
+  text-shadow: 0 0 12px rgba(53, 224, 207, .55);
+}
+.main-nav-child:has(.selectedicon) a::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--fg-color);
+  box-shadow: 0 0 8px rgba(53, 224, 207, .7);
+}
 
-  #content {
-    width: 100% !important;
-    max-width: 100vw;
-    padding: 0 10px;
-    box-sizing: border-box;
+/* ---------- hub hero / splash (classic Wire-Pod wordmark) ---------- */
+.hub-hero {
+  text-align: center;
+  padding: calc(20px + env(safe-area-inset-top)) 16px 8px;
+}
+.hub-splash {
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 10px;
+  background-image: url('/assets/face.gif');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 18px rgba(53, 224, 207, .22));
+}
+/* tappable Vector face → home (setup.html default state) */
+a.hub-splash-link {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 10px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+a.hub-splash-link .hub-splash {
+  margin-bottom: 0;
+}
+a.hub-splash-link:focus-visible {
+  outline: 2px solid var(--fg-color);
+  outline-offset: 4px;
+}
+a.hub-splash-link:active .hub-splash {
+  transform: scale(.96);
+  transition: transform .1s ease;
+}
+.hub-logo {
+  margin: 0;
+  font-family: "H1Weird", sans-serif;
+  font-size: clamp(2.4rem, 10vw, 3.25rem);
+  font-weight: bold;
+  letter-spacing: 0;
+  line-height: 1.05;
+  color: var(--fg-color);
+  text-align: center;
+  text-shadow: 0 0 24px rgba(53, 224, 207, .28);
+}
+.hub-tagline {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+
+/* ---------- setup.html: classic hero + section page gutters ----------
+   Original title was "Wire-Pod Setup" (H1Weird era). No pre-restyle
+   tagline exists in this repo's git history — do not invent one here.
+   Dock sticks under the (non-sticky) hero; sections use standard card
+   gutters so weather / KG / language match the rest of the app. */
+.setup-topbar {
+  display: flex;
+  align-items: center;
+  padding: max(env(safe-area-inset-top), 8px) 12px 0 12px;
+}
+.setup-page .hub-hero {
+  padding-top: 8px;
+  padding-bottom: 12px;
+}
+.setup-page .hub-logo {
+  font-size: clamp(1.85rem, 8vw, 2.75rem);
+}
+/* no sticky app-head on setup — dock pins under the safe area only */
+.setup-page #dock.main-nav-parent {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+}
+/* weather / knowledge graph / language / restart — standard page margins */
+.setup-page .setup-section.card,
+.setup-page #section-weather,
+.setup-page #section-kg,
+.setup-page #section-language,
+.setup-page #section-restart {
+  margin: 16px 12px 24px 12px;
+  padding: 18px 16px 22px 16px;
+  box-sizing: border-box;
+  max-width: none;
+}
+.setup-page .setup-section.card > h2:first-child,
+.setup-page .setup-section > h2:first-child {
+  margin-top: 0;
+}
+.setup-page .setup-section form,
+.setup-page .setup-section > div {
+  text-align: left;
+}
+.setup-page .setup-section input[type="text"],
+.setup-page .setup-section input.tinput,
+.setup-page .setup-section select,
+.setup-page .setup-section textarea {
+  width: 100%;
+  max-width: 100%;
+  margin: 6px 0 10px 0;
+}
+.setup-page .setup-section button {
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+@media (min-width: 700px) {
+  .setup-page .setup-section.card,
+  .setup-page #section-weather,
+  .setup-page #section-kg,
+  .setup-page #section-language,
+  .setup-page #section-restart {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding: 20px 20px 24px 20px;
+  }
+  .setup-page .setup-section form {
+    max-width: 480px;
   }
 }
 
+/* ---------- robots primary panel (discoverable configure path) ---------- */
+.robots-panel {
+  margin-top: 8px;
+}
+.robots-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.robots-panel-head h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.robots-hint {
+  margin: 0;
+  max-width: none;
+  white-space: normal;
+}
+/* desktop wide: keep the configure hint on a single line */
+@media (min-width: 700px) {
+  .robots-panel-head { align-items: center; }
+  .robots-hint {
+    white-space: nowrap;
+  }
+}
+.robots-all-link {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--fg-color);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.robots-all-link:hover {
+  border-color: var(--fg-color);
+  color: var(--fg-color);
+}
+/* hub #botStats is a full-width robot card strip (not header chips) */
+.robots-panel #botStats,
+.robots-panel .robots-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 12px;
+  height: auto;
+  max-width: none;
+  width: 100%;
+  position: relative;
+}
+.robots-panel #botStats .batteryContainer {
+  flex: 1 1 148px;
+  max-width: 200px;
+  min-height: 120px;
+  height: auto;
+  margin: 0;
+  padding: 14px 12px 12px;
+  gap: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .12s ease;
+}
+.robots-panel #botStats .batteryContainer:hover,
+.robots-panel #botStats .batteryContainer:focus-visible {
+  border-color: var(--fg-color);
+  box-shadow: 0 0 0 1px rgba(53, 224, 207, .35), 0 8px 24px rgba(0, 0, 0, .35);
+  outline: none;
+}
+.robots-panel #botStats .batteryContainer:active {
+  transform: scale(.98);
+}
+.robots-panel #botStats .vectorFace {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  order: -1;
+}
+.robots-panel #botStats .batteryOutline {
+  width: 72px;
+  height: 26px;
+  border-radius: 5px;
+  outline-width: 2px;
+}
+.robots-panel #botStats .batteryOutline::after {
+  left: 74px;
+  top: 6px;
+  width: 5px;
+  height: 14px;
+}
+.robots-panel #botStats .charging {
+  width: 16px;
+  height: 16px;
+}
+.robots-panel #botStats .tooltip {
+  position: static;
+  display: block;
+  margin: 0;
+  top: auto;
+  right: auto;
+  left: auto;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+  order: 10;
+}
+.robots-panel #botStats .batteryContainer::after {
+  content: "Configure";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  margin-top: 2px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(53, 224, 207, .12);
+  border: 1px solid rgba(53, 224, 207, .35);
+  color: var(--fg-color);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  order: 20;
+}
+.robots-panel #botStats .botLoader {
+  width: 52px;
+  height: 52px;
+  background-size: 52px 52px;
+  margin: 12px auto;
+}
+
+.robots-empty {
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+.robots-empty p { margin: 0 0 8px; }
+.robots-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.robots-empty-actions button {
+  width: auto;
+  min-width: 160px;
+}
+.robots-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.robots-secondary-btn:hover {
+  border-color: var(--fg-color);
+  color: var(--fg-color);
+}
+
+/* Section label above a dock — icons sit indented under the label text */
+.hub-tools-label {
+  margin: 14px 14px 0;
+  padding: 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* dock rail indented to align with the label (hub + setup) */
+#hub-nav.main-nav-parent,
+.setup-page #dock.main-nav-parent {
+  padding-left: 14px;
+  padding-right: 14px;
+  /* keep icon row optically under the label, not full-bleed flush */
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* ---------- hub tools dock (index.html #hub-nav) ----------
+   Same rail as settings/setup #dock. Alignment/scroll via .dock-fits /
+   .dock-overflow (ui.js) — do not force overflow-x:visible here. */
+#hub-nav.main-nav-parent {
+  /* no sticky app-head on hub — pin under safe area */
+  top: env(safe-area-inset-top, 0px);
+  height: var(--dock-h);
+  gap: 4px;
+  padding: 8px 10px;
+  margin: 0;
+}
+#hub-nav .main-nav-child {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: none;
+  width: auto;
+}
+#hub-nav .main-nav-child a {
+  width: auto;
+  min-width: 66px;
+  position: relative;
+}
+@media (min-width: 760px) {
+  #hub-nav .main-nav-child a {
+    min-width: 78px;
+    padding: 6px 10px;
+  }
+}
+
+/* leave room under sticky dock when JS scrolls a section into view */
+.hub-page #section-intents,
+.hub-page #section-botauth,
+.hub-page #section-log,
+.hub-page #section-version,
+.hub-page #section-uicustomizer {
+  scroll-margin-top: calc(var(--dock-h) + 36px);
+}
+
+/* progressive disclosure: when a hub tool section is open, park the
+   robots CTA so Log / Intents / etc. land in-viewport (not under the fold) */
+body.hub-section-open .robots-panel {
+  display: none;
+}
+body.hub-section-open .hub-hero {
+  padding-top: max(env(safe-area-inset-top), 8px);
+  padding-bottom: 4px;
+}
+body.hub-section-open .hub-splash {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+}
+body.hub-section-open .hub-logo {
+  font-size: clamp(1.35rem, 5vw, 1.75rem);
+}
+body.hub-section-open .hub-tagline {
+  display: none;
+}
+body.hub-section-open .hub-tools-label {
+  margin-top: 6px;
+}
+/* sticky tools rail while reading a section (scroll offset for scrollIntoView) */
+body.hub-section-open #hub-nav.main-nav-parent {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 39;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* JS still scrolls; CSS has no motion of its own here */
+}
+
+/* foldable section headers on the hub intents card */
+#foldable-add,
+#foldable-edit {
+  cursor: pointer;
+  user-select: none;
+  color: var(--ink);
+  font-size: 16px;
+  padding: 8px 0;
+  margin: 0;
+}
+#foldable-add span,
+#foldable-edit span {
+  color: var(--fg-color);
+  margin-right: 6px;
+  font-weight: 700;
+}
+
+/* ---------- section cards ---------- */
+.toggleable-section {
+  margin: 14px 12px 0 12px;
+  padding: 16px 16px 18px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  animation: sectionIn .18s ease both;
+}
+@keyframes sectionIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toggleable-section { animation: none; }
+}
+
+.toggleable-section h2,
+.toggleable-section h3,
+.toggleable-section h4 {
+  margin: 0 0 6px 0;
+  text-align: left;
+}
+.toggleable-section h2 { font-size: 18px; color: var(--ink); }
+.toggleable-section h3 { font-size: 15px; color: var(--ink); }
+.toggleable-section h4 {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.toggleable-section p { color: var(--muted); font-size: 14px; margin: 6px 0; }
+.toggleable-section hr { border-top: 1px solid var(--line); }
+
+/* generic card shell (control + setup + future pages) */
+.card {
+  margin: 14px 12px 0 12px;
+  padding: 14px 16px 16px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  animation: sectionIn .18s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+}
+.card h2 { margin: 0 0 8px 0; font-size: 18px; text-align: left; color: var(--ink); }
+.card h3 { margin: 0 0 6px 0; font-size: 15px; text-align: left; color: var(--ink); }
+.card h4 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-align: left;
+}
+.card p { color: var(--muted); font-size: 14px; margin: 6px 0; }
+.card hr { border-top: 1px solid var(--line); }
+.card small.center,
+.card small { display: block; color: var(--muted); font-size: 12.5px; text-align: left; }
+.card .center { text-align: left; }
+/* plain field labels (setup weather/KG forms) — not radio pills / checkboxes */
+.card form > label:not(.checkbox-label):not(.desc),
+.card form span > label:not(.checkbox-label):not(.desc),
+.card form div > label:not(.checkbox-label):not(.desc) {
+  display: block;
+  margin: 10px 0 4px 0;
+  color: var(--ink);
+  font-size: 13.5px;
+  text-align: left;
+}
+.card .checkbox-label {
+  display: inline;
+  padding: 0;
+  margin-left: 5px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  font-size: inherit;
+  color: var(--ink);
+}
+/* checkbox rows: keep control + label on one wrap line */
+.card span:has(> input[type="checkbox"]) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0;
+  text-align: left;
+}
+.card span:has(> input[type="checkbox"]) .checkbox-label {
+  margin-left: 0;
+  flex: 1;
+  word-break: break-word;
+}
+
+.center { text-align: left; }
+
+/* current-value readouts injected by main.js */
+#currentVolume p, #currentEyeColor p, #currentLocale p, #currentTimeSet p,
+#currentTempFormat p, #currentButton p, #currentLocation p, #currentTimeZone p,
+#statsSection p {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--fg-color);
+  letter-spacing: .03em;
+  margin: 4px 0;
+}
+
+/* ---------- radio groups become tap-friendly pills ----------
+   Scoped to labels that *contain* a radio so plain form labels
+   and .checkbox-label rows inside .card (setup.html) stay normal. */
+.toggleable-section label:has(input[type="radio"]),
+.card label:has(input[type="radio"]) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 12px 40px;
+  margin: 6px 0;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 14.5px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color .12s ease, background .12s ease;
+}
+.toggleable-section label:has(input[type="radio"]):active,
+.card label:has(input[type="radio"]):active { background: #262c34; }
+.toggleable-section label:has(input[type="radio"]:checked),
+.card label:has(input[type="radio"]:checked) {
+  border-color: var(--fg-color);
+  background: rgba(53, 224, 207, .08);
+}
+/* hide the native radio; keep in DOM for main.js .checked */
+.toggleable-section label input[type="radio"],
+.card label input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.toggleable-section label:has(input[type="radio"])::before,
+.card label:has(input[type="radio"])::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  background: transparent;
+  transition: all .12s ease;
+}
+.toggleable-section label:has(input[type="radio"]:checked)::before,
+.card label:has(input[type="radio"]:checked)::before {
+  border-color: var(--fg-color);
+  background: var(--fg-color);
+  box-shadow: inset 0 0 0 3.5px var(--panel-2), 0 0 8px rgba(53, 224, 207, .4);
+}
+.toggleable-section label:has(input[type="radio"]) br,
+.card label:has(input[type="radio"]) br { display: none; }
+.card label:has(input[type="radio"]:disabled) { opacity: .45; }
+
+/* unstyled radios outside pill labels (fallback) */
+input[type='radio'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--muted);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  vertical-align: middle;
+  margin: 0 6px 0 0;
+}
+input[type='radio']:checked {
+  border-color: var(--fg-color);
+  background: var(--fg-color);
+  box-shadow: inset 0 0 0 3.5px var(--panel-2);
+}
+input[type='radio']:disabled { cursor: not-allowed; opacity: .45; }
+
+/* ---------- inputs, selects, textarea, buttons ---------- */
+input.tinput,
+select,
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font-size: 16px; /* prevents iOS zoom */
+  font-family: inherit;
+  margin: 6px 0;
+  appearance: none;
+  box-sizing: border-box;
+  box-shadow: none;
+  text-align: left;
+}
+select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+textarea {
+  height: 280px;
+  resize: vertical;
+}
+input[type="file"] {
+  color: var(--muted);
+  margin: 6px 0;
+  max-width: 100%;
+}
+input[type='text']:disabled,
+input.tinput:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--fg-color);
+  outline-offset: 2px;
+}
+
+button,
+button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  margin: 6px 6px 0 0;
+  background: var(--fg-color);
+  color: #06211e;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: filter .12s ease, transform .05s ease;
+  width: auto;
+  box-shadow: none;
+}
+button:active,
+button[type="submit"]:active {
+  transform: scale(.97);
+  filter: brightness(.9);
+}
+button:disabled,
+button[type="submit"]:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* secondary buttons (delete / rename / refresh) */
+#faceButtons button,
+#section-stats button,
+#section-photos button,
+#section-face .center button,
+#section-alexa button {
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+#faceButtons button:first-child {
+  color: #ff7b7b;
+  border-color: rgba(255, 120, 120, .4);
+}
+
+/* quick actions grid */
+#section-actions .center:first-of-type,
+.qa-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.qa-grid button,
+#section-actions .center:first-of-type button {
+  width: 100%;
+  margin: 0;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  font-weight: 600;
+}
+
+/* photos grid */
+#photoSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+#photoSection img {
+  width: 100%;
+  border-radius: 10px;
+  display: block;
+  border: 1px solid var(--line);
+}
+#photoSection button {
+  width: 100%;
+  margin: 6px 0 0 0;
+  background: var(--panel-2);
+  color: #ff7b7b;
+  border: 1px solid var(--line);
+}
+
+/* iro color wheel / stim chart */
+#picker { display: flex; justify-content: center; padding: 8px 0; }
+#stimChart { max-width: 100%; }
+
+/* ---------- typography helpers ---------- */
+h1, h2, h3, h4, small, p, li, label {
+  font-family: inherit;
+  color: var(--ink);
+}
+h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-align: left;
+  color: var(--ink);
+}
+h2, h3 { margin-top: 0; margin-bottom: 0; }
+
+small.desc,
+.desc { color: var(--muted); }
+
+/* foldable sections (index.html) */
+.content { display: none; }
+
+.wrap {
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+ul, li {
+  list-style-position: inside;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- checkboxes (setup / hub) ---------- */
 input[type='checkbox'] {
   appearance: none;
-  width: 25px;
-  height: 25px;
-  background-color: var(--button-color);
-  border: 2px solid var(--fg-color); /* accent color */
-  border-radius: 5px;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  background-color: var(--panel-2);
+  border: 2px solid var(--line);
+  border-radius: 6px;
   cursor: pointer;
   position: relative;
   display: inline-block;
   vertical-align: middle;
+  flex: 0 0 auto;
 }
-
 input[type='checkbox']:checked {
   background-color: var(--fg-color);
+  border-color: var(--fg-color);
 }
-
 input[type='checkbox']:checked:after {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 6px;
-  height: 12px;
-  border: solid var(--text-color);
+  width: 5px;
+  height: 10px;
+  border: solid #06211e;
   border-width: 0 2px 2px 0;
   transform: translate(-50%, -60%) rotate(45deg);
 }
@@ -592,4 +1409,125 @@ input[type='checkbox']:checked:after {
   padding-top: 3px;
   margin-left: 5px;
   word-break: break-word;
+  color: var(--ink);
+  display: inline;
+}
+
+/* auth / legacy field widths — keep usable under gold chrome */
+#username, #password {
+  width: 100%;
+  max-width: 499px;
+}
+#botAuth { color: var(--ink); }
+
+/* ---------- desktop hover (fine pointer only) ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .main-nav-child a:hover { background: var(--panel-2); color: var(--ink); }
+  .main-nav-child a:hover i { color: var(--muted); }
+  .main-nav-child a.dock-active:hover i { color: var(--fg-color); }
+  .toggleable-section label:has(input[type="radio"]):hover,
+  .card label:has(input[type="radio"]):hover { border-color: #3a434e; background: #242a32; }
+  .toggleable-section label:has(input[type="radio"]:checked):hover,
+  .card label:has(input[type="radio"]:checked):hover { border-color: var(--fg-color); }
+  button:hover,
+  button[type="submit"]:hover { filter: brightness(1.08); }
+  button:disabled:hover,
+  button[type="submit"]:disabled:hover { filter: none; }
+  .back-btn:hover,
+  .app-head .back-btn:hover {
+    background: var(--panel-2);
+    border-color: #3a434e;
+  }
+}
+
+/* ---------- desktop wide ---------- */
+@media (min-width: 700px) {
+  #content { max-width: 900px; }
+  .app-head h1 { font-size: 18px; }
+  .main-nav-parent {
+    flex-wrap: wrap;
+    height: auto;
+    justify-content: center;
+    overflow-x: visible;
+    padding: 10px 12px;
+  }
+  .main-nav-child a { min-width: 84px; }
+  .toggleable-section,
+  .card {
+    margin: 16px 12px 0 12px;
+    padding: 22px 26px 26px 26px;
+  }
+  .toggleable-section h2,
+  .card h2 { font-size: 20px; }
+
+  /* radio pill groups flow into two columns on wide screens */
+  #section-volume .center:last-of-type,
+  #section-eyes .center:first-of-type,
+  #section-locale .center:last-of-type,
+  #section-time .center:last-of-type,
+  #section-temp .center:last-of-type,
+  #section-button .center:last-of-type {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 12px;
+  }
+
+  #section-actions .center:first-of-type { grid-template-columns: repeat(3, 1fr); }
+  #photoSection { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  input.tinput, select { max-width: 420px; }
+}
+
+/* ---------- short viewports (phone landscape) ----------
+   A rotated phone is "desktop width" but has almost no height —
+   collapse chrome to one slim scrolling row so content wins. */
+@media (max-height: 520px) {
+  :root { --head-h: 42px; --dock-h: 52px; }
+  .app-head { gap: 8px; }
+  .app-head h1 { font-size: 14px; }
+  .app-head .back-btn,
+  .back-btn { width: 32px; height: 32px; border-radius: 10px; font-size: 13px; }
+  #botStats .batteryOutline { width: 46px; height: 18px; }
+  #botStats .batteryOutline::after { left: 48px; top: 4px; height: 10px; }
+  #botStats .charging { width: 14px; height: 14px; }
+  #botStats .vectorFace { width: 28px; height: 28px; }
+
+  .main-nav-parent {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    height: var(--dock-h);
+    padding: 6px 8px;
+  }
+  /* hub dock stays a slim horizontal rail in short landscape */
+  #hub-nav.main-nav-parent {
+    height: var(--dock-h);
+    gap: 4px;
+    padding: 6px 8px;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+  #hub-nav .main-nav-child {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+  }
+  .main-nav-child a {
+    min-width: 56px;
+    height: 40px;
+    padding: 3px 6px;
+    gap: 2px;
+    font-size: 9px;
+  }
+  .main-nav-child a i { font-size: 13px; }
+  .main-nav-child a.dock-active::after { left: 14px; right: 14px; bottom: 2px; }
+
+  .toggleable-section,
+  .card {
+    margin: 10px 12px 0 12px;
+    padding: 12px 16px 14px 16px;
+  }
+  .toggleable-section h2,
+  .card h2 { font-size: 15px; }
+  .toggleable-section label:has(input[type="radio"]),
+  .card label:has(input[type="radio"]) { padding: 9px 12px 9px 36px; font-size: 13.5px; }
 }

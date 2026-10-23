@@ -1,0 +1,734 @@
+/* ============================================================
+   Vector Control — touch cockpit
+   Copied from webroot/sdkapp/control.html inline <style>
+   (cockpit-only rules). Design tokens live in style.css —
+   do not redeclare a conflicting :root palette here.
+   Link after style.css from control.html only.
+   ============================================================ */
+
+/* ---------- top bar (control chrome) ---------- */
+.ctl-head {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: calc(52px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0 12px;
+  background: rgba(16, 18, 21, .92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.ctl-head .back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 15px;
+  cursor: pointer;
+}
+.ctl-head h1 {
+  margin: 0;
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+}
+
+/* the master switch: behavior control */
+.ctl-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  margin: 0;
+  width: auto;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition: all .15s ease;
+}
+.ctl-toggle .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: all .15s ease;
+}
+.ctl-toggle.on {
+  color: #06211e;
+  background: var(--teal);
+  border-color: var(--teal);
+}
+.ctl-toggle.on .dot {
+  background: #06211e;
+  box-shadow: 0 0 8px rgba(6, 33, 30, .6);
+}
+
+/* ---------- cockpit (camera + pads) ---------- */
+#cockpit { position: relative; margin: 12px; }
+
+.cam-shell {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #05070a;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#camStream {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#camStream img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.cam-idle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.cam-idle i { font-size: 34px; opacity: .5; }
+.cam-idle span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.cam-hud {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.cam-hud > * { pointer-events: auto; }
+.hud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 12px;
+  margin: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(10, 12, 15, .6) !important; /* style.css / focus states must not repaint this */
+  backdrop-filter: blur(6px);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto;
+  letter-spacing: normal;
+  text-transform: none;
+}
+/* active state: font color change ONLY — no background, no border shift */
+.hud-btn.rec {
+  color: var(--teal);
+  text-shadow: 0 0 8px rgba(53, 224, 207, .4);
+}
+.hud-btn:focus, .hud-btn:active,
+.ctl-toggle:focus, .ctl-toggle:active {
+  outline: none;
+  transform: none;
+  filter: none;
+}
+.hud-btn:focus-visible,
+.ctl-toggle:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+#ctlHint {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 6;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 180, 84, .14);
+  border: 1px solid rgba(255, 180, 84, .5);
+  color: var(--amber);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .2s ease;
+  pointer-events: none;
+}
+#ctlHint.show { opacity: 1; }
+
+/* Say Text input: same content width as mirror-mode labels / sayControlHint
+   (card column width, ~467px at 950px viewports — NOT a full-row span).
+   Lift style.css desktop `input.tinput { max-width: 420px }` only for this field. */
+#sayTextCard .say-field-wrap {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+#sayTextCard #textSay,
+#sayTextCard #textSay.tinput,
+#sayTextCard input.tinput#textSay,
+#sayTextCard input#textSay[type="text"] {
+  display: block;
+  width: 100% !important;
+  max-width: none !important; /* was capped at 420px; labels use full card ~467px */
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Say Text — lock hint when Take control is off */
+.ctl-field-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 180, 84, .1);
+  border: 1px solid rgba(255, 180, 84, .4);
+  color: var(--amber);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ctl-field-hint[hidden] { display: none !important; }
+.ctl-field-hint i {
+  flex: 0 0 auto;
+  font-size: 12px;
+  opacity: .9;
+}
+.ctl-field-hint.pulse {
+  animation: sayHintPulse .55s ease;
+}
+@keyframes sayHintPulse {
+  0%, 100% { transform: scale(1); box-shadow: none; }
+  40% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px rgba(255, 180, 84, .25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ctl-field-hint.pulse { animation: none; }
+}
+#sayTextCard.needs-control .say-field-wrap {
+  position: relative;
+  cursor: not-allowed;
+}
+#sayTextCard.needs-control #textSay {
+  opacity: .55;
+  cursor: not-allowed;
+}
+#saySpeakBtn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+/* ---------- controller deck ---------- */
+.deck {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  touch-action: none;
+}
+
+/* 8-way touch D-pad */
+#dpad {
+  position: relative;
+  width: min(46vw, 210px);
+  height: min(46vw, 210px);
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, #232932, #171b20 68%);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 4px 14px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .35);
+  touch-action: none;
+  user-select: none;
+}
+#dpad .arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: var(--muted);
+  font-size: 15px;
+  transform: translate(-50%, -50%) rotate(var(--r)) translateY(calc(min(46vw, 210px) / -2 + 20px));
+  transition: color .1s ease, text-shadow .1s ease;
+  pointer-events: none;
+}
+#dpad.d-N .a-N, #dpad.d-NE .a-N, #dpad.d-NE .a-E,
+#dpad.d-E .a-E, #dpad.d-SE .a-S, #dpad.d-SE .a-E,
+#dpad.d-S .a-S, #dpad.d-SW .a-S, #dpad.d-SW .a-W,
+#dpad.d-W .a-W, #dpad.d-NW .a-N, #dpad.d-NW .a-W {
+  color: var(--teal);
+  text-shadow: 0 0 10px rgba(53, 224, 207, .8);
+}
+#dpad .nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  height: 34%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 32%, #333b46, #1c2127 70%);
+  border: 1px solid #39414c;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .5);
+  transition: transform .06s ease;
+  pointer-events: none;
+}
+#dpad.active .nub {
+  border-color: var(--teal);
+  box-shadow: 0 0 14px rgba(53, 224, 207, .35), 0 4px 10px rgba(0, 0, 0, .5);
+}
+
+/* lift / head paddle cluster (gamepad ABXY layout) */
+#paddles {
+  position: relative;
+  width: min(46vw, 210px);
+  height: min(46vw, 210px);
+  flex: 0 0 auto;
+  touch-action: none;
+  user-select: none;
+}
+.pad-btn {
+  position: absolute;
+  width: 47%;
+  height: 47%;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 45% 35%, #262d36, #181c22 75%);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .4);
+  touch-action: none;
+  transition: transform .05s ease;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+}
+.pad-btn small {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pad-btn:active,
+.pad-btn.held {
+  transform: scale(.94);
+  border-color: var(--teal);
+  color: var(--teal);
+  box-shadow: 0 0 14px rgba(53, 224, 207, .3), 0 3px 8px rgba(0, 0, 0, .4);
+  filter: none;
+}
+/* rotated-45° cluster: 2×2 grid — UPs on top, DOWNs on bottom,
+   head on the left column, lift on the right column */
+.pad-btn.p-headup   { top: 0;    left: 0;  }
+.pad-btn.p-liftup   { top: 0;    right: 0; }
+.pad-btn.p-headdown { bottom: 0; left: 0;  }
+.pad-btn.p-liftdown { bottom: 0; right: 0; }
+
+.deck-label {
+  margin-top: 4px;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.deck-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/* ---------- control card extras ---------- */
+.card > button,
+.card .center > button,
+#uploadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  margin: 6px 6px 0 0;
+  background: var(--teal);
+  color: #06211e;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+audio { width: 100%; margin-top: 8px; }
+
+/* keyboard help chip (desktop only) */
+#keysKey {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--panel-2);
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.kb-only { display: none !important; }
+@media (hover: hover) and (pointer: fine) {
+  .kb-only { display: block !important; }
+  button.kb-only,
+  .ctl-help.kb-only { display: inline-flex !important; }
+}
+
+/* header ? help button */
+.ctl-help {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  margin: 0;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 auto;
+  box-shadow: none;
+}
+.ctl-help:hover {
+  color: var(--ink);
+  border-color: #3a434e;
+  background: var(--panel-2);
+}
+.ctl-help:focus-visible {
+  outline: 2px solid var(--fg-color);
+  outline-offset: 2px;
+}
+
+/* inline ? next to "Keyboard Controls" heading */
+.kb-help-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-height: 26px;
+  margin-left: 8px;
+  padding: 0;
+  vertical-align: middle;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+}
+.kb-help-inline:hover {
+  color: var(--fg-color);
+  border-color: var(--fg-color);
+}
+
+/* keyboard help modal */
+.kb-help-modal[hidden] { display: none !important; }
+.kb-help-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.kb-help-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(4px);
+}
+.kb-help-panel {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 100%);
+  max-height: min(90vh, 560px);
+  overflow: auto;
+  padding: 18px 18px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .45);
+}
+.kb-help-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.kb-help-head h2 {
+  margin: 0;
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+}
+.kb-help-close {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  margin: 0;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+}
+.kb-help-lead,
+.kb-help-note {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.45;
+  text-align: left;
+}
+.kb-help-note { font-size: 12.5px; }
+.kb-help-map {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kb-help-map li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: left;
+}
+.kb-help-map li span { color: var(--muted); flex: 1 1 120px; }
+.kb-help-map kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 2px 0 var(--line);
+}
+.kb-help-done {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  background: var(--fg-color);
+  color: #06211e;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+}
+.kb-help-done:hover { filter: brightness(1.06); }
+
+/* ---------- desktop hover (control-only) ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .hud-btn:hover { border-color: rgba(255, 255, 255, .3); }
+  .ctl-toggle:hover { border-color: #3a434e; color: var(--ink); }
+  .ctl-toggle.on:hover { filter: brightness(1.06); color: #06211e; }
+  .pad-btn:hover { border-color: #3a434e; }
+  .card > button:hover,
+  #uploadButton:hover { filter: brightness(1.08); }
+  .ctl-head .back-btn:hover {
+    background: var(--panel-2);
+    border-color: #3a434e;
+  }
+}
+
+/* ---------- desktop cockpit grid ---------- */
+@media (min-width: 880px) {
+  #content { max-width: 1080px; }
+
+  /* cockpit: big camera left, controller column right */
+  #sdkActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 0 12px;
+  }
+  #cockpit {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 16px;
+    align-items: stretch;
+    margin: 14px 0 0 0;
+  }
+  .cam-shell { aspect-ratio: auto; min-height: 440px; }
+  .deck {
+    margin-top: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+    padding: 20px 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  #dpad, #paddles { width: 200px; height: 200px; }
+  #dpad .arrow {
+    transform: translate(-50%, -50%) rotate(var(--r)) translateY(-80px);
+  }
+
+  .card { margin: 0; }
+  .card.kb-only { display: block; }
+  #keysKey { max-width: none; }
+}
+
+/* ============================================================
+   LANDSCAPE COCKPIT — phone rotated = FPV controller.
+   Camera fills the screen, pads become translucent overlays.
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 560px) and (pointer: coarse) {
+  body { overflow: hidden; }
+  .ctl-head { display: none; }
+  .card { display: none; }
+  #content { max-width: none; padding: 0; }
+
+  #cockpit {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    z-index: 60;
+  }
+  .cam-shell {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    border: none;
+    border-radius: 0;
+  }
+  #camStream img { object-fit: cover; }
+  .cam-hud {
+    top: calc(8px + env(safe-area-inset-top));
+    left: calc(10px + env(safe-area-inset-left));
+    right: calc(10px + env(safe-area-inset-right));
+  }
+
+  .deck {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    pointer-events: none;
+  }
+  .deck-col {
+    position: absolute;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    pointer-events: auto;
+  }
+  .deck-col.left  { left: calc(18px + env(safe-area-inset-left)); }
+  .deck-col.right { right: calc(18px + env(safe-area-inset-right)); }
+  .deck-label {
+    color: rgba(233, 237, 241, .55);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+  }
+
+  #dpad {
+    width: min(38vh, 200px);
+    height: min(38vh, 200px);
+    background: radial-gradient(circle at 50% 42%, rgba(35, 41, 50, .72), rgba(23, 27, 32, .72) 68%);
+    backdrop-filter: blur(4px);
+  }
+  #dpad .arrow {
+    transform: translate(-50%, -50%) rotate(var(--r)) translateY(calc(min(38vh, 200px) / -2 + 18px));
+  }
+  #paddles {
+    width: min(38vh, 200px);
+    height: min(38vh, 200px);
+  }
+  .pad-btn {
+    background: radial-gradient(circle at 45% 35%, rgba(38, 45, 54, .78), rgba(24, 28, 34, .78) 75%);
+    backdrop-filter: blur(4px);
+  }
+}

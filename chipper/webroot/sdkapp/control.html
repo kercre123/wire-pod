@@ -5,107 +5,178 @@
   <title>Vector Web App</title>
   <!-- Meta Apple tags for a PWA like experience. -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#1e1e1e">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#101215">
   <link rel="stylesheet" type="text/css" href="../css/style.css" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" type="text/css" href="../css/control.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <script src="https://kit.fontawesome.com/7508f396ac.js" crossorigin="anonymous"></script>
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT">
+
 </head>
 
 <body onload="updateControlButtons()">
   <div id="outer">
     <div id="content">
-      <h1 class="center">Vector control (beta)</h1>
-      <hr />
-      <div class="main-nav-parent">
-        <div class="main-nav-child">
-          <a href="#" onclick="goBackToSettings()"><i class="fa-solid fa-reply"></i><br />Back</a>
+
+      <!-- top bar -->
+      <div class="ctl-head">
+        <a class="back-btn" href="#" onclick="goBackToSettings(); return false;" aria-label="Back to settings"><i class="fa-solid fa-reply"></i></a>
+        <h1>Vector Control</h1>
+        <!-- desktop: keyboard map help (hidden on touch — see control.css .kb-only) -->
+        <button type="button" class="ctl-help kb-only" id="kbHelpBtn"
+          aria-label="Keyboard controls help" aria-haspopup="dialog" aria-controls="kbHelpModal" aria-expanded="false">?</button>
+        <button class="ctl-toggle" id="ctlToggle" onclick="vcToggleControl()" aria-pressed="false">
+          <span class="dot"></span><span id="ctlToggleText">Take control</span>
+        </button>
+      </div>
+
+      <!-- keyboard help dialog (desktop) -->
+      <div id="kbHelpModal" class="kb-help-modal" hidden role="dialog" aria-modal="true" aria-labelledby="kbHelpTitle">
+        <div class="kb-help-backdrop" data-kb-help-close tabindex="-1"></div>
+        <div class="kb-help-panel">
+          <div class="kb-help-head">
+            <h2 id="kbHelpTitle">Keyboard controls</h2>
+            <button type="button" class="kb-help-close" data-kb-help-close aria-label="Close">×</button>
+          </div>
+          <p class="kb-help-lead">Desktop only. Take control first, then set <strong>Keyboard Controls</strong> to <strong>On</strong> in the options below.</p>
+          <ul class="kb-help-map">
+            <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>Drive (forward / left / back / right)</span></li>
+            <li><kbd>R</kbd> / <kbd>F</kbd> <span>Lift up / down</span></li>
+            <li><kbd>T</kbd> / <kbd>G</kbd> <span>Head up / down</span></li>
+          </ul>
+          <p class="kb-help-note">Click in the Say Text field turns keyboard control off so you can type.</p>
+          <button type="button" class="kb-help-done" data-kb-help-close>Got it</button>
         </div>
       </div>
-      <hr />
 
       <div id="sdkActions">
-        <h2 class="center">Camera Feed</h2>
-        <hr class="small-hr">
-        <div class="center" id="camStream"></div>
-        <div style="text-align: left;" class="center">
-          <label>
-            <input type="radio" name="cam" id="cam" onclick="showCamStream()">Begin Camera Stream<br>
-          </label>
-          <label>
-            <input type="radio" name="cam" id="cam" onclick="stopCamStream()" checked>Stop Camera Stream<br>
-          </label>
-        </div>
-        <hr />
 
-        <h2 class="center">Behavior Control</h2>
-        <hr class="small-hr">
-        <small class="center">You must assume behavior control before performing any action</small>
-        <div style="text-align: left;" class="center">
-          <label>
-            <input type="radio" name="control" id="assume_control"
-              onclick="sendForm('/api-sdk/assume_behavior_control?priority=high'); updateControlButtons();">Assume<br>
-          </label>
-          <label>
-            <input type="radio" name="control" id="release_control"
-              onclick="sendForm('/api-sdk/release_behavior_control'); updateControlButtons();" checked>Release<br>
-          </label>
-        </div>
-        <hr />
+        <!-- ==================== COCKPIT ==================== -->
+        <div id="cockpit">
+          <div class="cam-shell">
+            <div class="cam-idle" id="camIdle">
+              <i class="fa-solid fa-video-slash"></i>
+              <span>Camera off</span>
+            </div>
+            <div class="center" id="camStream"></div>
+            <div class="cam-hud">
+              <button class="hud-btn" id="camToggle" onclick="vcToggleCam()"><i class="fa-solid fa-video"></i><span id="camToggleText">Camera</span></button>
+              <button class="hud-btn" id="ctlToggleHud" onclick="vcToggleControl()"><i class="fa-solid fa-power-off"></i><span id="ctlToggleHudText">Take control</span></button>
+              <button class="hud-btn" onclick="vcFullscreen()" aria-label="Fullscreen"><i class="fa-solid fa-expand"></i></button>
+            </div>
+            <div id="ctlHint">Take control first</div>
+          </div>
 
-        <h2 class="center">Move Motors</h2>
-        <hr class="small-hr">
-        <small class="center">Toggle Keyboard Controls (unstable) <br> WASD for wheels, R-lift up, F-lift down, T-head
-          up, G-head down</small>
-        <div style="text-align: left;" class="center">
-          <label>
-            <input type="radio" name="keycontrol" id="key_control_on" onclick="toggleKeyboard()" disabled>On<br>
-          </label>
-          <label>
-            <input type="radio" name="keycontrol" id="key_control_off" onclick="toggleKeyboard()" checked
-              disabled>Off<br>
-          </label>
-        </div>
-        <hr />
+          <!-- controller deck: D-pad left, lift/head paddles right -->
+          <div class="deck">
+            <div class="deck-col left">
+              <div id="dpad" aria-label="Drive pad">
+                <i class="arrow a-N fa-solid fa-caret-up" style="--r:0deg"></i>
+                <i class="arrow a-E fa-solid fa-caret-up" style="--r:90deg"></i>
+                <i class="arrow a-S fa-solid fa-caret-up" style="--r:180deg"></i>
+                <i class="arrow a-W fa-solid fa-caret-up" style="--r:270deg"></i>
+                <div class="nub"></div>
+              </div>
+              <div class="deck-label">Drive</div>
+            </div>
 
-        <h2 class="center">Mirror Mode</h2>
-        <hr class="small-hr">
-        <div style="text-align: left;" class="center">
-          <label>
-            <input type="radio" name="mirror" id="mirror_on" onclick="sendForm('/api-sdk/mirror_mode?enable=true')"
-              disabled>On<br>
-          </label>
-          <label>
-            <input type="radio" name="mirror" id="mirror_off" onclick="sendForm('/api-sdk/mirror_mode?enable=false')"
-              checked disabled>Off<br>
-          </label>
+            <div class="deck-col right">
+              <div id="paddles">
+                <button class="pad-btn p-headup" data-act="headup" aria-label="Head up">
+                  <i class="fa-solid fa-angles-up"></i><small>Head</small>
+                </button>
+                <button class="pad-btn p-liftup" data-act="liftup" aria-label="Lift up">
+                  <i class="fa-solid fa-up-long"></i><small>Lift</small>
+                </button>
+                <button class="pad-btn p-headdown" data-act="headdown" aria-label="Head down">
+                  <i class="fa-solid fa-angles-down"></i><small>Head</small>
+                </button>
+                <button class="pad-btn p-liftdown" data-act="liftdown" aria-label="Lift down">
+                  <i class="fa-solid fa-down-long"></i><small>Lift</small>
+                </button>
+              </div>
+              <div class="deck-label">Head &amp; Lift</div>
+            </div>
+          </div>
         </div>
-        <hr />
 
-        <h2 class="center">Say Text</h2>
-        <div class="center">
-          <input class="tinput" name="textSay" id="textSay" type="text" placeholder="Put text here" disabled />
+        <!-- ==================== SAY TEXT ==================== -->
+        <div class="card" id="sayTextCard">
+          <h2>Say Text</h2>
+          <p class="ctl-field-hint" id="sayControlHint" role="status">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            Take control must be enabled to use Say Text
+          </p>
+          <div class="center say-field-wrap" id="sayFieldWrap">
+            <input class="tinput" name="textSay" id="textSay" type="text"
+              placeholder="What should Vector say?" disabled
+              aria-describedby="sayControlHint"
+              title="Take control must be enabled" />
+          </div>
+          <button type="button" id="saySpeakBtn" onclick="vcSayText()">Speak</button>
         </div>
-        <button onclick="sayText()" type="submit">Submit</button>
-      <hr />
-      <h2 class="center">Play Audio</h2>
-        <div class="center">
-          <input type="file" id="fileInput" accept=".wav">
+
+        <!-- ==================== PLAY AUDIO ==================== -->
+        <div class="card">
+          <h2>Play Audio</h2>
+          <small>Upload a .wav file for Vector to play.</small>
+          <div class="center">
+            <input type="file" id="fileInput" accept=".wav">
+          </div>
+          <button id="uploadButton" style="display: none;" type="submit">Send Audio</button>
+          <div class="center">
+            <audio id="audioOutput" controls></audio>
+          </div>
         </div>
-        <button id="uploadButton" style="display: none;" type="submit">Send Audio</button>
-        <div div class="center">
-          <audio id="audioOutput" controls></audio>
+
+        <!-- ==================== OPTIONS ==================== -->
+        <div class="card">
+          <h2>Mirror Mode</h2>
+          <small>Vector's face becomes his camera feed.</small>
+          <div style="text-align: left;" class="center">
+            <label>
+              <input type="radio" name="mirror" id="mirror_on" onclick="sendForm('/api-sdk/mirror_mode?enable=true')"
+                disabled>On<br>
+            </label>
+            <label>
+              <input type="radio" name="mirror" id="mirror_off" onclick="sendForm('/api-sdk/mirror_mode?enable=false')"
+                checked disabled>Off<br>
+            </label>
+          </div>
         </div>
+
+        <div class="card kb-only">
+          <h2>Keyboard Controls
+            <button type="button" class="kb-help-inline" onclick="document.getElementById('kbHelpBtn').click()"
+              aria-label="Show keyboard map">?</button>
+          </h2>
+          <small>Enable for WASD drive, R/F lift, T/G head. Press <strong>?</strong> in the header for the full map.</small>
+          <div style="text-align: left;" class="center">
+            <label>
+              <input type="radio" name="keycontrol" id="key_control_on" onclick="toggleKeyboard()" disabled>On<br>
+            </label>
+            <label>
+              <input type="radio" name="keycontrol" id="key_control_off" onclick="toggleKeyboard()" checked
+                disabled>Off<br>
+            </label>
+          </div>
+          <div id="keysKey" style="display:none;">
+            W A S D — drive &nbsp;·&nbsp; R / F — lift up / down &nbsp;·&nbsp; T / G — head up / down
+          </div>
+        </div>
+
+        <!-- hidden legacy radios: control.js's updateControlButtons() reads
+             these; the header toggle drives them. Do not remove. -->
+        <div style="display:none;">
+          <input type="radio" name="control" id="assume_control">
+          <input type="radio" name="control" id="release_control" checked>
+        </div>
+
       </div>
-      <hr />
     </div>
-    </div>
-  </div>
-  <hr>
-  </div>
   </div>
 
   <script src="./js/httprequest.js"></script>
@@ -113,6 +184,317 @@
   <script src="./js/control.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/play_audio.js"></script>
+
+  <script>
+    /* ------------------------------------------------------------
+       Touch cockpit layer — additive, zero rewiring.
+       Uses sendForm() from control.js, so every request hits the
+       exact same /api-sdk endpoints with the same wheel speeds.
+       ------------------------------------------------------------ */
+    (function () {
+      var controlActive = false;
+      var camActive = false;
+
+      /* ---------- fix control.js's stopCamStream crash ----------
+         Stock version calls removeChild unconditionally; if the stream
+         was never started it throws (see console: NotFoundError in
+         onbeforeunload), which aborts BEFORE the stop_cam_stream
+         request is sent — so the server keeps the stream open and the
+         next page load can't get the camera. This safe replacement is
+         picked up by control.js's own onbeforeunload at call time. */
+      window.stopCamStream = function () {
+        try { stream.src = ""; } catch (e) { }
+        try {
+          if (typeof stream !== "undefined" && stream && stream.parentNode) {
+            stream.parentNode.removeChild(stream);
+          }
+        } catch (e) { }
+        sendForm("/api-sdk/stop_cam_stream");
+      };
+
+      /* if the MJPEG stream drops or fails to start, reset the HUD so
+         the person can just tap Camera again */
+      if (typeof stream !== "undefined" && stream) {
+        stream.addEventListener("error", function () {
+          if (!camActive) return;
+          camActive = false;
+          try { window.stopCamStream(); } catch (e) { }
+          document.getElementById("camIdle").style.display = "flex";
+          document.getElementById("camToggle").classList.remove("rec");
+          document.getElementById("camToggleText").textContent = "Camera";
+        });
+      }
+
+      /* ---------- behavior control master toggle ---------- */
+      function dropFocus() {
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      }
+
+      window.vcToggleControl = function () {
+        controlActive = !controlActive;
+        if (controlActive) {
+          document.getElementById("assume_control").checked = true;
+          sendForm('/api-sdk/assume_behavior_control?priority=high');
+        } else {
+          document.getElementById("release_control").checked = true;
+          sendForm('/api-sdk/release_behavior_control');
+        }
+        updateControlButtons();
+        syncToggleUI();
+        dropFocus();
+      };
+
+      function syncToggleUI() {
+        var t = document.getElementById("ctlToggle");
+        t.classList.toggle("on", controlActive);
+        t.setAttribute("aria-pressed", controlActive ? "true" : "false");
+        document.getElementById("ctlToggleText").textContent = controlActive ? "Controlling" : "Take control";
+        document.getElementById("ctlToggleHudText").textContent = controlActive ? "Release" : "Take control";
+        document.getElementById("ctlToggleHud").classList.toggle("rec", controlActive);
+
+        // Say Text: persistent hint + tooltip while control is off
+        var sayHint = document.getElementById("sayControlHint");
+        var sayInput = document.getElementById("textSay");
+        var sayCard = document.getElementById("sayTextCard");
+        var speakBtn = document.getElementById("saySpeakBtn");
+        if (sayHint) {
+          sayHint.hidden = !!controlActive;
+          sayHint.setAttribute("aria-hidden", controlActive ? "true" : "false");
+        }
+        if (sayCard) sayCard.classList.toggle("needs-control", !controlActive);
+        if (sayInput) {
+          sayInput.title = controlActive
+            ? ""
+            : "Take control must be enabled to use Say Text";
+          sayInput.setAttribute(
+            "aria-disabled",
+            controlActive ? "false" : "true"
+          );
+        }
+        if (speakBtn) {
+          speakBtn.title = controlActive
+            ? "Speak the text"
+            : "Take control must be enabled to use Say Text";
+          speakBtn.disabled = !controlActive;
+        }
+      }
+
+      var hintTimer = null;
+      function nudgeControl() {
+        var h = document.getElementById("ctlHint");
+        h.classList.add("show");
+        clearTimeout(hintTimer);
+        hintTimer = setTimeout(function () { h.classList.remove("show"); }, 1600);
+        if (navigator.vibrate) navigator.vibrate([20, 40, 20]);
+        // also pulse the Say Text lock hint if present
+        var sh = document.getElementById("sayControlHint");
+        if (sh && !controlActive) {
+          sh.classList.remove("pulse");
+          void sh.offsetWidth;
+          sh.classList.add("pulse");
+        }
+      }
+
+      /* Speak button / disabled field: explain Take control when locked */
+      window.vcSayText = function () {
+        if (!controlActive) {
+          nudgeControl();
+          return;
+        }
+        if (typeof sayText === "function") sayText();
+      };
+
+      var sayWrap = document.getElementById("sayFieldWrap");
+      if (sayWrap) {
+        sayWrap.addEventListener("pointerdown", function () {
+          if (!controlActive) nudgeControl();
+        });
+      }
+
+      /* ---------- camera toggle (wraps control.js helpers) ---------- */
+      window.vcToggleCam = function () {
+        if (!camActive) {
+          camActive = true;
+          showCamStream();
+        } else {
+          camActive = false;
+          try { stopCamStream(); } catch (e) { }
+        }
+        document.getElementById("camIdle").style.display = camActive ? "none" : "flex";
+        document.getElementById("camToggle").classList.toggle("rec", camActive);
+        document.getElementById("camToggleText").textContent = camActive ? "Live" : "Camera";
+        dropFocus();
+      };
+
+      window.vcFullscreen = function () {
+        var el = document.documentElement;
+        if (!document.fullscreenElement) {
+          (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+        } else {
+          (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+        }
+      };
+
+      /* ---------- 8-way drive pad ----------
+         Wheel speeds copied 1:1 from control.js keyboard mapping. */
+      var SPEEDS = {
+        N:  "lw=140&rw=140",    /* w   */
+        NE: "lw=190&rw=100",    /* w+d */
+        E:  "lw=150&rw=-150",   /* d   */
+        SE: "lw=-190&rw=100",   /* s+d */
+        S:  "lw=-150&rw=-150",  /* s   */
+        SW: "lw=-100&rw=190",   /* s+a */
+        W:  "lw=-150&rw=150",   /* a   */
+        NW: "lw=100&rw=190"     /* w+a */
+      };
+      var SECTORS = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
+
+      var dpad = document.getElementById("dpad");
+      var currentDir = null;
+      var padPointer = null;
+
+      function dirFromEvent(e) {
+        var r = dpad.getBoundingClientRect();
+        var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        var dx = e.clientX - cx, dy = e.clientY - cy;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < r.width * 0.14) return null; /* deadzone */
+        var ang = Math.atan2(dy, dx) * 180 / Math.PI; /* -180..180, 0 = east */
+        var idx = Math.round(ang / 45);
+        if (idx < 0) idx += 8;
+        return SECTORS[idx % 8];
+      }
+
+      function setDir(dir) {
+        if (dir === currentDir) return;
+        currentDir = dir;
+        dpad.className = dir ? ("active d-" + dir) : "";
+        if (dir) {
+          sendForm("/api-sdk/move_wheels?" + SPEEDS[dir]);
+          if (navigator.vibrate) navigator.vibrate(8);
+        } else {
+          /* double stop, same as control.js */
+          sendForm("/api-sdk/move_wheels?lw=0&rw=0");
+          sendForm("/api-sdk/move_wheels?lw=0&rw=0");
+        }
+      }
+
+      dpad.addEventListener("pointerdown", function (e) {
+        e.preventDefault();
+        if (!controlActive) { nudgeControl(); return; }
+        padPointer = e.pointerId;
+        dpad.setPointerCapture(e.pointerId);
+        setDir(dirFromEvent(e));
+      });
+      dpad.addEventListener("pointermove", function (e) {
+        if (e.pointerId !== padPointer) return;
+        e.preventDefault();
+        setDir(dirFromEvent(e));
+      });
+      function padRelease(e) {
+        if (e.pointerId !== padPointer) return;
+        padPointer = null;
+        setDir(null);
+      }
+      dpad.addEventListener("pointerup", padRelease);
+      dpad.addEventListener("pointercancel", padRelease);
+      dpad.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+      /* safety: any surprise (tab hidden, etc.) → full stop */
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden && controlActive) {
+          setDir(null);
+          sendForm("/api-sdk/move_lift?speed=0");
+          sendForm("/api-sdk/move_head?speed=0");
+        }
+      });
+
+      /* ---------- hold-to-move lift & head paddles ---------- */
+      var ACTS = {
+        headup:   { start: "/api-sdk/move_head?speed=2",  stop: "/api-sdk/move_head?speed=0" },
+        headdown: { start: "/api-sdk/move_head?speed=-2", stop: "/api-sdk/move_head?speed=0" },
+        liftup:   { start: "/api-sdk/move_lift?speed=2",  stop: "/api-sdk/move_lift?speed=0" },
+        liftdown: { start: "/api-sdk/move_lift?speed=-2", stop: "/api-sdk/move_lift?speed=0" }
+      };
+
+      document.querySelectorAll(".pad-btn").forEach(function (btn) {
+        var act = ACTS[btn.dataset.act];
+        var held = false;
+
+        function start(e) {
+          e.preventDefault();
+          if (!controlActive) { nudgeControl(); return; }
+          if (held) return;
+          held = true;
+          btn.classList.add("held");
+          btn.setPointerCapture(e.pointerId);
+          sendForm(act.start);
+          if (navigator.vibrate) navigator.vibrate(8);
+        }
+        function stop(e) {
+          if (!held) return;
+          held = false;
+          btn.classList.remove("held");
+          sendForm(act.stop);
+        }
+        btn.addEventListener("pointerdown", start);
+        btn.addEventListener("pointerup", stop);
+        btn.addEventListener("pointercancel", stop);
+        btn.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+      });
+
+      /* release everything when leaving the page (control.js also
+         releases behavior control via its own onbeforeunload) */
+      window.addEventListener("pagehide", function () {
+        if (controlActive) {
+          sendForm("/api-sdk/move_wheels?lw=0&rw=0");
+          sendForm("/api-sdk/move_lift?speed=0");
+          sendForm("/api-sdk/move_head?speed=0");
+        }
+      });
+
+      syncToggleUI();
+    })();
+  </script>
+
+  <script>
+    /* Desktop keyboard-help dialog — additive; does not touch control.js IDs */
+    (function () {
+      var btn = document.getElementById("kbHelpBtn");
+      var modal = document.getElementById("kbHelpModal");
+      if (!btn || !modal) return;
+
+      function openHelp() {
+        modal.hidden = false;
+        btn.setAttribute("aria-expanded", "true");
+        var closeBtn = modal.querySelector(".kb-help-close");
+        if (closeBtn) closeBtn.focus();
+      }
+      function closeHelp() {
+        modal.hidden = true;
+        btn.setAttribute("aria-expanded", "false");
+        btn.focus();
+      }
+
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (modal.hidden) openHelp();
+        else closeHelp();
+      });
+      modal.querySelectorAll("[data-kb-help-close]").forEach(function (el) {
+        el.addEventListener("click", function (e) {
+          e.preventDefault();
+          closeHelp();
+        });
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !modal.hidden) {
+          e.preventDefault();
+          closeHelp();
+        }
+      });
+    })();
+  </script>
 
   <iframe name="hiddenFrame" width="0" height="0" border="0" style="display: none"></iframe>
 </body>
