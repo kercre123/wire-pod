@@ -16,6 +16,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/tts"
 	lualibs "github.com/vadv/gopher-lua-libs"
 	lua "github.com/yuin/gopher-lua"
 )
@@ -64,8 +65,7 @@ type Bot struct {
 func sayText(L *lua.LState) int {
 	textToSay := L.ToString(1)
 	executeWithGoroutine(L, func(L *lua.LState) error {
-		_, err := gRfLS(L).Conn.SayText(L.Context(), &vectorpb.SayTextRequest{Text: textToSay, UseVectorVoice: true, DurationScalar: 1.0})
-		return err
+		return tts.SayText(L.Context(), gRfLS(L), textToSay, 1.0)
 	}, false)
 	return 0
 }
