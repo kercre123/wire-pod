@@ -18,6 +18,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/tts"
 	"github.com/sashabaranov/go-openai"
 )
 
@@ -619,14 +620,7 @@ func KGSim(esn string, textToSay string) error {
 			}()
 			textToSaySplit := strings.Split(textToSay, ". ")
 			for _, str := range textToSaySplit {
-				_, err := robot.Conn.SayText(
-					ctx,
-					&vectorpb.SayTextRequest{
-						Text:           str + ".",
-						UseVectorVoice: true,
-						DurationScalar: 1.0,
-					},
-				)
+				err := tts.SayText(ctx, robot, str+".", 1.0)
 				if err != nil {
 					logger.Println("KG SayText error: " + err.Error())
 					stop <- true

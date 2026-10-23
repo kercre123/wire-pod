@@ -41,6 +41,24 @@ type apiConfig struct {
 		Service  string `json:"provider"`
 		Language string `json:"language"`
 	} `json:"STT"`
+	// Optional external voice services speaking the Wyoming protocol
+	// (wyoming-faster-whisper, wyoming-piper). Both are off by default, so
+	// the built-in STT engine and Vector's own voice keep working as before.
+	Wyoming struct {
+		STT struct {
+			Enable bool   `json:"enable"`
+			Host   string `json:"host"`
+			Port   int    `json:"port"`
+		} `json:"stt"`
+		TTS struct {
+			Enable bool   `json:"enable"`
+			Host   string `json:"host"`
+			Port   int    `json:"port"`
+			Voice  string `json:"voice"`
+			// 0-100, volume of the audio stream played on the robot
+			Volume int `json:"volume"`
+		} `json:"tts"`
+	} `json:"wyoming"`
 	Server struct {
 		// false for ip, true for escape pod
 		EPConfig bool   `json:"epconfig"`

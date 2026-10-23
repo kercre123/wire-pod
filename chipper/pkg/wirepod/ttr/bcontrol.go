@@ -7,6 +7,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/tts"
 )
 
 func sayText(robot *vector.Vector, text string) {
@@ -68,14 +69,7 @@ func sayText(robot *vector.Vector, text string) {
 			// * end - modified from official vector-go-sdk
 		}()
 		for range start {
-			robot.Conn.SayText(
-				context.Background(),
-				&vectorpb.SayTextRequest{
-					Text:           text,
-					UseVectorVoice: true,
-					DurationScalar: 1.0,
-				},
-			)
+			tts.SayText(context.Background(), robot, text, 1.0)
 			stop <- true
 		}
 	}()

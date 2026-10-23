@@ -36,6 +36,10 @@
           <a href="#" onclick="showLanguage(); return false;"><i class="fa-solid fa-language" id="icon-Language"
               name="icon"></i><br />Set Language</a>
         </div>
+        <div class="main-nav-child">
+          <a href="#" onclick="showVoice(); return false;"><i class="fa-solid fa-microphone-lines" id="icon-Voice"
+              name="icon"></i><br />Voice Services</a>
+        </div>
         <!--<div class="main-nav-child"><a href="#" onclick="showRestart(); return false;"><i class="fa solid fa-arrow-rotate-right" id="icon-Restart" name="icon"></i><br/>Restart Wire-Pod</a></div> -->
       </div>
       <hr />
@@ -192,6 +196,72 @@
         <hr />
       </div>
 
+      <div id="section-voice" style="display: none">
+        <h3>Voice Services (Wyoming)</h3>
+        <hr class="small-hr">
+        <p>
+          Connect external voice services that speak the Wyoming protocol, e.g. the ones used by
+          Home Assistant (wyoming-faster-whisper, wyoming-piper). When a service is turned off or
+          cannot be reached, wire-pod uses its built-in engine as before.
+        </p>
+        <hr class="small-hr">
+        <form id="voiceForm" onsubmit="return false;">
+          <h4>Speech-to-text (e.g. Whisper)</h4>
+          <div style="text-align: left;">
+            <input type="checkbox" id="wyomingSttEnable" onclick="checkVoice()" />
+            <label class="checkbox-label" for="wyomingSttEnable">
+              Use a Wyoming speech-to-text server instead of the built-in engine.
+              The language is taken from <i>Set Language</i>.
+            </label>
+          </div>
+          <span id="wyomingSttInput" style="display: none">
+            <label for="wyomingSttHost">Host <small class="desc">(i.e. 192.168.1.10)</small>:</label><br />
+            <input class="tinput" type="text" id="wyomingSttHost" /><br />
+            <label for="wyomingSttPort">Port <small class="desc">(default 10300)</small>:</label><br />
+            <input class="tinput" type="text" inputmode="numeric" pattern="[0-9]*" id="wyomingSttPort" /><br />
+            <button type="button" onclick="testWyoming('stt')">Test Connection</button>
+            <div id="wyomingSttStatus"></div>
+          </span>
+          <hr class="small-hr">
+
+          <h4>Text-to-speech (e.g. Piper)</h4>
+          <div style="text-align: left;">
+            <input type="checkbox" id="wyomingTtsEnable" onclick="checkVoice()" />
+            <label class="checkbox-label" for="wyomingTtsEnable">
+              Use a Wyoming text-to-speech server for everything wire-pod makes the robot say
+              (LLM answers, custom intents, scripts, SDK "say text") instead of Vector's built-in voice.
+            </label>
+          </div>
+          <span id="wyomingTtsInput" style="display: none">
+            <label for="wyomingTtsHost">Host <small class="desc">(i.e. 192.168.1.10)</small>:</label><br />
+            <input class="tinput" type="text" id="wyomingTtsHost" /><br />
+            <label for="wyomingTtsPort">Port <small class="desc">(default 10200)</small>:</label><br />
+            <input class="tinput" type="text" inputmode="numeric" pattern="[0-9]*" id="wyomingTtsPort" /><br />
+            <button type="button" onclick="testWyoming('tts')">Test Connection &amp; Load Voices</button>
+            <div id="wyomingTtsStatus"></div>
+            <label for="wyomingTtsVoice">Voice <small class="desc">(leave empty for the server default)</small>:</label><br />
+            <input class="tinput" type="text" id="wyomingTtsVoice" list="wyomingTtsVoiceList" /><br />
+            <datalist id="wyomingTtsVoiceList"></datalist>
+            <div style="text-align: left;">
+              <input type="checkbox" id="wyomingTtsAllVoices" onclick="fillVoiceList()" />
+              <label class="checkbox-label" for="wyomingTtsAllVoices">Show voices in all languages</label>
+            </div>
+            <label for="wyomingTtsVolume">Volume: <span id="wyomingTtsVolumeValue"></span></label><br />
+            <input type="range" id="wyomingTtsVolume" min="10" max="100" step="5"
+              oninput="getE('wyomingTtsVolumeValue').textContent = this.value + '%'" /><br />
+            <label for="wyomingTtsPreviewText">Test sentence:</label><br />
+            <input class="tinput" type="text" id="wyomingTtsPreviewText" /><br />
+            <button type="button" onclick="previewWyomingVoice()">Listen in Browser</button>
+            <div id="wyomingTtsPreviewStatus"></div>
+            <audio id="wyomingTtsAudio" controls style="display: none; width: 100%;"></audio>
+          </span>
+        </form>
+        <hr class="small-hr">
+        <button onclick="sendVoiceSettings()">Apply Settings</button>
+        <div id="voiceSettingsStatus"></div>
+        <hr />
+      </div>
+
       <div id="section-restart" style="display: none">
         <h3>Restart Wire-Pod</h3>
         <div>
@@ -246,6 +316,7 @@
 </body>
 <script src="./js/ui.js"></script>
 <script src="./js/main.js"></script>
+<script src="./js/voice.js"></script>
 <script src="./sdkapp/js/main.js"></script>
 <script>
   updateWeatherAPI();

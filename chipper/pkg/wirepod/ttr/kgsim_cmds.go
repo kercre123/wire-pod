@@ -14,6 +14,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/tts"
 	"github.com/sashabaranov/go-openai"
 )
 
@@ -290,6 +291,9 @@ func DoSayText(input string, robot *vector.Vector) error {
 	// just before vector speaks
 	removeSpecialCharacters(input)
 
+	if tts.Enabled() {
+		return tts.SayText(context.Background(), robot, input, 0.95)
+	}
 	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || vars.APIConfig.Knowledge.OpenAIVoiceWithEnglish {
 		err := DoSayText_OpenAI(robot, input)
 		return err
@@ -408,14 +412,7 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 			return
 		}
 		time.Sleep(time.Millisecond * 300)
-		robot.Conn.SayText(
-			context.Background(),
-			&vectorpb.SayTextRequest{
-				Text:           fmt.Sprint(i),
-				UseVectorVoice: true,
-				DurationScalar: 1.05,
-			},
-		)
+		tts.SayText(context.Background(), robot, fmt.Sprint(i), 1.05)
 		if stopImaging {
 			return
 		}

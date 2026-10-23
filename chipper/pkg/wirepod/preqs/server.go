@@ -1,11 +1,13 @@
 package processreqs
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	sr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/speechrequest"
+	wyomingstt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/wyoming"
 	ttr "github.com/kercre123/wire-pod/chipper/pkg/wirepod/ttr"
 )
 
@@ -58,7 +60,7 @@ func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (
 
 	// check function type
 	if str, is := SttHandler.(func(sr.SpeechRequest) (string, error)); is {
-		sttHandler = str
+		sttHandler = withWyomingSTT(str)
 	} else if str, is := SttHandler.(func(sr.SpeechRequest) (string, map[string]string, error)); is {
 		stiHandler = str
 		isSti = true
@@ -73,4 +75,21 @@ func New(InitFunc func() error, SttHandler interface{}, voiceProcessor string) (
 	ttr.LoadPlugins()
 
 	return &Server{}, err
+}
+
+// withWyomingSTT routes speech to the external Wyoming STT server when it is
+// enabled in the web UI (checked on every request, no restart needed). If the
+// server cannot be reached, the compiled-in engine handles the request.
+func withWyomingSTT(builtin func(sr.SpeechRequest) (string, error)) func(sr.SpeechRequest) (string, error) {
+	return func(req sr.SpeechRequest) (string, error) {
+		if !wyomingstt.Enabled() {
+			return builtin(req)
+		}
+		text, err := wyomingstt.STT(req)
+		if errors.Is(err, wyomingstt.ErrUnavailable) {
+			logger.Println("Wyoming STT unavailable, falling back to " + VoiceProcessor)
+			return builtin(req)
+		}
+		return text, err
+	}
 }
