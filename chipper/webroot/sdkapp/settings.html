@@ -23,9 +23,11 @@
       <div id="botStats"></div>
       <hr>
       <div class="main-nav-parent">
-        <div class="main-nav-child"><a href="/sdkapp"><i class="fa-solid fa-reply"></i><br />Back</a></div>
+        <div class="main-nav-child"><a href="/"><i class="fa-solid fa-reply"></i><br />Home</a></div>
         <div class="main-nav-child"><a href="#" onclick="goToControlPage()"><i
               class="fa-solid fa-gamepad"></i><br />Control<br /></a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-name'); return false;"><i
+              class="fa-solid fa-tag"></i><br />Name</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-volume'); return false;"><i
               class="fa-solid fa-volume-high" id="icon-volume" name="icon"></i><br />Volume</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-eyes'); return false;"><i
@@ -56,6 +58,19 @@
               class="fa-solid fa-hourglass" id="icon-timezone" name="icon"></i><br />Time Zone</a></div>
       </div>
       <hr>
+
+      <div id="section-name" class="toggleable-section" style="display:none;">
+        <h2 class="center">Wire-Pod Name</h2>
+        <hr class="small-hr">
+        <p class="center">A local label for this Vector. It does not change the robot's serial number or cloud identity.</p>
+        <div class="center">
+          <label for="robotDisplayName">Name</label><br>
+          <input class="tinput" id="robotDisplayName" type="text" maxlength="48" autocomplete="off" placeholder="Give this Vector a name">
+        </div>
+        <div class="center"><button onclick="saveRobotDisplayName()">Save name</button></div>
+        <p class="center" id="robotDisplayNameStatus" aria-live="polite"></p>
+        <hr>
+      </div>
 
       <div id="section-volume" class="toggleable-section" style="display:none;">
         <h2 class="center">Volume</h2>

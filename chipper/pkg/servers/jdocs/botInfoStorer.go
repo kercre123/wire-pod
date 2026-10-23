@@ -141,12 +141,9 @@ func StoreBotInfo(ctx context.Context, thing string) {
 	}
 	if appendNew {
 		logger.Println("Adding " + botEsn + " to bot info store")
-		vars.BotInfo.Robots = append(vars.BotInfo.Robots, struct {
-			Esn       string `json:"esn"`
-			IPAddress string `json:"ip_address"`
-			GUID      string `json:"guid"`
-			Activated bool   `json:"activated"`
-		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
+		vars.BotInfo.Robots = append(vars.BotInfo.Robots, vars.RobotInfo{
+			Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false,
+		})
 	}
 	finalJsonBytes, _ := json.Marshal(vars.BotInfo)
 	os.WriteFile(vars.BotInfoPath, finalJsonBytes, 0644)
