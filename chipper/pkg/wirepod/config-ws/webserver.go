@@ -506,6 +506,10 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		esn := split[2]
+		if !vars.ValidESN(esn) {
+			http.Error(w, "invalid esn", http.StatusBadRequest)
+			return
+		}
 		fileBytes, err := os.ReadFile(path.Join(vars.SessionCertPath, esn))
 		if err != nil {
 			http.Error(w, "cert does not exist", http.StatusNotFound)

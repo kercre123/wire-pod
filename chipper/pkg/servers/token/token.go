@@ -17,7 +17,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 	"gopkg.in/ini.v1"
 )
 
@@ -273,7 +275,16 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
 	logger.Println("Token: Incoming Associate Primary User request")
 	pemBytes, _ := pem.Decode(req.SessionCertificate)
-	cert, _ := x509.ParseCertificate(pemBytes.Bytes)
+	if pemBytes == nil {
+		return nil, status.Error(codes.InvalidArgument, "session certificate isn't valid PEM")
+	}
+	cert, err := x509.ParseCertificate(pemBytes.Bytes)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid session certificate: "+err.Error())
+	}
+	if !vars.ValidRobotName(cert.Issuer.CommonName) {
+		return nil, status.Error(codes.InvalidArgument, "invalid robot name in session certificate")
+	}
 	SessionWriteStoreCerts = append(SessionWriteStoreCerts, req.SessionCertificate)
 	p, _ := peer.FromContext(ctx)
 	SessionWriteStoreNames = append(SessionWriteStoreNames, [2]string{p.Addr.String(), cert.Issuer.CommonName})

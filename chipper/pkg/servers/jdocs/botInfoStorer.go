@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -95,15 +96,29 @@ func WriteToIniSecondary(esn, guid, ip string) {
 			logger.Println("The DDL servers are down at the moment. The cert will not be gotten. The Python SDK will not be configured.")
 			return
 		}
-		certBytesOrig, _ := io.ReadAll(resp.Body)
-		os.WriteFile(vars.SessionCertPath+"/"+esn, certBytesOrig, 0777)
+		defer resp.Body.Close()
+		certBytesOrig, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Println(err)
+			return
+		}
 		block, _ := pem.Decode(certBytesOrig)
+		if block == nil {
+			logger.Println("WriteToIniSecondary: session cert from DDL server isn't valid PEM")
+			return
+		}
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			logger.Println(err)
+			return
 		}
 		botName = cert.Issuer.CommonName
-		certPath = vars.SDKIniPath + botName + "-" + esn + ".cert"
+		if !vars.ValidRobotName(botName) {
+			logger.Println("WriteToIniSecondary: invalid robot name in session cert: " + botName)
+			return
+		}
+		os.WriteFile(filepath.Join(vars.SessionCertPath, esn), certBytesOrig, 0777)
+		certPath = filepath.Join(vars.SDKIniPath, botName+"-"+esn+".cert")
 		out, err := os.Create(certPath)
 		if err == nil {
 			out.Write(certBytesOrig)

@@ -640,7 +640,10 @@ func BeginServer() {
 	ipAddr := vars.GetOutboundIP().String()
 	logger.Println("\033[1;36mConfiguration page: http://" + ipAddr + ":" + vars.WebPort + "\033[0m")
 	if runtime.GOOS != "android" {
-		if err := http.ListenAndServe(":80", nil); err != nil {
+		checkMux := http.NewServeMux()
+		checkMux.HandleFunc("/ok:80", connCheck)
+		checkMux.HandleFunc("/ok", connCheck)
+		if err := http.ListenAndServe(":80", checkMux); err != nil {
 			if vars.Packaged {
 				logger.WarnMsg("A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.")
 			}

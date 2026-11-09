@@ -11,7 +11,9 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	tokenserver "github.com/kercre123/wire-pod/chipper/pkg/servers/token"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 )
 
 type JdocServer struct {
@@ -19,6 +21,10 @@ type JdocServer struct {
 }
 
 func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*jdocspb.WriteDocResp, error) {
+	esn, err := vars.ESNFromThing(req.Thing)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 	logger.Println("Jdocs: Incoming WriteDoc request, Item to write: " + req.DocName + ", Robot ID: " + req.Thing)
 	var ajdoc vars.AJdoc
 	ajdoc.ClientMetadata = req.Doc.ClientMetadata
@@ -28,7 +34,6 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 	latestVersion := vars.AddJdoc(req.Thing, req.DocName, ajdoc)
 	vars.WriteJdocs()
 
-	esn := strings.Split(req.Thing, ":")[1]
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 
@@ -51,9 +56,12 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	globalGUIDHash := `{"client_tokens":[{"hash":"J5TAnJTPRCioMExFo5KzH2fHOAXyM5fuO8YRbQSamIsNzymnJ8KDIerFxuJV4qBN","client_name":"","app_id":"","issued_at":"2022-11-26T18:23:08Z","is_primary":true}]}`
 	// global guid now only used in edge cases
 
+	esn, err := vars.ESNFromThing(req.Thing)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 	logger.Println("Jdocs: Incoming ReadDocs request, Robot ID: " + req.Thing + ", Item(s) to return: ")
 	logger.Println(req.Items)
-	esn := strings.Split(req.Thing, ":")[1]
 	isAlreadyKnown := IsBotInInfo(esn)
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
@@ -111,7 +119,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					// export to ~/.anki_vector
 					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
 					// export to ./session-certs
-					os.WriteFile(vars.SessionCertPath+"/"+esn, tokenserver.SessionWriteStoreCerts[num], 0755)
+					os.WriteFile(filepath.Join(vars.SessionCertPath, esn), tokenserver.SessionWriteStoreCerts[num], 0755)
 					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
 					vars.AddToRInfo(esn, pair[1], ipAddr)
 					tokenserver.RemoveFromSessionStore(num)
