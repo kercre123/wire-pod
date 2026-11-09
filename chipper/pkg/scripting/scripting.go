@@ -16,6 +16,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/webguard"
 	lualibs "github.com/vadv/gopher-lua-libs"
 	lua "github.com/yuin/gopher-lua"
 )
@@ -293,6 +294,9 @@ func ValidateLuaScript(luaScript string) error {
 func ScriptingAPI(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api-lua/run_script":
+		if !webguard.RequireJSON(w, r) {
+			return
+		}
 		fBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "request body couldn't be read: "+err.Error(), http.StatusInternalServerError)

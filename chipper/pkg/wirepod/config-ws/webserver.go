@@ -15,6 +15,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/webguard"
 	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
@@ -23,9 +24,6 @@ import (
 var SttInitFunc func() error
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-
 	switch strings.TrimPrefix(r.URL.Path, "/api/") {
 	case "add_custom_intent":
 		handleAddCustomIntent(w, r)
@@ -73,6 +71,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAddCustomIntent(w http.ResponseWriter, r *http.Request) {
+	if !webguard.RequireJSON(w, r) {
+		return
+	}
 	var intent vars.CustomIntent
 	if err := json.NewDecoder(r.Body).Decode(&intent); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -96,6 +97,9 @@ func handleAddCustomIntent(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleEditCustomIntent(w http.ResponseWriter, r *http.Request) {
+	if !webguard.RequireJSON(w, r) {
+		return
+	}
 	var request struct {
 		Number int `json:"number"`
 		vars.CustomIntent
@@ -161,6 +165,9 @@ func handleGetCustomIntentsJSON(w http.ResponseWriter) {
 }
 
 func handleRemoveCustomIntent(w http.ResponseWriter, r *http.Request) {
+	if !webguard.RequireJSON(w, r) {
+		return
+	}
 	var request struct {
 		Number int `json:"number"`
 	}
@@ -178,6 +185,9 @@ func handleRemoveCustomIntent(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
+	if !webguard.RequireJSON(w, r) {
+		return
+	}
 	var config struct {
 		Provider string `json:"provider"`
 		Key      string `json:"key"`
@@ -190,7 +200,7 @@ func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
 		vars.APIConfig.Weather.Enable = false
 	} else {
 		vars.APIConfig.Weather.Enable = true
-		vars.APIConfig.Weather.Key = strings.TrimSpace(config.Key)
+		vars.APIConfig.Weather.Key = unmaskKey(strings.TrimSpace(config.Key), vars.APIConfig.Weather.Key)
 		vars.APIConfig.Weather.Provider = config.Provider
 	}
 	vars.WriteConfigToDisk()
@@ -199,25 +209,38 @@ func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
 
 func handleGetWeatherAPI(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vars.APIConfig.Weather)
+	weather := vars.APIConfig.Weather
+	weather.Key = maskKey(weather.Key)
+	json.NewEncoder(w).Encode(weather)
 }
 
 func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
-	if err := json.NewDecoder(r.Body).Decode(&vars.APIConfig.Knowledge); err != nil {
+	if !webguard.RequireJSON(w, r) {
+		return
+	}
+	kg := vars.APIConfig.Knowledge
+	if err := json.NewDecoder(r.Body).Decode(&kg); err != nil {
 		fmt.Println(err)
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
+	kg.Key = unmaskKey(kg.Key, vars.APIConfig.Knowledge.Key)
+	vars.APIConfig.Knowledge = kg
 	vars.WriteConfigToDisk()
 	fmt.Fprint(w, "Changes successfully applied.")
 }
 
 func handleGetKGAPI(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vars.APIConfig.Knowledge)
+	kg := vars.APIConfig.Knowledge
+	kg.Key = maskKey(kg.Key)
+	json.NewEncoder(w).Encode(kg)
 }
 
 func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
+	if !webguard.RequireJSON(w, r) {
+		return
+	}
 	var request struct {
 		Language string `json:"language"`
 	}
@@ -267,7 +290,10 @@ func handleGetSTTInfo(w http.ResponseWriter) {
 
 func handleGetConfig(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vars.APIConfig)
+	cfg := vars.APIConfig
+	cfg.Weather.Key = maskKey(cfg.Weather.Key)
+	cfg.Knowledge.Key = maskKey(cfg.Knowledge.Key)
+	json.NewEncoder(w).Encode(cfg)
 }
 
 func handleGetLogs(w http.ResponseWriter) {
@@ -410,7 +436,7 @@ func StartWebServer() {
 	}
 	http.Handle("/", DisableCachingAndSniffing(webRoot))
 	fmt.Printf("Starting webserver at port " + vars.WebPort + " (http://localhost:" + vars.WebPort + ")\n")
-	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {
+	if err := http.ListenAndServe(":"+vars.WebPort, webguard.Guard(http.DefaultServeMux)); err != nil {
 		logger.Println("Error binding to " + vars.WebPort + ": " + err.Error())
 		if vars.Packaged {
 			logger.ErrMsg("FATAL: Wire-pod was unable to bind to port " + vars.WebPort + ". Another process is likely using it. Exiting.")
@@ -487,6 +513,23 @@ func certHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(fileBytes)
 	}
+}
+
+func maskKey(key string) string {
+	if key == "" {
+		return ""
+	}
+	if len(key) <= 8 {
+		return "********"
+	}
+	return "********" + key[len(key)-4:]
+}
+
+func unmaskKey(submitted, current string) string {
+	if submitted != "" && submitted == maskKey(current) {
+		return current
+	}
+	return submitted
 }
 
 func anyEmpty(values ...string) bool {
