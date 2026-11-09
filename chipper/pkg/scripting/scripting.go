@@ -133,6 +133,7 @@ func showImageOnScreen(L *lua.LState) int {
 		logger.LogUI("Lua error: unable to open image file:", err)
 		return 0
 	}
+	defer f.Close()
 	img, _, err := image.Decode(f)
 	if err != nil {
 		logger.LogUI("Lua error: file is not an image:", err)
@@ -161,18 +162,14 @@ func postHTTPRequest(L *lua.LState) int {
 	body := L.ToString(3)
 	timeout := L.ToInt(4)
 	r := bytes.NewReader([]byte(body))
-	cl := http.DefaultClient
-	if timeout > 0 {
-		cl.Timeout = time.Second * time.Duration(timeout)
-	}
-	resp, err := cl.Post(url, contentType, r)
+	resp, err := luaHTTPClient(timeout).Post(url, contentType, r)
 	if err != nil {
 		logger.LogUI("Lua postHTTPRequest error:", err)
 		L.Push(lua.LString("http error: " + err.Error()))
 		return 1
 	}
+	defer resp.Body.Close()
 	b, err := io.ReadAll(resp.Body)
-	L.Push(lua.LString(string(b)))
 	if err != nil {
 		logger.LogUI("Lua postHTTPRequest error:", err)
 		L.Push(lua.LString("http error: " + err.Error()))
@@ -182,19 +179,24 @@ func postHTTPRequest(L *lua.LState) int {
 	return 1
 }
 
-func getHTTPRequest(L *lua.LState) int {
-	url := L.ToString(1)
-	timeout := L.ToInt(2)
-	cl := http.DefaultClient
+func luaHTTPClient(timeout int) *http.Client {
+	cl := &http.Client{}
 	if timeout > 0 {
 		cl.Timeout = time.Second * time.Duration(timeout)
 	}
-	resp, err := cl.Get(url)
+	return cl
+}
+
+func getHTTPRequest(L *lua.LState) int {
+	url := L.ToString(1)
+	timeout := L.ToInt(2)
+	resp, err := luaHTTPClient(timeout).Get(url)
 	if err != nil {
 		logger.LogUI("Lua getHTTPRequest error:", err)
 		L.Push(lua.LString("http error: " + err.Error()))
 		return 1
 	}
+	defer resp.Body.Close()
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.LogUI("Lua getHTTPRequest error:", err)

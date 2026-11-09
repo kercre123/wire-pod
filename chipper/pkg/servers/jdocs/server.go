@@ -25,6 +25,9 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	if req.Doc == nil {
+		return nil, status.Error(codes.InvalidArgument, "missing doc")
+	}
 	logger.Println("Jdocs: Incoming WriteDoc request, Item to write: " + req.DocName + ", Robot ID: " + req.Thing)
 	var ajdoc vars.AJdoc
 	ajdoc.ClientMetadata = req.Doc.ClientMetadata
@@ -81,7 +84,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			break
 		}
 	}
-	if strings.Contains(req.Items[0].DocName, "vic.AppTokens") {
+	if len(req.Items) > 0 && strings.Contains(req.Items[0].DocName, "vic.AppTokens") {
 		StoreBotInfo(ctx, req.Thing)
 		_, tokenExists := vars.GetJdoc(req.Thing, "vic.AppTokens")
 		if !tokenExists {

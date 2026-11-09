@@ -1,12 +1,14 @@
 package initwirepod
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"runtime"
+	"runtime/debug"
 
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
@@ -22,6 +24,9 @@ import (
 	wp "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 	"github.com/soheilhy/cmux"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
 
@@ -53,11 +58,36 @@ func httpServe(l net.Listener) error {
 	return s.Serve(l)
 }
 
+func logPanic(method string, r interface{}) error {
+	logger.Println("gRPC: panic in " + method + ": " + fmt.Sprint(r) + "\n" + string(debug.Stack()))
+	return status.Error(codes.Internal, "internal error")
+}
+
+func recoverUnary(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = logPanic(info.FullMethod, r)
+		}
+	}()
+	return handler(ctx, req)
+}
+
+func recoverStream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = logPanic(info.FullMethod, r)
+		}
+	}()
+	return handler(srv, ss)
+}
+
 func grpcServe(l net.Listener, p *wp.Server) error {
 	srv, err := grpcserver.New(
 		grpcserver.WithViper(),
 		grpcserver.WithReflectionService(),
 		grpcserver.WithInsecureSkipVerify(),
+		grpcserver.WithUnaryServerInterceptors(recoverUnary),
+		grpcserver.WithStreamServerInterceptors(recoverStream),
 	)
 	if err != nil {
 		log.Fatal(err)

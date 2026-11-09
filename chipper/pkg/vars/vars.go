@@ -382,10 +382,18 @@ func ReadSessionCerts() {
 		certBytes, err := os.ReadFile(filepath.Join(SessionCertPath, entry.Name()))
 		if err != nil {
 			logger.Println(err)
-			return
+			continue
 		}
 		pemBytes, _ := pem.Decode(certBytes)
-		cert, _ := x509.ParseCertificate(pemBytes.Bytes)
+		if pemBytes == nil {
+			logger.Println("Session cert " + entry.Name() + " isn't valid PEM, skipping")
+			continue
+		}
+		cert, err := x509.ParseCertificate(pemBytes.Bytes)
+		if err != nil {
+			logger.Println("Session cert " + entry.Name() + " couldn't be parsed, skipping: " + err.Error())
+			continue
+		}
 		for _, robot := range BotInfo.Robots {
 			if esn == robot.Esn {
 				ip = robot.IPAddress
