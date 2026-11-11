@@ -14,7 +14,7 @@ import (
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 
-	"github.com/fforchino/vector-go-sdk/pkg/vector"
+	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
@@ -196,26 +196,11 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	kgReadyToAnswer := make(chan bool)
 	kgStopLooping := false
 	ctx := context.Background()
-	matched := false
-	var robot *vector.Vector
-	var guid string
-	var target string
-	for _, bot := range vars.BotInfo.Robots {
-		if esn == bot.Esn {
-			guid = bot.GUID
-			target = bot.IPAddress + ":443"
-			matched = true
-			break
-		}
+	robot, err := botconn.Get(esn)
+	if err != nil {
+		return err.Error(), err
 	}
-	if matched {
-		var err error
-		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
-		if err != nil {
-			return err.Error(), err
-		}
-	}
-	_, err := robot.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
+	_, err = robot.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
 	if err != nil {
 		return "", err
 	}
@@ -508,24 +493,9 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 
 func KGSim(esn string, textToSay string) error {
 	ctx := context.Background()
-	matched := false
-	var robot *vector.Vector
-	var guid string
-	var target string
-	for _, bot := range vars.BotInfo.Robots {
-		if esn == bot.Esn {
-			guid = bot.GUID
-			target = bot.IPAddress + ":443"
-			matched = true
-			break
-		}
-	}
-	if matched {
-		var err error
-		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
-		if err != nil {
-			return err
-		}
+	robot, err := botconn.Get(esn)
+	if err != nil {
+		return err
 	}
 	controlRequest := &vectorpb.BehaviorControlRequest{
 		RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{

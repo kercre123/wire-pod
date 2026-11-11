@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/zeroconf"
@@ -53,28 +54,27 @@ func pingJdocs(target string) {
 		logger.Println("jdocs pinger error: serial did not match any bot in bot json")
 		return
 	}
-	robotTmp, closeRobot, err := NewWP(serial, false)
+	robotTmp, err := botconn.Get(serial)
 	if err != nil {
 		logger.Println(err)
 		return
 	}
 	_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 	if err != nil {
-		closeRobot()
-		robotTmp, closeRobot, err = NewWP(serial, true)
+		var closeRobot func()
+		robotTmp, closeRobot, err = botconn.DialWithGUID(serial, vars.BotInfo.GlobalGUID)
 		if err != nil {
 			logger.Println(err)
 			logger.Println("Error pinging jdocs")
 			return
 		}
+		defer closeRobot()
 		_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 		if err != nil {
-			closeRobot()
 			logger.Println("Error pinging jdocs, likely unauthenticated")
 			return
 		}
 	}
-	defer closeRobot()
 	resp, err := robotTmp.Conn.PullJdocs(ctx, &vectorpb.PullJdocsRequest{
 		JdocTypes: []vectorpb.JdocType{vectorpb.JdocType_ROBOT_SETTINGS},
 	})

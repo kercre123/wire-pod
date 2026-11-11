@@ -76,33 +76,51 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api-sdk/eye_color":
 		eye_color := r.FormValue("color")
-		setPresetEyeColor(robotObj, eye_color)
+		if err := setPresetEyeColor(robotObj, eye_color); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/custom_eye_color":
 		hue := r.FormValue("hue")
 		sat := r.FormValue("sat")
-		setCustomEyeColor(robotObj, hue, sat)
+		if err := setCustomEyeColor(robotObj, hue, sat); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprint(w, hue+sat)
 		return
 	case r.URL.Path == "/api-sdk/volume":
 		volume := r.FormValue("volume")
-		setSettingSDKintbool(robotObj, "master_volume", volume)
+		if err := setSettingSDKintbool(robotObj, "master_volume", volume); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/locale":
 		locale := r.FormValue("locale")
-		setSettingSDKstring(robotObj, "locale", locale)
+		if err := setSettingSDKstring(robotObj, "locale", locale); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/location":
 		location := r.FormValue("location")
-		setSettingSDKstring(robotObj, "default_location", location)
+		if err := setSettingSDKstring(robotObj, "default_location", location); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/timezone":
 		timezone := r.FormValue("timezone")
-		setSettingSDKstring(robotObj, "time_zone", timezone)
+		if err := setSettingSDKstring(robotObj, "time_zone", timezone); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/get_sdk_settings":
@@ -217,27 +235,45 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(jsonBytes))
 		return
 	case r.URL.Path == "/api-sdk/time_format_12":
-		setSettingSDKintbool(robotObj, "clock_24_hour", "false")
+		if err := setSettingSDKintbool(robotObj, "clock_24_hour", "false"); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/time_format_24":
-		setSettingSDKintbool(robotObj, "clock_24_hour", "true")
+		if err := setSettingSDKintbool(robotObj, "clock_24_hour", "true"); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/temp_c":
-		setSettingSDKintbool(robotObj, "temp_is_fahrenheit", "false")
+		if err := setSettingSDKintbool(robotObj, "temp_is_fahrenheit", "false"); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/temp_f":
-		setSettingSDKintbool(robotObj, "temp_is_fahrenheit", "true")
+		if err := setSettingSDKintbool(robotObj, "temp_is_fahrenheit", "true"); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/button_hey_vector":
-		setSettingSDKintbool(robotObj, "button_wakeword", "0")
+		if err := setSettingSDKintbool(robotObj, "button_wakeword", "0"); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/button_alexa":
-		setSettingSDKintbool(robotObj, "button_wakeword", "1")
+		if err := setSettingSDKintbool(robotObj, "button_wakeword", "1"); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		fmt.Fprintf(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/assume_behavior_control":

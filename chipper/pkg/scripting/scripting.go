@@ -14,8 +14,8 @@ import (
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
-	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/webguard"
 	lualibs "github.com/vadv/gopher-lua-libs"
 	lua "github.com/yuin/gopher-lua"
@@ -230,7 +230,7 @@ func MakeLuaState(esn string, validating bool) (*lua.LState, error) {
 	SetBControlFunctions(L)
 	ud := L.NewUserData()
 	if !validating {
-		rob, err := vars.GetRobot(esn)
+		rob, err := botconn.Get(esn)
 		if err != nil {
 			return nil, err
 		}

@@ -2,20 +2,16 @@ package sdkapp
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"math"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/digital-dream-labs/hugh/grpc/client"
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
-	"github.com/kercre123/wire-pod/chipper/pkg/vars"
-	"google.golang.org/grpc"
 )
 
 const robotIdleTimeout = 5 * time.Minute
@@ -28,7 +24,6 @@ type Robot struct {
 	Ctx    context.Context
 
 	cancel    context.CancelFunc
-	client    *client.Client
 	lastUsed  atomic.Int64
 	stimState atomic.Uint32
 
@@ -97,7 +92,6 @@ func (r *Robot) close() {
 	r.cam.stop()
 	r.events.stop()
 	r.cancel()
-	r.client.Close()
 }
 
 func (r *Robot) watchIdle() {
@@ -123,55 +117,13 @@ var (
 	robotsPending = map[string]chan struct{}{}
 )
 
-type tokenAuth struct {
-	token string
-}
-
-func (t tokenAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
-	return map[string]string{
-		"authorization": "Bearer " + t.token,
-	}, nil
-}
-
-func (tokenAuth) RequireTransportSecurity() bool {
-	return true
-}
-
-func dialRobot(target, guid string) (*vector.Vector, *client.Client, error) {
-	c, err := client.New(
-		client.WithTarget(target),
-		client.WithInsecureSkipVerify(),
-		client.WithDialopts(grpc.WithPerRPCCredentials(tokenAuth{token: guid})),
-	)
-	if err != nil {
-		return nil, nil, err
-	}
-	if err := c.Connect(); err != nil {
-		return nil, nil, err
-	}
-	return &vector.Vector{Conn: vectorpb.NewExternalInterfaceClient(c.Conn())}, c, nil
-}
-
-func findBotInfo(esn string) (string, string, bool) {
-	for _, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(esn, robot.Esn) {
-			guid := robot.GUID
-			if guid == "" {
-				guid = vars.BotInfo.GlobalGUID
-			}
-			return robot.IPAddress + ":443", guid, true
-		}
-	}
-	return "", "", false
-}
-
 func newRobot(esn string) (*Robot, error) {
-	target, guid, ok := findBotInfo(esn)
-	if !ok {
-		return nil, fmt.Errorf("error: robot not found in SDK info file")
+	info, err := botconn.Lookup(esn)
+	if err != nil {
+		return nil, err
 	}
-	logger.Println("Connecting to " + esn + " with GUID " + guid)
-	vec, c, err := dialRobot(target, guid)
+	logger.Println("Connecting to " + esn + " with GUID " + info.GUID)
+	vec, err := botconn.Get(esn)
 	if err != nil {
 		return nil, err
 	}
@@ -180,17 +132,15 @@ func newRobot(esn string) (*Robot, error) {
 	defer checkCancel()
 	if _, err := vec.Conn.BatteryState(checkCtx, &vectorpb.BatteryStateRequest{}); err != nil {
 		cancel()
-		c.Close()
 		return nil, err
 	}
 	r := &Robot{
 		ESN:    esn,
-		GUID:   guid,
-		Target: target,
+		GUID:   info.GUID,
+		Target: info.Target,
 		Vector: vec,
 		Ctx:    ctx,
 		cancel: cancel,
-		client: c,
 	}
 	r.touch()
 	return r, nil
@@ -239,23 +189,4 @@ func removeRobot(r *Robot) {
 	}
 	robotsMu.Unlock()
 	r.close()
-}
-
-func NewWP(serial string, useGlobal bool) (*vector.Vector, func(), error) {
-	if serial == "" {
-		return nil, nil, fmt.Errorf("serial string missing")
-	}
-	target, guid, ok := findBotInfo(serial)
-	if !ok {
-		logger.Println("serial did not match any bot in bot json")
-		return nil, nil, errors.New("serial did not match any bot in bot json")
-	}
-	if useGlobal {
-		guid = vars.BotInfo.GlobalGUID
-	}
-	vec, c, err := dialRobot(target, guid)
-	if err != nil {
-		return nil, nil, err
-	}
-	return vec, func() { c.Close() }, nil
 }
