@@ -1,6 +1,6 @@
 module github.com/kercre123/wire-pod/chipper
 
-go 1.18
+go 1.22
 
 require (
 	github.com/Picovoice/leopard/binding/go/v2 v2.0.2
