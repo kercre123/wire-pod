@@ -10,7 +10,7 @@ var transCfg = &http.Transport{
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ignore SSL warnings
 }
 
-func setCustomEyeColor(robot Robot, hue string, sat string) {
+func setCustomEyeColor(robot *Robot, hue string, sat string) {
 	url := "https://" + robot.Target + "/v1/update_settings"
 	var updateJSON = []byte(`{"update_settings": true, "settings": {"custom_eye_color": {"enabled": true, "hue": ` + hue + `, "saturation": ` + sat + `} } }`)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))
@@ -24,7 +24,7 @@ func setCustomEyeColor(robot Robot, hue string, sat string) {
 	defer resp.Body.Close()
 }
 
-func setPresetEyeColor(robot Robot, value string) {
+func setPresetEyeColor(robot *Robot, value string) {
 	url := "https://" + robot.Target + "/v1/update_settings"
 	var updateJSON = []byte(`{"update_settings": true, "settings": {"custom_eye_color": {"enabled": false}, "eye_color": ` + value + `} }`)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))
@@ -38,7 +38,7 @@ func setPresetEyeColor(robot Robot, value string) {
 	defer resp.Body.Close()
 }
 
-func setSettingSDKstring(robot Robot, setting string, value string) {
+func setSettingSDKstring(robot *Robot, setting string, value string) {
 	url := "https://" + robot.Target + "/v1/update_settings"
 	var updateJSON = []byte(`{"update_settings": true, "settings": {"` + setting + `": "` + value + `" } }`)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))
@@ -52,7 +52,7 @@ func setSettingSDKstring(robot Robot, setting string, value string) {
 	defer resp.Body.Close()
 }
 
-func setSettingSDKintbool(robot Robot, setting string, value string) {
+func setSettingSDKintbool(robot *Robot, setting string, value string) {
 	url := "https://" + robot.Target + "/v1/update_settings"
 	var updateJSON = []byte(`{"update_settings": true, "settings": {"` + setting + `": ` + value + ` } }`)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))

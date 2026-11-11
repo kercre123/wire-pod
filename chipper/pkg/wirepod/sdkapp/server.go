@@ -25,16 +25,26 @@ import (
 var serverFiles string = "./webroot/sdkapp"
 
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
-	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
-	robot := robotObj.Vector
-	ctx := robotObj.Ctx
-	if r.URL.Path != "/api-sdk/get_sdk_info" && r.URL.Path != "/api-sdk/debug" {
-		if err != nil {
-			fmt.Fprint(w, "error: "+err.Error())
+	if r.URL.Path == "/api-sdk/get_sdk_info" {
+		if len(vars.BotInfo.Robots) == 0 {
+			http.Error(w, "no bots are authenticated", http.StatusInternalServerError)
 			return
 		}
-		robots[robotIndex].ConnTimer = 0
+		jsonBytes, err := json.Marshal(vars.BotInfo)
+		if err != nil {
+			fmt.Fprintf(w, "error marshaling json")
+			return
+		}
+		fmt.Fprint(w, string(jsonBytes))
+		return
 	}
+	robotObj, err := getRobot(r.FormValue("serial"))
+	if err != nil {
+		fmt.Fprint(w, "error: "+err.Error())
+		return
+	}
+	robot := robotObj.Vector
+	ctx := robotObj.Ctx
 	switch {
 	default:
 		http.Error(w, "not found", http.StatusNotFound)
@@ -73,7 +83,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		hue := r.FormValue("hue")
 		sat := r.FormValue("sat")
 		setCustomEyeColor(robotObj, hue, sat)
-		fmt.Fprintf(w, hue+sat)
+		fmt.Fprint(w, hue+sat)
 		return
 	case r.URL.Path == "/api-sdk/volume":
 		volume := r.FormValue("volume")
@@ -95,18 +105,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		setSettingSDKstring(robotObj, "time_zone", timezone)
 		fmt.Fprintf(w, "done")
 		return
-	case r.URL.Path == "/api-sdk/get_sdk_info":
-		if len(vars.BotInfo.Robots) == 0 {
-			http.Error(w, "no bots are authenticated", http.StatusInternalServerError)
-			return
-		}
-		jsonBytes, err := json.Marshal(vars.BotInfo)
-		if err != nil {
-			fmt.Fprintf(w, "error marshaling json")
-			return
-		}
-		fmt.Fprint(w, string(jsonBytes))
-		return
 	case r.URL.Path == "/api-sdk/get_sdk_settings":
 		i := 0
 		for {
@@ -115,6 +113,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			if err != nil {
 				w.Write([]byte(err.Error()))
+				return
+			}
+			if len(resp.NamedJdocs) == 0 || resp.NamedJdocs[0].Doc == nil {
+				w.Write([]byte("error: bot returned no jdocs"))
 				return
 			}
 			if strings.Contains(resp.NamedJdocs[0].Doc.JsonDoc, "BStat.ReactedToTriggerWord") {
@@ -162,8 +164,11 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			pcmFile = pcmFile[1024:]
 		}
 
-		var audioClient vectorpb.ExternalInterface_ExternalAudioStreamPlaybackClient
-		audioClient, _ = robot.Conn.ExternalAudioStreamPlayback(ctx)
+		audioClient, err := robot.Conn.ExternalAudioStreamPlayback(ctx)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		audioClient.SendMsg(&vectorpb.ExternalAudioStreamRequest{
 			AudioRequestType: &vectorpb.ExternalAudioStreamRequest_AudioStreamPrepare{
 				AudioStreamPrepare: &vectorpb.ExternalAudioStreamPrepare{
@@ -237,15 +242,16 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api-sdk/assume_behavior_control":
 		fmt.Fprintf(w, "success")
-		assumeBehaviorControl(robotObj, robotIndex, r.FormValue("priority"))
+		assumeBehaviorControl(robotObj, r.FormValue("priority"))
 		return
 	case r.URL.Path == "/api-sdk/release_behavior_control":
-		robots[robotIndex].BcAssumption = false
+		releaseBehaviorControl(robotObj)
 		fmt.Fprintf(w, "success")
 		return
 	case r.URL.Path == "/api-sdk/say_text":
 		if len([]rune(r.FormValue("text"))) >= 600 {
 			fmt.Fprint(w, "error: text is too long")
+			return
 		}
 		robot.Conn.SayText(
 			ctx,
@@ -378,70 +384,38 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "success")
 		return
 	case r.URL.Path == "/api-sdk/begin_event_stream":
-		// setup websocket
-		robots[robotIndex].EventsStreaming = true
-		go func() {
-			client, err := robot.Conn.EventStream(
-				ctx,
-				&vectorpb.EventRequest{
-					ListType: &vectorpb.EventRequest_WhiteList{
-						WhiteList: &vectorpb.FilterList{
-							List: []string{"stimulation_info"},
-						},
-					},
-					ConnectionId: "wirepod",
-				},
-			)
-			if err != nil {
-				fmt.Fprint(w, err.Error())
-			}
-			for {
-				if robots[robotIndex].EventsStreaming {
-					resp, err := client.Recv()
-					if err != nil {
-						fmt.Fprint(w, err.Error())
-						robots[robotIndex].EventsStreaming = false
-						return
-					}
-					stimInfo := resp.Event.GetStimulationInfo()
-					stimInfoString := fmt.Sprint(stimInfo)
-					if strings.Contains(stimInfoString, "velocity") {
-						// velocity in the string means there is a value
-						robots[robotIndex].StimState = stimInfo.Value
-					}
-				} else {
-					return
-				}
-			}
-		}()
+		startEventStream(robotObj)
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/stop_event_stream":
-		robots[robotIndex].EventsStreaming = false
-		robots[robotIndex].StimState = 0
+		robotObj.events.stop()
+		robotObj.setStimState(0)
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/get_stim_status":
-		if robots[robotIndex].EventsStreaming {
-			fmt.Fprint(w, robots[robotIndex].StimState)
+		if robotObj.events.running() {
+			fmt.Fprint(w, robotObj.StimState())
 			return
 		}
 		fmt.Fprint(w, "error: must start event stream")
 		return
 	case r.URL.Path == "/api-sdk/begin_cam_stream":
-		//robots[robotIndex].CamStreaming = true
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/stop_cam_stream":
-		robots[robotIndex].CamStreaming = false
+		robotObj.cam.stop()
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/get_image_ids":
 		var photoIds []uint32
-		resp, _ := robot.Conn.PhotosInfo(
+		resp, err := robot.Conn.PhotosInfo(
 			ctx,
 			&vectorpb.PhotosInfoRequest{},
 		)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
 		for _, photo := range resp.PhotoInfos {
 			photoIds = append(photoIds, photo.PhotoId)
 		}
@@ -511,13 +485,18 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		w.Write([]byte(resp.GetNamedJdocs()[0].Doc.JsonDoc))
+		jdocs := resp.GetNamedJdocs()
+		if len(jdocs) == 0 {
+			fmt.Fprint(w, "error: bot returned no jdocs")
+			return
+		}
+		w.Write([]byte(jdocs[0].GetDoc().GetJsonDoc()))
 		return
 	case r.URL.Path == "/api-sdk/print_robot_info":
 		fmt.Fprint(w, robot)
 		return
 	case r.URL.Path == "/api-sdk/disconnect":
-		removeRobot(robotObj.ESN, "server")
+		removeRobot(robotObj)
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/trigger_wake_word":
@@ -545,25 +524,65 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func startEventStream(robot *Robot) {
+	ctx, done, _ := robot.events.start(robot.Ctx)
+	go func() {
+		defer done()
+		client, err := robot.Vector.Conn.EventStream(
+			ctx,
+			&vectorpb.EventRequest{
+				ListType: &vectorpb.EventRequest_WhiteList{
+					WhiteList: &vectorpb.FilterList{
+						List: []string{"stimulation_info"},
+					},
+				},
+				ConnectionId: "wirepod",
+			},
+		)
+		if err != nil {
+			logger.Println("Event stream error: ", err)
+			return
+		}
+		for {
+			resp, err := client.Recv()
+			if err != nil {
+				return
+			}
+			stimInfo := resp.GetEvent().GetStimulationInfo()
+			if strings.Contains(fmt.Sprint(stimInfo), "velocity") {
+				robot.setStimState(stimInfo.Value)
+			}
+		}
+	}()
+}
+
 func camStreamHandler(w http.ResponseWriter, r *http.Request) {
-	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
+	robot, err := getRobot(r.FormValue("serial"))
 	if err != nil {
 		fmt.Fprint(w, "error: "+err.Error())
 		return
 	}
-	if robots[robotIndex].CamStreaming {
-		robots[robotIndex].CamStreaming = false
+	ctx, done, replaced := robot.cam.start(r.Context())
+	defer done()
+	stopWithRobot := context.AfterFunc(robot.Ctx, done)
+	defer stopWithRobot()
+	if replaced {
 		time.Sleep(time.Second / 2)
 	}
-	robotObj.Vector.Conn.EnableImageStreaming(
-		robotObj.Ctx,
+	robot.Vector.Conn.EnableImageStreaming(
+		ctx,
 		&vectorpb.EnableImageStreamingRequest{
 			Enable: true,
 		},
 	)
-	var client vectorpb.ExternalInterface_CameraFeedClient
-	client, err = robotObj.Vector.Conn.CameraFeed(
-		robotObj.Ctx,
+	defer robot.Vector.Conn.EnableImageStreaming(
+		robot.Ctx,
+		&vectorpb.EnableImageStreamingRequest{
+			Enable: false,
+		},
+	)
+	feed, err := robot.Vector.Conn.CameraFeed(
+		ctx,
 		&vectorpb.CameraFeedRequest{},
 	)
 	if err != nil {
@@ -571,39 +590,19 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=--boundary")
-	multi := io.MultiWriter(w)
-	robots[robotIndex].CamStreaming = true
 	for {
-		select {
-		case <-r.Context().Done():
-			robotObj.Vector.Conn.EnableImageStreaming(
-				robotObj.Ctx,
-				&vectorpb.EnableImageStreamingRequest{
-					Enable: false,
-				},
-			)
-			robots[robotIndex].CamStreaming = false
+		response, err := feed.Recv()
+		if err != nil {
 			return
-		default:
-			if robots[robotIndex].CamStreaming {
-				response, err := client.Recv()
-				if err == nil {
-					imageBytes := response.GetData()
-					img, _, _ := image.Decode(bytes.NewReader(imageBytes))
-					fmt.Fprintf(multi, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
-					jpeg.Encode(multi, img, &jpeg.Options{
-						Quality: 50,
-					})
-				}
-			} else {
-				robotObj.Vector.Conn.EnableImageStreaming(
-					robotObj.Ctx,
-					&vectorpb.EnableImageStreamingRequest{
-						Enable: false,
-					},
-				)
-				return
-			}
+		}
+		img, _, err := image.Decode(bytes.NewReader(response.GetData()))
+		if err != nil {
+			continue
+		}
+		robot.touch()
+		fmt.Fprintf(w, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
+		if err := jpeg.Encode(w, img, &jpeg.Options{Quality: 50}); err != nil {
+			return
 		}
 	}
 }

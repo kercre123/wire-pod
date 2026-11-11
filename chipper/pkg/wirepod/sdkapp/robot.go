@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
+	"math"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/digital-dream-labs/hugh/grpc/client"
@@ -13,205 +15,247 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"google.golang.org/grpc"
 )
 
-var robots []Robot
-var timerStopIndexes []int
-var inhibitCreation bool
+const robotIdleTimeout = 5 * time.Minute
 
 type Robot struct {
-	ESN               string
-	GUID              string
-	Target            string
-	Vector            *vector.Vector
-	BcAssumption      bool
-	CamStreaming      bool
-	EventStreamClient vectorpb.ExternalInterface_EventStreamClient
-	EventsStreaming   bool
-	StimState         float32
-	ConnTimer         int32
-	Ctx               context.Context
+	ESN    string
+	GUID   string
+	Target string
+	Vector *vector.Vector
+	Ctx    context.Context
+
+	cancel    context.CancelFunc
+	client    *client.Client
+	lastUsed  atomic.Int64
+	stimState atomic.Uint32
+
+	bc     robotTask
+	cam    robotTask
+	events robotTask
 }
 
-func newRobot(serial string) (Robot, int, error) {
-	inhibitCreation = true
-	var RobotObj Robot
+type robotTask struct {
+	mu     sync.Mutex
+	cancel context.CancelFunc
+	gen    int
+}
 
-	// generate context
-	RobotObj.Ctx = context.Background()
-
-	// find robot info in BotInfo
-	matched := false
-	for _, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(serial, robot.Esn) {
-			RobotObj.ESN = strings.TrimSpace(strings.ToLower(serial))
-			RobotObj.Target = robot.IPAddress + ":443"
-			matched = true
-			if robot.GUID == "" {
-				robot.GUID = vars.BotInfo.GlobalGUID
-				RobotObj.GUID = vars.BotInfo.GlobalGUID
-			} else {
-				RobotObj.GUID = robot.GUID
-			}
-			logger.Println("Connecting to " + serial + " with GUID " + RobotObj.GUID)
+func (t *robotTask) start(parent context.Context) (context.Context, func(), bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	replaced := t.cancel != nil
+	if replaced {
+		t.cancel()
+	}
+	ctx, cancel := context.WithCancel(parent)
+	t.gen++
+	gen := t.gen
+	t.cancel = cancel
+	done := func() {
+		cancel()
+		t.mu.Lock()
+		if t.gen == gen {
+			t.cancel = nil
 		}
+		t.mu.Unlock()
 	}
-	if !matched {
-		inhibitCreation = false
-		return RobotObj, 0, fmt.Errorf("error: robot not found in SDK info file")
-	}
-
-	// create Vector instance
-	var err error
-	RobotObj.Vector, err = vector.New(
-		vector.WithTarget(RobotObj.Target),
-		vector.WithSerialNo(RobotObj.ESN),
-		vector.WithToken(RobotObj.GUID),
-	)
-	if err != nil {
-		inhibitCreation = false
-		return RobotObj, 0, err
-	}
-
-	// connection check
-	_, err = RobotObj.Vector.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
-	if err != nil {
-		inhibitCreation = false
-		return RobotObj, 0, err
-	}
-
-	// create client for event stream
-	RobotObj.EventStreamClient, err = RobotObj.Vector.Conn.EventStream(
-		RobotObj.Ctx,
-		&vectorpb.EventRequest{
-			ListType: &vectorpb.EventRequest_WhiteList{
-				WhiteList: &vectorpb.FilterList{
-					// this will be used only for stimulation graph for now
-					List: []string{"stimulation_info"},
-				},
-			},
-		},
-	)
-	if err != nil {
-		inhibitCreation = false
-		return RobotObj, 0, err
-	}
-	RobotObj.CamStreaming = false
-	RobotObj.EventsStreaming = false
-
-	// we have confirmed robot connection works, append to list of bots
-	robots = append(robots, RobotObj)
-	robotIndex := len(robots) - 1
-
-	// begin inactivity timer
-	go connTimer(robotIndex)
-
-	inhibitCreation = false
-	return RobotObj, robotIndex, nil
+	return ctx, done, replaced
 }
 
-func getRobot(serial string) (Robot, int, error) {
-	// look in robot list
+func (t *robotTask) stop() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.cancel != nil {
+		t.cancel()
+		t.cancel = nil
+	}
+}
+
+func (t *robotTask) running() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.cancel != nil
+}
+
+func (r *Robot) touch() {
+	r.lastUsed.Store(time.Now().UnixNano())
+}
+
+func (r *Robot) StimState() float32 {
+	return math.Float32frombits(r.stimState.Load())
+}
+
+func (r *Robot) setStimState(v float32) {
+	r.stimState.Store(math.Float32bits(v))
+}
+
+func (r *Robot) close() {
+	r.bc.stop()
+	r.cam.stop()
+	r.events.stop()
+	r.cancel()
+	r.client.Close()
+}
+
+func (r *Robot) watchIdle() {
+	t := time.NewTicker(10 * time.Second)
+	defer t.Stop()
 	for {
-		if !inhibitCreation {
-			break
-		}
-		time.Sleep(time.Second / 2)
-	}
-	for index, robot := range robots {
-		if strings.EqualFold(serial, robot.ESN) {
-			return robot, index, nil
-		}
-	}
-	return newRobot(serial)
-}
-
-// if connection is inactive for more than 5 minutes, remove robot
-// run this as a goroutine
-func connTimer(ind int) {
-	// Check if the index is in the list
-	if len(robots) <= ind {
-		return
-	}
-
-	robots[ind].ConnTimer = 0
-	for {
-		time.Sleep(time.Second)
-		// check if timer needs to be stopped
-		for _, num := range timerStopIndexes {
-			if num == ind {
-				logger.Println("Conn timer for robot index " + strconv.Itoa(ind) + " stopping")
-				var newIndexes []int
-				for _, num := range timerStopIndexes {
-					if num != ind {
-						newIndexes = append(newIndexes, num)
-					}
-				}
-				timerStopIndexes = newIndexes
+		select {
+		case <-r.Ctx.Done():
+			return
+		case <-t.C:
+			if time.Since(time.Unix(0, r.lastUsed.Load())) >= robotIdleTimeout {
+				logger.Println("Closing SDK connection for " + r.ESN + ", source: idle timer")
+				removeRobot(r)
 				return
 			}
 		}
-		if robots[ind].ConnTimer >= 300 {
-			logger.Println("Closing SDK connection for " + robots[ind].ESN + ", source: connTimer")
-			removeRobot(robots[ind].ESN, "connTimer")
-			return
-		}  
-		robots[ind].ConnTimer = robots[ind].ConnTimer + 1
 	}
 }
 
-func removeRobot(serial, source string) {
-	inhibitCreation = true
-	var newRobots []Robot
-	for ind, robot := range robots {
-		if !strings.EqualFold(serial, robot.ESN) {
-			newRobots = append(newRobots, robot)
-		} else {
-			if source == "server" {
-				timerStopIndexes = append(timerStopIndexes, ind)
-			}
-			robots[ind].CamStreaming = false
-			robots[ind].EventsStreaming = false
-			robots[ind].BcAssumption = false
-			// give time for all of that to stop
-			time.Sleep(time.Second * 3)
-		}
-	}
-	robots = newRobots
-	inhibitCreation = false
+var (
+	robotsMu      sync.Mutex
+	robots        = map[string]*Robot{}
+	robotsPending = map[string]chan struct{}{}
+)
+
+type tokenAuth struct {
+	token string
 }
 
-func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
-	var target, guid string
-	if serial == "" {
-		return nil, fmt.Errorf("serial string missing")
-	}
-	matched := false
-	for _, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(serial, robot.Esn) {
-			matched = true
-			target = robot.IPAddress + ":443"
-			guid = robot.GUID
-			break
-		}
-	}
-	if !matched {
-		logger.Println("serial did not match any bot in bot json")
-		return nil, errors.New("serial did not match any bot in bot json")
-	}
+func (t tokenAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
+	return map[string]string{
+		"authorization": "Bearer " + t.token,
+	}, nil
+}
+
+func (tokenAuth) RequireTransportSecurity() bool {
+	return true
+}
+
+func dialRobot(target, guid string) (*vector.Vector, *client.Client, error) {
 	c, err := client.New(
 		client.WithTarget(target),
 		client.WithInsecureSkipVerify(),
+		client.WithDialopts(grpc.WithPerRPCCredentials(tokenAuth{token: guid})),
 	)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := c.Connect(); err != nil {
+		return nil, nil, err
+	}
+	return &vector.Vector{Conn: vectorpb.NewExternalInterfaceClient(c.Conn())}, c, nil
+}
+
+func findBotInfo(esn string) (string, string, bool) {
+	for _, robot := range vars.BotInfo.Robots {
+		if strings.EqualFold(esn, robot.Esn) {
+			guid := robot.GUID
+			if guid == "" {
+				guid = vars.BotInfo.GlobalGUID
+			}
+			return robot.IPAddress + ":443", guid, true
+		}
+	}
+	return "", "", false
+}
+
+func newRobot(esn string) (*Robot, error) {
+	target, guid, ok := findBotInfo(esn)
+	if !ok {
+		return nil, fmt.Errorf("error: robot not found in SDK info file")
+	}
+	logger.Println("Connecting to " + esn + " with GUID " + guid)
+	vec, c, err := dialRobot(target, guid)
 	if err != nil {
 		return nil, err
 	}
-	if err := c.Connect(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	checkCtx, checkCancel := context.WithTimeout(ctx, 10*time.Second)
+	defer checkCancel()
+	if _, err := vec.Conn.BatteryState(checkCtx, &vectorpb.BatteryStateRequest{}); err != nil {
+		cancel()
+		c.Close()
 		return nil, err
 	}
-	return vector.New(
-		vector.WithTarget(target),
-		vector.WithSerialNo(serial),
-		vector.WithToken(guid),
-	)
+	r := &Robot{
+		ESN:    esn,
+		GUID:   guid,
+		Target: target,
+		Vector: vec,
+		Ctx:    ctx,
+		cancel: cancel,
+		client: c,
+	}
+	r.touch()
+	return r, nil
+}
+
+func getRobot(serial string) (*Robot, error) {
+	esn := strings.ToLower(strings.TrimSpace(serial))
+	for {
+		robotsMu.Lock()
+		if r, ok := robots[esn]; ok {
+			robotsMu.Unlock()
+			r.touch()
+			return r, nil
+		}
+		if wait, ok := robotsPending[esn]; ok {
+			robotsMu.Unlock()
+			<-wait
+			continue
+		}
+		done := make(chan struct{})
+		robotsPending[esn] = done
+		robotsMu.Unlock()
+
+		r, err := newRobot(esn)
+
+		robotsMu.Lock()
+		delete(robotsPending, esn)
+		if err == nil {
+			robots[esn] = r
+		}
+		robotsMu.Unlock()
+		close(done)
+
+		if err != nil {
+			return nil, err
+		}
+		go r.watchIdle()
+		return r, nil
+	}
+}
+
+func removeRobot(r *Robot) {
+	robotsMu.Lock()
+	if robots[r.ESN] == r {
+		delete(robots, r.ESN)
+	}
+	robotsMu.Unlock()
+	r.close()
+}
+
+func NewWP(serial string, useGlobal bool) (*vector.Vector, func(), error) {
+	if serial == "" {
+		return nil, nil, fmt.Errorf("serial string missing")
+	}
+	target, guid, ok := findBotInfo(serial)
+	if !ok {
+		logger.Println("serial did not match any bot in bot json")
+		return nil, nil, errors.New("serial did not match any bot in bot json")
+	}
+	if useGlobal {
+		guid = vars.BotInfo.GlobalGUID
+	}
+	vec, c, err := dialRobot(target, guid)
+	if err != nil {
+		return nil, nil, err
+	}
+	return vec, func() { c.Close() }, nil
 }

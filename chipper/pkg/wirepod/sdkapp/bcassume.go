@@ -1,91 +1,59 @@
 package sdkapp
 
 import (
-	"log"
-	"time"
+	"context"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 )
 
-func assumeBehaviorControl(robot Robot, robotIndex int, priority string) {
-	var controlRequest *vectorpb.BehaviorControlRequest
+func assumeBehaviorControl(robot *Robot, priority string) {
+	prio := vectorpb.ControlRequest_DEFAULT
 	if priority == "high" {
-		controlRequest = &vectorpb.BehaviorControlRequest{
-			RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{
-				ControlRequest: &vectorpb.ControlRequest{
-					Priority: vectorpb.ControlRequest_OVERRIDE_BEHAVIORS,
-				},
+		prio = vectorpb.ControlRequest_OVERRIDE_BEHAVIORS
+	}
+	release, done, _ := robot.bc.start(robot.Ctx)
+	go holdBehaviorControl(robot, prio, release, done)
+}
+
+func releaseBehaviorControl(robot *Robot) {
+	robot.bc.stop()
+}
+
+func holdBehaviorControl(robot *Robot, prio vectorpb.ControlRequest_Priority, release context.Context, done func()) {
+	defer done()
+	streamCtx, cancel := context.WithCancel(robot.Ctx)
+	defer cancel()
+	stream, err := robot.Vector.Conn.BehaviorControl(streamCtx)
+	if err != nil {
+		logger.Println("Behavior control error: ", err)
+		return
+	}
+	err = stream.Send(&vectorpb.BehaviorControlRequest{
+		RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{
+			ControlRequest: &vectorpb.ControlRequest{
+				Priority: prio,
 			},
-		}
-	} else {
-		controlRequest = &vectorpb.BehaviorControlRequest{
-			RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{
-				ControlRequest: &vectorpb.ControlRequest{
-					Priority: vectorpb.ControlRequest_DEFAULT,
-				},
-			},
-		}
+		},
+	})
+	if err != nil {
+		logger.Println("Behavior control error: ", err)
+		return
 	}
 	go func() {
-		start := make(chan bool)
-		stop := make(chan bool)
-		robots[robotIndex].BcAssumption = true
-		go func() {
-			// * begin - modified from official vector-go-sdk
-			r, err := robot.Vector.Conn.BehaviorControl(
-				robot.Ctx,
-			)
-			if err != nil {
-				log.Println(err)
+		for {
+			if _, err := stream.Recv(); err != nil {
 				return
 			}
-
-			if err := r.Send(controlRequest); err != nil {
-				log.Println(err)
-				return
-			}
-
-			for {
-				ctrlresp, err := r.Recv()
-				if err != nil {
-					log.Println(err)
-					return
-				}
-				if ctrlresp.GetControlGrantedResponse() != nil {
-					start <- true
-					break
-				}
-			}
-
-			for {
-				select {
-				case <-stop:
-					if err := r.Send(
-						&vectorpb.BehaviorControlRequest{
-							RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
-								ControlRelease: &vectorpb.ControlRelease{},
-							},
-						},
-					); err != nil {
-						log.Println(err)
-						return
-					}
-					return
-				default:
-					continue
-				}
-			}
-			// * end - modified from official vector-go-sdk
-		}()
-		for range start {
-			for {
-				if robots[robotIndex].BcAssumption {
-					time.Sleep(time.Millisecond * 500)
-				} else {
-					break
-				}
-			}
-			stop <- true
 		}
 	}()
+	<-release.Done()
+	err = stream.Send(&vectorpb.BehaviorControlRequest{
+		RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
+			ControlRelease: &vectorpb.ControlRelease{},
+		},
+	})
+	if err != nil && streamCtx.Err() == nil {
+		logger.Println("Behavior control release error: ", err)
+	}
 }

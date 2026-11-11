@@ -38,7 +38,8 @@ type JdocsPingerRobot struct {
 var PingerEnabled bool = true
 
 func pingJdocs(target string) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 	target = strings.Split(target, ":")[0]
 	var serial string
 	matched := false
@@ -52,14 +53,15 @@ func pingJdocs(target string) {
 		logger.Println("jdocs pinger error: serial did not match any bot in bot json")
 		return
 	}
-	robotTmp, err := NewWP(serial, false)
+	robotTmp, closeRobot, err := NewWP(serial, false)
 	if err != nil {
 		logger.Println(err)
 		return
 	}
 	_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 	if err != nil {
-		robotTmp, err = NewWP(serial, true)
+		closeRobot()
+		robotTmp, closeRobot, err = NewWP(serial, true)
 		if err != nil {
 			logger.Println(err)
 			logger.Println("Error pinging jdocs")
@@ -67,15 +69,21 @@ func pingJdocs(target string) {
 		}
 		_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 		if err != nil {
+			closeRobot()
 			logger.Println("Error pinging jdocs, likely unauthenticated")
 			return
 		}
 	}
+	defer closeRobot()
 	resp, err := robotTmp.Conn.PullJdocs(ctx, &vectorpb.PullJdocsRequest{
 		JdocTypes: []vectorpb.JdocType{vectorpb.JdocType_ROBOT_SETTINGS},
 	})
 	if err != nil {
 		logger.Println("Failed to pull jdocs: ", err)
+		return
+	}
+	if len(resp.NamedJdocs) == 0 || resp.NamedJdocs[0].Doc == nil {
+		logger.Println("Bot " + serial + " returned no jdocs")
 		return
 	}
 	logger.Println("Successfully got jdocs from " + serial)
