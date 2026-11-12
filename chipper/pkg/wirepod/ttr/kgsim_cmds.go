@@ -405,6 +405,18 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 	return nil
 }
 
+// dropEmptyMessages removes messages that have neither text nor multi-part content.
+func dropEmptyMessages(msgs []openai.ChatCompletionMessage) []openai.ChatCompletionMessage {
+	out := make([]openai.ChatCompletionMessage, 0, len(msgs))
+	for _, m := range msgs {
+		if strings.TrimSpace(m.Content) == "" && len(m.MultiContent) == 0 {
+			continue
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
 func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector.Vector, stopStop chan bool) {
 	stopImaging := false
 	go func() {
@@ -461,7 +473,8 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	// encode to base64
 	reqBase64 := base64.StdEncoding.EncodeToString(resp.Data)
 
-	// add image to messages
+	// add image to messages. some servers (LM Studio) reject empty messages.
+	msgs = dropEmptyMessages(msgs)
 	msgs = append(msgs, openai.ChatCompletionMessage{
 		Role: openai.ChatMessageRoleUser,
 		MultiContent: []openai.ChatMessagePart{

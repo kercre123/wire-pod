@@ -200,6 +200,12 @@ func STT(req sr.SpeechRequest) (string, error) {
 	for {
 		chunk, err := req.GetNextStreamChunk()
 		if err != nil {
+			if req.ActiveFrames > 18 {
+				// the robot ended the mic stream (e.g. its ~6s timeout) before the
+				// VAD saw the end of speech. keep what was heard so far.
+				logger.Println("(Bot " + req.Device + ", Vosk) Stream ended (" + err.Error() + "), using partial transcript")
+				break
+			}
 			return "", err
 		}
 		speechIsDone, doProcess := req.DetectEndOfSpeech()
