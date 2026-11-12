@@ -62,8 +62,8 @@ var SDKIniPath string
 var BotJdocs []botjdoc
 var BotInfo RobotInfoStore
 
-// guards the Name/Personality fields of BotInfo.Robots
-var BotInfoIdentityMu sync.RWMutex
+// guards writes to BotInfo and its persisted file
+var BotInfoMu sync.RWMutex
 var CustomIntents []CustomIntent
 var CustomIntentsExist bool = false
 var DownloadedVoskModels []string

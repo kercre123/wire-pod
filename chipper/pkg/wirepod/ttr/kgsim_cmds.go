@@ -14,6 +14,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/memories"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/sashabaranov/go-openai"
 )
@@ -31,6 +32,8 @@ const (
 	ActionNewRequest = 4
 	// arg: sound file
 	ActionPlaySound = 4
+	// arg: a fact to remember (silent)
+	ActionRememberFact = 6
 )
 
 var animationMap [][2]string = [][2]string{
@@ -133,6 +136,13 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 		Action:          ActionNewRequest,
 		SupportedModels: []string{"all"},
 	},
+	{
+		Command:         "rememberFact",
+		Description:     "Use rememberFact to save a lasting fact about the user or yourself worth recalling in future conversations (names, preferences, events). Don't save trivia or duplicates. It is silent: don't mention that you saved anything. Keep the fact under 200 characters.",
+		ParamChoices:    "a short fact, as a plain sentence",
+		Action:          ActionRememberFact,
+		SupportedModels: []string{"all"},
+	},
 	// {
 	// 	Command:      "playSound",
 	// 	Description:  "Plays a sound on the robot.",
@@ -227,7 +237,7 @@ func GetActionsFromString(input string) []RobotAction {
 // stripCommandStems removes any leaked command keywords or malformed tag
 // debris that slipped past the {{ }} parser, so they are never spoken aloud.
 func stripCommandStems(s string) string {
-	re := regexp.MustCompile(`\{\{[^}]*\}?\}?|(playAnimationWI|playAnimation|getImage|newVoiceRequest)\w*`)
+	re := regexp.MustCompile(`\{\{[^}]*\}?\}?|(playAnimationWI|playAnimation|getImage|newVoiceRequest|rememberFact)\w*`)
 	return strings.TrimSpace(re.ReplaceAllString(s, ""))
 }
 
@@ -243,6 +253,22 @@ func CmdParamToAction(cmd, param string) RobotAction {
 	logger.Println("LLM tried to do a command which doesn't exist: " + cmd + " (param: " + param + ")")
 	return RobotAction{
 		Action: -1,
+	}
+}
+
+// DoRememberFact stores a fact for this robot only. It is silent and only runs when LLM commands are enabled.
+func DoRememberFact(fact string, esn string) {
+	if !vars.APIConfig.Knowledge.CommandsEnable {
+		return
+	}
+	fact = memories.Truncate(memories.CleanText(fact))
+	m, added, err := memories.Add(esn, fact)
+	if err != nil {
+		logger.Println("Could not remember fact for " + esn + ": " + err.Error())
+		return
+	}
+	if added {
+		logger.Println("Remembered for " + esn + ": " + m.Text)
 	}
 }
 
@@ -672,6 +698,8 @@ func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, 
 		case action.Action == ActionGetImage:
 			DoGetImage(msgs, action.Parameter, robot, stopStop)
 			return true
+		case action.Action == ActionRememberFact:
+			DoRememberFact(action.Parameter, robot.Cfg.SerialNo)
 		case action.Action == ActionPlaySound:
 			DoPlaySound(action.Parameter, robot)
 		}

@@ -32,6 +32,7 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 
+	vars.BotInfoMu.Lock()
 	for ind, bot := range vars.BotInfo.Robots {
 		if bot.Esn == esn && bot.IPAddress != ipAddr {
 			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
@@ -40,6 +41,7 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 			os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
 		}
 	}
+	vars.BotInfoMu.Unlock()
 
 	return &jdocspb.WriteDocResp{
 		Status:           jdocspb.WriteDocResp_ACCEPTED,
@@ -58,6 +60,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 
+	vars.BotInfoMu.Lock()
 	for ind, bot := range vars.BotInfo.Robots {
 		if bot.Esn == esn && bot.IPAddress != ipAddr {
 			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
@@ -66,6 +69,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
 		}
 	}
+	vars.BotInfoMu.Unlock()
 
 	for _, pair := range tokenserver.SessionWriteStoreNames {
 		if ipAddr == strings.Split(pair[0], ":")[0] {

@@ -168,7 +168,9 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		if PingerEnabled {
 			//logger.Println("connCheck request from " + r.RemoteAddr)
 			robotTarget := strings.Split(r.RemoteAddr, ":")[0]
+			vars.BotInfoMu.RLock()
 			jsonB, _ := json.Marshal(vars.BotInfo)
+			vars.BotInfoMu.RUnlock()
 			json := string(jsonB)
 			if strings.Contains(json, strings.TrimSpace(robotTarget)) {
 				ping := ShouldPingJdocs(robotTarget)
@@ -206,14 +208,16 @@ func RunMDNS(botIP string) {
 		for _, rinf := range vars.RecurringInfo {
 			if rinf.ID == robotID {
 				vars.AddToRInfo(rinf.ESN, robotID, fmt.Sprint(entry.AddrIPv4[0]))
+				vars.BotInfoMu.Lock()
 				for i, rob := range vars.BotInfo.Robots {
 					if rob.Esn == rinf.ESN {
 						vars.BotInfo.Robots[i].IPAddress = fmt.Sprint(entry.AddrIPv4[0])
 						jsonBytes, _ := json.Marshal(vars.BotInfo)
 						fmt.Println("Updating robot " + robotID)
-						go os.WriteFile(vars.BotInfoPath, jsonBytes, 0777)
+						os.WriteFile(vars.BotInfoPath, jsonBytes, 0777)
 					}
 				}
+				vars.BotInfoMu.Unlock()
 				go func() {
 					// wait for escapepod.local trasmit
 					if vars.APIConfig.Server.EPConfig {
