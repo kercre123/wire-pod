@@ -37,7 +37,8 @@ export function Controls({ robot }) {
   const esn = robot.esn;
   const [controlled, setControlled] = useState(false);
   const [cam, setCam] = useState(false);
-  const [camError, setCamError] = useState(false);
+  const [camPhase, setCamPhase] = useState("off"); // off, loading, live, error, timeout
+  const camImg = useRef(null);
   const [mirror, setMirror] = useState(false);
   const [kb, setKb] = useState(false);
   const [say, setSay] = useState("");
@@ -69,10 +70,21 @@ export function Controls({ robot }) {
       sdk("release_behavior_control", esn).catch(() => {});
     }
   };
-  const stopCam = () => {
+  const stopCam = (phase = "off") => {
     if (ctl.current.cam) { ctl.current.cam = false; sdk("stop_cam_stream", esn).catch(() => {}); }
     setCam(false);
+    setCamPhase(typeof phase === "string" ? phase : "off");
   };
+  // the stream can take around ten seconds to wake up; give up after twenty rather than staying black
+  useEffect(() => {
+    if (camPhase !== "loading") return;
+    const t = setTimeout(() => {
+      const img = camImg.current;
+      if (img && img.naturalWidth > 0) setCamPhase("live"); // frames are arriving even though no load event fired
+      else stopCam("timeout");
+    }, 20000);
+    return () => clearTimeout(t);
+  }, [camPhase]);
 
   // leaving this screen hands everything back
   useEffect(() => () => {
@@ -86,7 +98,7 @@ export function Controls({ robot }) {
   }, [esn]);
 
   // the robot dropped off the network: nothing here can work, so reset
-  useEffect(() => { if (!online) { ctl.current = { controlled: false, mirror: false, cam: false }; setControlled(false); setMirror(false); setCam(false); setKb(false); } }, [online]);
+  useEffect(() => { if (!online) { ctl.current = { controlled: false, mirror: false, cam: false }; setControlled(false); setMirror(false); setCam(false); setCamPhase("off"); setKb(false); } }, [online]);
 
   const drive = {
     start: async (lw, rw) => {
@@ -153,7 +165,7 @@ export function Controls({ robot }) {
       setMirror(on);
     } catch (e) { fail(e); }
   };
-  const startCam = () => { setCamError(false); ctl.current.cam = true; setCam(true); };
+  const startCam = () => { ctl.current.cam = true; setCam(true); setCamPhase("loading"); };
   const doSay = async (e) => {
     e.preventDefault();
     const t = say.trim();
@@ -205,11 +217,13 @@ export function Controls({ robot }) {
     <div class="stack">
       <div class="card">
         <div class="top"><h2 class="h3">Camera</h2>
-          ${cam ? html`<button type="button" class="btn" onClick=${stopCam}><${Icon} name="stop" size=${18} />Stop camera</button>`
+          ${cam ? html`<button type="button" class="btn" onClick=${() => stopCam()}><${Icon} name="stop" size=${18} />Stop camera</button>`
                 : html`<button type="button" class="btn" onClick=${startCam}><${Icon} name="camera" size=${18} />Start camera</button>`}</div>
         <div class="cam" style="margin-top:12px">
-          ${cam && !camError ? html`<img alt=${`Live view from ${name}’s camera`} src=${`/cam-stream?serial=${encodeURIComponent(esn)}`} onError=${() => { setCamError(true); stopCam(); }} />`
-            : html`<${Icon} name="camera" size=${30} /><span>${camError ? "The camera didn’t start. Try again in a moment." : "Camera is off"}</span>`}
+          ${cam ? html`<img ref=${camImg} alt=${`Live view from ${name}’s camera`} src=${`/cam-stream?serial=${encodeURIComponent(esn)}`} onLoad=${() => setCamPhase("live")} onError=${() => stopCam("error")} style=${camPhase === "live" ? "" : "visibility:hidden;position:absolute"} />`
+            : null}
+          ${camPhase === "loading" && html`<div role="status" aria-live="polite" class="cam-note"><span class="spinner"></span><span>Waiting for ${name}’s camera. This can take about 10 seconds.</span></div>`}
+          ${!cam && html`<${Icon} name="camera" size=${30} /><span role=${camPhase === "off" ? null : "alert"}>${camPhase === "error" ? `The camera didn’t start. Check that ${name} is on and try again.` : camPhase === "timeout" ? `${name}’s camera didn’t respond. Check that ${name} is on and on the same network, then try again.` : "Camera is off"}</span>`}
         </div>
       </div>
       <div class="card">

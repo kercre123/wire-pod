@@ -2,7 +2,7 @@
 import { html, render, useEffect, useRef } from "./js/html.js";
 import { Icon } from "./js/icons.js";
 import { useRoute, href, go } from "./js/router.js";
-import { useStore, prefsStore, useRobots } from "./js/store.js";
+import { useStore, prefsStore, useRobots, clearToasts } from "./js/store.js";
 import { applyTheme, watchSystemTheme } from "./js/theme.js";
 import { Toasts, ConfirmHost, pageTitle } from "./js/ui.js";
 import { useServerInfo, versionLabel } from "./js/server.js";
@@ -50,6 +50,9 @@ function App() {
   const { robots } = useRobots();
   const server = useServerInfo();
   const mainRef = useRef(null);
+
+  // toasts belong to the screen that raised them
+  useEffect(() => { window.addEventListener("hashchange", clearToasts); return () => window.removeEventListener("hashchange", clearToasts); }, []);
 
   // a brand new install goes through first-run setup
   const needsSetup = !!(server.config && !server.config.pastinitialsetup);

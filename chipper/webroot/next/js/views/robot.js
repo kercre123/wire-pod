@@ -2,8 +2,8 @@
 import { html, useState, useEffect, useRef } from "../html.js";
 import { Icon } from "../icons.js";
 import { href, go, ROBOT_TABS } from "../router.js";
-import { useRobots, robotName, refreshRobots, toast } from "../store.js";
-import { sdk, describeError } from "../api.js";
+import { useRobots, robotName, robotTitle, refreshRobots, toast } from "../store.js";
+import { sdk, sdkJSON, describeError } from "../api.js";
 import { Face, StatusPill, Battery, Tabs, Loading, Callout, Dialog, pageTitle } from "../ui.js";
 import { Personality } from "./personality.js";
 import { Memories } from "./memories.js";
@@ -47,13 +47,29 @@ function MoreMenu({ robot, onClose, onInfo }) {
   </div>`;
 }
 
+const yes = (v) => (v ? "Yes" : "No");
+
 function DebugInfo({ robot, onClose }) {
-  const [text, setText] = useState(null);
+  const [info, setInfo] = useState(null);
+  const [err, setErr] = useState("");
   useEffect(() => {
-    sdk("print_robot_info", robot.esn).then(setText, (e) => setText(describeError(e, robotName(robot)).message));
+    sdkJSON("robot_info", robot.esn).then(setInfo, (e) => setErr(describeError(e, robotName(robot)).message));
   }, []);
-  return html`<${Dialog} title=${`${robotName(robot)} debug info`} onClose=${onClose} wide=${true}>
-    ${text === null ? html`<${Loading} />` : html`<pre class="log" tabindex="0">${text}</pre>`}
+  const b = robot.battery;
+  const rows = info ? [
+    ["Serial number", info.esn],
+    ["Address", info.address],
+    ["Connection", robot.state === "online" ? "Online" : robot.state === "offline" ? "Offline" : "Checking"],
+    b && ["Battery", `${b.percent}%${b.volts ? ` (${Number(b.volts).toFixed(2)} V)` : ""}${b.charging ? ", charging" : b.on_charger ? ", on the charger" : ""}`],
+    ["WirePod is in control", yes(info.behavior_control)],
+    ["Camera streaming", yes(info.camera_streaming)],
+    ["Event stream", yes(info.event_stream)],
+    ["Stimulation", Number(info.stimulation).toFixed(2)],
+    ["Idle", `${info.idle_seconds} s of ${info.idle_seconds_limit} s before WirePod lets go of the connection`],
+  ].filter(Boolean) : [];
+  return html`<${Dialog} title=${`${robotName(robot)} debug info`} onClose=${onClose} wide=${true} returnFocus="[data-more]">
+    ${err ? html`<p class="err" role="alert">${err}</p>` : info === null ? html`<${Loading} />`
+      : html`<dl class="kv">${rows.map(([k, v]) => html`<div key=${k}><dt>${k}</dt><dd>${v}</dd></div>`)}</dl>`}
     <div class="foot"><button type="button" class="btn pri" onClick=${onClose}>Close</button></div>
   <//>`;
 }
@@ -98,11 +114,11 @@ export function RobotPage({ esn, tab }) {
   }
 
   return html`<div class="page" style="gap:18px">
-    <div class="crumb"><a href=${href.robots}><${Icon} name="left" size=${16} />Robots</a><span aria-hidden="true">/</span><span aria-current="page">${name}</span></div>
+    <div class="crumb"><a href=${href.robots}><${Icon} name="left" size=${16} />Robots</a><span aria-hidden="true">/</span><span aria-current="page">${robotTitle(robot)}</span></div>
     <div class="rhead">
       <${Face} robot=${robot} size=${72} />
       <div class="who">
-        <h1>${name}</h1>
+        <h1>${robotTitle(robot)}</h1>
         <div class="meta"><span class="mono">${robot.esn}</span><${StatusPill} robot=${robot} />${robot.state !== "checking" && html`<${Battery} battery=${robot.battery} />`}</div>
       </div>
       <div class="acts">

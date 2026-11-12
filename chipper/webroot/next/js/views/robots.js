@@ -2,7 +2,7 @@
 import { html, useEffect } from "../html.js";
 import { Icon } from "../icons.js";
 import { href } from "../router.js";
-import { useRobots, robotName } from "../store.js";
+import { useRobots, robotName, robotTitle } from "../store.js";
 import { Face, StatusPill, Battery, Loading, Callout, pageTitle } from "../ui.js";
 import { useServerInfo, versionLabel } from "../server.js";
 import { useHeard } from "../logs.js";
@@ -22,7 +22,7 @@ function RobotCard({ robot, heard }) {
   return html`<div class="rcard">
     <div class="rc-top">
       <${Face} robot=${robot} size=${48} />
-      <div class="rc-id"><b><a class="stretch" href=${href.robot(robot.esn)} style="color:inherit;text-decoration:none">${name}</a></b><span class="mono">${robot.esn}</span></div>
+      <div class="rc-id"><b><a class="stretch" href=${href.robot(robot.esn)} style="color:inherit;text-decoration:none">${robotTitle(robot)}</a></b><span class="mono">${robot.esn}</span></div>
       <${StatusPill} robot=${robot} />
     </div>
     ${robot.state === "checking" ? html`<div class="bat"><span class="cell none"></span><span>Checking…</span></div>` : html`<${Battery} battery=${robot.battery} />`}

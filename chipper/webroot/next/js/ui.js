@@ -75,18 +75,33 @@ export function ErrorNote({ error, onRetry }) {
   <//>`;
 }
 
-export function Dialog({ title, onClose, children, wide, className = "" }) {
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])';
+
+// returnFocus: a selector to focus on close when the element that opened the dialog is gone (a menu item, say)
+export function Dialog({ title, onClose, children, wide, className = "", returnFocus }) {
   const ref = useRef(null);
   const titleId = useUid("dlg");
   useEffect(() => {
     const d = ref.current;
+    const opener = document.activeElement; // what had focus when the dialog opened, to give it back on close
     if (d && !d.open) d.showModal();
     return () => {
       if (d && d.open) d.close();
+      const back = opener && opener !== document.body && opener.isConnected ? opener : returnFocus && document.querySelector(returnFocus);
+      if (back && typeof back.focus === "function") back.focus();
     };
   }, []);
-  return html`<dialog ref=${ref} class=${(wide ? "wide " : "") + className} aria-labelledby=${titleId}
-    onClose=${onClose} onClick=${(e) => { if (e.target === ref.current) onClose(); }}>
+  // keep Tab inside the dialog
+  const trap = (e) => {
+    if (e.key !== "Tab") return;
+    const items = [...ref.current.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null || el === document.activeElement);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+  return html`<dialog ref=${ref} role="dialog" aria-modal="true" class=${(wide ? "wide " : "") + className} aria-labelledby=${titleId}
+    onClose=${onClose} onKeyDown=${trap} onClick=${(e) => { if (e.target === ref.current) onClose(); }}>
     <div class="dlg"><h2 id=${titleId}>${title}</h2>${children}</div>
   </dialog>`;
 }
@@ -171,9 +186,26 @@ export function Tabs({ tabs, value, onChange, label, idPrefix }) {
       if (el) el.focus();
     });
   };
-  return html`<div class="tabs" role="tablist" aria-label=${label}>
+  // on a narrow screen the strip scrolls: keep the active tab in view and fade the edge that has more
+  const strip = useRef(null);
+  const [edge, setEdge] = useState({ l: false, r: false });
+  const measure = () => {
+    const el = strip.current;
+    if (el) setEdge({ l: el.scrollLeft > 2, r: el.scrollLeft + el.clientWidth < el.scrollWidth - 2 });
+  };
+  useEffect(() => {
+    const el = strip.current;
+    const on = el && el.querySelector('[aria-selected="true"]');
+    if (el && on) el.scrollLeft = Math.max(0, on.offsetLeft - (el.clientWidth - on.offsetWidth) / 2);
+    measure();
+  }, [value]);
+  useEffect(() => {
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+  return html`<div class=${"tabs-wrap" + (edge.l ? " fade-l" : "") + (edge.r ? " fade-r" : "")}><div class="tabs" role="tablist" aria-label=${label} ref=${strip} onScroll=${measure}>
     ${tabs.map(([id, text, icon], i) => html`<button type="button" role="tab" key=${id} class="tab" id=${`${idPrefix}-tab-${id}`}
       aria-selected=${value === id ? "true" : "false"} aria-controls=${`${idPrefix}-panel`} tabindex=${value === id ? 0 : -1}
       onClick=${() => onChange(id)} onKeyDown=${(e) => move(e, i)}><${Icon} name=${icon} size=${18} />${text}</button>`)}
-  </div>`;
+  </div></div>`;
 }

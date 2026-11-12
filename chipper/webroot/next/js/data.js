@@ -42,3 +42,35 @@ export function timeAgo(date, now = Date.now()) {
   const d = Math.round(h / 24);
   return d === 1 ? "yesterday" : `${d} days ago`;
 }
+
+// Readable names for the robot reactions a custom command can trigger. Anything not listed shows its raw id.
+const INTENT_LABELS = {
+  intent_greeting_hello: "Greeting: hello", intent_greeting_goodmorning: "Greeting: good morning",
+  intent_greeting_goodnight: "Greeting: good night", intent_greeting_goodbye: "Greeting: goodbye",
+  intent_names_ask: "Names: ask a name question", intent_names_username_extend: "Names: learn my name",
+  intent_character_age: "Character: how old are you", intent_explore_start: "Explore: start exploring",
+  intent_system_charger: "System: go to the charger", intent_system_sleep: "System: go to sleep",
+  intent_seasonal_happynewyear: "Seasonal: happy new year", intent_seasonal_happyholidays: "Seasonal: happy holidays",
+  intent_amazon_signin: "Alexa: sign in",
+  intent_imperative_eyecolor: "Command: change eye color", intent_imperative_forward: "Command: drive forward",
+  intent_imperative_turnaround: "Command: turn around", intent_imperative_turnleft: "Command: turn left",
+  intent_imperative_turnright: "Command: turn right", intent_imperative_affirmative: "Command: say yes",
+  intent_imperative_negative: "Command: say no", intent_imperative_praise: "Command: praise",
+  intent_imperative_abuse: "Command: insult", intent_imperative_apologize: "Command: apologize",
+  intent_imperative_backup: "Command: back up", intent_imperative_volumedown: "Command: volume down",
+  intent_imperative_volumeup: "Command: volume up", intent_imperative_volumelevel_extend: "Command: set the volume level",
+  intent_imperative_lookatme: "Command: look at me", intent_imperative_shutup: "Command: stop talking",
+  intent_imperative_come: "Command: come here", intent_imperative_love: "Command: show love",
+  intent_imperative_quiet: "Command: be quiet", intent_imperative_dance: "Command: dance",
+  intent_imperative_fetchcube: "Command: fetch the cube", intent_imperative_findcube: "Command: find the cube",
+  intent_play_rollcube: "Play: roll the cube", intent_play_popawheelie: "Play: pop a wheelie",
+  intent_play_fistbump: "Play: fist bump", intent_play_blackjack: "Play: blackjack",
+  intent_play_pickupcube: "Play: pick up the cube", intent_play_anytrick: "Play: any trick",
+  intent_play_keepaway: "Play: keep away", intent_blackjack_hit: "Blackjack: hit", intent_blackjack_stand: "Blackjack: stand",
+  intent_photo_take_extend: "Photo: take a picture", intent_weather_extend: "Weather: tell the weather",
+  intent_knowledge_promptquestion: "Knowledge: ask a question",
+  intent_clock_checktimer: "Clock: check the timer", intent_clock_settimer_extend: "Clock: set a timer",
+  intent_clock_time: "Clock: tell the time", intent_global_stop_extend: "Global: stop",
+  intent_message_recordmessage_extend: "Message: record a message", intent_message_playmessage_extend: "Message: play a message",
+};
+export const intentLabel = (id) => INTENT_LABELS[id] || id;

@@ -80,18 +80,28 @@ export function robotName(r) {
   return r ? r.name || `Vector ${r.esn}` : "Robot";
 }
 
+// For titles that show the serial number next to the name: a robot with no custom name is just "Vector".
+export function robotTitle(r) {
+  return r ? r.name || "Vector" : "Robot";
+}
+
 // ---------- toasts ----------
 
 export const toastStore = createStore({ items: [] });
 let toastId = 0;
 
 // toast("Saved") or toast("Memory deleted", { undo: fn }) or toast("Couldn't save", { kind: "bad" })
-export function toast(message, { undo, kind = "ok", ms } = {}) {
+export function toast(message, { undo, kind = "ok", ms, persist = false } = {}) {
   const id = ++toastId;
-  const item = { id, message, undo, kind };
+  const item = { id, message, undo, kind, persist };
   toastStore.set((s) => ({ items: [...s.items.slice(-2), item] }));
   setTimeout(() => dismissToast(id), ms || (undo ? 7000 : kind === "bad" ? 7000 : 3500));
   return id;
+}
+
+// Moving to another screen clears what the last one said, except messages meant for the next one.
+export function clearToasts() {
+  toastStore.set((s) => (s.items.some((t) => !t.persist) ? { items: s.items.filter((t) => t.persist) } : s));
 }
 
 export function dismissToast(id) {

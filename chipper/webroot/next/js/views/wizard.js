@@ -107,18 +107,46 @@ function LanguageStep({ conn, onBack, onDone }) {
 
 // ---------- step: pair ----------
 
+const EXTERNAL_PAIR_URL = "https://wpsetup.keriganc.com";
+
+// Does this wire-pod build talk Bluetooth itself? The classic setup asks the same way (/api-ble/init).
+function useNativeBle() {
+  const [native, setNative] = useState(null); // null while checking
+  useEffect(() => {
+    let live = true;
+    fetch("/api-ble/init").then((r) => r.text()).then((t) => live && setNative(t.includes("success")), () => live && setNative(false));
+    return () => { live = false; };
+  }, []);
+  return native;
+}
+
 function PairStep({ adding, found, onManual, onBack }) {
   const [clicked, setClicked] = useState(false);
   const [hint, setHint] = useState(false);
-  return html`<${Head} eyebrow=${adding ? "Add a robot" : "Step 3"} title="Pair your robot">Pairing uses Bluetooth, so it happens in WirePod’s original setup page. It opens in a new tab. Come back here when it says Vector is set up.<//>
-    <ol class="ordered">
-      <li>Put Vector on his charger.</li>
-      <li>Double-press his back button. A key appears on his screen.</li>
-      <li>In the setup page, choose <b>Begin Scanning</b>, pick your Vector, then enter the code he shows.</li>
-      <li>Follow the steps there for Wi-Fi and signing in. If it offers a software update, let it finish (about 5 minutes).</li>
-    </ol>
-    <div class="chips"><a class="btn pri" href=${PAIR_URL} target="_blank" rel="noopener" onClick=${() => setClicked(true)}><${Icon} name="bt" size=${18} />Open Bluetooth setup<${Icon} name="external" size=${16} /></a></div>
-    <p class="sub" style="font-size:.8125rem">Have a developer (OSKR) robot? The same page has a section to set it up over SSH first.</p>
+  const native = useNativeBle();
+  const lead = native === null ? "Checking how this WirePod can pair with Bluetooth…"
+    : native ? "This WirePod can pair over Bluetooth itself. It happens in the original setup page, which opens in a new tab. Come back here when it says Vector is set up."
+    : "This WirePod can’t use Bluetooth directly, so pairing happens on a separate website, wpsetup.keriganc.com, in a new tab. It needs internet and a device with Bluetooth. Come back here when it says Vector is set up.";
+  return html`<${Head} eyebrow=${adding ? "Add a robot" : "Step 3"} title="Pair your robot">${lead}<//>
+    ${native !== null && html`<div>
+      <h2 class="h3" style="margin-bottom:6px">Before you start</h2>
+      <ul class="ordered" style="list-style:disc">
+        <li>This computer and Vector are on the same Wi-Fi network.</li>
+        <li>WirePod keeps running on this computer. Vector finds it as <b>escapepod.local</b> when the connection is set to Escape pod.</li>
+        ${!native && html`<li>The device you pair from has Bluetooth, and you can reach the internet from it.</li>`}
+      </ul></div>
+      <ol class="ordered">
+        <li>Put Vector on his charger.</li>
+        <li>Double-press his back button. A key appears on his screen.</li>
+        ${native ? html`<li>In the setup page, choose <b>Begin Scanning</b>, pick your Vector, then enter the code he shows.</li>`
+          : html`<li>On the pairing site, connect to your Vector and enter the code he shows.</li>`}
+        <li>Follow the steps there for Wi-Fi and signing in. If it offers a software update, let it finish (about 5 minutes).</li>
+      </ol>
+      <div class="chips">${native
+        ? html`<a class="btn pri" href=${PAIR_URL} target="_blank" rel="noopener" onClick=${() => setClicked(true)}><${Icon} name="bt" size=${18} />Open Bluetooth setup<${Icon} name="external" size=${16} /></a>`
+        : html`<a class="btn pri" href=${EXTERNAL_PAIR_URL} target="_blank" rel="noopener" onClick=${() => setClicked(true)}><${Icon} name="bt" size=${18} />Open wpsetup.keriganc.com<${Icon} name="external" size=${16} /></a>`}</div>
+      <p class="sub" style="font-size:.8125rem">${native ? "Have a developer (OSKR) robot? The same page has a section to set it up over SSH first."
+        : "With an OSKR or developer robot the site may warn about firmware. You can ignore that."}</p>`}
     <div role="status" aria-live="polite">
       ${found ? html`<${Callout}><span><b>Found ${robotName(found)}.</b> Pairing worked.</span><//>`
         : clicked ? html`<div class="loading"><span class="spinner"></span><span>Waiting for your robot to finish pairing…</span></div>` : null}
@@ -178,7 +206,7 @@ export function Wizard({ first }) {
   if (kind === "Connection") body = html`<${ConnectionStep} conn=${conn} setConn=${setConn} onNext=${() => setStep(1)} />`;
   else if (kind === "Language") body = html`<${LanguageStep} conn=${conn} onBack=${() => setStep(0)} onDone=${() => setStep(2)} />`;
   else if (kind === "Pair your robot") body = html`<${PairStep} adding=${adding} found=${found} onBack=${leave} onManual=${() => setStep(nameIdx)} />`;
-  else body = found ? html`<${NameStep} robot=${found} onDone=${() => { toast(`${robotName(found)} is ready`); go(href.robot(found.esn)); }} />`
+  else body = found ? html`<${NameStep} robot=${found} onDone=${() => { toast(`${robotName(found)} is ready`, { persist: true }); go(href.robot(found.esn)); }} />`
     : html`<${Head} eyebrow="Last step" title="Waiting for your robot">No new robot has shown up yet.<//><div class="foot"><button type="button" class="btn quiet" onClick=${() => setStep(pairIdx)}>Back</button><a class="btn" href=${href.robots}>Go to your robots</a></div>`;
   return html`<${Shell} steps=${steps} step=${step} title=${kind}>${body}<//>`;
 }

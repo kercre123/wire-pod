@@ -67,7 +67,7 @@ noscript .card{margin:24px}
 .main{min-width:0;padding-bottom:calc(var(--tabbar) + env(safe-area-inset-bottom,0px) + 24px)}
 .mbar{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
   padding-top:env(safe-area-inset-top,0px);font:700 1.1rem var(--display)}
-.page{padding:6px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));display:grid;gap:18px;align-content:start;max-width:1040px;margin:0 auto;width:100%}
+.page{padding:6px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-content:start;max-width:1040px;margin:0 auto;width:100%}
 .page:focus,.page h1:focus{outline:none}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -238,6 +238,11 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 .menu button:hover{background:var(--sunk)}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
+.tabs-wrap{position:relative;min-width:0}
+.tabs-wrap::before,.tabs-wrap::after{content:"";position:absolute;top:0;bottom:1px;width:36px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:1}
+.tabs-wrap::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.tabs-wrap::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+.tabs-wrap.fade-l::before,.tabs-wrap.fade-r::after{opacity:1}
 .tab{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;font:600 .875rem var(--body);color:var(--muted);background:transparent;border:0;border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
 .tab:hover{color:var(--ink)}
@@ -252,6 +257,7 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 /* ---------- controls ---------- */
 .cam{aspect-ratio:16/9;border-radius:14px;background:#0A1214;display:grid;place-items:center;color:#93A6A8;text-align:center;gap:10px;align-content:center;overflow:hidden;position:relative}
 .cam img{width:100%;height:100%;object-fit:contain;display:block}
+.cam-note{display:flex;align-items:center;gap:10px;padding:0 16px;font-size:.875rem;color:#C9D6D7;justify-content:center}
 .dpad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:6px;justify-content:center;touch-action:none;user-select:none}
 .dpad button{border:0;border-radius:14px;background:var(--sunk);color:var(--ink);display:grid;place-items:center;touch-action:none}
 .dpad button:active:not(:disabled){background:var(--accent-soft);color:var(--accent)}
@@ -350,3 +356,8 @@ dialog.photo img{width:100%;display:block;max-height:calc(100vh - 140px);object-
 .tight{margin:0}
 h1[tabindex="-1"]:focus,h1[tabindex="-1"]:focus-visible{outline:none}
 main:focus{outline:none}
+.kv{margin:0;display:grid;gap:0}
+.kv>div{display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.kv dt{color:var(--muted);font-size:.8125rem}
+.kv dd{margin:0;font-size:.875rem;word-break:break-word}
+@media (max-width:480px){.kv>div{grid-template-columns:1fr;gap:2px}}

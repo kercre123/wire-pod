@@ -6,7 +6,7 @@ import { getJSON, getText, postJSON, describeError } from "../api.js";
 import { toast, confirmDialog, useStore, prefsStore, setPref } from "../store.js";
 import { Switch, Segmented, Loading, ErrorNote, Dialog, Callout, SecretInput, pageTitle, useUid } from "../ui.js";
 import { useServerInfo, loadVersion, loadConfig, versionLabel } from "../server.js";
-import { STT_LANGUAGES, KG_PROVIDERS, aiSummary, languageLabel } from "../data.js";
+import { STT_LANGUAGES, KG_PROVIDERS, aiSummary, languageLabel, intentLabel } from "../data.js";
 import { ACCENTS } from "../theme.js";
 import { TechLog } from "./activity.js";
 
@@ -241,8 +241,8 @@ function CommandDialog({ initial, index, onClose, onSaved }) {
       <div><label for=${`${id}-u`}>Phrases that trigger it</label><input class="inp" id=${`${id}-u`} value=${f.utterances} onInput=${up("utterances")} placeholder="lights on, turn on the lights" />
         <div class="hint"><span>Separate phrases with commas.</span></div></div>
       <div><label for=${`${id}-i`}>Robot reaction</label>
-        <select class="inp" id=${`${id}-i`} onChange=${up("intent")}>${INTENTS.map((i) => html`<option value=${i} selected=${i === f.intent}>${i}</option>`)}</select>
-        <div class="hint"><span>The reaction the robot performs after your script runs.</span></div></div>
+        <select class="inp" id=${`${id}-i`} onChange=${up("intent")}>${(INTENTS.includes(f.intent) ? INTENTS : [f.intent, ...INTENTS]).map((i) => html`<option value=${i} selected=${i === f.intent}>${intentLabel(i)}</option>`)}</select>
+        <div class="hint"><span>The reaction the robot performs after your script runs.</span><span>${f.intent}</span></div></div>
       <details><summary class="lbl" style="cursor:pointer">Scripts and parameters (advanced)</summary>
         <div class="stack" style="margin-top:12px">
           ${edit && html`<p class="hint"><span>When editing, leave a field empty to keep what it has now.</span></p>`}
