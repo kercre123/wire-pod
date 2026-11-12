@@ -7,6 +7,8 @@ import { sdk, describeError } from "../api.js";
 import { Face, StatusPill, Battery, Tabs, Loading, Callout, Dialog, pageTitle } from "../ui.js";
 import { Personality } from "./personality.js";
 import { Memories } from "./memories.js";
+import { RobotSettings } from "./robot-settings.js";
+import { Controls } from "./controls.js";
 
 const TABS = [
   ["personality", "Personality", "identity"],
@@ -89,6 +91,8 @@ export function RobotPage({ esn, tab }) {
   switch (tab) {
     case "memories": panel = html`<${Memories} robot=${robot} key=${robot.esn} />`; break;
     case "personality": panel = html`<${Personality} robot=${robot} key=${robot.esn} />`; break;
+    case "settings": panel = html`<${RobotSettings} robot=${robot} key=${robot.esn} />`; break;
+    case "controls": panel = html`<${Controls} robot=${robot} key=${robot.esn} />`; break;
     default: panel = html`<div class="card"><p class="sub">This section is on its way. The <a href="/sdkapp/settings.html?serial=${robot.esn}">classic Bot Settings</a> page has it in the meantime.</p></div>`;
   }
 

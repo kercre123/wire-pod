@@ -114,3 +114,7 @@ export function describeError(err, who = "The robot") {
 // ----- the cached status call the home screen polls -----
 
 export const fetchRobotStatuses = async (opts) => (await getJSON("/api-sdk/robots_status", opts)).robots || [];
+
+export function postMultipart(path, formData, opts = {}) {
+  return fetchText(path, { method: "POST", body: formData, ...opts });
+}
