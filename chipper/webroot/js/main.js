@@ -297,6 +297,8 @@ function sendKGAPIKey() {
     save_chat: false,
     commands_enable: false,
     endpoint: "",
+    temp: 0,
+    top_p: 0,
   };
   if (provider === "openai") {
     data.key = getE("openaiKey").value;
@@ -311,6 +313,8 @@ function sendKGAPIKey() {
     data.model = getE("customModel").value;
     data.openai_prompt = getE("customAIPrompt").value;
     data.endpoint = getE("customAIEndpoint").value;
+    data.temp = parseFloat(getE("customTemp").value) || 0;
+    data.top_p = parseFloat(getE("customTopP").value) || 0;
     data.intentgraph = getE("intentyes").checked
     data.save_chat = getE("saveChatYes").checked
     data.commands_enable = getE("commandYes").checked
@@ -378,6 +382,8 @@ function updateKGAPI() {
         getE("customModel").value = data.model;
         getE("customAIPrompt").value = data.openai_prompt;
         getE("customAIEndpoint").value = data.endpoint;
+        getE("customTemp").value = data.temp || "";
+        getE("customTopP").value = data.top_p || "";
         getE("commandYes").checked = data.commands_enable
         getE("intentyes").checked = data.intentgraph
         getE("saveChatYes").checked = data.save_chat

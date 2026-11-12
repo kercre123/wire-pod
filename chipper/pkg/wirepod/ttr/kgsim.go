@@ -134,6 +134,20 @@ func removeEmojis(input string) string {
 	return result
 }
 
+// samplerSettings returns temperature/top_p for the custom provider; 0 (unset) means 1.
+func samplerSettings() (float32, float32) {
+	temp, topP := float32(1), float32(1)
+	if vars.APIConfig.Knowledge.Provider == "custom" {
+		if vars.APIConfig.Knowledge.Temperature > 0 {
+			temp = vars.APIConfig.Knowledge.Temperature
+		}
+		if vars.APIConfig.Knowledge.TopP > 0 {
+			topP = vars.APIConfig.Knowledge.TopP
+		}
+	}
+	return temp, topP
+}
+
 func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.ChatCompletionRequest {
 	defaultPrompt := "You are a helpful, animated robot called Vector. Keep the response concise yet informative."
 
@@ -176,11 +190,12 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 		Content: transcribedText,
 	})
 
+	temp, topP := samplerSettings()
 	aireq := openai.ChatCompletionRequest{
 		Model:               model,
 		MaxCompletionTokens: 2048,
-		Temperature:         1,
-		TopP:                1,
+		Temperature:         temp,
+		TopP:                topP,
 		FrequencyPenalty:    0,
 		PresencePenalty:     0,
 		Messages:            nChat,

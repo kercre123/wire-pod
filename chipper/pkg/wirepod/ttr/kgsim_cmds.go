@@ -485,10 +485,11 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	ctx := context.Background()
 	speakReady := make(chan string)
 
+	temp, topP := samplerSettings()
 	aireq := openai.ChatCompletionRequest{
 		MaxCompletionTokens: 2048,
-		Temperature:         1,
-		TopP:                1,
+		Temperature:         temp,
+		TopP:                topP,
 		FrequencyPenalty:    0,
 		PresencePenalty:     0,
 		Messages:            msgs,
