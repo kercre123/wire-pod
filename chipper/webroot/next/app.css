@@ -342,3 +342,9 @@ dialog.photo img{width:100%;display:block;max-height:calc(100vh - 140px);object-
 
 @media (prefers-reduced-motion:reduce){.sw::after{transition:none}.spinner{animation-duration:2.4s}}
 @media (forced-colors:active){.sw[aria-checked="true"]{outline:2px solid Highlight}.tab[aria-selected="true"]{border-bottom-color:Highlight}}
+
+/* ---------- small helpers ---------- */
+.only-mobile{display:block}
+@media (min-width:900px){.only-mobile{display:none}}
+.result{display:flex;gap:8px;align-items:center;font-size:.84rem}
+.tight{margin:0}

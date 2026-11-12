@@ -41,11 +41,12 @@ function Conversations({ robot }) {
       <button type="button" class="btn quiet" aria-expanded=${showLog ? "true" : "false"} onClick=${() => setShowLog(!showLog)}>${showLog ? "Hide" : "View"} technical log <${Icon} name=${showLog ? "down" : "right"} size=${16} /></button>
       <button type="button" class="btn danger" onClick=${deleteAll}>Delete saved conversations</button>
     </div>
-    ${showLog && html`<${TechLog} robot=${robot} />`}
+    ${showLog && html`<${TechLog} esn=${robot.esn} label=${name} />`}
   </div>`;
 }
 
-function TechLog({ robot }) {
+// esn: only that robot's lines; without it, everything. Also used by Settings > Server.
+export function TechLog({ esn, label }) {
   const [all, setAll] = useState(false);
   const [text, setText] = useState(null);
   const box = useRef(null);
@@ -60,11 +61,11 @@ function TechLog({ robot }) {
     run();
     return () => { alive = false; clearTimeout(timer); };
   }, [all]);
-  const shown = text === null ? null : all ? text : linesFor(text, robot.esn);
+  const shown = text === null ? null : all || !esn ? text : linesFor(text, esn);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [shown]);
   return html`<div style="margin-top:10px">
-    <div class="opt flush" style="margin-bottom:8px"><div id="tl-all">Show everything<small>All robots and debug lines, not just ${robotName(robot)}</small></div><${Switch} checked=${all} onChange=${setAll} label="Show everything" /></div>
-    <pre class="log" ref=${box} tabindex="0" aria-label="Log">${shown === null ? "Loading…" : shown || "Nothing logged for this robot yet. Say something to it and this updates by itself."}</pre>
+    <div class="opt flush" style="margin-bottom:8px"><div>${esn ? "Show everything" : "Show debug lines"}<small>${esn ? `All robots and debug lines, not just ${label}` : "Include the detailed lines that are normally hidden"}</small></div><${Switch} checked=${all} onChange=${setAll} label=${esn ? "Show everything" : "Show debug lines"} /></div>
+    <pre class="log" ref=${box} tabindex="0" aria-label="Log">${shown === null ? "Loading…" : shown || (esn ? "Nothing logged for this robot yet. Say something to it and this updates by itself." : "Nothing logged yet. Say something to a robot and this updates by itself.")}</pre>
   </div>`;
 }
 

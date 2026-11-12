@@ -44,6 +44,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleSetKGAPI(w, r)
 	case "get_kg_api":
 		handleGetKGAPI(w)
+	case "test_llm":
+		handleTestLLM(w, r)
 	case "set_stt_info":
 		handleSetSTTInfo(w, r)
 	case "get_download_status":

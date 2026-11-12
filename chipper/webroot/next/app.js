@@ -8,6 +8,7 @@ import { Toasts, ConfirmHost, pageTitle } from "./js/ui.js";
 import { useServerInfo, versionLabel } from "./js/server.js";
 import { RobotsHome } from "./js/views/robots.js";
 import { RobotPage } from "./js/views/robot.js";
+import { Settings } from "./js/views/settings.js";
 
 function Logo() {
   return html`<span class="logo" aria-hidden="true"><i></i><i></i></span>`;
@@ -74,7 +75,7 @@ function App() {
   switch (route.name) {
     case "robots": view = html`<${RobotsHome} />`; break;
     case "robot": view = html`<${RobotPage} esn=${route.esn} tab=${route.tab} />`; break;
-    case "settings": view = html`<${Soon} title="Settings" />`; break;
+    case "settings": view = html`<${Settings} section=${route.section} />`; break;
     default: view = html`<${NotFound} />`;
   }
   return html`<div class="app">

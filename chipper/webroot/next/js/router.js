@@ -43,6 +43,7 @@ export function useRoute() {
   useEffect(() => {
     const f = () => setRoute(parseHash());
     window.addEventListener("hashchange", f);
+    f(); // child effects can change the hash before this listener existed
     return () => window.removeEventListener("hashchange", f);
   }, []);
   return route;
