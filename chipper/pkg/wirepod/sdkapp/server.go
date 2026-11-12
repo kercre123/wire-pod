@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -16,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -26,62 +24,8 @@ import (
 
 var serverFiles string = "./webroot/sdkapp"
 
-var errRobotNotFound = errors.New("robot not found")
-
-// setRobotIdentity sets the user-set nickname and/or LLM personality of a known robot (nil = leave as is,
-// empty string = clear) and persists the bot info store.
-func setRobotIdentity(esn string, name *string, personality *string) error {
-	vars.BotInfoIdentityMu.Lock()
-	defer vars.BotInfoIdentityMu.Unlock()
-	for i, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(esn, robot.Esn) {
-			if name != nil {
-				vars.BotInfo.Robots[i].Name = *name
-			}
-			if personality != nil {
-				vars.BotInfo.Robots[i].Personality = *personality
-			}
-			jsonBytes, err := json.Marshal(vars.BotInfo)
-			if err != nil {
-				return err
-			}
-			return os.WriteFile(vars.BotInfoPath, jsonBytes, 0644)
-		}
-	}
-	return errRobotNotFound
-}
-
-func handleSetRobotIdentity(w http.ResponseWriter, r *http.Request) {
-	// name and personality are wire-pod's own data, so no robot connection is needed
-	name := strings.Join(strings.Fields(r.FormValue("name")), " ")
-	if utf8.RuneCountInString(name) > 32 {
-		http.Error(w, "error: name must be 32 characters or fewer", http.StatusBadRequest)
-		return
-	}
-	var personality *string
-	if r.URL.Path == "/api-sdk/set_robot_identity" {
-		p := strings.TrimSpace(r.FormValue("personality"))
-		if utf8.RuneCountInString(p) > 1000 {
-			http.Error(w, "error: personality must be 1000 characters or fewer", http.StatusBadRequest)
-			return
-		}
-		personality = &p
-	}
-	if err := setRobotIdentity(strings.TrimSpace(r.FormValue("serial")), &name, personality); err != nil {
-		if err == errRobotNotFound {
-			http.Error(w, "error: "+err.Error(), http.StatusNotFound)
-		} else {
-			logger.Println("Error saving robot identity: " + err.Error())
-			http.Error(w, "error: "+err.Error(), http.StatusInternalServerError)
-		}
-		return
-	}
-	fmt.Fprint(w, "done")
-}
-
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/api-sdk/set_robot_name" || r.URL.Path == "/api-sdk/set_robot_identity" {
-		handleSetRobotIdentity(w, r)
+	if handleRobotIdentityAPI(w, r) {
 		return
 	}
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
@@ -159,7 +103,9 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "no bots are authenticated", http.StatusInternalServerError)
 			return
 		}
+		vars.BotInfoMu.RLock()
 		jsonBytes, err := json.Marshal(vars.BotInfo)
+		vars.BotInfoMu.RUnlock()
 		if err != nil {
 			fmt.Fprintf(w, "error marshaling json")
 			return

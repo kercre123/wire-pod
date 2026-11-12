@@ -132,6 +132,8 @@ func StoreBotInfo(ctx context.Context, thing string) {
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
 	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
+	vars.BotInfoMu.Lock()
+	defer vars.BotInfoMu.Unlock()
 	vars.BotInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
 	for num, robot := range vars.BotInfo.Robots {
 		if robot.Esn == botEsn {

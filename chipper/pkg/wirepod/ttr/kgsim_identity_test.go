@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kercre123/wire-pod/chipper/pkg/memories"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
@@ -37,5 +38,37 @@ func TestCreateAIReqRobotIdentity(t *testing.T) {
 	vars.BotInfo.Robots[0].Name, vars.BotInfo.Robots[0].Personality = "", ""
 	if cleared := sys("00902de7"); strings.Contains(cleared, "Your name is") || strings.Contains(cleared, "personality") {
 		t.Fatalf("cleared identity still present: %q", cleared)
+	}
+}
+
+func TestMemoriesStayPerRobotInPrompt(t *testing.T) {
+	memories.DirOverride = t.TempDir()
+	defer func() { memories.DirOverride = "" }()
+	if _, _, err := memories.Add("aaaa1111", "Lucas's dog is named Biscuit"); err != nil {
+		t.Fatal(err)
+	}
+	a := CreateAIReq("hello", "aaaa1111", false, false).Messages[0].Content
+	b := CreateAIReq("hello", "bbbb2222", false, false).Messages[0].Content
+	if !strings.Contains(a, "Things you remember:\n- Lucas's dog is named Biscuit") {
+		t.Fatalf("robot A prompt missing its memory: %q", a)
+	}
+	if strings.Contains(b, "Biscuit") || strings.Contains(b, "Things you remember") {
+		t.Fatalf("robot B prompt contains robot A memory: %q", b)
+	}
+}
+
+func TestRememberFactAction(t *testing.T) {
+	acts := GetActionsFromString("Okay! {{rememberFact||Lucas likes tea}} Noted.")
+	var found bool
+	for _, a := range acts {
+		if a.Action == ActionRememberFact && a.Parameter == "Lucas likes tea" {
+			found = true
+		}
+		if a.Action == ActionSayText && strings.Contains(a.Parameter, "rememberFact") {
+			t.Fatalf("command leaked into speech: %v", acts)
+		}
+	}
+	if !found {
+		t.Fatalf("rememberFact action not parsed: %v", acts)
 	}
 }

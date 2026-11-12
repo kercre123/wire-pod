@@ -15,6 +15,7 @@ esn = urlParams.get("serial");
 var client = new HttpClient();
 getCurrentSettings();
 loadRobotName();
+loadRobotMemories();
 
 function revealSdkActions() {
   var x = document.getElementById("sdkActions");
@@ -208,10 +209,67 @@ function loadRobotName() {
         document.getElementById("robotPersonalityInput").value = info["robots"][i]["personality"] || "";
         document.getElementById("currentRobotName").textContent =
           "Current Robot Name: " + (name || "(not set)");
+        // only allow saving once the current values are loaded, so a failed load can't blank them
+        document.getElementById("robotIdentitySave").disabled = false;
         return;
       }
     }
   }).catch(() => {});
+}
+
+function loadRobotMemories() {
+  fetch("/api-sdk/get_robot_memories?serial=" + encodeURIComponent(esn))
+    .then((response) => response.json())
+    .then((list) => {
+      var el = document.getElementById("robotMemoriesList");
+      el.innerHTML = "";
+      if (!list.length) {
+        el.textContent = "No memories yet.";
+        return;
+      }
+      list.forEach((mem) => {
+        var row = document.createElement("p");
+        row.textContent = mem.text + " ";
+        var del = document.createElement("button");
+        del.textContent = "Delete";
+        del.onclick = function () {
+          fetch("/api-sdk/delete_robot_memory?serial=" + encodeURIComponent(esn) + "&id=" + encodeURIComponent(mem.id), { method: "POST" })
+            .then(loadRobotMemories);
+        };
+        row.appendChild(del);
+        el.appendChild(row);
+      });
+    })
+    .catch(() => {});
+}
+
+function addRobotMemory() {
+  var input = document.getElementById("robotMemoryInput");
+  var text = input.value.trim();
+  if (text == "") {
+    alert("Memory cannot be blank.");
+    return;
+  }
+  fetch("/api-sdk/add_robot_memory", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ serial: esn, text: text }).toString(),
+  }).then((response) => {
+    if (!response.ok) {
+      response.text().then(alert);
+      return;
+    }
+    input.value = "";
+    loadRobotMemories();
+  });
+}
+
+function clearRobotMemories() {
+  if (!confirm("Delete all of this robot's memories?")) {
+    return;
+  }
+  fetch("/api-sdk/clear_robot_memories?serial=" + encodeURIComponent(esn), { method: "POST" })
+    .then(loadRobotMemories);
 }
 
 function sendRobotIdentity() {

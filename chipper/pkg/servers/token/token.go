@@ -75,6 +75,8 @@ func GetEsnFromTarget(target string) (string, error) {
 
 func SetBotGUID(esn string, guid string, guidHash string) error {
 	matched := false
+	vars.BotInfoMu.Lock()
+	defer vars.BotInfoMu.Unlock()
 	for num, robot := range vars.BotInfo.Robots {
 		if strings.EqualFold(esn, robot.Esn) {
 			vars.BotInfo.Robots[num].GUID = guid

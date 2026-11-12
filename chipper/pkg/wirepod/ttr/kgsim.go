@@ -17,6 +17,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/memories"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/sashabaranov/go-openai"
 )
@@ -149,14 +150,28 @@ func robotIdentityPrompt(name, personality string) string {
 }
 
 func getRobotIdentity(esn string) (string, string) {
-	vars.BotInfoIdentityMu.RLock()
-	defer vars.BotInfoIdentityMu.RUnlock()
+	vars.BotInfoMu.RLock()
+	defer vars.BotInfoMu.RUnlock()
 	for _, bot := range vars.BotInfo.Robots {
 		if strings.EqualFold(esn, bot.Esn) {
 			return bot.Name, bot.Personality
 		}
 	}
 	return "", ""
+}
+
+// composeRobotPrompt puts this robot's identity (name/personality) and long-term memories before the global prompt.
+func composeRobotPrompt(esn, globalPrompt string) string {
+	var parts []string
+	if identity := robotIdentityPrompt(getRobotIdentity(esn)); identity != "" {
+		logger.Println("Using custom name/personality for " + esn)
+		parts = append(parts, identity)
+	}
+	if mem := memories.PromptBlock(esn); mem != "" {
+		logger.Println("Using long-term memories for " + esn)
+		parts = append(parts, mem)
+	}
+	return strings.Join(append(parts, globalPrompt), "\n\n")
 }
 
 func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.ChatCompletionRequest {
@@ -172,10 +187,7 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	} else {
 		smsg.Content = defaultPrompt
 	}
-	if identity := robotIdentityPrompt(getRobotIdentity(esn)); identity != "" {
-		logger.Println("Using custom name/personality for " + esn)
-		smsg.Content = identity + "\n\n" + smsg.Content
-	}
+	smsg.Content = composeRobotPrompt(esn, smsg.Content)
 
 	var model string
 
