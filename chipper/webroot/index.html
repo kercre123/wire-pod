@@ -19,6 +19,7 @@
   <div id="outer">
     <div id="content" class="">
       <h1>Wire-Pod</h1>
+      <p><a href="/next/">Try the new interface</a></p>
       <!-- Bot stats, connected and battery -->
       <div id="botStats"></div>
       <hr />
@@ -222,6 +223,8 @@
   updateIntentSelection("deleteSelect");
   createIntentSelect("intentAddSelect");
   processBotStats();
+  // deep link used by the new interface's "Add a robot" page
+  if (location.hash === "#bot-setup") showBotAuth();
 </script>
 
 </html>

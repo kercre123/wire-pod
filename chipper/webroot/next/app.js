@@ -1,7 +1,7 @@
 // WirePod web UI entry point: shell (rail on desktop, tab bar on phones), routing, appearance.
 import { html, render, useEffect, useRef } from "./js/html.js";
 import { Icon } from "./js/icons.js";
-import { useRoute, href } from "./js/router.js";
+import { useRoute, href, go } from "./js/router.js";
 import { useStore, prefsStore, useRobots } from "./js/store.js";
 import { applyTheme, watchSystemTheme } from "./js/theme.js";
 import { Toasts, ConfirmHost, pageTitle } from "./js/ui.js";
@@ -9,6 +9,7 @@ import { useServerInfo, versionLabel } from "./js/server.js";
 import { RobotsHome } from "./js/views/robots.js";
 import { RobotPage } from "./js/views/robot.js";
 import { Settings } from "./js/views/settings.js";
+import { Wizard } from "./js/views/wizard.js";
 
 function Logo() {
   return html`<span class="logo" aria-hidden="true"><i></i><i></i></span>`;
@@ -55,6 +56,10 @@ function App() {
   const server = useServerInfo();
   const mainRef = useRef(null);
 
+  // a brand new install goes through first-run setup
+  const needsSetup = !!(server.config && !server.config.pastinitialsetup);
+  useEffect(() => { if (needsSetup && route.name !== "welcome") go(href.welcome, { replace: true }); }, [needsSetup, route.name]);
+
   const robot = route.name === "robot" ? robots.find((r) => r.esn === route.esn.toLowerCase()) : null;
   const eye = robot && robot.eye;
   useEffect(() => { applyTheme(prefs, eye); }, [prefs, eye]);
@@ -70,6 +75,9 @@ function App() {
     window.scrollTo(0, 0);
   }, [key]);
 
+  if (route.name === "welcome" || route.name === "add") {
+    return html`<${Wizard} first=${route.name === "welcome"} /><${Toasts} /><${ConfirmHost} />`;
+  }
   const section = route.name === "settings" ? "settings" : "robots";
   let view;
   switch (route.name) {
