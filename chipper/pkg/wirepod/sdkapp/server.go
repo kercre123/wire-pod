@@ -25,7 +25,7 @@ import (
 var serverFiles string = "./webroot/sdkapp"
 
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
-	if handleRobotIdentityAPI(w, r) {
+	if handleRobotIdentityAPI(w, r) || handleRobotStatusAPI(w, r) {
 		return
 	}
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))

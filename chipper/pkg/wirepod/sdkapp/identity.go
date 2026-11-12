@@ -54,6 +54,29 @@ func robotKnown(esn string) bool {
 	return false
 }
 
+// ChatLine is one saved line of a robot's recent conversation.
+type ChatLine struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+// robotChats returns the user and assistant lines wire-pod has saved for a robot (the LLM's recent
+// context), oldest first. It is empty unless saving conversations is on.
+func robotChats(esn string) []ChatLine {
+	lines := []ChatLine{}
+	for _, chat := range vars.RememberedChats {
+		if !strings.EqualFold(chat.ESN, esn) {
+			continue
+		}
+		for _, m := range chat.Chats {
+			if (m.Role == "user" || m.Role == "assistant") && strings.TrimSpace(m.Content) != "" {
+				lines = append(lines, ChatLine{Role: m.Role, Content: m.Content})
+			}
+		}
+	}
+	return lines
+}
+
 func identityError(w http.ResponseWriter, err error) {
 	switch {
 	case err == errRobotNotFound:
@@ -92,6 +115,14 @@ func handleRobotIdentityAPI(w http.ResponseWriter, r *http.Request) bool {
 			return true
 		}
 		fmt.Fprint(w, "done")
+	case "/api-sdk/get_robot_chats":
+		serial := strings.TrimSpace(r.FormValue("serial"))
+		if !robotKnown(serial) {
+			identityError(w, errRobotNotFound)
+			return true
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(robotChats(serial))
 	case "/api-sdk/get_robot_memories", "/api-sdk/add_robot_memory", "/api-sdk/delete_robot_memory", "/api-sdk/clear_robot_memories":
 		serial := strings.TrimSpace(r.FormValue("serial"))
 		if !robotKnown(serial) {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -395,6 +396,8 @@ func DisableCachingAndSniffing(next http.Handler) http.Handler {
 }
 
 func StartWebServer() {
+	// the new web UI (/next) ships its fonts as woff2, which not every OS mime table knows
+	mime.AddExtensionType(".woff2", "font/woff2")
 	botsetup.RegisterSSHAPI()
 	botsetup.RegisterBLEAPI()
 	http.HandleFunc("/api/", apiHandler)
