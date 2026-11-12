@@ -2,13 +2,13 @@
 
 // Same order as the robot's eye color presets (0 to 6). `light` is used on light themes, `dark` on dark ones.
 export const ACCENTS = [
-  { id: "teal", name: "Teal", swatch: "#19C6B3", light: "#0A7C75", dark: "#3FD3C3" },
-  { id: "orange", name: "Orange", swatch: "#F5A524", light: "#B4540A", dark: "#FFA45C" },
-  { id: "yellow", name: "Yellow", swatch: "#F2D64B", light: "#8A6D00", dark: "#F2D64B" },
-  { id: "lime", name: "Lime", swatch: "#7BD65B", light: "#3F7D0E", dark: "#9BE05A" },
+  { id: "teal", name: "Teal", swatch: "#19C6B3", light: "#09716B", dark: "#3FD3C3" },
+  { id: "orange", name: "Orange", swatch: "#F5A524", light: "#9E4807", dark: "#FFA45C" },
+  { id: "yellow", name: "Yellow", swatch: "#F2D64B", light: "#766000", dark: "#F2D64B" },
+  { id: "lime", name: "Lime", swatch: "#7BD65B", light: "#33690B", dark: "#9BE05A" },
   { id: "sapphire", name: "Blue", swatch: "#4A9BFF", light: "#0B63B5", dark: "#6CB6FF" },
   { id: "purple", name: "Purple", swatch: "#8B7CF6", light: "#6A4BC4", dark: "#B79CFF" },
-  { id: "green", name: "Green", swatch: "#52D08A", light: "#1B7F4B", dark: "#5ED08F" },
+  { id: "green", name: "Green", swatch: "#52D08A", light: "#16703F", dark: "#5ED08F" },
 ];
 
 const root = document.documentElement;

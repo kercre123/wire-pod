@@ -201,7 +201,7 @@ export function Controls({ robot }) {
   return html`<div class="grid2">
     <div class="stack">
       <div class="card">
-        <div class="top"><h3>Camera</h3>
+        <div class="top"><h2 class="h3">Camera</h2>
           ${cam ? html`<button type="button" class="btn" onClick=${stopCam}><${Icon} name="stop" size=${18} />Stop camera</button>`
                 : html`<button type="button" class="btn" onClick=${startCam}><${Icon} name="camera" size=${18} />Start camera</button>`}</div>
         <div class="cam" style="margin-top:12px">
@@ -210,14 +210,14 @@ export function Controls({ robot }) {
         </div>
       </div>
       <div class="card">
-        <h3>Quick actions</h3><p class="sub">Send ${name} off to do something.</p>
+        <h2 class="h3">Quick actions</h2><p class="sub">Send ${name} off to do something.</p>
         <div class="chips">
           ${QUICK.map((q) => html`<button type="button" class="chip" key=${q[0]} onClick=${() => quick(q)}>${q[3] && html`<${Icon} name=${q[3]} size=${16} />`}${q[0]}</button>`)}
           <button type="button" class="chip" onClick=${heyVector}>Say “Hey Vector”</button>
         </div>
       </div>
       <div class="card">
-        <h3>Say something</h3>
+        <h2 class="h3">Say something</h2>
         <form class="addrow" style="margin-top:8px" onSubmit=${doSay}>
           <input class="inp" id="say-text" aria-label=${`What ${name} should say`} placeholder=${`Type what ${name} should say`} value=${say} maxlength="590" onInput=${(e) => setSay(e.target.value)} />
           <button type="submit" class="btn pri" disabled=${!say.trim()}><${Icon} name="send" size=${18} />Say it</button>
@@ -232,7 +232,7 @@ export function Controls({ robot }) {
     </div>
     <div class="stack">
       <div class="card">
-        <h3>Drive</h3>
+        <h2 class="h3">Drive</h2>
         <div class="opt" style="padding-top:6px"><div id="ctl-take">Take control<small>${controlled ? `You’re in control. It’s given back when you leave this page.` : "Taken automatically when you drive or speak"}</small></div>
           <${Switch} checked=${controlled} onChange=${toggleControl} label="Take control" /></div>
         <p class="sub" style="font-size:.78rem;margin:6px 0 10px">Hold a button to move. Let go to stop.</p>

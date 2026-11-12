@@ -76,7 +76,7 @@ export function Personality({ robot }) {
         </div>
       </div></div>
       <div class="card">
-        <h3>What the AI is told</h3>
+        <h2 class="h3">What the AI is told</h2>
         <p class="sub">This is added in front of your AI instructions every time ${shownName} answers.</p>
         <div class="promptview" aria-live="polite">${told || "Nothing yet. Without a name or personality, the AI uses only your general instructions."}</div>
         <p class="hint" style="margin-top:12px">${shownName}’s memories are added too. The AI itself is set in Settings.</p>

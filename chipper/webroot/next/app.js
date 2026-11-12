@@ -27,7 +27,7 @@ function Rail({ section, robotCount, server }) {
     <div class="rail-foot">
       <div class="srv"><b><span class=${"dot" + (server.configError ? " bad" : "")}></span>${server.configError ? "Server not answering" : "Server running"}</b>
         ${(v || update) && html`<span>${v}${update && html` · <a href=${href.settings("server")}>Update ready</a>`}</span>`}</div>
-      <a class="classic" href="/index.html">Open classic UI</a>
+      <a class="classic" href="/classic">Open classic UI</a>
     </div>
   </aside>`;
 }
@@ -42,11 +42,6 @@ function TabBar({ section }) {
 function NotFound() {
   useEffect(() => pageTitle("Not found"), []);
   return html`<div class="page"><h1>Page not found</h1><p class="sub">That address doesn’t lead anywhere. <a href=${href.robots}>Back to your robots</a>.</p></div>`;
-}
-
-function Soon({ title }) {
-  useEffect(() => pageTitle(title), []);
-  return html`<div class="page"><h1>${title}</h1><p class="sub">This part of the new interface is on its way. The <a href="/index.html">classic UI</a> has everything in the meantime.</p></div>`;
 }
 
 function App() {
@@ -89,7 +84,7 @@ function App() {
   return html`<div class="app">
     <${Rail} section=${section} robotCount=${robots.length} server=${server} />
     <div>
-      <div class="mbar"><${Logo} />WirePod</div>
+      <header class="mbar"><${Logo} />WirePod</header>
       <main id="main" class="main" ref=${mainRef}>${view}</main>
     </div>
     <${TabBar} section=${section} />

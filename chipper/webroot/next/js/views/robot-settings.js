@@ -62,7 +62,7 @@ export function RobotSettings({ robot }) {
     <div class="row2" style="align-items:start">
       <div class="stack">
         <div class="card">
-          <h3>Sound & look</h3><p class="sub">How ${name} sounds and what its eyes look like.</p>
+          <h2 class="h3">Sound & look</h2><p class="sub">How ${name} sounds and what its eyes look like.</p>
           <label for="rs-vol">Volume: <span>${VOLUME[vol] || vol}</span></label>
           <input class="range" id="rs-vol" type="range" min="0" max="5" step="1" value=${vol} aria-valuetext=${VOLUME[vol]}
             onInput=${(e) => setVolumeDraft(+e.target.value)}
@@ -82,7 +82,7 @@ export function RobotSettings({ robot }) {
           </div>`}
         </div>
         <div class="card">
-          <h3>Button & Alexa</h3><p class="sub">What the button on ${name}’s back does.</p>
+          <h2 class="h3">Button & Alexa</h2><p class="sub">What the button on ${name}’s back does.</p>
           <div class="opt"><div id="rs-btn">Button opens</div>
             <${Segmented} label="Button opens" options=${[[0, "Hey Vector"], [1, "Alexa"]]} value=${s.button_wakeword ? 1 : 0}
               onChange=${(v) => change({ button_wakeword: v }, () => sdk(v ? "button_alexa" : "button_hey_vector", esn))} /></div>
@@ -95,7 +95,7 @@ export function RobotSettings({ robot }) {
       </div>
       <div class="stack">
         <div class="card">
-          <h3>Language & time</h3><p class="sub">Used for answers, timers and the clock.</p>
+          <h2 class="h3">Language & time</h2><p class="sub">Used for answers, timers and the clock.</p>
           <div class="stack">
             <div><label for="rs-loc">Language</label>
               <select class="inp" id="rs-loc" value=${s.locale} onChange=${(e) => { const v = e.target.value; change({ locale: v }, () => sdk("locale", esn, { locale: v })); }}>
@@ -114,7 +114,7 @@ export function RobotSettings({ robot }) {
           </div>
         </div>
         <div class="card">
-          <div class="top"><h3>Voice & AI for ${name}</h3><span class="pill plan">Planned</span></div>
+          <div class="top"><h2 class="h3">Voice & AI for ${name}</h2><span class="pill plan">Planned</span></div>
           <p class="sub">${name} uses the server’s AI and voice settings.</p>
           <button type="button" class="btn line" disabled>Use something different for ${name}</button>
         </div>

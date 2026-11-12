@@ -89,7 +89,7 @@ function setConn() {
     .then((response) => {
       if (response) {
         updateSetupStatus("Setup is complete! Wire-pod has started. Redirecting to main page...");
-        setTimeout(() => window.location.href = "/", 3000);
+        setTimeout(() => window.location.href = "/classic", 3000);
       } else {
         updateSetupStatus("Error setting up wire-pod, check the logs");
         document.getElementById("config-options").style.display = "block";

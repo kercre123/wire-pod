@@ -10,7 +10,7 @@ import { loadConfig } from "../server.js";
 import { Face, Callout, pageTitle } from "../ui.js";
 import { STT_LANGUAGES, PERSONALITY_PRESETS } from "../data.js";
 
-const PAIR_URL = "/index.html#bot-setup";
+const PAIR_URL = "/classic#bot-setup";
 
 function Logo() {
   return html`<span class="logo" aria-hidden="true"><i></i><i></i></span>`;
@@ -27,8 +27,8 @@ function Shell({ steps, step, children, title }) {
       <a class="classic" href=${href.robots} style="font-size:.78rem">Leave setup</a>
     </aside>
     <div class="wmain">
-      <div class="wtop"><div class="row"><span>Step ${n} of ${steps.length} · ${steps[step]}</span><span class="brand" style="font-size:1rem"><${Logo} />WirePod</span></div>
-        <div class="prog" role="progressbar" aria-label="Setup progress" aria-valuenow=${n} aria-valuemin="1" aria-valuemax=${steps.length}><i style=${`width:${(n / steps.length) * 100}%`}></i></div></div>
+      <header class="wtop"><div class="row"><span>Step ${n} of ${steps.length} · ${steps[step]}</span><span class="brand" style="font-size:1rem"><${Logo} />WirePod</span></div>
+        <div class="prog" role="progressbar" aria-label="Setup progress" aria-valuenow=${n} aria-valuemin="1" aria-valuemax=${steps.length}><i style=${`width:${(n / steps.length) * 100}%`}></i></div></header>
       <main id="main" class="wbody">${children}</main>
     </div>
   </div>`;

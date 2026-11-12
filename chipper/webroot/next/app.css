@@ -11,8 +11,8 @@
   --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
   --bg:#F2F5F5; --surface:#FFFFFF; --sunk:#E9EFEF; --ink:#0E1A1C; --muted:#566669; --line:#DCE5E5;
-  --accent:#0A7C75; --accent-ink:#FFFFFF; --accent-soft:#DDF3F0;
-  --ok:#1B7F4B; --ok-soft:#E1F4E8; --warn:#8F5600; --warn-soft:#FFF0D6; --bad:#B3261E; --bad-soft:#FCE4E2;
+  --accent:#09716B; --accent-ink:#FFFFFF; --accent-soft:#DDF3F0;
+  --ok:#166A3E; --ok-soft:#E1F4E8; --warn:#8F5600; --warn-soft:#FFF0D6; --bad:#B3261E; --bad-soft:#FCE4E2;
   --shadow:rgba(14,26,28,.07); --ring:rgba(14,26,28,.06); --log:#0B1517; --log-ink:#BFD4D3;
   --toast:#142022; --toast-ink:#EAF3F3; --toast-accent:#6FE3D5;
   --face-bg:#0A1214;
@@ -45,7 +45,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font
 h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em;text-wrap:balance}
 h1{font-size:1.75rem;line-height:1.1;font-weight:700}
 h2{font-size:1.125rem;font-weight:600}
-h3{font-size:.9375rem;font-weight:600}
+h3,.h3{font-size:.9375rem;font-weight:600}
 p{margin:0}
 a{color:var(--accent)}
 code,.mono{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
@@ -118,7 +118,7 @@ noscript .card{margin:24px}
 .pill.bad{background:var(--bad-soft);color:var(--bad)}
 .pill.plan{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase}
 .card{background:var(--surface);border-radius:18px;padding:20px;box-shadow:0 1px 2px var(--shadow),0 0 0 1px var(--ring);min-width:0}
-.card>h2,.card>h3{margin-bottom:4px}
+.card>h2,.card>h3,.top>h2.h3{margin-bottom:4px}
 .card>.sub{margin-bottom:14px;font-size:.84rem}
 .stack{display:grid;gap:18px}
 .row2{display:grid;grid-template-columns:1fr;gap:14px}

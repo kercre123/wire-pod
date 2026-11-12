@@ -397,6 +397,42 @@ func DisableCachingAndSniffing(next http.Handler) http.Handler {
 	})
 }
 
+// newWebRootHandler serves the web root. The new UI (webroot/next) is the front page: "/" redirects to
+// it, and the original UI stays at /classic and, for old links and bookmarks, at /index.html and every
+// other file under the web root.
+func newWebRootHandler(dir string) http.Handler {
+	files := http.FileServer(http.Dir(dir))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/":
+			http.Redirect(w, r, "/next/", http.StatusFound)
+		case "/classic/":
+			http.Redirect(w, r, "/classic", http.StatusFound)
+		case "/classic", "/index.html":
+			serveClassicUI(w, r, dir)
+		default:
+			files.ServeHTTP(w, r)
+		}
+	})
+}
+
+// serveClassicUI serves index.html directly. http.FileServer and http.ServeFile would redirect a request
+// for /index.html to "/", which is now the new UI.
+func serveClassicUI(w http.ResponseWriter, r *http.Request, dir string) {
+	f, err := os.Open(filepath.Join(dir, "index.html"))
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	defer f.Close()
+	info, err := f.Stat()
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	http.ServeContent(w, r, "index.html", info.ModTime(), f)
+}
+
 func StartWebServer() {
 	// the new web UI (/next) ships its fonts as woff2, which not every OS mime table knows
 	mime.AddExtensionType(".woff2", "font/woff2")
@@ -404,15 +440,16 @@ func StartWebServer() {
 	botsetup.RegisterBLEAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
-	var webRoot http.Handler
+	var webRootDir string
 	if runtime.GOOS == "darwin" && vars.Packaged {
 		appPath, _ := os.Executable()
-		webRoot = http.FileServer(http.Dir(filepath.Dir(appPath) + "/../Frameworks/chipper/webroot"))
+		webRootDir = filepath.Dir(appPath) + "/../Frameworks/chipper/webroot"
 	} else if runtime.GOOS == "android" || runtime.GOOS == "ios" {
-		webRoot = http.FileServer(http.Dir(vars.AndroidPath + "/static/webroot"))
+		webRootDir = vars.AndroidPath + "/static/webroot"
 	} else {
-		webRoot = http.FileServer(http.Dir("./webroot"))
+		webRootDir = "./webroot"
 	}
+	webRoot := newWebRootHandler(webRootDir)
 	http.Handle("/", DisableCachingAndSniffing(webRoot))
 	fmt.Printf("Starting webserver at port " + vars.WebPort + " (http://localhost:" + vars.WebPort + ")\n")
 	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {

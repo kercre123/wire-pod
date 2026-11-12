@@ -377,7 +377,7 @@ function ConnectionCard() {
     if (okc) run(() => getText("/api/generate_certs", { timeout: 60000 }), "Certificates regenerated");
   };
   return html`<div class="card">
-    <h3>Connection</h3><p class="sub">How robots find this computer.</p>
+    <h2 class="h3">Connection</h2><p class="sub">How robots find this computer.</p>
     <${Segmented} label="Connection method" options=${[["ip", "Same Wi-Fi (IP)"], ["ep", "Escape pod"]]} value=${mode} onChange=${setMode} />
     ${mode === "ip" && html`<div style="margin-top:12px;max-width:220px"><label for="srv-port">Port</label><input class="inp" id="srv-port" inputmode="numeric" value=${port} onInput=${(e) => setPort(e.target.value)} /></div>`}
     ${changed && html`<div style="margin-top:12px"><button type="button" class="btn pri" onClick=${apply} disabled=${busy}>Apply connection change</button></div>`}
@@ -387,7 +387,7 @@ function ConnectionCard() {
 }
 
 const ServerPane = () => html`<div class="stack"><${VersionCard} /><${ConnectionCard} />
-  <div class="card"><h3>Live log</h3><p class="sub">What WirePod is doing right now. It updates by itself.</p><${TechLog} label="" /></div></div>`;
+  <div class="card"><h2 class="h3">Live log</h2><p class="sub">What WirePod is doing right now. It updates by itself.</p><${TechLog} label="" /></div></div>`;
 
 // ---------- Appearance ----------
 

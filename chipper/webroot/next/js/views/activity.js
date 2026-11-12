@@ -29,7 +29,7 @@ function Conversations({ robot }) {
     try { await getText("/api/delete_chats"); toast("Saved conversations deleted"); load(); } catch (e) { toast(describeError(e).message, { kind: "bad" }); }
   };
   return html`<div class="card">
-    <h3>Recent conversations</h3>
+    <h2 class="h3">Recent conversations</h2>
     <p class="sub">Saved on this computer while “Save conversations” is on. <a href=${href.settings("ai")}>Change in Settings</a></p>
     ${error && html`<${ErrorNote} error=${error} onRetry=${load} />`}
     ${lines === null && !error && html`<${Loading} />`}
@@ -90,7 +90,7 @@ function Stats({ robot, photoCount }) {
     photoCount !== null && [photoCount, "Photos"],
   ].filter(Boolean);
   return html`<div class="card">
-    <div class="top"><h3>Lifetime</h3><button type="button" class="btn quiet small" onClick=${load}><${Icon} name="refresh" size=${16} />Refresh</button></div>
+    <div class="top"><h2 class="h3">Lifetime</h2><button type="button" class="btn quiet small" onClick=${load}><${Icon} name="refresh" size=${16} />Refresh</button></div>
     ${error && html`<${ErrorNote} error=${error} onRetry=${load} />`}
     ${!stats && !error && html`<${Loading} />`}
     ${tiles && html`<div class="stats" style="margin-top:8px">${tiles.map(([v, l]) => html`<div key=${l}><b>${v}</b><span>${l}</span></div>`)}</div>`}
@@ -123,7 +123,7 @@ function Mood({ robot }) {
   const last = points.length ? points[points.length - 1] : null;
   const path = points.map((v, i) => `${(i / Math.max(1, 59)) * 240},${54 - Math.max(0, Math.min(1, v)) * 48}`).join(" ");
   return html`<div class="card">
-    <h3>Mood</h3><p class="sub">How stimulated ${name} is right now, over the last half minute.</p>
+    <h2 class="h3">Mood</h2><p class="sub">How stimulated ${name} is right now, over the last half minute.</p>
     ${failed && points.length === 0 && html`<p class="empty">Couldn’t read ${name}’s mood just now.</p>`}
     ${points.length > 0 && html`<svg viewBox="0 0 240 56" width="100%" height="64" role="img" aria-label=${`Mood is ${Math.round((last || 0) * 100)} percent`} preserveAspectRatio="none">
       <polyline points=${path} fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" /></svg>
@@ -155,7 +155,7 @@ function Photos({ robot, onCount }) {
   };
   const src = (kind, id) => `/api-sdk/${kind}?serial=${encodeURIComponent(esn)}&id=${id}`;
   return html`<div class="card">
-    <div class="top"><h3>Photos</h3><button type="button" class="btn quiet small" onClick=${load}><${Icon} name="refresh" size=${16} />Refresh</button></div>
+    <div class="top"><h2 class="h3">Photos</h2><button type="button" class="btn quiet small" onClick=${load}><${Icon} name="refresh" size=${16} />Refresh</button></div>
     ${error && html`<${ErrorNote} error=${error} onRetry=${load} />`}
     ${ids === null && !error && html`<${Loading} />`}
     ${ids && ids.length === 0 && html`<p class="empty">No photos yet. Tell ${name} to take a photo, then refresh.</p>`}
