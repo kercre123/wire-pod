@@ -72,3 +72,16 @@ func TestRememberFactAction(t *testing.T) {
 		t.Fatalf("rememberFact action not parsed: %v", acts)
 	}
 }
+
+func TestSplitFirstSentenceKeepsCommandsWhole(t *testing.T) {
+	s, rest, ok := splitFirstSentence("Got it {{rememberFact||Lucas likes tea.}} sure. Next")
+	if !ok || s != "Got it {{rememberFact||Lucas likes tea.}} sure." || rest != " Next" {
+		t.Fatalf("bad split: %q %q %v", s, rest, ok)
+	}
+	if _, _, ok := splitFirstSentence("Okay {{rememberFact||Lucas likes tea."); ok {
+		t.Fatal("split inside an unclosed command")
+	}
+	if s, rest, ok := splitFirstSentence("Hello there! More"); !ok || s != "Hello there!" || rest != " More" {
+		t.Fatalf("plain split changed: %q %q %v", s, rest, ok)
+	}
+}

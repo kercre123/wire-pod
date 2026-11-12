@@ -16,6 +16,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
@@ -233,7 +234,11 @@ func Clear(esn string) error {
 // PromptBlock returns "Things you remember:" and a bullet list for the LLM system prompt, or "" if none.
 func PromptBlock(esn string) string {
 	list, err := List(esn)
-	if err != nil || len(list) == 0 {
+	if err != nil {
+		logger.Println("Could not load memories for " + esn + ": " + err.Error())
+		return ""
+	}
+	if len(list) == 0 {
 		return ""
 	}
 	var sb strings.Builder

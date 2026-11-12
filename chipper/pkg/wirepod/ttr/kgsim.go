@@ -160,6 +160,52 @@ func getRobotIdentity(esn string) (string, string) {
 	return "", ""
 }
 
+// maskCommands replaces everything inside {{ }} (or after an unclosed {{) with underscores, keeping byte
+// offsets, so sentence-ending punctuation inside an LLM command parameter doesn't split the stream.
+func maskCommands(s string) string {
+	b := []byte(s)
+	for i := 0; i < len(b); {
+		if i+1 < len(b) && b[i] == '{' && b[i+1] == '{' {
+			end := len(b)
+			if j := strings.Index(s[i+2:], "}}"); j >= 0 {
+				end = i + 2 + j + 2
+			}
+			for k := i; k < end; k++ {
+				b[k] = '_'
+			}
+			i = end
+			continue
+		}
+		i++
+	}
+	return string(b)
+}
+
+// splitFirstSentence splits streamed text at the first sentence separator that is outside an LLM command.
+func splitFirstSentence(text string) (sentence, rest string, ok bool) {
+	text = strings.TrimSpace(text)
+	masked := maskCommands(text)
+	var sepStr string
+	switch {
+	case strings.Contains(masked, "..."):
+		sepStr = "..."
+	case strings.Contains(masked, ".'"):
+		sepStr = ".'"
+	case strings.Contains(masked, ".\""):
+		sepStr = ".\""
+	case strings.Contains(masked, "."):
+		sepStr = "."
+	case strings.Contains(masked, "?"):
+		sepStr = "?"
+	case strings.Contains(masked, "!"):
+		sepStr = "!"
+	default:
+		return "", text, false
+	}
+	idx := strings.Index(masked, sepStr)
+	return strings.TrimSpace(text[:idx]) + sepStr, text[idx+len(sepStr):], true
+}
+
 // composeRobotPrompt puts this robot's identity (name/personality) and long-term memories before the global prompt.
 func composeRobotPrompt(esn, globalPrompt string) string {
 	var parts []string
@@ -397,30 +443,15 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 
 			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
-			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
-				var sepStr string
-				if strings.Contains(fullRespText, "...") {
-					sepStr = "..."
-				} else if strings.Contains(fullRespText, ".'") {
-					sepStr = ".'"
-				} else if strings.Contains(fullRespText, ".\"") {
-					sepStr = ".\""
-				} else if strings.Contains(fullRespText, ".") {
-					sepStr = "."
-				} else if strings.Contains(fullRespText, "?") {
-					sepStr = "?"
-				} else if strings.Contains(fullRespText, "!") {
-					sepStr = "!"
-				}
-				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
-				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
-				fullRespText = splitResp[1]
+			if sentence, rest, ok := splitFirstSentence(fullRespText); ok {
+				fullRespSlice = append(fullRespSlice, sentence)
+				fullRespText = rest
 				select {
 				case successIntent <- true:
 				default:
 				}
 				select {
-				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
+				case speakReady <- sentence:
 				default:
 				}
 			}
