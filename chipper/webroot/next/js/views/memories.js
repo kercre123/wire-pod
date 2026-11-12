@@ -4,6 +4,7 @@ import { getJSON, postForm, describeError } from "../api.js";
 import { robotName, toast } from "../store.js";
 import { Icon } from "../icons.js";
 import { Loading, ErrorNote } from "../ui.js";
+import { People } from "./people.js";
 
 const MAX_TEXT = 200;
 const MAX_COUNT = 50;
@@ -90,7 +91,7 @@ export function Memories({ robot }) {
 
   const visible = (items || []).filter((m) => !hidden.includes(m.id));
   const full = (items || []).length >= MAX_COUNT;
-  return html`<div class="card">
+  return html`<div class="grid2"><div class="card">
     <h2>What ${name} remembers</h2>
     <p class="sub">${name} brings these up in conversation (and can add its own when AI commands are on). Only ${name} knows them.</p>
     <form class="addrow" onSubmit=${add}>
@@ -114,5 +115,5 @@ export function Memories({ robot }) {
       <span class="sub" style="font-size:.78rem">${visible.length} of ${MAX_COUNT} memories</span>
       ${visible.length > 0 && html`<button type="button" class="btn danger" onClick=${() => startDelete(visible.map((m) => m.id), true, "All memories cleared")}>Clear all</button>`}
     </div>`}
-  </div>`;
+  </div><${People} robot=${robot} /></div>`;
 }

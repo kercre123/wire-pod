@@ -9,6 +9,7 @@ import { Personality } from "./personality.js";
 import { Memories } from "./memories.js";
 import { RobotSettings } from "./robot-settings.js";
 import { Controls } from "./controls.js";
+import { Activity } from "./activity.js";
 
 const TABS = [
   ["personality", "Personality", "identity"],
@@ -93,7 +94,7 @@ export function RobotPage({ esn, tab }) {
     case "personality": panel = html`<${Personality} robot=${robot} key=${robot.esn} />`; break;
     case "settings": panel = html`<${RobotSettings} robot=${robot} key=${robot.esn} />`; break;
     case "controls": panel = html`<${Controls} robot=${robot} key=${robot.esn} />`; break;
-    default: panel = html`<div class="card"><p class="sub">This section is on its way. The <a href="/sdkapp/settings.html?serial=${robot.esn}">classic Bot Settings</a> page has it in the meantime.</p></div>`;
+    default: panel = html`<${Activity} robot=${robot} key=${robot.esn} />`;
   }
 
   return html`<div class="page" style="gap:18px">
