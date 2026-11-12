@@ -14,6 +14,7 @@ esn = urlParams.get("serial");
 
 var client = new HttpClient();
 getCurrentSettings();
+loadRobotName();
 
 function revealSdkActions() {
   var x = document.getElementById("sdkActions");
@@ -192,6 +193,43 @@ function sendLocation() {
   xhr.send();
   xhr.onload = function () {
     getCurrentSettings();
+  };
+}
+
+function loadRobotName() {
+  getSDKInfo().then((info) => {
+    if (!info) {
+      return;
+    }
+    for (var i = 0; i < info["robots"].length; i++) {
+      if (info["robots"][i]["esn"].toLowerCase() == esn.toLowerCase()) {
+        var name = info["robots"][i]["name"] || "";
+        document.getElementById("robotNameInput").value = name;
+        document.getElementById("robotPersonalityInput").value = info["robots"][i]["personality"] || "";
+        document.getElementById("currentRobotName").textContent =
+          "Current Robot Name: " + (name || "(not set)");
+        return;
+      }
+    }
+  }).catch(() => {});
+}
+
+function sendRobotIdentity() {
+  var body = new URLSearchParams({
+    serial: esn,
+    name: document.getElementById("robotNameInput").value,
+    personality: document.getElementById("robotPersonalityInput").value,
+  });
+  let xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api-sdk/set_robot_identity");
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send(body.toString());
+  xhr.onload = function () {
+    if (xhr.status != 200) {
+      alert(xhr.responseText);
+      return;
+    }
+    loadRobotName();
   };
 }
 

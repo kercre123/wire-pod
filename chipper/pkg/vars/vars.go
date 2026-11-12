@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -60,6 +61,9 @@ var WebPort string = "8080"
 var SDKIniPath string
 var BotJdocs []botjdoc
 var BotInfo RobotInfoStore
+
+// guards the Name/Personality fields of BotInfo.Robots
+var BotInfoIdentityMu sync.RWMutex
 var CustomIntents []CustomIntent
 var CustomIntentsExist bool = false
 var DownloadedVoskModels []string
@@ -94,6 +98,10 @@ type RobotInfoStore struct {
 		// 192.168.1.150:443
 		GUID      string `json:"guid"`
 		Activated bool   `json:"activated"`
+		// user-set nickname, shown in the web UI (not the robot's on-device name)
+		Name string `json:"name,omitempty"`
+		// user-set personality/identity, sent to the LLM for this robot only
+		Personality string `json:"personality,omitempty"`
 	} `json:"robots"`
 }
 

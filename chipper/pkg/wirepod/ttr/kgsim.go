@@ -148,6 +148,31 @@ func samplerSettings() (float32, float32) {
 	return temp, topP
 }
 
+// robotIdentityPrompt returns the per-robot name/personality preamble, or "" when neither is set.
+func robotIdentityPrompt(name, personality string) string {
+	name = strings.TrimSpace(name)
+	personality = strings.TrimSpace(personality)
+	var parts []string
+	if name != "" {
+		parts = append(parts, "Your name is "+name+". This name overrides any other name given in the instructions below.")
+	}
+	if personality != "" {
+		parts = append(parts, "Your personality and identity: "+personality)
+	}
+	return strings.Join(parts, " ")
+}
+
+func getRobotIdentity(esn string) (string, string) {
+	vars.BotInfoIdentityMu.RLock()
+	defer vars.BotInfoIdentityMu.RUnlock()
+	for _, bot := range vars.BotInfo.Robots {
+		if strings.EqualFold(esn, bot.Esn) {
+			return bot.Name, bot.Personality
+		}
+	}
+	return "", ""
+}
+
 func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.ChatCompletionRequest {
 	defaultPrompt := "You are a helpful, animated robot called Vector. Keep the response concise yet informative."
 
@@ -160,6 +185,10 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 		smsg.Content = strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt)
 	} else {
 		smsg.Content = defaultPrompt
+	}
+	if identity := robotIdentityPrompt(getRobotIdentity(esn)); identity != "" {
+		logger.Println("Using custom name/personality for " + esn)
+		smsg.Content = identity + "\n\n" + smsg.Content
 	}
 
 	var model string
