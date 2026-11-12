@@ -3,6 +3,7 @@ package sdkapp
 import (
 	"encoding/json"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -247,5 +248,16 @@ func TestRobotChatsAPI(t *testing.T) {
 	handleRobotIdentityAPI(rec, httptest.NewRequest("GET", "/api-sdk/get_robot_chats?serial=00a1", nil))
 	if rec.Body.String() != "[]\n" {
 		t.Fatalf("no chats should be an empty list, got %q", rec.Body.String())
+	}
+}
+
+func TestDescribeRobotLeavesOutTheToken(t *testing.T) {
+	info := describeRobot(Robot{ESN: "00a1", GUID: "SECRET-TOKEN", Target: "10.0.0.5:443", BcAssumption: true, ConnTimer: 12})
+	b, _ := json.Marshal(info)
+	if strings.Contains(string(b), "SECRET") || strings.Contains(string(b), ":443") {
+		t.Fatalf("token or port leaked: %s", b)
+	}
+	if info.Address != "10.0.0.5" || !info.BehaviorControl || info.IdleSeconds != 12 {
+		t.Fatalf("wrong info: %+v", info)
 	}
 }

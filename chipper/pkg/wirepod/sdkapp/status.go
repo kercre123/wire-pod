@@ -277,3 +277,23 @@ func handleRobotStatusAPI(w http.ResponseWriter, r *http.Request) bool {
 	}{robotStatuses(time.Now()), time.Now().Unix()})
 	return true
 }
+
+// RobotInfo is what WirePod's connection to one robot looks like, for the debug panel. It leaves out the
+// robot's token, which the raw dump of the connection (print_robot_info) includes.
+type RobotInfo struct {
+	ESN              string  `json:"esn"`
+	Address          string  `json:"address"`
+	BehaviorControl  bool    `json:"behavior_control"`
+	CameraStreaming  bool    `json:"camera_streaming"`
+	EventStream      bool    `json:"event_stream"`
+	Stimulation      float32 `json:"stimulation"`
+	IdleSeconds      int32   `json:"idle_seconds"`
+	IdleSecondsLimit int32   `json:"idle_seconds_limit"`
+}
+
+func describeRobot(r Robot) RobotInfo {
+	return RobotInfo{
+		ESN: r.ESN, Address: hostOnly(r.Target), BehaviorControl: r.BcAssumption, CameraStreaming: r.CamStreaming,
+		EventStream: r.EventsStreaming, Stimulation: r.StimState, IdleSeconds: r.ConnTimer, IdleSecondsLimit: 300,
+	}
+}

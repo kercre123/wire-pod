@@ -518,6 +518,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write([]byte(resp.GetNamedJdocs()[0].Doc.JsonDoc))
 		return
+	case r.URL.Path == "/api-sdk/robot_info":
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(describeRobot(robots[robotIndex]))
+		return
 	case r.URL.Path == "/api-sdk/print_robot_info":
 		fmt.Fprint(w, robot)
 		return
