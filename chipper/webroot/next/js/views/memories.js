@@ -44,7 +44,8 @@ export function Memories({ robot }) {
     clearTimeout(p.timer);
     try {
       // always by id, so "Clear all" only removes what was on screen, not memories added during the undo window
-      for (const id of p.ids) await postForm("/api-sdk/delete_robot_memory", { serial: esn, id }, { keepalive });
+      // all requests go out at once: when the tab is closing, only requests already sent will arrive
+      await Promise.all(p.ids.map((id) => postForm("/api-sdk/delete_robot_memory", { serial: esn, id }, { keepalive })));
     } catch (e) {
       toast(describeError(e, name).message, { kind: "bad" });
     }
