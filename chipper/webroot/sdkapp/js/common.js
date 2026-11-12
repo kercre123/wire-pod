@@ -17,6 +17,15 @@ async function getSDKInfo() {
 }
 
 
+// "Name (esn)" when the robot has a nickname set in wire-pod, else just the ESN
+function robotLabel(robot) {
+  if (robot["name"]) {
+    return robot["name"] + " (" + robot["esn"] + ")";
+  }
+  return robot["esn"];
+}
+
+
 async function getBatteryStatus(serial) {
   if (!serial) {
     return 'Serial number is required';

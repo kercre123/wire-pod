@@ -54,6 +54,8 @@
               class="fa-solid fa-location-crosshairs" id="icon-location" name="icon"></i><br />Location</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-timezone'); return false;"><i
               class="fa-solid fa-hourglass" id="icon-timezone" name="icon"></i><br />Time Zone</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-robotname'); return false;"><i
+              class="fa-solid fa-tag" id="icon-robotname" name="icon"></i><br />Name</a></div>
       </div>
       <hr>
 
@@ -328,6 +330,24 @@
         </div>
         <hr class="small-hr">
         <button onclick="sendLocation()">Submit Location</button>
+        <hr>
+      </div>
+
+      <div id="section-robotname" class="toggleable-section" style="display:none;">
+        <h2 class="center">Robot Name &amp; Personality</h2>
+        <hr class="small-hr">
+        <div id="currentRobotName"></div>
+        <small class="desc">The name is a nickname shown in wire-pod's robot lists; it does not change the name on the robot itself. Max 32 characters.</small>
+        <div class="center">
+          <input class="tinput" id="robotNameInput" name="robotNameInput" type="text" maxlength="32" placeholder="Robot name">
+        </div>
+        <br>
+        <small class="desc">Sent to the LLM for this robot only; combined with the global LLM Prompt. Max 1000 characters.</small>
+        <div class="center">
+          <textarea class="tinput" id="robotPersonalityInput" name="robotPersonalityInput" rows="4" maxlength="1000" placeholder="Example: Grumpy but secretly kind, loves astronomy, speaks like a pirate"></textarea>
+        </div>
+        <hr class="small-hr">
+        <button onclick="sendRobotIdentity()">Save</button>
         <hr>
       </div>
 
