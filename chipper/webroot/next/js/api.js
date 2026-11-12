@@ -15,7 +15,7 @@ export class ApiError extends Error {
   }
 }
 
-async function fetchText(url, { method = "GET", body, headers, timeout = DEFAULT_TIMEOUT, signal } = {}) {
+async function fetchText(url, { method = "GET", body, headers, timeout = DEFAULT_TIMEOUT, signal, keepalive } = {}) {
   const ctl = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, timeout);
@@ -24,7 +24,7 @@ async function fetchText(url, { method = "GET", body, headers, timeout = DEFAULT
     else signal.addEventListener("abort", () => ctl.abort(), { once: true });
   }
   try {
-    const res = await fetch(url, { method, body, headers, signal: ctl.signal, cache: "no-store" });
+    const res = await fetch(url, { method, body, headers, signal: ctl.signal, cache: "no-store", keepalive });
     const text = await res.text();
     if (!res.ok) throw new ApiError(text.trim() || res.statusText, { status: res.status, detail: text, kind: "http" });
     return text;

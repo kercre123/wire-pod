@@ -153,3 +153,27 @@ export function HoldButton({ onStart, onStop, label, children, className = "btn"
 export function pageTitle(title) {
   document.title = title ? `${title} · WirePod` : "WirePod";
 }
+
+// Tabs with the keyboard pattern screen readers expect: arrows move, Home and End jump.
+// tabs: [[id, label, icon], ...]
+export function Tabs({ tabs, value, onChange, label, idPrefix }) {
+  const move = (e, i) => {
+    let n = null;
+    if (e.key === "ArrowRight") n = (i + 1) % tabs.length;
+    else if (e.key === "ArrowLeft") n = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === "Home") n = 0;
+    else if (e.key === "End") n = tabs.length - 1;
+    if (n === null) return;
+    e.preventDefault();
+    onChange(tabs[n][0]);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`${idPrefix}-tab-${tabs[n][0]}`);
+      if (el) el.focus();
+    });
+  };
+  return html`<div class="tabs" role="tablist" aria-label=${label}>
+    ${tabs.map(([id, text, icon], i) => html`<button type="button" role="tab" key=${id} class="tab" id=${`${idPrefix}-tab-${id}`}
+      aria-selected=${value === id ? "true" : "false"} aria-controls=${`${idPrefix}-panel`} tabindex=${value === id ? 0 : -1}
+      onClick=${() => onChange(id)} onKeyDown=${(e) => move(e, i)}><${Icon} name=${icon} size=${18} />${text}</button>`)}
+  </div>`;
+}

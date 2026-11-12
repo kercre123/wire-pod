@@ -6,6 +6,8 @@ import { useStore, prefsStore, useRobots } from "./js/store.js";
 import { applyTheme, watchSystemTheme } from "./js/theme.js";
 import { Toasts, ConfirmHost, pageTitle } from "./js/ui.js";
 import { useServerInfo, versionLabel } from "./js/server.js";
+import { RobotsHome } from "./js/views/robots.js";
+import { RobotPage } from "./js/views/robot.js";
 
 function Logo() {
   return html`<span class="logo" aria-hidden="true"><i></i><i></i></span>`;
@@ -70,8 +72,8 @@ function App() {
   const section = route.name === "settings" ? "settings" : "robots";
   let view;
   switch (route.name) {
-    case "robots": view = html`<${Soon} title="Your robots" />`; break;
-    case "robot": view = html`<${Soon} title="Robot" />`; break;
+    case "robots": view = html`<${RobotsHome} />`; break;
+    case "robot": view = html`<${RobotPage} esn=${route.esn} tab=${route.tab} />`; break;
     case "settings": view = html`<${Soon} title="Settings" />`; break;
     default: view = html`<${NotFound} />`;
   }

@@ -77,7 +77,7 @@ export function useRobots() {
 }
 
 export function robotName(r) {
-  return (r && (r.name || r.esn)) || "Robot";
+  return r ? r.name || `Vector ${r.esn}` : "Robot";
 }
 
 // ---------- toasts ----------
