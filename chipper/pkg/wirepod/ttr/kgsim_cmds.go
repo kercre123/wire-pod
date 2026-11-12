@@ -127,7 +127,7 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 	},
 	{
 		Command:         "newVoiceRequest",
-		Description:     "Starts a new voice command from the robot. Use this if you want more input from the user after your response/if you want to carry out a conversation. Below this, there should be a NOTE telling you whether you are in conversation mode or not. If you are, DONT BE AFRAID TO USE THIS COMMAND! This goes at the end of your response, if you use it.",
+		Description:     "Makes the robot listen for another voice command right after you finish speaking. Use it ONLY when the user explicitly asked to keep chatting, or when you truly cannot answer without more information from them. Never use it to ask what the user thinks or to offer more facts. By default, answer and stop. This goes at the end of your response, if you use it.",
 		ParamChoices:    "now",
 		Action:          ActionNewRequest,
 		SupportedModels: []string{"all"},
@@ -160,7 +160,7 @@ func CreatePrompt(origPrompt string, model string, isKG bool) string {
 			}
 		}
 		if isKG && vars.APIConfig.Knowledge.SaveChat {
-			promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question near the end of your response, you MUST use newVoiceRequest. If you decide you want to end the conversation, you should not use it."
+			promptAppentage := "\n\nNOTE: You are in 'conversation' mode, so earlier messages are remembered. Do NOT end answers with a question or use newVoiceRequest unless the user explicitly asked to keep chatting or you truly cannot answer without more information. Otherwise answer and stop."
 			prompt = prompt + promptAppentage
 		} else {
 			promptAppentage := "\n\nNOTE: You are NOT in 'conversation' mode. Refrain from asking the user any questions and from using newVoiceRequest."

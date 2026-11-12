@@ -183,12 +183,19 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	if vars.APIConfig.Knowledge.SaveChat {
 		rchat := GetChat(esn)
 		logger.Println("Using remembered chats, length of " + fmt.Sprint(len(rchat.Chats)) + " messages")
-		nChat = append(nChat, rchat.Chats...)
+		for _, m := range rchat.Chats {
+			// some servers (LM Studio) reject messages without content
+			if strings.TrimSpace(m.Content) != "" {
+				nChat = append(nChat, m)
+			}
+		}
 	}
-	nChat = append(nChat, openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleUser,
-		Content: transcribedText,
-	})
+	if strings.TrimSpace(transcribedText) != "" {
+		nChat = append(nChat, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: transcribedText,
+		})
+	}
 
 	temp, topP := samplerSettings()
 	aireq := openai.ChatCompletionRequest{
@@ -205,6 +212,10 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 }
 
 func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bool) (string, error) {
+	if strings.TrimSpace(transcribedText) == "" {
+		logger.Println("Empty transcribed text, not calling the LLM")
+		return "", nil
+	}
 	start := make(chan bool)
 	stop := make(chan bool)
 	stopStop := make(chan bool)
