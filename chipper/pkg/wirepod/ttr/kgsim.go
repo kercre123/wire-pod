@@ -220,6 +220,16 @@ func splitFirstSentence(text string) (sentence, rest string, ok bool) {
 	return strings.TrimSpace(text[:idx]) + sepStr, text[idx+len(sepStr):], true
 }
 
+// promoteTail makes the unsplit rest of a finished reply its own sentence when no sentence was found at
+// all, for example "Got it {{rememberFact||Lucas likes tea.}}", whose only punctuation is inside the
+// command. Without it the whole reply, speech and command alike, would be dropped.
+func promoteTail(sentences []string, tail string) ([]string, bool) {
+	if len(sentences) > 0 || strings.TrimSpace(tail) == "" {
+		return sentences, false
+	}
+	return append(sentences, strings.TrimSpace(tail)), true
+}
+
 // composeRobotPrompt puts this robot's identity (name/personality) and long-term memories before the global prompt.
 func composeRobotPrompt(esn, globalPrompt string) string {
 	var parts []string
@@ -412,6 +422,8 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
+				var promoted bool
+				fullRespSlice, promoted = promoteTail(fullRespSlice, fullRespText)
 				// prevents a crash
 				if len(fullRespSlice) == 0 {
 					logger.Println("LLM returned no response")
@@ -428,6 +440,10 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 					break
 				}
 				isDone = true
+				if promoted {
+					// nobody was told a sentence was ready, because there was no punctuation outside the commands
+					go func() { successIntent <- true }()
+				}
 				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {

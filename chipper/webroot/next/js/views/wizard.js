@@ -67,7 +67,9 @@ function ConnectionStep({ conn, setConn, onNext }) {
 function LanguageStep({ conn, onBack, onDone }) {
   const [lang, setLang] = useState("en-US");
   const [state, setState] = useState({ busy: false, text: "", error: "" });
-  useEffect(() => { getJSON("/api/get_stt_info").then((s) => s.language && setLang(s.language), () => {}); }, []);
+  // Leopard and Coqui have no language to pick here; only Vosk and Whisper download a model for one
+  const [canPick, setCanPick] = useState(true);
+  useEffect(() => { getJSON("/api/get_stt_info").then((s) => { if (s.language) setLang(s.language); setCanPick(s.provider === "vosk" || s.provider === "whisper.cpp"); }, () => {}); }, []);
 
   const poll = async () => {
     for (let i = 0; i < 1800; i++) {
@@ -84,7 +86,7 @@ function LanguageStep({ conn, onBack, onDone }) {
     if (conn.mode === "ip" && !/^\d+$/.test(port)) { setState({ busy: false, text: "", error: "The port must be a number." }); return; }
     setState({ busy: true, text: "Setting your language…", error: "" });
     try {
-      const t = await postJSON("/api/set_stt_info", { language: lang }, { timeout: 60000 });
+      const t = canPick ? await postJSON("/api/set_stt_info", { language: lang }, { timeout: 60000 }) : "";
       if (t.includes("downloading")) { setState({ busy: true, text: "Downloading the speech model…", error: "" }); await poll(); }
       setState({ busy: true, text: "Choosing how robots connect…", error: "" });
       const r = await getText(conn.mode === "ep" ? "/api-chipper/use_ep" : `/api-chipper/use_ip?port=${encodeURIComponent(port)}`, { timeout: 60000 });
@@ -95,10 +97,10 @@ function LanguageStep({ conn, onBack, onDone }) {
       setState({ busy: false, text: "", error: e.message && !e.kind ? e.message : describeError(e).message });
     }
   };
-  return html`<${Head} eyebrow="Step 2" title="Which language will you speak?">WirePod downloads a speech model for it. You can change this later in Settings.<//>
-    <div><label for="w-lang">Language</label>
+  return html`<${Head} eyebrow="Step 2" title=${canPick ? "Which language will you speak?" : "Almost there"}>${canPick ? "WirePod downloads a speech model for it. You can change this later in Settings." : "Your speech recognition service handles the language itself, so there is nothing to pick here."}<//>
+    ${canPick && html`<div><label for="w-lang">Language</label>
       <select class="inp" id="w-lang" value=${lang} disabled=${state.busy} onChange=${(e) => setLang(e.target.value)}>${STT_LANGUAGES.map(([c, l]) => html`<option value=${c} selected=${c === lang}>${l}</option>`)}</select></div>
-    <${Callout}><span>The speech model is about 50 MB. It downloads now, so this step can take a minute.</span><//>
+    <${Callout}><span>The speech model is about 50 MB. It downloads now, so this step can take a minute.</span><//>`}
     <div role="status" aria-live="polite">${state.busy && html`<div class="loading"><span class="spinner"></span><span>${state.text}</span></div>`}${state.error && html`<p class="err" role="alert">${state.error}</p>`}</div>
     <${Foot} onBack=${state.busy ? null : onBack} next=${run} nextLabel=${state.error ? "Try again" : "Continue"} busy=${state.busy} />`;
 }

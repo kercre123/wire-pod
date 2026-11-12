@@ -85,3 +85,16 @@ func TestSplitFirstSentenceKeepsCommandsWhole(t *testing.T) {
 		t.Fatalf("plain split changed: %q %q %v", s, rest, ok)
 	}
 }
+
+func TestPromoteTail(t *testing.T) {
+	got, ok := promoteTail(nil, " Got it {{rememberFact||Lucas likes tea.}} ")
+	if !ok || len(got) != 1 || got[0] != "Got it {{rememberFact||Lucas likes tea.}}" {
+		t.Fatalf("tail not promoted: %q %v", got, ok)
+	}
+	if got, ok := promoteTail([]string{"Hi."}, "and more"); ok || len(got) != 1 {
+		t.Fatalf("promoted although a sentence exists: %q %v", got, ok)
+	}
+	if got, ok := promoteTail(nil, "  "); ok || len(got) != 0 {
+		t.Fatalf("promoted an empty reply: %q %v", got, ok)
+	}
+}

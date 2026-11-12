@@ -349,3 +349,4 @@ dialog.photo img{width:100%;display:block;max-height:calc(100vh - 140px);object-
 .result{display:flex;gap:8px;align-items:center;font-size:.84rem}
 .tight{margin:0}
 h1[tabindex="-1"]:focus,h1[tabindex="-1"]:focus-visible{outline:none}
+main:focus{outline:none}

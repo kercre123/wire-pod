@@ -25,7 +25,7 @@ export function Memories({ robot }) {
   const [text, setText] = useState("");
   const [addError, setAddError] = useState("");
   const [adding, setAdding] = useState(false);
-  const pending = useRef(null); // { ids, all, timer }
+  const pending = useRef(null); // { ids, timer }
 
   const load = async () => {
     try {
@@ -43,8 +43,8 @@ export function Memories({ robot }) {
     pending.current = null;
     clearTimeout(p.timer);
     try {
-      if (p.all) await postForm("/api-sdk/clear_robot_memories", { serial: esn }, { keepalive });
-      else for (const id of p.ids) await postForm("/api-sdk/delete_robot_memory", { serial: esn, id }, { keepalive });
+      // always by id, so "Clear all" only removes what was on screen, not memories added during the undo window
+      for (const id of p.ids) await postForm("/api-sdk/delete_robot_memory", { serial: esn, id }, { keepalive });
     } catch (e) {
       toast(describeError(e, name).message, { kind: "bad" });
     }
@@ -57,15 +57,17 @@ export function Memories({ robot }) {
     return () => { window.removeEventListener("pagehide", f); commit(true); };
   }, [esn]);
 
-  const startDelete = (ids, all, message) => {
+  const startDelete = (ids, message) => {
     if (pending.current) commit(); // an earlier delete is final once another begins
     const timer = setTimeout(() => commit(), UNDO_MS);
-    pending.current = { ids, all, timer };
+    const mine = { ids, timer };
+    pending.current = mine;
     setHidden(ids);
     toast(message, {
       undo: () => {
-        if (!pending.current) return;
-        clearTimeout(pending.current.timer);
+        // only the newest delete can still be undone; an older toast's Undo must not cancel a later one
+        if (pending.current !== mine) { toast("That was already deleted.", {}); return; }
+        clearTimeout(timer);
         pending.current = null;
         setHidden([]);
       },
@@ -107,13 +109,13 @@ export function Memories({ robot }) {
     ${items !== null && html`<div class="list" role="list">
       ${visible.map((m) => html`<div class="item" role="listitem" key=${m.id}>
         <div class="t">${m.text}<small>Added ${fmtDate(m.created)}</small></div>
-        <button type="button" class="btn icon quiet" aria-label=${`Delete memory: ${m.text}`} onClick=${() => startDelete([m.id], false, "Memory deleted")}><${Icon} name="trash" size=${18} /></button>
+        <button type="button" class="btn icon quiet" aria-label=${`Delete memory: ${m.text}`} onClick=${() => startDelete([m.id], "Memory deleted")}><${Icon} name="trash" size=${18} /></button>
       </div>`)}
     </div>`}
     ${items !== null && visible.length === 0 && html`<p class="empty">Nothing yet. Add something above and ${name} will bring it up in conversation.</p>`}
     ${items !== null && html`<div class="dangerzone">
       <span class="sub" style="font-size:.78rem">${visible.length} of ${MAX_COUNT} memories</span>
-      ${visible.length > 0 && html`<button type="button" class="btn danger" onClick=${() => startDelete(visible.map((m) => m.id), true, "All memories cleared")}>Clear all</button>`}
+      ${visible.length > 0 && html`<button type="button" class="btn danger" onClick=${() => startDelete(visible.map((m) => m.id), "All memories cleared")}>Clear all</button>`}
     </div>`}
   </div><${People} robot=${robot} /></div>`;
 }

@@ -172,7 +172,7 @@ func realProbe(esn, ip string) probeResult {
 	}
 	done := make(chan result, 1) // buffered so a probe that outlives its timeout doesn't leak
 	go func() {
-		robot, _, err := getRobot(esn)
+		robot, idx, err := getRobot(esn)
 		if err != nil {
 			reason := "error"
 			if s := strings.ToLower(err.Error()); strings.Contains(s, "unauthenticated") || strings.Contains(s, "token") {
@@ -187,6 +187,9 @@ func realProbe(esn, ip string) probeResult {
 		if err != nil {
 			done <- result{probeResult{reason: "unreachable"}}
 			return
+		}
+		if idx < len(robots) {
+			robots[idx].ConnTimer = 0 // like any other API call, a status check keeps the connection open
 		}
 		done <- result{probeResult{online: true, battery: batteryInfo(resp.BatteryVolts, int(resp.BatteryLevel), resp.IsCharging, resp.IsOnChargerPlatform, resp.SuggestedChargerSec)}}
 	}()

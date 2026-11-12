@@ -44,14 +44,17 @@ export function Controls({ robot }) {
   const [sound, setSound] = useState(null); // { blob, url, label }
   const [soundBusy, setSoundBusy] = useState(false);
   const ctl = useRef({ controlled: false, mirror: false, cam: false });
+  const alive = useRef(true); // false once this screen is left, so a late "take control" answer can hand control straight back
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const held = useRef(0); // bumps on every start and stop, so a late start can tell it was let go
   const online = robot.state === "online";
 
-  const fail = (e) => toast(describeError(e, name).message, { kind: "bad" });
+  const fail = (e) => { if (alive.current) toast(describeError(e, name).message, { kind: "bad" }); };
 
   const ensureControl = async () => {
     if (ctl.current.controlled) return;
     await sdk("assume_behavior_control", esn, { priority: "high" });
+    if (!alive.current) { sdk("release_behavior_control", esn).catch(() => {}); throw new Error("left"); }
     ctl.current.controlled = true;
     setControlled(true);
     await sleep(1200); // the robot grants control a moment later

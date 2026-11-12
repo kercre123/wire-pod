@@ -22,7 +22,7 @@
   </script>
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="#main" onclick="event.preventDefault();var m=document.getElementById('main');if(m){m.setAttribute('tabindex','-1');m.focus();}">Skip to content</a>
   <div id="root"></div>
   <noscript><div class="card">WirePod needs JavaScript. The <a href="/classic">classic page</a> works without this one.</div></noscript>
   <script type="module" src="app.js"></script>

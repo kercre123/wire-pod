@@ -73,8 +73,11 @@ func newRobot(serial string) (Robot, int, error) {
 		return RobotObj, 0, err
 	}
 
-	// connection check
-	_, err = RobotObj.Vector.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
+	// connection check. Bounded: a robot that accepts the connection but never answers would otherwise
+	// hold inhibitCreation, and with it every other robot's SDK calls, indefinitely.
+	checkCtx, cancelCheck := context.WithTimeout(context.Background(), 10*time.Second)
+	_, err = RobotObj.Vector.Conn.BatteryState(checkCtx, &vectorpb.BatteryStateRequest{})
+	cancelCheck()
 	if err != nil {
 		inhibitCreation = false
 		return RobotObj, 0, err
