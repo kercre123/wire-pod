@@ -56,6 +56,46 @@ It's designed phone-first and scales up. Below about 900 px wide the side rail b
 
 Appearance (under **Settings > Appearance**) is saved on each device: light, dark or follow-the-system theme, an accent colour (or let it follow the robot's eye colour), larger text, and a retro pixel font if you miss the classic look.
 
+## Performance on low-end hardware
+
+wire-pod targets a Pi 4 and can run on a 3B+, so the new UI is kept light: the server caches and compresses it, and it only polls while you are looking at something that needs it. Classic and the API are unchanged.
+
+- **Caching (`/next` only).** `vendor/` and `fonts/` are cached for a year at `?v=<hash>` URLs written into `index.html` and `app.css` as they are served, so an upgrade still busts them. The app's own JS, CSS and HTML are `no-cache` with an ETag, so a reload is a 304 with no body.
+- **Compression.** Text (js, css, html, svg, json) is gzipped once, kept in memory and sent when `Accept-Encoding` allows. The woff2 fonts are sent as they are.
+- **Polling.** Nothing polls in a hidden tab, and the fast panels (Mood 0.5 s, live logs 1.5 s, conversations 10 s) only poll while on screen. A poll that keeps failing waits twice as long each time, up to a minute; the robot list does the same while every robot is offline. Only the screens that show robot status poll it, so Settings does not.
+- **Server.** `robots_status` answers from the last probe and probes each robot at most once per 5 s however many tabs are open. A robot that stays offline is probed less often (10 s, 20 s, 40 s, then once a minute); "Check again" overrides that.
+
+### Measured
+
+On a Mac (Apple silicon) with the real web handler and `webroot`, headless Chrome and a mock robot API, over loopback. **Not tested on a Pi**: these show how much the page asks for, not Pi timings.
+
+| One load of the home screen | Before | After |
+|---|---|---|
+| Cold, no gzip (curl) | 357 KB | 359 KB (two small new modules) |
+| Cold, gzip (curl) | 357 KB | **217 KB** |
+| Warm visit (curl) | 357 KB (`no-store`: refetched) | **5 KB** (28 x 304, 6 files not requested) |
+| Cold / warm in Chrome | 352 KB / 352 KB | 215 KB / 5.7 KB |
+
+What is left cold is mostly the three woff2 fonts (128 KB, already compressed).
+
+| Requests per minute to wire-pod, idle | Before | After |
+|---|---|---|
+| Robots (home) | 19 | 19 |
+| Robots, every robot offline | 20 | 10 |
+| A robot, Personality tab | 12 | 12 |
+| A robot, Activity, Mood in view | 137 | 137 |
+| A robot, Activity, Mood scrolled away | 137 | 18 |
+| Settings > Appearance | 12 | 0 |
+| Settings > Server, live log in view | 52 | 40 |
+| Settings > Server, live log scrolled away | 52 | 0 |
+| Hidden tab, any screen | 0 | 0 |
+
+Mood and the live log are fast so they feel live: same cost as before while you look at them, nothing when you don't.
+
+**Against classic.** Classic loads 12 local files (235 KB, `no-store`, refetched on every reload) plus Font Awesome from a CDN (`kit.fontawesome.com`, which pulls more from `ka-f.fontawesome.com`), so it needs internet to look right. The new UI is now about the same size cold (215 KB), has no outside requests, and is 5 KB warm. Classic is idle-quiet on its front page (0 requests a minute; it polls only inside panels you open, and those keep polling in a hidden tab).
+
+**Time until the robot cards are drawn** (loopback, median of 3): 47 ms cold / 39 ms warm before, 44 / 39 after; with Chrome's CPU throttled 6x, 187 / 107 ms before and 189 / 105 ms after. Loopback has no bandwidth to save, so this barely moves; the gain is the bytes above on Wi-Fi to a Pi, and the CPU the Pi does not spend sending them.
+
 ## Where did the classic UI go?
 
 Nowhere. It's at **`/classic`**, linked from the bottom of the side rail ("Open classic UI"), and every old address (`/index.html`, `/setup.html`, `/initial.html`, `/sdkapp/...`) still works, so bookmarks and scripts keep working. The classic page also has a link to try the new interface.
