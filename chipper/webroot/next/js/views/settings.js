@@ -8,6 +8,7 @@ import { Switch, Segmented, Loading, ErrorNote, Dialog, Callout, SecretInput, pa
 import { useServerInfo, loadVersion, loadConfig, setKnowledge, versionLabel } from "../server.js";
 import { STT_LANGUAGES, KG_PROVIDERS, aiSummary, languageLabel, intentLabel } from "../data.js";
 import { ACCENTS } from "../theme.js";
+import { chooseKg, kgPayload } from "../kg.js";
 import { TechLog } from "./activity.js";
 
 const UPDATE_GUIDE = "https://github.com/kercre123/wire-pod/wiki/Things-to-Know#updating-wire-pod";
@@ -59,11 +60,6 @@ function OptionalRange({ id, label, value, min, max, step, onChange }) {
 
 const PROVIDER_TILES = [["", "Off", "No AI answers"], ["houndify", "Houndify", "Built-in service"], ["openai", "OpenAI", "ChatGPT"], ["together", "Together", "Hosted models"], ["custom", "Your own server", "OpenAI-compatible"]];
 
-function blankFor(p, keep) {
-  return { enable: p !== "", provider: p, key: "", model: "", id: "", endpoint: "", openai_prompt: "", openai_voice: p === "openai" ? "fable" : "", openai_voice_with_english: false, temp: 0, top_p: 0,
-    intentgraph: keep.intentgraph, save_chat: keep.save_chat, commands_enable: keep.commands_enable, robotName: keep.robotName || "" };
-}
-
 function AIPane({ back }) {
   const id = useUid("ai");
   const { data, error, reload, setData } = useLoad(() => getJSON("/api/get_kg_api"), []);
@@ -78,24 +74,8 @@ function AIPane({ back }) {
   const dirty = JSON.stringify(kg) !== JSON.stringify(saved);
   const set = (patch) => { setKg({ ...kg, ...patch }); setTest(null); };
   const p = kg.enable ? kg.provider : "";
-  const choose = (next) => {
-    setTest(null);
-    if (next === "") setKg({ ...saved, enable: false }); // off only flips the switch; nothing saved is cleared
-    else setKg(next === saved.provider ? { ...saved, enable: true } : blankFor(next, kg));
-  };
-
-  const payload = () => {
-    if (p === "") return { ...saved, enable: false };
-    const d = { ...blankFor(p, kg), robotName: kg.robotName || "" };
-    if (p === "openai") Object.assign(d, { key: kg.key, openai_prompt: kg.openai_prompt, openai_voice: kg.openai_voice, openai_voice_with_english: kg.openai_voice_with_english });
-    if (p === "custom") Object.assign(d, { key: kg.key, model: kg.model, openai_prompt: kg.openai_prompt, endpoint: kg.endpoint, temp: kg.temp || 0, top_p: kg.top_p || 0 });
-    if (p === "together") Object.assign(d, { key: kg.key, model: kg.model, openai_prompt: kg.openai_prompt });
-    if (p === "houndify") Object.assign(d, { key: kg.key, id: kg.id });
-    d.intentgraph = kg.intentgraph;
-    d.save_chat = (p === "openai" || p === "custom" || p === "together") && kg.save_chat;
-    d.commands_enable = (p === "openai" || p === "custom" || p === "together") && kg.commands_enable;
-    return d;
-  };
+  const choose = (next) => { setTest(null); setKg(chooseKg(next, kg, saved)); };
+  const payload = () => kgPayload(kg, saved);
   const save = async () => {
     setBusy(true);
     try {
