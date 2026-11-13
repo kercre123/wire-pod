@@ -1,5 +1,5 @@
 // Hash router. The server has no fallback route, so the app lives at /next/#/...
-import { useReducer, useEffect } from "./html.js";
+import { useReducer, useEffect, useRef } from "./html.js";
 
 export const ROBOT_TABS = ["personality", "memories", "settings", "controls", "activity"];
 export const SETTINGS_SECTIONS = ["ai", "voice", "integrations", "server", "appearance"];
@@ -53,9 +53,12 @@ export function go(hash, { replace = false } = {}) {
 
 export function useRoute() {
   const [, bump] = useReducer((n) => n + 1, 0);
+  const rendered = useRef(current);
+  rendered.current = current;
   useEffect(() => {
     listeners.add(bump);
     sync(); // the hash may have been replaced before this subscribed
+    if (rendered.current !== current) bump(); // or changed after this rendered but before we listened
     return () => listeners.delete(bump);
   }, []);
   return current;

@@ -24,10 +24,13 @@ export function RobotSettings({ robot }) {
   const [volumeDraft, setVolumeDraft] = useState(null);
   const online = robot.state === "online";
 
+  const reads = useRef(0); // only the newest read may apply, and a change we make cancels reads still on their way
   const load = async () => {
+    const id = ++reads.current;
     setError(null);
     try {
       const v = await sdkJSON("get_sdk_settings", esn, {}, { timeout: 25000 });
+      if (id !== reads.current) return;
       setS(v);
       if (!fieldsSet.current) {
         fieldsSet.current = true;
@@ -46,9 +49,11 @@ export function RobotSettings({ robot }) {
   // change(patch, send): show the change at once, send it, and put it back if the robot says no
   const change = async (patch, send, message = "Saved") => {
     const before = s;
+    reads.current++;
     setS({ ...s, ...patch });
     try {
       await send();
+      reads.current++; // a read that started while this was being sent may still hold the old value
       toast(message);
       if ("eye_color" in patch || "custom_eye_color" in patch) refreshRobots();
     } catch (e) {

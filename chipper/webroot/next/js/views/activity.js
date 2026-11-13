@@ -15,8 +15,10 @@ function Conversations({ robot }) {
   useEffect(() => { if (lines) cachePut(`chats:${robot.esn}`, lines); }, [lines]);
   const [error, setError] = useState(null);
   const [showLog, setShowLog] = useState(false);
+  const reads = useRef(0); // only the newest read may apply
   const load = async () => {
-    try { setLines(await getJSON(`/api-sdk/get_robot_chats?serial=${encodeURIComponent(robot.esn)}`)); setError(null); }
+    const id = ++reads.current;
+    try { const v = await getJSON(`/api-sdk/get_robot_chats?serial=${encodeURIComponent(robot.esn)}`); if (id !== reads.current) return; setLines(v); setError(null); }
     catch (e) { setError(describeError(e, name)); }
   };
   useEffect(() => {
@@ -77,8 +79,10 @@ function Stats({ robot, photoCount }) {
   const [stats, setStats] = useState(() => cacheGet(`stats:${robot.esn}`) || null);
   useEffect(() => { if (stats) cachePut(`stats:${robot.esn}`, stats); }, [stats]);
   const [error, setError] = useState(null);
+  const reads = useRef(0);
   const load = async () => {
-    try { setStats(await sdkJSON("get_robot_stats", robot.esn, {}, { timeout: 20000 })); setError(null); }
+    const id = ++reads.current;
+    try { const v = await sdkJSON("get_robot_stats", robot.esn, {}, { timeout: 20000 }); if (id !== reads.current) return; setStats(v); setError(null); }
     catch (e) { setError(describeError(e, name)); }
   };
   useEffect(() => { load(); }, [robot.esn]);
@@ -143,10 +147,13 @@ function Photos({ robot, onCount }) {
   useEffect(() => { if (ids) cachePut(`photos:${esn}`, ids); }, [ids]);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(null);
+  const reads = useRef(0);
   const load = async () => {
+    const id = ++reads.current;
     try {
       const t = await sdk("get_image_ids", esn, {}, { timeout: 25000 });
       const v = t.trim() === "null" || !t.trim() ? [] : JSON.parse(t);
+      if (id !== reads.current) return;
       setIds(v); onCount(v.length); setError(null);
     } catch (e) { setError(describeError(e, name)); }
   };

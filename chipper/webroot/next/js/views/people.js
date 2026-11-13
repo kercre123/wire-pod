@@ -35,9 +35,13 @@ export function People({ robot }) {
   const [rename, setRename] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  const reads = useRef(0); // only the newest read may apply
   const load = async () => {
+    const id = ++reads.current;
     try {
-      setFaces(parseFaces(await sdk("get_faces", esn, {}, { timeout: 20000 })));
+      const list = parseFaces(await sdk("get_faces", esn, {}, { timeout: 20000 }));
+      if (id !== reads.current) return;
+      setFaces(list);
       setError(null);
     } catch (e) {
       setError(describeError(e, name));

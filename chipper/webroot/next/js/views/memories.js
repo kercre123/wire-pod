@@ -29,9 +29,13 @@ export function Memories({ robot }) {
   const [adding, setAdding] = useState(false);
   const pending = useRef(null); // { ids, timer }
 
+  const reads = useRef(0); // only the newest read may apply; a slow older one must not undo a later change
   const load = async () => {
+    const id = ++reads.current;
     try {
-      setItems(await getJSON(`/api-sdk/get_robot_memories?serial=${encodeURIComponent(esn)}`));
+      const list = await getJSON(`/api-sdk/get_robot_memories?serial=${encodeURIComponent(esn)}`);
+      if (id !== reads.current) return;
+      setItems(list);
       setError(null);
     } catch (e) {
       setError(describeError(e, name));
@@ -52,7 +56,11 @@ export function Memories({ robot }) {
     } catch (e) {
       toast(describeError(e, name).message, { kind: "bad" });
     }
-    if (!keepalive) { setHidden(pending.current ? pending.current.ids : []); load(); }
+    if (!keepalive) {
+      setItems((cur) => cur && cur.filter((m) => !p.ids.includes(m.id))); // drop them for good before un-hiding, so they cannot flash back
+      setHidden(pending.current ? pending.current.ids : []);
+      load();
+    }
   };
   // leaving the page or closing the tab commits what was deleted
   useEffect(() => {
