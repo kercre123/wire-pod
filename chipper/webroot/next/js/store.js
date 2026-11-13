@@ -1,6 +1,7 @@
 // Small shared state: robot status polling, toasts, confirm dialogs and appearance prefs.
 import { useEffect, useReducer } from "./html.js";
 import { fetchRobotStatuses, describeError } from "./api.js";
+import { nextDelay } from "./backoff.js";
 
 export function createStore(initial) {
   let state = initial;
@@ -30,6 +31,7 @@ export const robotsStore = createStore({ loaded: false, robots: [], error: null 
 let pollers = 0;
 let timer = null;
 let inflight = false;
+let fails = 0; // polls in a row that failed, or found every robot offline and nothing new: each doubles the wait
 
 // What a robot card shows. The server stamps every online probe with fresh times that nothing displays, so
 // they are left out: a poll that finds nothing new changes nothing, and views are not re-rendered.
@@ -57,16 +59,18 @@ function mergeRobots(prev, next) {
   return same ? prev : merged;
 }
 
-async function tick() {
+async function tick(recheck) {
   if (inflight) return;
   inflight = true;
   clearTimeout(timer);
   try {
-    const next = await fetchRobotStatuses({ timeout: 10000 });
+    const next = await fetchRobotStatuses({ timeout: 10000, recheck });
     const prev = robotsStore.get();
     const robots = mergeRobots(prev.robots, next);
     if (!prev.loaded || prev.error || robots !== prev.robots) robotsStore.set({ loaded: true, robots, error: null });
+    fails = next.length > 0 && next.every((r) => r.state === "offline") && robots === prev.robots ? fails + 1 : 0;
   } catch (e) {
+    fails++;
     robotsStore.set({ loaded: true, error: describeError(e).message });
   } finally {
     inflight = false;
@@ -78,21 +82,24 @@ function schedule() {
   clearTimeout(timer);
   if (pollers === 0 || document.hidden) return;
   const checking = robotsStore.get().robots.some((r) => r.state === "checking");
-  timer = setTimeout(tick, checking ? 1200 : missed.size > 0 ? 2500 : 5000);
+  timer = setTimeout(() => { if (!document.hidden) tick(); }, checking ? 1200 : nextDelay(missed.size > 0 ? 2500 : 5000, fails)); // a tab hidden while waiting does not poll
 }
 
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden && pollers > 0) tick();
+  if (!document.hidden && pollers > 0) { fails = 0; tick(); }
 });
 
 export function refreshRobots() {
-  return tick();
+  fails = 0;
+  return tick(true);
 }
 
 // Components that show robot status call this; polling runs while at least one is mounted.
-export function useRobots() {
+// watch: false only reads (and loads once if nothing has), for screens that do not show robot status.
+export function useRobots({ watch = true } = {}) {
   const s = useStore(robotsStore);
   useEffect(() => {
+    if (!watch) { if (!robotsStore.get().loaded) tick(); return; }
     pollers++;
     if (pollers === 1 || !robotsStore.get().loaded) tick();
     else schedule();

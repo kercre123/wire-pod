@@ -11,3 +11,7 @@ Served at `/` (it redirects to `/next/`). The original UI is still at `/classic`
 - Bluetooth pairing is not reimplemented: `#/add` opens the classic Bot Setup panel (`/classic#bot-setup`)
   and picks the robot up when it appears.
 - Robot status comes from one cached call, `GET /api-sdk/robots_status`, so an offline robot never slows the page.
+- Built for a Pi: the server caches and gzips `/next` (see `pkg/wirepod/config-ws/nextassets.go`; `vendor/` and `fonts/`
+  get `?v=<hash>` URLs written in as they are served, so they are cached for a year and an upgrade still busts them).
+  Polling goes through `js/poll.js`: only while the tab is visible and the panel is on screen, doubling its wait
+  (up to a minute) while it fails. A screen that does not show robot status does not poll it.

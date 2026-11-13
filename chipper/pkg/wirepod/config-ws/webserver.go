@@ -402,7 +402,12 @@ func DisableCachingAndSniffing(next http.Handler) http.Handler {
 // other file under the web root.
 func newWebRootHandler(dir string) http.Handler {
 	files := http.FileServer(http.Dir(dir))
+	next := newNextAssets(dir, files)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/next/") {
+			next.ServeHTTP(w, r) // caches and compresses; see nextassets.go
+			return
+		}
 		switch r.URL.Path {
 		case "/":
 			http.Redirect(w, r, "/next/", http.StatusFound)

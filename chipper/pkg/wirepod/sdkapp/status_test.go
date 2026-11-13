@@ -261,3 +261,73 @@ func TestDescribeRobotLeavesOutTheToken(t *testing.T) {
 		t.Fatalf("wrong info: %+v", info)
 	}
 }
+
+func TestRobotStatusesManyTabsShareOneProbe(t *testing.T) {
+	setBots(t, [3]string{"00a1", "10.0.0.5", "Pip"}, [3]string{"00b2", "10.0.0.6", "Bolt"})
+	var mu sync.Mutex
+	probes := 0
+	old := probeRobot
+	probeRobot = func(esn, ip string) probeResult {
+		mu.Lock()
+		probes++
+		mu.Unlock()
+		return probeResult{online: true}
+	}
+	t.Cleanup(func() { probeRobot = old })
+	var wg sync.WaitGroup
+	for i := 0; i < 40; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			handleRobotStatusAPI(httptest.NewRecorder(), httptest.NewRequest("GET", "/api-sdk/robots_status", nil))
+		}()
+	}
+	wg.Wait()
+	waitFor(t, func() bool {
+		return robotStatuses(time.Now())[0].State == "online" && robotStatuses(time.Now())[1].State == "online"
+	})
+	for i := 0; i < 40; i++ {
+		handleRobotStatusAPI(httptest.NewRecorder(), httptest.NewRequest("GET", "/api-sdk/robots_status", nil))
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if probes != 2 {
+		t.Fatalf("80 requests inside the freshness window should cost one probe per robot, got %d", probes)
+	}
+}
+
+func TestOfflineRobotIsCheckedLessAndLessOften(t *testing.T) {
+	setBots(t, [3]string{"00a1", "10.0.0.5", "Pip"})
+	var mu sync.Mutex
+	probes := 0
+	old := probeRobot
+	probeRobot = func(esn, ip string) probeResult {
+		mu.Lock()
+		probes++
+		mu.Unlock()
+		return probeResult{reason: "unreachable"}
+	}
+	t.Cleanup(func() { probeRobot = old })
+	count := func() int { mu.Lock(); defer mu.Unlock(); return probes }
+	checkedAt := func() time.Time {
+		statusCache.Lock()
+		defer statusCache.Unlock()
+		return statusCache.m["00a1"].checkedAt
+	}
+	robotStatuses(time.Now())
+	waitFor(t, func() bool { return robotStatuses(time.Now())[0].State == "offline" })
+	// after one failure the answer is good for 10 s, after two for 20 s, and so on up to a minute
+	for _, wait := range []time.Duration{10, 20, 40, 60, 60} {
+		base, before := checkedAt(), count()
+		robotStatuses(base.Add(wait*time.Second - time.Second)) // not stale yet
+		if count() != before {
+			t.Fatalf("probed again before %ds", wait)
+		}
+		robotStatuses(base.Add(wait*time.Second + time.Second))
+		waitFor(t, func() bool { return count() == before+1 && checkedAt().After(base) })
+	}
+	// "check again" asks for a fresh look after a second, whatever the backoff
+	base, before := checkedAt(), count()
+	robotStatusesAt(base.Add(2*time.Second), true)
+	waitFor(t, func() bool { return count() == before+1 })
+}

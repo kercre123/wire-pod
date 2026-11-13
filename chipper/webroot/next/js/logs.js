@@ -1,7 +1,8 @@
 // wire-pod keeps the last 50 interesting log lines in memory. The home cards read the last thing each
 // robot heard from them, and the Activity tab filters them per robot.
-import { useEffect, useState } from "./html.js";
+import { useState } from "./html.js";
 import { getText } from "./api.js";
+import { usePoll, useVisible } from "./poll.js";
 
 const HEARD = /^(\d{4})\.(\d\d)\.(\d\d) (\d\d):(\d\d):(\d\d): Intent matched: .*?transcribed text: '(.*)', device: (\S+)/;
 
@@ -19,23 +20,11 @@ export function parseHeard(logText) {
 
 export function useHeard(everyMs = 8000) {
   const [heard, setHeard] = useState({});
-  useEffect(() => {
-    let alive = true;
-    let timer;
-    const run = async () => {
-      if (!document.hidden) {
-        try {
-          const t = await getText("/api/get_logs", { timeout: 6000 });
-          if (alive) { const next = parseHeard(t); setHeard((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next)); } // unchanged log: no re-render
-        } catch (e) {
-          // the log is a nice-to-have; leave the cards as they are
-        }
-      }
-      if (alive) timer = setTimeout(run, everyMs);
-    };
-    run();
-    return () => { alive = false; clearTimeout(timer); };
-  }, []);
+  const visible = useVisible();
+  usePoll(async () => {
+    const next = parseHeard(await getText("/api/get_logs", { timeout: 6000 })); // the log is a nice-to-have: a failure keeps the cards as they are and polls less often
+    setHeard((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next)); // unchanged log: no re-render
+  }, everyMs, { enabled: visible });
   return heard;
 }
 

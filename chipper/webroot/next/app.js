@@ -47,7 +47,7 @@ function NotFound() {
 function App() {
   const route = useRoute();
   const { prefs } = useStore(prefsStore);
-  const { robots } = useRobots();
+  const { robots } = useRobots({ watch: false }); // each screen that shows robot status polls for itself
   const server = useServerInfo();
   const mainRef = useRef(null);
 

@@ -20,6 +20,8 @@ import (
 
 const (
 	statusMaxAge   = 5 * time.Second
+	statusMaxStale = 60 * time.Second // an offline robot is re-checked less often the longer it stays offline, up to this
+	statusMinAge   = time.Second      // "check again" cannot probe more often than this
 	statusDialWait = 2500 * time.Millisecond
 	statusProbeMax = 8 * time.Second
 )
@@ -64,6 +66,7 @@ type probeResult struct {
 type statusEntry struct {
 	probed    bool
 	probing   bool
+	fails     int // consecutive failed probes
 	result    probeResult
 	checkedAt time.Time
 	lastSeen  time.Time
@@ -91,8 +94,26 @@ func knownRobots() []knownRobot {
 	return list
 }
 
+// freshFor is how long the last probe of a robot is good for: 5 s, doubling for each failed probe in a row
+// (an offline robot costs a dial timeout every time) up to a minute. Any number of tabs share one probe.
+func (e *statusEntry) freshFor() time.Duration {
+	if e.fails == 0 {
+		return statusMaxAge
+	}
+	if e.fails > 4 { // 5 s << 4 is past the cap, and the shift stays small
+		return statusMaxStale
+	}
+	if d := statusMaxAge << uint(e.fails); d < statusMaxStale {
+		return d
+	}
+	return statusMaxStale
+}
+
 // robotStatuses returns the current status of every known robot and starts probes for stale ones.
-func robotStatuses(now time.Time) []RobotStatus {
+func robotStatuses(now time.Time) []RobotStatus { return robotStatusesAt(now, false) }
+
+// robotStatusesAt is robotStatuses; recheck ("check again") shortens how long a probe is good for to a second.
+func robotStatusesAt(now time.Time, recheck bool) []RobotStatus {
 	robotsKnown := knownRobots()
 	out := make([]RobotStatus, 0, len(robotsKnown))
 	statusCache.Lock()
@@ -105,7 +126,11 @@ func robotStatuses(now time.Time) []RobotStatus {
 			e = &statusEntry{}
 			statusCache.m[k.esn] = e
 		}
-		if !e.probing && (!e.probed || now.Sub(e.checkedAt) > statusMaxAge) {
+		maxAge := e.freshFor()
+		if recheck {
+			maxAge = statusMinAge
+		}
+		if !e.probing && (!e.probed || now.Sub(e.checkedAt) > maxAge) {
 			e.probing = true
 			go runProbe(probeRobot, k.esn, k.ip)
 		}
@@ -146,7 +171,10 @@ func runProbe(probe func(esn, ip string) probeResult, esn, ip string) {
 	e.result = res
 	e.checkedAt = time.Now()
 	if res.online {
+		e.fails = 0
 		e.lastSeen = e.checkedAt
+	} else {
+		e.fails++
 	}
 }
 
@@ -274,7 +302,7 @@ func handleRobotStatusAPI(w http.ResponseWriter, r *http.Request) bool {
 	json.NewEncoder(w).Encode(struct {
 		Robots    []RobotStatus `json:"robots"`
 		CheckedAt int64         `json:"checked_at"`
-	}{robotStatuses(time.Now()), time.Now().Unix()})
+	}{robotStatusesAt(time.Now(), r.URL.Query().Get("recheck") == "1"), time.Now().Unix()})
 	return true
 }
 

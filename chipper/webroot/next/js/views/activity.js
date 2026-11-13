@@ -5,6 +5,7 @@ import { getJSON, getText, sdk, sdkJSON, describeError } from "../api.js";
 import { robotName, toast, confirmDialog, refreshRobots, cacheGet, cachePut } from "../store.js";
 import { Loading, ErrorNote, OfflineNotice, Dialog, Switch } from "../ui.js";
 import { linesFor } from "../logs.js";
+import { usePoll, useVisible } from "../poll.js";
 import { href } from "../router.js";
 
 // ---------- conversations ----------
@@ -18,20 +19,18 @@ function Conversations({ robot }) {
   const reads = useRef(0); // only the newest read may apply
   const load = async () => {
     const id = ++reads.current;
-    try { const v = await getJSON(`/api-sdk/get_robot_chats?serial=${encodeURIComponent(robot.esn)}`); if (id !== reads.current) return; setLines(v); setError(null); }
-    catch (e) { if (id === reads.current) setError(describeError(e, name)); }
+    try { const v = await getJSON(`/api-sdk/get_robot_chats?serial=${encodeURIComponent(robot.esn)}`); if (id === reads.current) { setLines(v); setError(null); } return true; }
+    catch (e) { if (id === reads.current) setError(describeError(e, name)); return false; }
   };
-  useEffect(() => {
-    load();
-    const t = setInterval(() => { if (!document.hidden) load(); }, 10000);
-    return () => clearInterval(t);
-  }, [robot.esn]);
+  const card = useRef(null);
+  const visible = useVisible(card);
+  usePoll(async () => { if (!(await load())) throw new Error("failed"); }, 10000, { enabled: visible, deps: [robot.esn] }); // while the card is on screen
   const deleteAll = async () => {
     const ok = await confirmDialog({ title: "Delete saved conversations?", body: "This removes the saved conversations of every robot on this WirePod, and what they remember from them in chat. It can’t be undone. Memories are kept.", confirmLabel: "Delete", danger: true });
     if (!ok) return;
     try { await getText("/api/delete_chats"); toast("Saved conversations deleted"); load(); } catch (e) { toast(describeError(e).message, { kind: "bad" }); }
   };
-  return html`<div class="card">
+  return html`<div class="card" ref=${card}>
     <h2 class="h3">Recent conversations</h2>
     <p class="sub">Saved on this computer while “Save conversations” is on. <a href=${href.settings("ai")}>Change in Settings</a></p>
     ${error && html`<${ErrorNote} error=${error} onRetry=${load} />`}
@@ -53,20 +52,14 @@ export function TechLog({ esn, label }) {
   const [all, setAll] = useState(false);
   const [text, setText] = useState(null);
   const box = useRef(null);
-  useEffect(() => {
-    let alive = true, timer;
-    const run = async () => {
-      if (!document.hidden) {
-        try { const t = await getText(all ? "/api/get_debug_logs" : "/api/get_logs", { timeout: 6000 }); if (alive) setText(t); } catch (e) { if (alive) setText(""); }
-      }
-      if (alive) timer = setTimeout(run, 1500);
-    };
-    run();
-    return () => { alive = false; clearTimeout(timer); };
-  }, [all]);
+  const panel = useRef(null);
+  const visible = useVisible(panel);
+  usePoll(async () => {
+    try { setText(await getText(all ? "/api/get_debug_logs" : "/api/get_logs", { timeout: 6000 })); } catch (e) { setText(""); throw e; }
+  }, 1500, { enabled: visible, deps: [all] }); // only while the log is on screen
   const shown = text === null ? null : all || !esn ? text : linesFor(text, esn);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [shown]);
-  return html`<div style="margin-top:10px">
+  return html`<div style="margin-top:10px" ref=${panel}>
     <div class="opt flush" style="margin-bottom:8px"><div>${esn ? "Show everything" : "Show debug lines"}<small>${esn ? `All robots and debug lines, not just ${label}` : "Include the detailed lines that are normally hidden"}</small></div><${Switch} checked=${all} onChange=${setAll} label=${esn ? "Show everything" : "Show debug lines"} /></div>
     <pre class="log" ref=${box} tabindex="0" aria-label="Log">${shown === null ? "Loading…" : shown || (esn ? "Nothing logged for this robot yet. Say something to it and this updates by itself." : "Nothing logged yet. Say something to a robot and this updates by itself.")}</pre>
   </div>`;
@@ -109,26 +102,26 @@ function Mood({ robot }) {
   const name = robotName(robot);
   const [points, setPoints] = useState([]);
   const [failed, setFailed] = useState(false);
+  const [ready, setReady] = useState(false); // the robot is streaming events
+  const card = useRef(null);
+  const visible = useVisible(card);
+  // the robot only streams, and we only ask, while the card is on screen
   useEffect(() => {
-    let alive = true, timer, started = false;
-    const poll = async () => {
-      if (!alive) return;
-      if (!document.hidden) {
-        try {
-          const t = await sdk("get_stim_status", robot.esn, {}, { timeout: 5000 });
-          const v = parseFloat(t);
-          if (!isNaN(v) && alive) setPoints((p) => [...p, v].slice(-60));
-          setFailed(false);
-        } catch (e) { if (alive) setFailed(true); }
-      }
-      if (alive) timer = setTimeout(poll, 500);
-    };
-    sdk("begin_event_stream", robot.esn).then(() => { started = true; poll(); }, () => alive && setFailed(true));
-    return () => { alive = false; clearTimeout(timer); sdk("stop_event_stream", robot.esn).catch(() => {}); };
-  }, [robot.esn]);
+    if (!visible) return;
+    let alive = true;
+    sdk("begin_event_stream", robot.esn).then(() => alive && setReady(true), () => alive && setFailed(true));
+    return () => { alive = false; setReady(false); sdk("stop_event_stream", robot.esn).catch(() => {}); };
+  }, [robot.esn, visible]);
+  usePoll(async () => {
+    try {
+      const v = parseFloat(await sdk("get_stim_status", robot.esn, {}, { timeout: 5000 }));
+      if (!isNaN(v)) setPoints((p) => [...p, v].slice(-60));
+      setFailed(false);
+    } catch (e) { setFailed(true); throw e; }
+  }, 500, { enabled: visible && ready, deps: [robot.esn] });
   const last = points.length ? points[points.length - 1] : null;
   const path = points.map((v, i) => `${(i / Math.max(1, 59)) * 240},${54 - Math.max(0, Math.min(1, v)) * 48}`).join(" ");
-  return html`<div class="card">
+  return html`<div class="card" ref=${card}>
     <h2 class="h3">Mood</h2><p class="sub">How stimulated ${name} is right now, over the last half minute.</p>
     ${failed && points.length === 0 && html`<p class="empty">Couldn’t read ${name}’s mood just now.</p>`}
     ${points.length > 0 && html`<svg viewBox="0 0 240 56" width="100%" height="64" role="img" aria-label=${`Mood is ${Math.round((last || 0) * 100)} percent`} preserveAspectRatio="none">
