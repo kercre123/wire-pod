@@ -52,7 +52,7 @@ function beginBLESetup() {
 }
 
 function reInitBLE() {
-  fetch("/api-ble/disconnect").then(() => fetch("/api-ble/init").catch(() => {
+  return fetch("/api-ble/disconnect").then(() => fetch("/api-ble/init").catch(() => {
     showExternalSetupInstructions();
   })).catch(() => fetch("/api-ble/init"));
 }
@@ -107,13 +107,13 @@ function connectRobot(id) {
       if (response.includes("success")) {
         createPinEntry();
       } else {
-        alert("Error connecting. WirePod will restart and this will return to the first screen of setup.");
-        updateAuthel("Waiting for WirePod to restart...");
+        alert("Error connecting. BLE will be reset and this will return to the first screen of setup.");
+        updateAuthel("Resetting BLE...");
         setTimeout(checkBLECapability, 3000);
       }
     }).catch(() => {
-      alert("Error connecting. WirePod will restart and this will return to the first screen of setup.");
-      updateAuthel("Waiting for WirePod to restart...");
+      alert("Error connecting. BLE will be reset and this will return to the first screen of setup.");
+      updateAuthel("Resetting BLE...");
       setTimeout(checkBLECapability, 3000);
     })
 }

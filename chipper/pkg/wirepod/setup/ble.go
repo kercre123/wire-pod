@@ -13,9 +13,9 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/digital-dream-labs/vector-bluetooth/ble"
@@ -24,7 +24,6 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
-// need JSONable type
 type VectorsBle struct {
 	ID      int    `json:"id"`
 	Name    string `json:"name"`
@@ -36,50 +35,25 @@ type WifiNetwork struct {
 	AuthType int    `json:"authtype"`
 }
 
-var BleClient *ble.VectorBLE
-var BleStatusChan chan ble.StatusChannel
-var BleInited bool
-var OtaStatus string
-var LogStatus string
+var (
+	bleMu         sync.Mutex
+	bleClient     *ble.VectorBLE
+	bleStatusStop chan struct{}
 
-func doOTAStatus() {
-	for {
-		r := <-BleStatusChan
-		if r.OTAStatus.Error != "" {
-			OtaStatus = "Error downloading OTA: " + r.OTAStatus.Error
-			return
-		}
-		if r.OTAStatus.PacketNumber == 0 {
-			OtaStatus = "OTA download progress: 0%"
-		} else {
-			percent := (float64(r.OTAStatus.PacketNumber) / float64(r.OTAStatus.PacketTotal)) * 100
-			OtaStatus = "OTA download progress: " + fmt.Sprint(roundFloat(float64(percent), 3)) + "%"
-			if r.OTAStatus.PacketNumber == r.OTAStatus.PacketTotal {
-				OtaStatus = "OTA download is complete!"
-				return
-			}
-		}
-	}
+	bleStatusMu sync.Mutex
+	otaStatus   string
+)
+
+func setOTAStatus(s string) {
+	bleStatusMu.Lock()
+	otaStatus = s
+	bleStatusMu.Unlock()
 }
 
-func doLogStatus() {
-	for {
-		r := <-BleStatusChan
-		if r.LogStatus.Error != "" {
-			LogStatus = "Error downloading logs: " + r.LogStatus.Error
-			return
-		}
-		if r.LogStatus.PacketNumber == 0 {
-			LogStatus = "Log download progress: 0%"
-		} else {
-			percent := (float64(r.LogStatus.PacketNumber) / float64(r.LogStatus.PacketTotal)) * 100
-			OtaStatus = "Log download progress: " + fmt.Sprint(roundFloat(float64(percent), 3)) + "%"
-			if r.LogStatus.PacketNumber == r.LogStatus.PacketTotal {
-				OtaStatus = "Log download is complete!"
-				return
-			}
-		}
-	}
+func getOTAStatus() string {
+	bleStatusMu.Lock()
+	defer bleStatusMu.Unlock()
+	return otaStatus
 }
 
 func roundFloat(val float64, precision uint) float64 {
@@ -87,107 +61,111 @@ func roundFloat(val float64, precision uint) float64 {
 	return math.Round(val*ratio) / ratio
 }
 
-func IsDevRobot(esn, firmware string) bool {
-	if strings.Contains(firmware, "ankidev") {
-		return true
+func otaProgressString(s *ble.StatusCounter) string {
+	if s.Error != "" {
+		return "Error downloading OTA: " + s.Error
 	}
-	if strings.HasPrefix(esn, "00e") {
-		return true
+	if s.PacketTotal != 0 && s.PacketNumber == s.PacketTotal {
+		return "OTA download is complete!"
 	}
-	return false
+	if s.PacketNumber == 0 || s.PacketTotal == 0 {
+		return "OTA download progress: 0%"
+	}
+	percent := float64(s.PacketNumber) / float64(s.PacketTotal) * 100
+	return "OTA download progress: " + fmt.Sprint(roundFloat(percent, 3)) + "%"
 }
 
-func InitBle() (*ble.VectorBLE, error) {
-	BleStatusChan = nil
-	BleStatusChan = make(chan ble.StatusChannel)
-	done := make(chan bool)
-	var client *ble.VectorBLE
-	var err error
-
-	go func() {
-		client, err = ble.New(
-			ble.WithStatusChan(BleStatusChan),
-			ble.WithLogDirectory(os.TempDir()),
-		)
-		done <- true
-	}()
-
-	select {
-	case <-done:
-		if err != nil {
-			if strings.Contains(err.Error(), "hci0: can't down device") || strings.Contains(err.Error(), "hci0: can't up device") {
-				FixBLEDriver()
-				client, err = ble.New(
-					ble.WithStatusChan(BleStatusChan),
-					ble.WithLogDirectory(os.TempDir()),
-				)
-				return client, err
+func watchBLEStatus(ch chan ble.StatusChannel, stop chan struct{}) {
+	for {
+		select {
+		case <-stop:
+			return
+		case r := <-ch:
+			if r.OTAStatus != nil {
+				setOTAStatus(otaProgressString(r.OTAStatus))
 			}
 		}
-		return client, err
-	case <-time.After(5 * time.Second):
-		done2 := make(chan bool)
-		FixBLEDriver()
-		go func() {
-			client, err = ble.New(
-				ble.WithStatusChan(BleStatusChan),
-				ble.WithLogDirectory(os.TempDir()),
-			)
-			done2 <- true
-		}()
-
-		select {
-		case <-done2:
-			return client, err
-		case <-time.After(5 * time.Second):
-			return nil, errors.New("error: took more than 5 seconds")
-		}
 	}
 }
 
-func FixBLEDriver() {
-	logger.Println("BLE driver has broken. Removing then inserting bluetooth kernel modules")
-	rmmodList := []string{"btusb", "btrtl", "btmtk", "btintel", "btbcm"}
-	modprobeList := []string{"btrtl", "btmtk", "btintel", "btbcm", "btusb"}
-	for _, mod := range rmmodList {
-		exec.Command("/bin/rmmod", mod).Run()
+func IsDevRobot(esn, firmware string) bool {
+	return strings.Contains(firmware, "ankidev") || strings.HasPrefix(esn, "00e")
+}
+
+func newBLEClient() (*ble.VectorBLE, chan ble.StatusChannel, error) {
+	type result struct {
+		client *ble.VectorBLE
+		err    error
 	}
-	time.Sleep(time.Second / 2)
-	for _, mod := range modprobeList {
-		exec.Command("/bin/modprobe", mod).Run()
+	ch := make(chan ble.StatusChannel)
+	res := make(chan result, 1)
+	go func() {
+		c, err := ble.New(
+			ble.WithStatusChan(ch),
+			ble.WithLogDirectory(os.TempDir()),
+		)
+		res <- result{c, err}
+	}()
+	select {
+	case r := <-res:
+		return r.client, ch, r.err
+	case <-time.After(10 * time.Second):
+		go func() {
+			if r := <-res; r.client != nil {
+				r.client.Close()
+			}
+		}()
+		return nil, nil, errors.New("error: took more than 10 seconds to init BLE")
 	}
-	time.Sleep(time.Second / 2)
+}
+
+func initBLE() error {
+	client, ch, err := newBLEClient()
+	if err != nil {
+		return err
+	}
+	bleClient = client
+	bleStatusStop = make(chan struct{})
+	go watchBLEStatus(ch, bleStatusStop)
+	return nil
+}
+
+func resetBLE() error {
+	if bleClient == nil {
+		return nil
+	}
+	err := bleClient.Close()
+	close(bleStatusStop)
+	bleClient = nil
+	bleStatusStop = nil
+	return err
 }
 
 func ScanForVectors(client *ble.VectorBLE) ([]VectorsBle, error) {
-	var returnDevices []VectorsBle
 	resp, err := client.Scan()
 	if err != nil {
 		return nil, err
 	}
+	returnDevices := []VectorsBle{}
 	for _, device := range resp.Devices {
-		var vectorble VectorsBle
-		vectorble.Address = device.Address
-		vectorble.ID = device.ID
-		vectorble.Name = device.Name
-		returnDevices = append(returnDevices, vectorble)
+		returnDevices = append(returnDevices, VectorsBle{
+			ID:      device.ID,
+			Name:    device.Name,
+			Address: device.Address,
+		})
 	}
 	return returnDevices, nil
 }
 
 func ConnectVector(client *ble.VectorBLE, device int) error {
-	done := make(chan bool)
-	var err error
+	done := make(chan error, 1)
 	go func() {
-		err = client.Connect(device)
-		done <- true
+		done <- client.Connect(device)
 	}()
-
 	select {
-	case <-done:
+	case err := <-done:
 		return err
 	case <-time.After(5 * time.Second):
-		FixBLEDriver()
 		return errors.New("error: took more than 5 seconds")
 	}
 }
@@ -196,33 +174,27 @@ func SendPin(pin string, client *ble.VectorBLE) error {
 	if len([]rune(pin)) != 6 {
 		return fmt.Errorf("error: length of pin must be 6")
 	}
-	err := client.SendPin(pin)
-	return err
+	return client.SendPin(pin)
 }
 
-func RobotStatus(client *ble.VectorBLE) string {
-	var firmware string
-	var esn string
-	//v1.8.1.6051-453e582_os1.8.1.6051ep-1536e0d-202202282217
-	//v0.9.0-12efb91_os0.9.0-3e8307e-201806191226
-
-	status, _ := client.GetStatus()
-	esn = status.ESN
-	firmware = status.Version
-
-	if IsDevRobot(esn, firmware) && strings.Contains(firmware, "0.9.0") {
-		return "in_recovery_dev"
+func RobotStatus(client *ble.VectorBLE) (string, error) {
+	status, err := client.GetStatus()
+	if err != nil {
+		return "", err
 	}
-	if strings.Contains(firmware, "0.9.0") {
-		return "in_recovery_prod"
+	esn := status.ESN
+	firmware := status.Version
+	switch {
+	case IsDevRobot(esn, firmware) && strings.Contains(firmware, "0.9.0"):
+		return "in_recovery_dev", nil
+	case strings.Contains(firmware, "0.9.0"):
+		return "in_recovery_prod", nil
+	case IsDevRobot(esn, firmware):
+		return "in_firmware_dev", nil
+	case strings.Contains(firmware, "ep-"):
+		return "in_firmware_ep", nil
 	}
-	if IsDevRobot(esn, firmware) {
-		return "in_firmware_dev"
-	}
-	if strings.Contains(firmware, "ep-") {
-		return "in_firmware_ep"
-	}
-	return "in_firmware_nonep"
+	return "in_firmware_nonep", nil
 }
 
 func AuthRobot(client *ble.VectorBLE) (bool, error) {
@@ -233,112 +205,118 @@ func AuthRobot(client *ble.VectorBLE) (bool, error) {
 	return resp.Success, nil
 }
 
+func sendOnboardingInput(body string) error {
+	_, err := bleClient.SDKProxy(&ble.SDKProxyRequest{
+		URLPath: "/v1/send_onboarding_input",
+		Body:    body,
+	})
+	return err
+}
+
 func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
-	switch {
-	case r.URL.Path == "/api-ble/init":
-		if BleInited {
+	if r.URL.Path == "/api-ble/get_ota_status" {
+		fmt.Fprint(w, getOTAStatus())
+		return
+	}
+
+	bleMu.Lock()
+	defer bleMu.Unlock()
+
+	switch r.URL.Path {
+	case "/api-ble/init":
+		if bleClient != nil {
 			fmt.Fprint(w, "success (ble already initiated, disconnect to reinit)")
 			return
 		}
-		var err error
-		BleClient, err = InitBle()
-		if err != nil {
+		if err := initBLE(); err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		BleInited = true
 		fmt.Fprint(w, "success")
 		return
-	case r.URL.Path == "/api-ble/scan":
-		if !BleInited {
-			fmt.Fprint(w, "error: init ble first")
+	case "/api-ble/disconnect":
+		if err := resetBLE(); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		devices, err := ScanForVectors(BleClient)
+		fmt.Fprint(w, "success")
+		return
+	}
+
+	if bleClient == nil {
+		fmt.Fprint(w, "error: init ble first")
+		return
+	}
+
+	switch r.URL.Path {
+	case "/api-ble/scan":
+		devices, err := ScanForVectors(bleClient)
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
 		returnBytes, _ := json.Marshal(devices)
 		w.Write(returnBytes)
-		return
-	case r.URL.Path == "/api-ble/connect":
-		if !BleInited {
-			fmt.Fprint(w, "error: init ble first")
-			return
-		}
+	case "/api-ble/connect":
 		id, err := strconv.Atoi(r.FormValue("id"))
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		err = ConnectVector(BleClient, id)
-		if err != nil {
+		if err := ConnectVector(bleClient, id); err != nil {
+			logger.Println("BLE connect error, resetting BLE client: " + err.Error())
+			resetBLE()
 			fmt.Fprint(w, "error: "+err.Error())
-			if err.Error() == "error: took more than 5 seconds" {
-				logger.Println("It took too long to connect to Vector. Quitting and letting systemd restart")
-				os.Exit(1)
-			}
-		}
-		fmt.Fprint(w, "success")
-		return
-	case r.URL.Path == "/api-ble/send_pin":
-		if !BleInited {
-			fmt.Fprint(w, "error: init ble first")
-			return
-		}
-		pin := r.FormValue("pin")
-		err := SendPin(pin, BleClient)
-		if err != nil {
-			if strings.Contains(err.Error(), "EOF") {
-				logger.Println("Wrong BLE pin was entered (sendpin error = eof), reinitializing BLE client")
-				BleClient.Close()
-				time.Sleep(time.Second)
-				BleClient, err = InitBle()
-				if err != nil {
-					fmt.Fprint(w, "error reinitializing ble: "+err.Error())
-					return
-				}
-				fmt.Fprint(w, "incorrect pin")
-			} else {
-				fmt.Fprint(w, "error: "+err.Error())
-			}
 			return
 		}
 		fmt.Fprint(w, "success")
-		return
-	case r.URL.Path == "/api-ble/get_wifi_status":
-		resp, err := BleClient.GetStatus()
+	case "/api-ble/send_pin":
+		err := SendPin(r.FormValue("pin"), bleClient)
+		if err == nil {
+			fmt.Fprint(w, "success")
+			return
+		}
+		if !strings.Contains(err.Error(), "EOF") {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		logger.Println("Wrong BLE pin was entered (sendpin error = eof), reinitializing BLE client")
+		resetBLE()
+		time.Sleep(time.Second)
+		if err := initBLE(); err != nil {
+			fmt.Fprint(w, "error reinitializing ble: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, "incorrect pin")
+	case "/api-ble/get_wifi_status":
+		resp, err := bleClient.GetStatus()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
 		fmt.Fprint(w, resp.WifiState)
-		return
-	case r.URL.Path == "/api-ble/get_firmware_version":
-		//v1.8.1.6051-453e582_os1.8.1.6051ep-1536e0d-202202282217
-		//v0.9.0-12efb91_os0.9.0-3e8307e-201806191226
-		resp, err := BleClient.GetStatus()
+	case "/api-ble/get_firmware_version":
+		resp, err := bleClient.GetStatus()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		// split version to just get ankiversion
-		splitOsAndRev := strings.Split(resp.Version, "_os")
-		splitOs := strings.Split(splitOsAndRev[1], "-")[0]
-		fmt.Fprint(w, splitOs)
-		return
-	case r.URL.Path == "/api-ble/get_ip_address":
-		resp, err := BleClient.WifiIP()
+		_, osVer, found := strings.Cut(resp.Version, "_os")
+		if !found {
+			fmt.Fprint(w, "error: unexpected version format: "+resp.Version)
+			return
+		}
+		fmt.Fprint(w, strings.Split(osVer, "-")[0])
+	case "/api-ble/get_ip_address":
+		resp, err := bleClient.WifiIP()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
 		fmt.Fprint(w, resp.IPv4)
-		return
-	case r.URL.Path == "/api-ble/start_ota":
-		otaUrl := r.FormValue("url")
-		if strings.TrimSpace(otaUrl) == "local" {
+	case "/api-ble/start_ota":
+		otaUrl := strings.TrimSpace(r.FormValue("url"))
+		if otaUrl == "local" {
 			logger.Println("Starting proxy download from archive.org")
 			otaUrl = "http://" + vars.GetOutboundIP().String() + ":" + vars.WebPort + "/api/get_ota/vicos-2.0.1.6076ep.ota"
 			logger.Println("(" + otaUrl + ")")
@@ -347,86 +325,76 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: ota URL must be http")
 			return
 		}
-		go doOTAStatus()
-		done := make(chan bool)
-		var resp *ble.OTAStartResponse
-		var err error
-
+		setOTAStatus("OTA download progress: 0%")
+		type result struct {
+			resp *ble.OTAStartResponse
+			err  error
+		}
+		done := make(chan result, 1)
+		client := bleClient
 		go func() {
-			resp, err = BleClient.OTAStart(otaUrl)
-			done <- true
+			resp, err := client.OTAStart(otaUrl)
+			done <- result{resp, err}
 		}()
-
 		select {
-		case <-done:
-			fmt.Println("done")
-			if err != nil {
-				fmt.Fprint(w, "error: "+err.Error())
+		case res := <-done:
+			if res.err != nil {
+				fmt.Fprint(w, "error: "+res.err.Error())
 				return
 			}
-			fmt.Fprint(w, resp.Status)
-			return
+			fmt.Fprint(w, res.resp.Status)
 		case <-time.After(15 * time.Second):
 			fmt.Fprint(w, "likely success")
-			return
 		}
-	case r.URL.Path == "/api-ble/get_ota_status":
-		fmt.Fprint(w, OtaStatus)
-		return
-	case r.URL.Path == "/api-ble/stop_ota":
-		resp, err := BleClient.OTACancel()
+	case "/api-ble/stop_ota":
+		resp, err := bleClient.OTACancel()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
 		fmt.Fprint(w, "success: "+string(resp))
-		return
-	case r.URL.Path == "/api-ble/do_dev_setup":
-		go doLogStatus()
-		resp, err := BleClient.DownloadLogs()
+	case "/api-ble/do_dev_setup":
+		resp, err := bleClient.DownloadLogs()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
 		logger.Println(resp.Filename)
-		zip, err := os.Open(resp.Filename)
+		f, err := os.Open(resp.Filename)
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		tarFile := bzip2.NewReader(zip)
-		tarReader := tar.NewReader(tarFile)
+		defer f.Close()
+		tarReader := tar.NewReader(bzip2.NewReader(f))
 		for {
 			header, err := tarReader.Next()
+			if err == io.EOF {
+				break
+			}
 			if err != nil {
-				if err == io.EOF {
-					break
-				}
 				fmt.Fprint(w, "error: "+err.Error())
 				return
 			}
-			name := header.FileInfo().Name()
-			logger.Println(name)
+			logger.Println(header.FileInfo().Name())
 		}
 		fmt.Fprint(w, "done")
-		return
-	case r.URL.Path == "/api-ble/scan_wifi":
-		var returnNetworks []WifiNetwork
-		resp, err := BleClient.WifiScan()
+	case "/api-ble/scan_wifi":
+		resp, err := bleClient.WifiScan()
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
+		returnNetworks := []WifiNetwork{}
 		for _, network := range resp.Networks {
-			var returnNetwork WifiNetwork
-			returnNetwork.SSID = network.WifiSSID
-			returnNetwork.AuthType = network.AuthType
-			returnNetworks = append(returnNetworks, returnNetwork)
+			returnNetworks = append(returnNetworks, WifiNetwork{
+				SSID:     network.WifiSSID,
+				AuthType: network.AuthType,
+			})
 		}
 		returnJson, _ := json.Marshal(returnNetworks)
 		w.Write(returnJson)
-		return
-	case r.URL.Path == "/api-ble/connect_wifi":
+	case "/api-ble/connect_wifi":
 		if r.FormValue("ssid") == "" || r.FormValue("password") == "" {
 			fmt.Fprint(w, "error: ssid or password empty")
 			return
@@ -434,84 +402,65 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 		authType, err := strconv.Atoi(r.FormValue("authType"))
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
+			return
 		}
-		resp, err := BleClient.WifiConnect(r.FormValue("ssid"), r.FormValue("password"), 15, authType)
+		resp, err := bleClient.WifiConnect(r.FormValue("ssid"), r.FormValue("password"), 15, authType)
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
 		fmt.Fprint(w, resp.Result)
-	case r.URL.Path == "/api-ble/get_robot_status":
-		if !BleInited {
-			fmt.Fprint(w, "error: init ble first")
-			return
-		}
-		fmt.Fprint(w, RobotStatus(BleClient))
-	case r.URL.Path == "/api-ble/do_auth":
-		if !BleInited {
-			fmt.Fprint(w, "error: init ble first")
-			return
-		}
-		for i := 0; i <= 3; i++ {
-			resp, err := AuthRobot(BleClient)
-			if err != nil {
-				fmt.Fprint(w, "error: "+err.Error())
-				return
-			}
-			if resp {
-				time.Sleep(time.Second)
-				fmt.Fprint(w, "success")
-				return
-			} else {
-				if vars.APIConfig.Server.EPConfig {
-					logger.Println("BLE authentication was not successful. Posting mDNS and trying again (" + fmt.Sprint(i) + "/3)...")
-					mdnshandler.PostmDNSNow()
-					time.Sleep(time.Second * 2)
-					continue
-				} else {
-					logger.Println("BLE authentication was not successful")
-					fmt.Fprint(w, "error authenticating")
-					return
-				}
-			}
-		}
-		logger.Println("BLE authentication attempts exhausted")
-		fmt.Fprint(w, "error authenticating")
-		return
-	case r.URL.Path == "/api-ble/reset_onboarding":
-		BleClient.SDKProxy(
-			&ble.SDKProxyRequest{
-				URLPath: "/v1/send_onboarding_input",
-				Body:    `{"onboarding_set_phase_request": {"phase": 2}}`,
-			},
-		)
-	case r.URL.Path == "/api-ble/onboard":
-		wAnim := r.FormValue("with_anim")
-		if wAnim == "true" {
-			BleClient.SDKProxy(
-				&ble.SDKProxyRequest{
-					URLPath: "/v1/send_onboarding_input",
-					Body:    `{"onboarding_wake_up_request": {}}`,
-				},
-			)
-			time.Sleep(time.Second * 21)
-		}
-		BleClient.SDKProxy(
-			&ble.SDKProxyRequest{
-				URLPath: "/v1/send_onboarding_input",
-				Body:    `{"onboarding_mark_complete_and_exit": {}}`,
-			},
-		)
-		fmt.Fprint(w, "done")
-	case r.URL.Path == "/api-ble/disconnect":
-		err := BleClient.Close()
+	case "/api-ble/get_robot_status":
+		status, err := RobotStatus(bleClient)
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		BleInited = false
-		fmt.Fprint(w, "success")
-		return
+		fmt.Fprint(w, status)
+	case "/api-ble/do_auth":
+		for i := 0; i <= 3; i++ {
+			ok, err := AuthRobot(bleClient)
+			if err != nil {
+				fmt.Fprint(w, "error: "+err.Error())
+				return
+			}
+			if ok {
+				time.Sleep(time.Second)
+				fmt.Fprint(w, "success")
+				return
+			}
+			if !vars.APIConfig.Server.EPConfig {
+				logger.Println("BLE authentication was not successful")
+				fmt.Fprint(w, "error authenticating")
+				return
+			}
+			logger.Println("BLE authentication was not successful. Posting mDNS and trying again (" + fmt.Sprint(i) + "/3)...")
+			mdnshandler.PostmDNSNow()
+			time.Sleep(time.Second * 2)
+		}
+		logger.Println("BLE authentication attempts exhausted")
+		fmt.Fprint(w, "error authenticating")
+	case "/api-ble/reset_onboarding":
+		if err := sendOnboardingInput(`{"onboarding_set_phase_request": {"phase": 2}}`); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, "done")
+	case "/api-ble/onboard":
+		if r.FormValue("with_anim") == "true" {
+			if err := sendOnboardingInput(`{"onboarding_wake_up_request": {}}`); err != nil {
+				fmt.Fprint(w, "error: "+err.Error())
+				return
+			}
+			time.Sleep(time.Second * 21)
+		}
+		if err := sendOnboardingInput(`{"onboarding_mark_complete_and_exit": {}}`); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, "done")
+	default:
+		http.Error(w, "not found", http.StatusNotFound)
 	}
 }
 
