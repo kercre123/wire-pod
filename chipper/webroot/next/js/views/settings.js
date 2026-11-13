@@ -70,26 +70,28 @@ function AIPane({ back }) {
   const [kg, setKg] = useState(null);
   const [busy, setBusy] = useState(false);
   const [test, setTest] = useState(null);
-  useEffect(() => { if (data) { setKg({ ...data, provider: data.enable ? data.provider : "" }); setTest(null); } }, [data]);
+  useEffect(() => { if (data) { setKg({ ...data }); setTest(null); } }, [data]);
   if (error) return html`<${ErrorNote} error=${error} onRetry=${reload} />`;
   if (!kg) return html`<${Loading} />`;
 
-  const saved = { ...data, provider: data.enable ? data.provider : "" };
+  const saved = data; // while AI is off the server keeps the provider and every setting, so turning it back on restores them
   const dirty = JSON.stringify(kg) !== JSON.stringify(saved);
   const set = (patch) => { setKg({ ...kg, ...patch }); setTest(null); };
-  const p = kg.provider;
+  const p = kg.enable ? kg.provider : "";
   const choose = (next) => {
     setTest(null);
-    setKg(next === saved.provider ? { ...saved } : blankFor(next, kg));
+    if (next === "") setKg({ ...saved, enable: false }); // off only flips the switch; nothing saved is cleared
+    else setKg(next === saved.provider ? { ...saved, enable: true } : blankFor(next, kg));
   };
 
   const payload = () => {
+    if (p === "") return { ...saved, enable: false };
     const d = { ...blankFor(p, kg), robotName: kg.robotName || "" };
     if (p === "openai") Object.assign(d, { key: kg.key, openai_prompt: kg.openai_prompt, openai_voice: kg.openai_voice, openai_voice_with_english: kg.openai_voice_with_english });
     if (p === "custom") Object.assign(d, { key: kg.key, model: kg.model, openai_prompt: kg.openai_prompt, endpoint: kg.endpoint, temp: kg.temp || 0, top_p: kg.top_p || 0 });
     if (p === "together") Object.assign(d, { key: kg.key, model: kg.model, openai_prompt: kg.openai_prompt });
     if (p === "houndify") Object.assign(d, { key: kg.key, id: kg.id });
-    d.intentgraph = p !== "" && kg.intentgraph;
+    d.intentgraph = kg.intentgraph;
     d.save_chat = (p === "openai" || p === "custom" || p === "together") && kg.save_chat;
     d.commands_enable = (p === "openai" || p === "custom" || p === "together") && kg.commands_enable;
     return d;

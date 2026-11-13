@@ -66,7 +66,8 @@ export function aiStatus(config) {
   const kg = config && config.knowledge;
   if (!kg) return { known: false, on: true, provider: "", actions: true, canAct: true };
   const on = !!kg.enable && !!kg.provider;
-  return { known: true, on, provider: kg.provider || "", actions: !!kg.commands_enable, canAct: ["openai", "custom", "together"].includes(kg.provider) };
+  const provider = on ? kg.provider : ""; // a switched-off AI keeps its provider saved; the UI treats it as none
+  return { known: true, on, provider, actions: on && !!kg.commands_enable, canAct: ["openai", "custom", "together"].includes(provider) };
 }
 
 export function useAI() {
