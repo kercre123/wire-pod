@@ -281,6 +281,30 @@ function checkKG() {
   }
 }
 
+// which interface "/" opens; a server-wide setting, separate from the AI settings
+function loadUIDefault() {
+  fetch("/api/get_config")
+    .then((response) => response.json())
+    .then((config) => {
+      getE("uiDefaultNext").checked = !!config.ui && config.ui.default === "next";
+    })
+    .catch(() => {});
+}
+
+function setUIDefault(next) {
+  const box = getE("uiDefaultNext");
+  fetch("/api/set_ui_default", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ default: next ? "next" : "classic" }),
+  }).then((response) => {
+    if (!response.ok) throw new Error("not saved");
+  }).catch(() => {
+    box.checked = !next; // it did not save, so show what is still true
+    alert("Could not save that setting.");
+  });
+}
+
 function sendKGAPIKey() {
   const provider = getE("kgProvider").value;
   const data = {

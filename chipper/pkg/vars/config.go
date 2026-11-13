@@ -46,6 +46,11 @@ type apiConfig struct {
 		EPConfig bool   `json:"epconfig"`
 		Port     string `json:"port"`
 	} `json:"server"`
+	// UI picks which web interface "/" opens: "classic" (the default, also when unset) or "next". Both stay
+	// reachable at /classic and /next either way.
+	UI struct {
+		Default string `json:"default"`
+	} `json:"ui"`
 	HasReadFromEnv   bool `json:"hasreadfromenv"`
 	PastInitialSetup bool `json:"pastinitialsetup"`
 }

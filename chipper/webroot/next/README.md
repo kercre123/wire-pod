@@ -1,6 +1,6 @@
 # WirePod web UI
 
-Served at `/` (it redirects to `/next/`). The original UI is still at `/classic`, and every old URL
+Served at `/next/` (it opens at `/` only when the server config says `"ui": {"default": "next"}`). The original UI is the default and is at `/classic`, and every old URL
 (`/index.html`, `/setup.html`, `/initial.html`, `/sdkapp/...`) keeps working.
 
 - Preact + htm as plain ES modules, vendored in `vendor/` (see `vendor/README.md`). No build step,

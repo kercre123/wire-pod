@@ -44,6 +44,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleSetKGAPI(w, r)
 	case "get_kg_api":
 		handleGetKGAPI(w)
+	case "set_ui_default":
+		handleSetUIDefault(w, r)
 	case "test_llm":
 		handleTestLLM(w, r)
 	case "set_stt_info":
@@ -213,6 +215,20 @@ func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	vars.WriteConfigToDisk()
 	fmt.Fprint(w, "Changes successfully applied.")
+}
+
+// handleSetUIDefault chooses which web interface "/" opens. It is its own setting; it does not touch the AI settings.
+func handleSetUIDefault(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Default string `json:"default"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil || (request.Default != "classic" && request.Default != "next") {
+		http.Error(w, `error: "default" must be "classic" or "next"`, http.StatusBadRequest)
+		return
+	}
+	vars.APIConfig.UI.Default = request.Default
+	vars.WriteConfigToDisk()
+	fmt.Fprint(w, "done")
 }
 
 func handleGetKGAPI(w http.ResponseWriter) {
@@ -397,9 +413,9 @@ func DisableCachingAndSniffing(next http.Handler) http.Handler {
 	})
 }
 
-// newWebRootHandler serves the web root. The new UI (webroot/next) is the front page: "/" redirects to
-// it, and the original UI stays at /classic and, for old links and bookmarks, at /index.html and every
-// other file under the web root.
+// newWebRootHandler serves the web root. "/" opens the classic UI unless the config says ui.default is
+// "next". Either way the classic UI is at /classic (and, for old links and bookmarks, /index.html and every
+// other file under the web root) and the new UI (webroot/next) is at /next/.
 func newWebRootHandler(dir string) http.Handler {
 	files := http.FileServer(http.Dir(dir))
 	next := newNextAssets(dir, files)
@@ -410,7 +426,11 @@ func newWebRootHandler(dir string) http.Handler {
 		}
 		switch r.URL.Path {
 		case "/":
-			http.Redirect(w, r, "/next/", http.StatusFound)
+			if vars.APIConfig.UI.Default == "next" {
+				http.Redirect(w, r, "/next/", http.StatusFound)
+			} else {
+				serveClassicUI(w, r, dir)
+			}
 		case "/classic/":
 			http.Redirect(w, r, "/classic", http.StatusFound)
 		case "/classic", "/index.html":
@@ -422,7 +442,7 @@ func newWebRootHandler(dir string) http.Handler {
 }
 
 // serveClassicUI serves index.html directly. http.FileServer and http.ServeFile would redirect a request
-// for /index.html to "/", which is now the new UI.
+// for /index.html to "/", which can be the new UI.
 func serveClassicUI(w http.ResponseWriter, r *http.Request, dir string) {
 	f, err := os.Open(filepath.Join(dir, "index.html"))
 	if err != nil {

@@ -5,7 +5,7 @@ import { href, go } from "../router.js";
 import { getJSON, getText, postJSON, describeError } from "../api.js";
 import { toast, confirmDialog, useStore, prefsStore, setPref } from "../store.js";
 import { Switch, Segmented, Loading, ErrorNote, Dialog, Callout, SecretInput, pageTitle, useUid } from "../ui.js";
-import { useServerInfo, loadVersion, loadConfig, setKnowledge, versionLabel } from "../server.js";
+import { useServerInfo, loadVersion, loadConfig, setKnowledge, versionLabel, opensNewUIByDefault, setUIDefault } from "../server.js";
 import { STT_LANGUAGES, KG_PROVIDERS, aiSummary, languageLabel, intentLabel } from "../data.js";
 import { ACCENTS } from "../theme.js";
 import { chooseKg, kgPayload } from "../kg.js";
@@ -377,6 +377,7 @@ const ServerPane = () => html`<div class="stack"><${VersionCard} /><${Connection
 
 function AppearancePane() {
   const { prefs } = useStore(prefsStore);
+  const { config } = useServerInfo();
   return html`<div class="card"><h2>Appearance</h2><p class="sub">How this app looks. Saves instantly, on this device.</p>
     <div class="opt"><div>Theme</div><${Segmented} label="Theme" options=${[["system", "System"], ["light", "Light"], ["dark", "Dark"]]} value=${prefs.theme} onChange=${(v) => setPref({ theme: v })} /></div>
     <div class="opt"><div id="ap-acc">Accent color${prefs.accentFollowsRobot && html`<small>Following the robot you’re viewing</small>`}</div>
@@ -385,6 +386,7 @@ function AppearancePane() {
     <div class="opt"><div>Accent follows the robot’s eye color<small>Highlights change to match the robot you’re viewing</small></div><${Switch} checked=${prefs.accentFollowsRobot} label="Accent follows the robot’s eye color" onChange=${(v) => setPref({ accentFollowsRobot: v })} /></div>
     <div class="opt"><div>Text size</div><${Segmented} label="Text size" options=${[["default", "Default"], ["large", "Large"]]} value=${prefs.size} onChange=${(v) => setPref({ size: v })} /></div>
     <div class="opt"><div>Font<small>Retro uses the classic UI’s pixel font</small></div><${Segmented} label="Font" options=${[["default", "Default"], ["retro", "Retro"]]} value=${prefs.font} onChange=${(v) => setPref({ font: v })} /></div>
+    ${config && html`<div class="opt"><div>Open WirePod in the new UI by default<small>For everyone using this server. The original UI stays at /classic.</small></div><${Switch} checked=${opensNewUIByDefault(config)} label="Open WirePod in the new UI by default" onChange=${(v) => setUIDefault(v).catch(fail)} /></div>`}
   </div>`;
 }
 

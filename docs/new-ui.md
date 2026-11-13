@@ -1,6 +1,6 @@
 # The new WirePod web UI
 
-A fresh front page for wire-pod: one place to see your robots, give them personalities and memories, drive them, and manage the server. It opens at **`/next`**, and `/` now redirects there. The original UI is still at **`/classic`**.
+A fresh front page for wire-pod: one place to see your robots, give them personalities and memories, drive them, and manage the server. It is optional: it lives at **`/next`**, and the original UI stays the default at `/` and **`/classic`**. Both are always reachable.
 
 ![The robots home: three robots with battery, personality and the last thing each heard](images/robots-home.png)
 
@@ -8,7 +8,7 @@ It's plain HTML and JavaScript served by wire-pod itself. There's nothing to ins
 
 ## Try it
 
-Open `http://<your wire-pod address>:8080/next/` (the same address you already use, plus `/next/`). A fresh install starts with a short setup; an existing one lands on your robots.
+Open `http://<your wire-pod address>:8080/next/` (the same address you already use, plus `/next/`), or click "Try the new UI" at the top of the original page. To make `/` open it, turn on **Settings > Appearance > Open WirePod in the new UI by default** (or the checkbox on the original page); this is saved in the server's config as `"ui": {"default": "next"}` (`"classic"` or unset is the default) and applies to everyone using the server. Turn it off the same way.
 
 ## A quick tour
 
@@ -54,7 +54,7 @@ It's designed phone-first and scales up. Below about 900 px wide the side rail b
 <img src="images/phone-memories-dark.png" alt="A Memories tab on a phone, in the dark theme" width="300">
 </p>
 
-Appearance (under **Settings > Appearance**) is saved on each device: light, dark or follow-the-system theme, an accent colour (or let it follow the robot's eye colour), larger text, and a retro pixel font if you miss the classic look.
+Appearance (under **Settings > Appearance**) is saved on each device, except the open-by-default switch, which is a server setting: light, dark or follow-the-system theme, an accent colour (or let it follow the robot's eye colour), larger text, and a retro pixel font if you miss the classic look.
 
 ## Performance on low-end hardware
 

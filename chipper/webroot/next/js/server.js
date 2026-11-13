@@ -1,7 +1,7 @@
 // Server-wide facts the shell and the home screen show: config and version.
 import { useEffect } from "./html.js";
 import { createStore, useStore } from "./store.js";
-import { getJSON } from "./api.js";
+import { getJSON, postJSON } from "./api.js";
 
 export const serverStore = createStore({ config: null, configError: false, version: null, versionState: "idle" });
 let started = false;
@@ -23,6 +23,17 @@ export function setKnowledge(knowledge) {
   configReads++;
   serverStore.set((s) => (s.config ? { config: { ...s.config, knowledge: { ...s.config.knowledge, ...knowledge } }, configError: false } : s));
   loadConfig(); // and confirm with the server in the background
+}
+
+// Which interface "/" opens, "classic" unless the server's config says "next". A server-wide setting; both
+// interfaces stay reachable at /classic and /next either way.
+export const opensNewUIByDefault = (config) => !!config && !!config.ui && config.ui.default === "next";
+
+export async function setUIDefault(next) {
+  const value = next ? "next" : "classic";
+  await postJSON("/api/set_ui_default", { default: value });
+  configReads++;
+  serverStore.set((s) => (s.config ? { config: { ...s.config, ui: { ...s.config.ui, default: value } }, configError: false } : s));
 }
 
 // Custom builds are named after the upstream release they are based on, like v1.2.18-custom.5. The server
