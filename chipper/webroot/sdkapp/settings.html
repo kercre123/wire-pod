@@ -54,6 +54,8 @@
               class="fa-solid fa-location-crosshairs" id="icon-location" name="icon"></i><br />Location</a></div>
         <div class="main-nav-child"><a href="#" onclick="showSection('section-timezone'); return false;"><i
               class="fa-solid fa-hourglass" id="icon-timezone" name="icon"></i><br />Time Zone</a></div>
+        <div class="main-nav-child"><a href="#" onclick="showSection('section-robotname'); return false;"><i
+              class="fa-solid fa-tag" id="icon-robotname" name="icon"></i><br />Name</a></div>
       </div>
       <hr>
 
@@ -328,6 +330,35 @@
         </div>
         <hr class="small-hr">
         <button onclick="sendLocation()">Submit Location</button>
+        <hr>
+      </div>
+
+      <div id="section-robotname" class="toggleable-section" style="display:none;">
+        <h2 class="center">Robot Name &amp; Personality</h2>
+        <hr class="small-hr">
+        <div id="currentRobotName" class="center desc"></div>
+        <small class="desc">The name is a nickname shown in wire-pod's robot lists; it does not change the name on the robot itself. Max 32 characters.</small>
+        <div class="center">
+          <input class="tinput" id="robotNameInput" name="robotNameInput" type="text" maxlength="32" placeholder="Robot name">
+        </div>
+        <br>
+        <small class="desc">Sent to the LLM for this robot only; combined with the global LLM Prompt. Max 1000 characters.</small>
+        <div class="center">
+          <textarea class="tinput" id="robotPersonalityInput" name="robotPersonalityInput" rows="4" maxlength="1000" placeholder="Example: Grumpy but secretly kind, loves astronomy, speaks like a pirate"></textarea>
+        </div>
+        <hr class="small-hr">
+        <button id="robotIdentitySave" onclick="sendRobotIdentity()" disabled>Save</button>
+        <hr>
+        <h2 class="center">Memories</h2>
+        <hr class="small-hr">
+        <small class="desc">Lasting facts this robot recalls in future conversations when the LLM is enabled (it can also save them itself when LLM commands are enabled). Only this robot sees them. Max 50, 200 characters each.</small>
+        <div id="robotMemoriesList"></div>
+        <div class="center">
+          <input class="tinput" id="robotMemoryInput" name="robotMemoryInput" type="text" maxlength="200" placeholder="Add a memory">
+        </div>
+        <hr class="small-hr">
+        <button onclick="addRobotMemory()">Add Memory</button>
+        <button onclick="clearRobotMemories()">Clear All</button>
         <hr>
       </div>
 

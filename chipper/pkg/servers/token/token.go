@@ -75,6 +75,8 @@ func GetEsnFromTarget(target string) (string, error) {
 
 func SetBotGUID(esn string, guid string, guidHash string) error {
 	matched := false
+	vars.BotInfoMu.Lock()
+	defer vars.BotInfoMu.Unlock()
 	for num, robot := range vars.BotInfo.Robots {
 		if strings.EqualFold(esn, robot.Esn) {
 			vars.BotInfo.Robots[num].GUID = guid
@@ -158,6 +160,7 @@ func ChangeGUIDInIni(esn string) {
 		logger.Println(err)
 		return
 	}
+	vars.BotInfoMu.RLock()
 	for _, robot := range vars.BotInfo.Robots {
 		matched := false
 		for _, section := range userIniData.Sections() {
@@ -175,6 +178,7 @@ func ChangeGUIDInIni(esn string) {
 			logger.Println("Bot is not in sdk_config.ini. Clear your bot's userdata and try authenticating again to create it.")
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	userIniData.SaveTo(vars.SDKIniPath + "sdk_config.ini")
 }
 

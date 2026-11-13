@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -60,6 +61,9 @@ var WebPort string = "8080"
 var SDKIniPath string
 var BotJdocs []botjdoc
 var BotInfo RobotInfoStore
+
+// guards writes to BotInfo and its persisted file
+var BotInfoMu sync.RWMutex
 var CustomIntents []CustomIntent
 var CustomIntentsExist bool = false
 var DownloadedVoskModels []string
@@ -94,6 +98,10 @@ type RobotInfoStore struct {
 		// 192.168.1.150:443
 		GUID      string `json:"guid"`
 		Activated bool   `json:"activated"`
+		// user-set nickname, shown in the web UI (not the robot's on-device name)
+		Name string `json:"name,omitempty"`
+		// user-set personality/identity, sent to the LLM for this robot only
+		Personality string `json:"personality,omitempty"`
 	} `json:"robots"`
 }
 
@@ -386,12 +394,14 @@ func ReadSessionCerts() {
 		}
 		pemBytes, _ := pem.Decode(certBytes)
 		cert, _ := x509.ParseCertificate(pemBytes.Bytes)
+		BotInfoMu.RLock()
 		for _, robot := range BotInfo.Robots {
 			if esn == robot.Esn {
 				ip = robot.IPAddress
 				break
 			}
 		}
+		BotInfoMu.RUnlock()
 		rinfo.ESN = esn
 		rinfo.ID = cert.Issuer.CommonName
 		rinfo.IP = ip
@@ -419,6 +429,7 @@ func GetRobot(esn string) (*vector.Vector, error) {
 	var guid string
 	var target string
 	matched := false
+	BotInfoMu.RLock()
 	for _, bot := range BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -427,6 +438,7 @@ func GetRobot(esn string) (*vector.Vector, error) {
 			break
 		}
 	}
+	BotInfoMu.RUnlock()
 	if !matched {
 		return nil, errors.New("robot not in botsdkinfo")
 	}

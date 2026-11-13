@@ -25,6 +25,9 @@ import (
 var serverFiles string = "./webroot/sdkapp"
 
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
+	if handleRobotIdentityAPI(w, r) {
+		return
+	}
 	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
 	robot := robotObj.Vector
 	ctx := robotObj.Ctx
@@ -100,7 +103,9 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "no bots are authenticated", http.StatusInternalServerError)
 			return
 		}
+		vars.BotInfoMu.RLock()
 		jsonBytes, err := json.Marshal(vars.BotInfo)
+		vars.BotInfoMu.RUnlock()
 		if err != nil {
 			fmt.Fprintf(w, "error marshaling json")
 			return
