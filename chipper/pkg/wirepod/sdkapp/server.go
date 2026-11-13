@@ -59,13 +59,11 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "success")
 		return
 	case r.URL.Path == "/api-sdk/cloud_intent":
-		intent := r.FormValue("intent")
-		robot.Conn.AppIntent(ctx,
-			&vectorpb.AppIntentRequest{
-				Intent: intent,
-			},
-		)
-		fmt.Fprintf(w, "done")
+		cloudIntent(ctx, w, robot.Conn, r.FormValue("intent"))
+		return
+	case r.URL.Path == "/api-sdk/drive_on_charger":
+		// works while the SDK holds behavior control, unlike the intent-based "go to charger"
+		driveOnCharger(ctx, w, robot.Conn)
 		return
 	case r.URL.Path == "/api-sdk/eye_color":
 		eye_color := r.FormValue("color")
