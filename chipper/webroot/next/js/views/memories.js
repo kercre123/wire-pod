@@ -1,7 +1,7 @@
 // Robot > Memories: what the robot remembers (kept by wire-pod, so it works while the robot is off).
 import { html, useState, useEffect, useRef } from "../html.js";
 import { getJSON, postForm, describeError } from "../api.js";
-import { robotName, toast } from "../store.js";
+import { robotName, toast, cacheGet, cachePut } from "../store.js";
 import { Icon } from "../icons.js";
 import { Loading, ErrorNote } from "../ui.js";
 import { People } from "./people.js";
@@ -19,7 +19,9 @@ const fmtDate = (s) => {
 export function Memories({ robot }) {
   const name = robotName(robot);
   const esn = robot.esn;
-  const [items, setItems] = useState(null);
+  const cacheKey = `memories:${esn}`;
+  const [items, setItems] = useState(() => cacheGet(cacheKey) || null);
+  useEffect(() => { if (items) cachePut(cacheKey, items); }, [items]);
   const [error, setError] = useState(null);
   const [hidden, setHidden] = useState([]); // ids waiting on their undo window
   const [text, setText] = useState("");
@@ -42,6 +44,7 @@ export function Memories({ robot }) {
     if (!p) return;
     pending.current = null;
     clearTimeout(p.timer);
+    cachePut(cacheKey, (cacheGet(cacheKey) || []).filter((m) => !p.ids.includes(m.id))); // so a quick return doesn't show them again
     try {
       // always by id, so "Clear all" only removes what was on screen, not memories added during the undo window
       // all requests go out at once: when the tab is closing, only requests already sent will arrive

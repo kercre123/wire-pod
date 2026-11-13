@@ -26,7 +26,7 @@ export function useHeard(everyMs = 8000) {
       if (!document.hidden) {
         try {
           const t = await getText("/api/get_logs", { timeout: 6000 });
-          if (alive) setHeard(parseHeard(t));
+          if (alive) { const next = parseHeard(t); setHeard((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next)); } // unchanged log: no re-render
         } catch (e) {
           // the log is a nice-to-have; leave the cards as they are
         }

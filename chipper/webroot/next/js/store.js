@@ -31,13 +31,41 @@ let pollers = 0;
 let timer = null;
 let inflight = false;
 
+// What a robot card shows. The server stamps every online probe with fresh times that nothing displays, so
+// they are left out: a poll that finds nothing new changes nothing, and views are not re-rendered.
+const shown = (r) => JSON.stringify(r.state === "online" ? { ...r, checked_at: 0, last_seen: 0 } : { ...r, checked_at: 0 });
+
+// Merge a fresh poll into what we have:
+//  - a robot whose displayed data did not change keeps its object (same identity), so nothing keyed on it reloads;
+//  - one failed or unfinished check does not flip an online robot to offline: it takes two in a row
+//    (a probe that merely timed out once would otherwise blank the robot's screens and reload them).
+const missed = new Map(); // esn -> checked_at of the one failed check we are holding back for an online robot
+function mergeRobots(prev, next) {
+  const old = new Map(prev.map((r) => [r.esn, r]));
+  const merged = next.map((r) => {
+    const was = old.get(r.esn);
+    if (r.state === "online") missed.delete(r.esn);
+    else if (was && was.state === "online") {
+      if (r.state === "checking") return was;
+      // the same cached failure seen again is still one failure; a different, later check that also fails is real
+      if (!missed.has(r.esn) || missed.get(r.esn) === r.checked_at) { missed.set(r.esn, r.checked_at); return was; }
+    }
+    return was && shown(was) === shown(r) ? was : r;
+  });
+  for (const esn of [...missed.keys()]) if (!next.some((r) => r.esn === esn)) missed.delete(esn);
+  const same = merged.length === prev.length && merged.every((r, i) => r === prev[i]);
+  return same ? prev : merged;
+}
+
 async function tick() {
   if (inflight) return;
   inflight = true;
   clearTimeout(timer);
   try {
-    const robots = await fetchRobotStatuses({ timeout: 10000 });
-    robotsStore.set({ loaded: true, robots, error: null });
+    const next = await fetchRobotStatuses({ timeout: 10000 });
+    const prev = robotsStore.get();
+    const robots = mergeRobots(prev.robots, next);
+    if (!prev.loaded || prev.error || robots !== prev.robots) robotsStore.set({ loaded: true, robots, error: null });
   } catch (e) {
     robotsStore.set({ loaded: true, error: describeError(e).message });
   } finally {
@@ -50,7 +78,7 @@ function schedule() {
   clearTimeout(timer);
   if (pollers === 0 || document.hidden) return;
   const checking = robotsStore.get().robots.some((r) => r.state === "checking");
-  timer = setTimeout(tick, checking ? 1200 : 5000);
+  timer = setTimeout(tick, checking ? 1200 : missed.size > 0 ? 2500 : 5000);
 }
 
 document.addEventListener("visibilitychange", () => {
@@ -84,6 +112,13 @@ export function robotName(r) {
 export function robotTitle(r) {
   return r ? r.name || "Vector" : "Robot";
 }
+
+// ---------- last-known data ----------
+// Screens remember what they last loaded. Coming back shows it at once and refreshes quietly, so a spinner
+// only ever appears the first time something is opened.
+const lastKnown = new Map();
+export const cacheGet = (key) => lastKnown.get(key);
+export const cachePut = (key, value) => { lastKnown.set(key, value); return value; };
 
 // ---------- toasts ----------
 

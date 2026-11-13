@@ -1,7 +1,7 @@
 // Settings: everything that applies to the whole WirePod server, in five sections.
 import { html, useState, useEffect, useRef } from "../html.js";
 import { Icon } from "../icons.js";
-import { href, go } from "../router.js";
+import { href } from "../router.js";
 import { getJSON, getText, postJSON, describeError } from "../api.js";
 import { toast, confirmDialog, useStore, prefsStore, setPref } from "../store.js";
 import { Switch, Segmented, Loading, ErrorNote, Dialog, Callout, SecretInput, pageTitle, useUid } from "../ui.js";
@@ -413,11 +413,12 @@ function useWide() {
   return w;
 }
 
-export function Settings({ section }) {
+export function Settings({ section: routeSection }) {
   const wide = useWide();
+  // on a wide screen the first section is the landing page; resolved here, not by redirecting, so it renders once
+  const section = routeSection || (wide ? "ai" : null);
   const server = useServerInfo();
   const { prefs } = useStore(prefsStore);
-  useEffect(() => { if (wide && !section) go(href.settings("ai"), { replace: true }); }, [wide, section]);
   const meta = SECTIONS.find((s) => s[0] === section);
   useEffect(() => pageTitle(meta ? meta[1] : "Settings"), [section]);
   const summaries = {

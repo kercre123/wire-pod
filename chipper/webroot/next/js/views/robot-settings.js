@@ -1,7 +1,7 @@
 // Robot > Settings: things stored on the robot itself. Each control saves the moment you change it.
 import { html, useState, useEffect, useRef } from "../html.js";
 import { sdk, sdkJSON, describeError } from "../api.js";
-import { robotName, toast, refreshRobots } from "../store.js";
+import { robotName, toast, refreshRobots, cacheGet, cachePut } from "../store.js";
 import { Segmented, Loading, ErrorNote, OfflineNotice, Callout } from "../ui.js";
 import { ACCENTS } from "../theme.js";
 
@@ -12,12 +12,15 @@ const TIME_ZONES = ["Pacific/Honolulu", "America/Juneau", "America/Los_Angeles",
 export function RobotSettings({ robot }) {
   const name = robotName(robot);
   const esn = robot.esn;
-  const [s, setS] = useState(null);
+  const cached = useRef(cacheGet(`rsettings:${esn}`) || null); // what we knew last time; shown while a quiet refresh runs
+  const [s, setS] = useState(cached.current && cached.current.s);
   const [error, setError] = useState(null);
   const [custom, setCustom] = useState(false);
-  const [hue, setHue] = useState(180);
-  const [sat, setSat] = useState(90);
-  const [city, setCity] = useState("");
+  const [hue, setHue] = useState(cached.current ? cached.current.hue : 180);
+  const [sat, setSat] = useState(cached.current ? cached.current.sat : 90);
+  const [city, setCity] = useState(cached.current ? cached.current.city : "");
+  const fieldsSet = useRef(!!cached.current); // the drafts below are only filled in by the first load, never overwritten by a quiet refresh
+  useEffect(() => { if (s) cachePut(`rsettings:${esn}`, { s, hue, sat, city }); }, [s]);
   const [volumeDraft, setVolumeDraft] = useState(null);
   const online = robot.state === "online";
 
@@ -26,8 +29,11 @@ export function RobotSettings({ robot }) {
     try {
       const v = await sdkJSON("get_sdk_settings", esn, {}, { timeout: 25000 });
       setS(v);
-      setCity(v.default_location || "");
-      if (v.custom_eye_color) { setHue(Math.round((v.custom_eye_color.hue || 0) * 360)); setSat(Math.round((v.custom_eye_color.saturation || 0) * 100)); }
+      if (!fieldsSet.current) {
+        fieldsSet.current = true;
+        setCity(v.default_location || "");
+        if (v.custom_eye_color) { setHue(Math.round((v.custom_eye_color.hue || 0) * 360)); setSat(Math.round((v.custom_eye_color.saturation || 0) * 100)); }
+      }
     } catch (e) {
       setError(describeError(e, name));
     }

@@ -2,7 +2,7 @@
 import { html, useState, useEffect, useRef } from "../html.js";
 import { Icon } from "../icons.js";
 import { getJSON, getText, sdk, sdkJSON, describeError } from "../api.js";
-import { robotName, toast, confirmDialog, refreshRobots } from "../store.js";
+import { robotName, toast, confirmDialog, refreshRobots, cacheGet, cachePut } from "../store.js";
 import { Loading, ErrorNote, OfflineNotice, Dialog, Switch } from "../ui.js";
 import { linesFor } from "../logs.js";
 import { href } from "../router.js";
@@ -11,7 +11,8 @@ import { href } from "../router.js";
 
 function Conversations({ robot }) {
   const name = robotName(robot);
-  const [lines, setLines] = useState(null);
+  const [lines, setLines] = useState(() => cacheGet(`chats:${robot.esn}`) || null);
+  useEffect(() => { if (lines) cachePut(`chats:${robot.esn}`, lines); }, [lines]);
   const [error, setError] = useState(null);
   const [showLog, setShowLog] = useState(false);
   const load = async () => {
@@ -73,7 +74,8 @@ export function TechLog({ esn, label }) {
 
 function Stats({ robot, photoCount }) {
   const name = robotName(robot);
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState(() => cacheGet(`stats:${robot.esn}`) || null);
+  useEffect(() => { if (stats) cachePut(`stats:${robot.esn}`, stats); }, [stats]);
   const [error, setError] = useState(null);
   const load = async () => {
     try { setStats(await sdkJSON("get_robot_stats", robot.esn, {}, { timeout: 20000 })); setError(null); }
@@ -137,7 +139,8 @@ function Mood({ robot }) {
 function Photos({ robot, onCount }) {
   const name = robotName(robot);
   const esn = robot.esn;
-  const [ids, setIds] = useState(null);
+  const [ids, setIds] = useState(() => cacheGet(`photos:${esn}`) || null);
+  useEffect(() => { if (ids) cachePut(`photos:${esn}`, ids); }, [ids]);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(null);
   const load = async () => {

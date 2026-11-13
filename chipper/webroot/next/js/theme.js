@@ -63,5 +63,7 @@ export function applyTheme(prefs, robotEye) {
 }
 
 export function watchSystemTheme(cb) {
-  if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener("change", cb);
+  if (!darkQuery || !darkQuery.addEventListener) return () => {};
+  darkQuery.addEventListener("change", cb);
+  return () => darkQuery.removeEventListener("change", cb);
 }

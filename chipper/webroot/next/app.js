@@ -61,7 +61,9 @@ function App() {
   const robot = route.name === "robot" ? robots.find((r) => r.esn === route.esn.toLowerCase()) : null;
   const eye = robot && robot.eye;
   useEffect(() => { applyTheme(prefs, eye); }, [prefs, eye]);
-  useEffect(() => { watchSystemTheme(() => applyTheme(prefsStore.get().prefs, eye)); }, [eye]);
+  const eyeNow = useRef(eye);
+  eyeNow.current = eye;
+  useEffect(() => watchSystemTheme(() => applyTheme(prefsStore.get().prefs, eyeNow.current)), []);
 
   // After moving to a new screen, put keyboard and screen-reader focus on its heading.
   const first = useRef(true);

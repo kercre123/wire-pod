@@ -1,5 +1,5 @@
 // Hash router. The server has no fallback route, so the app lives at /next/#/...
-import { useState, useEffect } from "./html.js";
+import { useReducer, useEffect } from "./html.js";
 
 export const ROBOT_TABS = ["personality", "memories", "settings", "controls", "activity"];
 export const SETTINGS_SECTIONS = ["ai", "voice", "integrations", "server", "appearance"];
@@ -32,19 +32,31 @@ export const href = {
   welcome: "#/welcome",
 };
 
+// The current route lives in one place, so a navigation produces exactly one new route object and one render,
+// and re-reading an unchanged hash produces none.
+let current = parseHash();
+const listeners = new Set();
+function sync() {
+  const next = parseHash();
+  if (JSON.stringify(next) === JSON.stringify(current)) return;
+  current = next;
+  listeners.forEach((f) => f());
+}
+window.addEventListener("hashchange", sync);
+
 export function go(hash, { replace = false } = {}) {
-  if (replace) history.replaceState(null, "", hash);
-  else location.hash = hash;
-  if (replace) window.dispatchEvent(new HashChangeEvent("hashchange"));
+  if (replace) {
+    history.replaceState(null, "", hash); // no hashchange event, so nothing else reacts to a redirect
+    sync();
+  } else location.hash = hash;
 }
 
 export function useRoute() {
-  const [route, setRoute] = useState(parseHash());
+  const [, bump] = useReducer((n) => n + 1, 0);
   useEffect(() => {
-    const f = () => setRoute(parseHash());
-    window.addEventListener("hashchange", f);
-    f(); // child effects can change the hash before this listener existed
-    return () => window.removeEventListener("hashchange", f);
+    listeners.add(bump);
+    sync(); // the hash may have been replaced before this subscribed
+    return () => listeners.delete(bump);
   }, []);
-  return route;
+  return current;
 }

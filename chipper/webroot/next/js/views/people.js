@@ -2,7 +2,7 @@
 import { html, useState, useEffect, useRef } from "../html.js";
 import { Icon } from "../icons.js";
 import { sdk, describeError } from "../api.js";
-import { robotName, toast, confirmDialog } from "../store.js";
+import { robotName, toast, confirmDialog, cacheGet, cachePut } from "../store.js";
 import { Loading, ErrorNote, Dialog, Callout } from "../ui.js";
 
 function parseFaces(text) {
@@ -28,7 +28,8 @@ export function People({ robot }) {
   const name = robotName(robot);
   const esn = robot.esn;
   const online = robot.state === "online";
-  const [faces, setFaces] = useState(null);
+  const [faces, setFaces] = useState(() => cacheGet(`faces:${esn}`) || null);
+  useEffect(() => { if (faces) cachePut(`faces:${esn}`, faces); }, [faces]);
   const [error, setError] = useState(null);
   const [newName, setNewName] = useState("");
   const [rename, setRename] = useState(null);
