@@ -60,7 +60,7 @@ export function Controls({ robot }) {
       c.controlled = false;
       setControlled(false);
       setKb(false);
-      sdk("release_behavior_control", esn).catch(() => {});
+      await sdk("release_behavior_control", esn); // awaited so a quick action can tell control is really back
     }
   };
   const stopCam = (phase = "off") => {
