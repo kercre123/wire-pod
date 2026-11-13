@@ -7,9 +7,16 @@ import { sdk, postMultipart, describeError } from "../api.js";
 import { robotName, toast, refreshRobots } from "../store.js";
 import { Switch, HoldButton, OfflineNotice, Callout } from "../ui.js";
 import { toVectorWav } from "../audio.js";
-import { QUICK, runQuick } from "../quick.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const QUICK = [
+  ["Explore", "cloud_intent", { intent: "explore_start" }],
+  ["Dance", "cloud_intent", { intent: "intent_imperative_dance" }],
+  ["Fetch cube", "cloud_intent", { intent: "intent_imperative_fetchcube" }],
+  ["Go to charger", "cloud_intent", { intent: "intent_system_charger" }],
+  ["Sleep", "cloud_intent", { intent: "intent_system_sleep" }, "moon"],
+];
 
 // wheel speeds for a set of held keys (w a s d)
 export function wheelsFor(k) {
@@ -169,7 +176,12 @@ export function Controls({ robot }) {
       await sdk("say_text", esn, { text: t });
     } catch (err) { fail(err); }
   };
-  const quick = (q) => runQuick(q, { esn, name, controlled: ctl.current.controlled, release, toast });
+  const quick = async ([label, endpoint, params]) => {
+    try {
+      await sdk(endpoint, esn, params);
+      toast(`${label}: sent to ${name}`);
+    } catch (e) { fail(e); }
+  };
   const heyVector = async () => {
     try {
       await sdk("trigger_wake_word", esn);
@@ -217,7 +229,7 @@ export function Controls({ robot }) {
       <div class="card">
         <h2 class="h3">Quick actions</h2><p class="sub">Send ${name} off to do something.</p>
         <div class="chips">
-          ${QUICK.map((q) => html`<button type="button" class="chip" key=${q.label} onClick=${() => quick(q)}>${q.icon && html`<${Icon} name=${q.icon} size=${16} />`}${q.label}</button>`)}
+          ${QUICK.map((q) => html`<button type="button" class="chip" key=${q[0]} onClick=${() => quick(q)}>${q[3] && html`<${Icon} name=${q[3]} size=${16} />`}${q[0]}</button>`)}
           <button type="button" class="chip" onClick=${heyVector}>Say “Hey Vector”</button>
         </div>
       </div>
