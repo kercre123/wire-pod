@@ -287,6 +287,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	var robot *vector.Vector
 	var guid string
 	var target string
+	vars.BotInfoMu.RLock()
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -295,6 +296,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if matched {
 		var err error
 		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
@@ -386,6 +388,19 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
+				// a reply that is only a command, e.g. a silent {{rememberFact||...}}, has no sentence end
+				if len(fullRespSlice) == 0 && strings.Contains(fullRespText, "{{") {
+					fullRespSlice = append(fullRespSlice, strings.TrimSpace(fullRespText))
+					fullRespText = ""
+					select {
+					case successIntent <- true:
+					default:
+					}
+					select {
+					case speakReady <- fullRespSlice[0]:
+					default:
+					}
+				}
 				// prevents a crash
 				if len(fullRespSlice) == 0 {
 					logger.Println("LLM returned no response")
@@ -584,6 +599,7 @@ func KGSim(esn string, textToSay string) error {
 	var robot *vector.Vector
 	var guid string
 	var target string
+	vars.BotInfoMu.RLock()
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -592,6 +608,7 @@ func KGSim(esn string, textToSay string) error {
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if matched {
 		var err error
 		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))

@@ -42,6 +42,7 @@ func newRobot(serial string) (Robot, int, error) {
 
 	// find robot info in BotInfo
 	matched := false
+	vars.BotInfoMu.RLock()
 	for _, robot := range vars.BotInfo.Robots {
 		if strings.EqualFold(serial, robot.Esn) {
 			RobotObj.ESN = strings.TrimSpace(strings.ToLower(serial))
@@ -56,6 +57,7 @@ func newRobot(serial string) (Robot, int, error) {
 			logger.Println("Connecting to " + serial + " with GUID " + RobotObj.GUID)
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if !matched {
 		inhibitCreation = false
 		return RobotObj, 0, fmt.Errorf("error: robot not found in SDK info file")
@@ -187,6 +189,7 @@ func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
 		return nil, fmt.Errorf("serial string missing")
 	}
 	matched := false
+	vars.BotInfoMu.RLock()
 	for _, robot := range vars.BotInfo.Robots {
 		if strings.EqualFold(serial, robot.Esn) {
 			matched = true
@@ -195,6 +198,7 @@ func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if !matched {
 		logger.Println("serial did not match any bot in bot json")
 		return nil, errors.New("serial did not match any bot in bot json")

@@ -17,6 +17,8 @@ import (
 )
 
 func IsBotInInfo(esn string) bool {
+	vars.BotInfoMu.RLock()
+	defer vars.BotInfoMu.RUnlock()
 	for _, robot := range vars.BotInfo.Robots {
 		if esn == strings.TrimSpace(strings.ToLower(robot.Esn)) {
 			return true

@@ -555,7 +555,24 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
+				// a reply that is only a command, e.g. a silent {{rememberFact||...}}, has no sentence end
+				if len(fullRespSlice) == 0 && strings.Contains(fullRespText, "{{") {
+					fullRespSlice = append(fullRespSlice, strings.TrimSpace(fullRespText))
+					fullRespText = ""
+					select {
+					case speakReady <- fullRespSlice[0]:
+					default:
+					}
+				}
 				isDone = true
+				if len(fullRespSlice) == 0 {
+					// nothing to act on; wake the waiting loop so it can finish
+					select {
+					case speakReady <- "":
+					default:
+					}
+					return
+				}
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {
 					if i == 0 {
@@ -587,26 +604,11 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 			}
 			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
-			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
-				var sepStr string
-				if strings.Contains(fullRespText, "...") {
-					sepStr = "..."
-				} else if strings.Contains(fullRespText, ".'") {
-					sepStr = ".'"
-				} else if strings.Contains(fullRespText, ".\"") {
-					sepStr = ".\""
-				} else if strings.Contains(fullRespText, ".") {
-					sepStr = "."
-				} else if strings.Contains(fullRespText, "?") {
-					sepStr = "?"
-				} else if strings.Contains(fullRespText, "!") {
-					sepStr = "!"
-				}
-				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
-				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
-				fullRespText = splitResp[1]
+			if sentence, rest, ok := splitFirstSentence(fullRespText); ok {
+				fullRespSlice = append(fullRespSlice, sentence)
+				fullRespText = rest
 				select {
-				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
+				case speakReady <- sentence:
 				default:
 				}
 			}
@@ -623,6 +625,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 				logger.Println("Waiting for more content from LLM...")
 				for range speakReady {
 					respSlice = fullRespSlice
+					break
+				}
+				if len(respSlice)-1 < numInResp {
 					break
 				}
 			} else {

@@ -42,12 +42,14 @@ func pingJdocs(target string) {
 	target = strings.Split(target, ":")[0]
 	var serial string
 	matched := false
+	vars.BotInfoMu.RLock()
 	for _, robot := range vars.BotInfo.Robots {
 		if strings.TrimSpace(strings.ToLower(robot.IPAddress)) == strings.TrimSpace(strings.ToLower(target)) {
 			matched = true
 			serial = robot.Esn
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if !matched {
 		logger.Println("jdocs pinger error: serial did not match any bot in bot json")
 		return
@@ -116,6 +118,7 @@ func InitJdocsPinger() {
 func ShouldPingJdocs(target string) bool {
 	var esn, guid, botip string
 	matched := false
+	vars.BotInfoMu.RLock()
 	for _, bot := range vars.BotInfo.Robots {
 		if target == bot.IPAddress {
 			esn = bot.Esn
@@ -125,6 +128,7 @@ func ShouldPingJdocs(target string) bool {
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if !matched {
 		return false
 	}
