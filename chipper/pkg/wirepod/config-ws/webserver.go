@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -43,6 +44,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleSetKGAPI(w, r)
 	case "get_kg_api":
 		handleGetKGAPI(w)
+	case "set_ui_default":
+		handleSetUIDefault(w, r)
+	case "test_llm":
+		handleTestLLM(w, r)
 	case "set_stt_info":
 		handleSetSTTInfo(w, r)
 	case "get_download_status":
@@ -210,6 +215,20 @@ func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	vars.WriteConfigToDisk()
 	fmt.Fprint(w, "Changes successfully applied.")
+}
+
+// handleSetUIDefault chooses which web interface "/" opens. It is its own setting; it does not touch the AI settings.
+func handleSetUIDefault(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Default string `json:"default"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil || (request.Default != "classic" && request.Default != "next") {
+		http.Error(w, `error: "default" must be "classic" or "next"`, http.StatusBadRequest)
+		return
+	}
+	vars.APIConfig.UI.Default = request.Default
+	vars.WriteConfigToDisk()
+	fmt.Fprint(w, "done")
 }
 
 func handleGetKGAPI(w http.ResponseWriter) {
@@ -394,20 +413,68 @@ func DisableCachingAndSniffing(next http.Handler) http.Handler {
 	})
 }
 
+// newWebRootHandler serves the web root. "/" opens the classic UI unless the config says ui.default is
+// "next". Either way the classic UI is at /classic (and, for old links and bookmarks, /index.html and every
+// other file under the web root) and the new UI (webroot/next) is at /next/.
+func newWebRootHandler(dir string) http.Handler {
+	files := http.FileServer(http.Dir(dir))
+	next := newNextAssets(dir, files)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/next/") {
+			next.ServeHTTP(w, r) // caches and compresses; see nextassets.go
+			return
+		}
+		switch r.URL.Path {
+		case "/":
+			if vars.APIConfig.UI.Default == "next" {
+				http.Redirect(w, r, "/next/", http.StatusFound)
+			} else {
+				serveClassicUI(w, r, dir)
+			}
+		case "/classic/":
+			http.Redirect(w, r, "/classic", http.StatusFound)
+		case "/classic", "/index.html":
+			serveClassicUI(w, r, dir)
+		default:
+			files.ServeHTTP(w, r)
+		}
+	})
+}
+
+// serveClassicUI serves index.html directly. http.FileServer and http.ServeFile would redirect a request
+// for /index.html to "/", which can be the new UI.
+func serveClassicUI(w http.ResponseWriter, r *http.Request, dir string) {
+	f, err := os.Open(filepath.Join(dir, "index.html"))
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	defer f.Close()
+	info, err := f.Stat()
+	if err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	http.ServeContent(w, r, "index.html", info.ModTime(), f)
+}
+
 func StartWebServer() {
+	// the new web UI (/next) ships its fonts as woff2, which not every OS mime table knows
+	mime.AddExtensionType(".woff2", "font/woff2")
 	botsetup.RegisterSSHAPI()
 	botsetup.RegisterBLEAPI()
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/session-certs/", certHandler)
-	var webRoot http.Handler
+	var webRootDir string
 	if runtime.GOOS == "darwin" && vars.Packaged {
 		appPath, _ := os.Executable()
-		webRoot = http.FileServer(http.Dir(filepath.Dir(appPath) + "/../Frameworks/chipper/webroot"))
+		webRootDir = filepath.Dir(appPath) + "/../Frameworks/chipper/webroot"
 	} else if runtime.GOOS == "android" || runtime.GOOS == "ios" {
-		webRoot = http.FileServer(http.Dir(vars.AndroidPath + "/static/webroot"))
+		webRootDir = vars.AndroidPath + "/static/webroot"
 	} else {
-		webRoot = http.FileServer(http.Dir("./webroot"))
+		webRootDir = "./webroot"
 	}
+	webRoot := newWebRootHandler(webRootDir)
 	http.Handle("/", DisableCachingAndSniffing(webRoot))
 	fmt.Printf("Starting webserver at port " + vars.WebPort + " (http://localhost:" + vars.WebPort + ")\n")
 	if err := http.ListenAndServe(":"+vars.WebPort, nil); err != nil {

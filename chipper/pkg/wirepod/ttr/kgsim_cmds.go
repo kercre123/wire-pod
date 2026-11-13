@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/memories"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/sashabaranov/go-openai"
 )
@@ -30,6 +32,8 @@ const (
 	ActionNewRequest = 4
 	// arg: sound file
 	ActionPlaySound = 4
+	// arg: a fact to remember (silent)
+	ActionRememberFact = 6
 )
 
 var animationMap [][2]string = [][2]string{
@@ -127,9 +131,16 @@ var ValidLLMCommands []LLMCommand = []LLMCommand{
 	},
 	{
 		Command:         "newVoiceRequest",
-		Description:     "Starts a new voice command from the robot. Use this if you want more input from the user after your response/if you want to carry out a conversation. Below this, there should be a NOTE telling you whether you are in conversation mode or not. If you are, DONT BE AFRAID TO USE THIS COMMAND! This goes at the end of your response, if you use it.",
+		Description:     "Makes the robot listen for another voice command right after you finish speaking. Use it ONLY when the user explicitly asked to keep chatting, or when you truly cannot answer without more information from them. Never use it to ask what the user thinks or to offer more facts. By default, answer and stop. This goes at the end of your response, if you use it.",
 		ParamChoices:    "now",
 		Action:          ActionNewRequest,
+		SupportedModels: []string{"all"},
+	},
+	{
+		Command:         "rememberFact",
+		Description:     "Use rememberFact to save a lasting fact about the user or yourself worth recalling in future conversations (names, preferences, events). Don't save trivia or duplicates. It is silent: don't mention that you saved anything. Keep the fact under 200 characters.",
+		ParamChoices:    "a short fact, as a plain sentence",
+		Action:          ActionRememberFact,
 		SupportedModels: []string{"all"},
 	},
 	// {
@@ -160,7 +171,7 @@ func CreatePrompt(origPrompt string, model string, isKG bool) string {
 			}
 		}
 		if isKG && vars.APIConfig.Knowledge.SaveChat {
-			promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question near the end of your response, you MUST use newVoiceRequest. If you decide you want to end the conversation, you should not use it."
+			promptAppentage := "\n\nNOTE: You are in 'conversation' mode, so earlier messages are remembered. Do NOT end answers with a question or use newVoiceRequest unless the user explicitly asked to keep chatting or you truly cannot answer without more information. Otherwise answer and stop."
 			prompt = prompt + promptAppentage
 		} else {
 			promptAppentage := "\n\nNOTE: You are NOT in 'conversation' mode. Refrain from asking the user any questions and from using newVoiceRequest."
@@ -179,7 +190,7 @@ func GetActionsFromString(input string) []RobotAction {
 		return []RobotAction{
 			{
 				Action:    ActionSayText,
-				Parameter: input,
+				Parameter: stripCommandStems(input),
 			},
 		}
 	}
@@ -189,31 +200,45 @@ func GetActionsFromString(input string) []RobotAction {
 			continue
 		}
 		if !strings.Contains(spl, "}}") {
-			// sayText
 			action := RobotAction{
 				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(spl),
+				Parameter: stripCommandStems(strings.TrimSpace(spl)),
 			}
 			actions = append(actions, action)
 			continue
 		}
 
-		cmdPlusParam := strings.Split(strings.TrimSpace(strings.Split(spl, "}}")[0]), "||")
+		inner := strings.TrimSpace(strings.Split(spl, "}}")[0])
+		cmdPlusParam := strings.Split(inner, "||")
 		cmd := strings.TrimSpace(cmdPlusParam[0])
-		param := strings.TrimSpace(cmdPlusParam[1])
-		action := CmdParamToAction(cmd, param)
-		if action.Action != -1 {
-			actions = append(actions, action)
-		}
-		if len(strings.Split(spl, "}}")) != 1 {
-			action := RobotAction{
-				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(strings.Split(spl, "}}")[1]),
+		if len(cmdPlusParam) >= 2 {
+			param := strings.TrimSpace(cmdPlusParam[1])
+			action := CmdParamToAction(cmd, param)
+			if action.Action != -1 {
+				actions = append(actions, action)
 			}
-			actions = append(actions, action)
+		}
+
+		afterParts := strings.SplitN(spl, "}}", 2)
+		if len(afterParts) == 2 {
+			spoken := stripCommandStems(strings.TrimSpace(afterParts[1]))
+			if spoken != "" {
+				action := RobotAction{
+					Action:    ActionSayText,
+					Parameter: spoken,
+				}
+				actions = append(actions, action)
+			}
 		}
 	}
 	return actions
+}
+
+// stripCommandStems removes any leaked command keywords or malformed tag
+// debris that slipped past the {{ }} parser, so they are never spoken aloud.
+func stripCommandStems(s string) string {
+	re := regexp.MustCompile(`\{\{[^}]*\}?\}?|(playAnimationWI|playAnimation|getImage|newVoiceRequest|rememberFact)\w*`)
+	return strings.TrimSpace(re.ReplaceAllString(s, ""))
 }
 
 func CmdParamToAction(cmd, param string) RobotAction {
@@ -228,6 +253,22 @@ func CmdParamToAction(cmd, param string) RobotAction {
 	logger.Println("LLM tried to do a command which doesn't exist: " + cmd + " (param: " + param + ")")
 	return RobotAction{
 		Action: -1,
+	}
+}
+
+// DoRememberFact stores a fact for this robot only. It is silent and only runs when LLM commands are enabled.
+func DoRememberFact(fact string, esn string) {
+	if !vars.APIConfig.Knowledge.CommandsEnable {
+		return
+	}
+	fact = memories.Truncate(memories.CleanText(fact))
+	m, added, err := memories.Add(esn, fact)
+	if err != nil {
+		logger.Println("Could not remember fact for " + esn + ": " + err.Error())
+		return
+	}
+	if added {
+		logger.Println("Remembered for " + esn + ": " + m.Text)
 	}
 }
 
@@ -390,6 +431,18 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 	return nil
 }
 
+// dropEmptyMessages removes messages that have neither text nor multi-part content.
+func dropEmptyMessages(msgs []openai.ChatCompletionMessage) []openai.ChatCompletionMessage {
+	out := make([]openai.ChatCompletionMessage, 0, len(msgs))
+	for _, m := range msgs {
+		if strings.TrimSpace(m.Content) == "" && len(m.MultiContent) == 0 {
+			continue
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
 func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector.Vector, stopStop chan bool) {
 	stopImaging := false
 	go func() {
@@ -446,7 +499,8 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	// encode to base64
 	reqBase64 := base64.StdEncoding.EncodeToString(resp.Data)
 
-	// add image to messages
+	// add image to messages. some servers (LM Studio) reject empty messages.
+	msgs = dropEmptyMessages(msgs)
 	msgs = append(msgs, openai.ChatCompletionMessage{
 		Role: openai.ChatMessageRoleUser,
 		MultiContent: []openai.ChatMessagePart{
@@ -485,10 +539,11 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	ctx := context.Background()
 	speakReady := make(chan string)
 
+	temp, topP := samplerSettings()
 	aireq := openai.ChatCompletionRequest{
 		MaxCompletionTokens: 2048,
-		Temperature:         1,
-		TopP:                1,
+		Temperature:         temp,
+		TopP:                topP,
 		FrequencyPenalty:    0,
 		PresencePenalty:     0,
 		Messages:            msgs,
@@ -529,7 +584,24 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
+				// a reply that is only a command, e.g. a silent {{rememberFact||...}}, has no sentence end
+				if len(fullRespSlice) == 0 && strings.Contains(fullRespText, "{{") {
+					fullRespSlice = append(fullRespSlice, strings.TrimSpace(fullRespText))
+					fullRespText = ""
+					select {
+					case speakReady <- fullRespSlice[0]:
+					default:
+					}
+				}
 				isDone = true
+				if len(fullRespSlice) == 0 {
+					// nothing to act on; wake the waiting loop so it can finish
+					select {
+					case speakReady <- "":
+					default:
+					}
+					return
+				}
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {
 					if i == 0 {
@@ -561,26 +633,11 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 			}
 			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
-			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
-				var sepStr string
-				if strings.Contains(fullRespText, "...") {
-					sepStr = "..."
-				} else if strings.Contains(fullRespText, ".'") {
-					sepStr = ".'"
-				} else if strings.Contains(fullRespText, ".\"") {
-					sepStr = ".\""
-				} else if strings.Contains(fullRespText, ".") {
-					sepStr = "."
-				} else if strings.Contains(fullRespText, "?") {
-					sepStr = "?"
-				} else if strings.Contains(fullRespText, "!") {
-					sepStr = "!"
-				}
-				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
-				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
-				fullRespText = splitResp[1]
+			if sentence, rest, ok := splitFirstSentence(fullRespText); ok {
+				fullRespSlice = append(fullRespSlice, sentence)
+				fullRespText = rest
 				select {
-				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
+				case speakReady <- sentence:
 				default:
 				}
 			}
@@ -597,6 +654,9 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 				logger.Println("Waiting for more content from LLM...")
 				for range speakReady {
 					respSlice = fullRespSlice
+					break
+				}
+				if len(respSlice)-1 < numInResp {
 					break
 				}
 			} else {
@@ -643,6 +703,8 @@ func PerformActions(msgs []openai.ChatCompletionMessage, actions []RobotAction, 
 		case action.Action == ActionGetImage:
 			DoGetImage(msgs, action.Parameter, robot, stopStop)
 			return true
+		case action.Action == ActionRememberFact:
+			DoRememberFact(action.Parameter, robot.Cfg.SerialNo)
 		case action.Action == ActionPlaySound:
 			DoPlaySound(action.Parameter, robot)
 		}

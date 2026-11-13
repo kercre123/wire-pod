@@ -281,6 +281,30 @@ function checkKG() {
   }
 }
 
+// which interface "/" opens; a server-wide setting, separate from the AI settings
+function loadUIDefault() {
+  fetch("/api/get_config")
+    .then((response) => response.json())
+    .then((config) => {
+      getE("uiDefaultNext").checked = !!config.ui && config.ui.default === "next";
+    })
+    .catch(() => {});
+}
+
+function setUIDefault(next) {
+  const box = getE("uiDefaultNext");
+  fetch("/api/set_ui_default", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ default: next ? "next" : "classic" }),
+  }).then((response) => {
+    if (!response.ok) throw new Error("not saved");
+  }).catch(() => {
+    box.checked = !next; // it did not save, so show what is still true
+    alert("Could not save that setting.");
+  });
+}
+
 function sendKGAPIKey() {
   const provider = getE("kgProvider").value;
   const data = {
@@ -297,6 +321,8 @@ function sendKGAPIKey() {
     save_chat: false,
     commands_enable: false,
     endpoint: "",
+    temp: 0,
+    top_p: 0,
   };
   if (provider === "openai") {
     data.key = getE("openaiKey").value;
@@ -311,6 +337,8 @@ function sendKGAPIKey() {
     data.model = getE("customModel").value;
     data.openai_prompt = getE("customAIPrompt").value;
     data.endpoint = getE("customAIEndpoint").value;
+    data.temp = parseFloat(getE("customTemp").value) || 0;
+    data.top_p = parseFloat(getE("customTopP").value) || 0;
     data.intentgraph = getE("intentyes").checked
     data.save_chat = getE("saveChatYes").checked
     data.commands_enable = getE("commandYes").checked
@@ -378,6 +406,8 @@ function updateKGAPI() {
         getE("customModel").value = data.model;
         getE("customAIPrompt").value = data.openai_prompt;
         getE("customAIEndpoint").value = data.endpoint;
+        getE("customTemp").value = data.temp || "";
+        getE("customTopP").value = data.top_p || "";
         getE("commandYes").checked = data.commands_enable
         getE("intentyes").checked = data.intentgraph
         getE("saveChatYes").checked = data.save_chat

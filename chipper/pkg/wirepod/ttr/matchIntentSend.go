@@ -35,7 +35,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 
 	// intercept if not intent graph but intent graph is enabled
-	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && intentThing == "intent_system_unmatched" {
+	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && vars.APIConfig.Knowledge.Enable && intentThing == "intent_system_unmatched" {
 		intentThing = "intent_greeting_hello"
 	}
 
@@ -199,12 +199,14 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 				logger.Println("Bot " + botSerial + " matched plugin " + PluginNames[num] + ", executing function")
 				var guid string
 				var target string
+				vars.BotInfoMu.RLock()
 				for _, bot := range vars.BotInfo.Robots {
 					if bot.Esn == botSerial {
 						guid = bot.GUID
 						target = bot.IPAddress + ":443"
 					}
 				}
+				vars.BotInfoMu.RUnlock()
 				intent, pluginResponse = PluginFunctions[num](voiceText, botSerial, guid, target)
 				if intent == "" && pluginResponse == "" {
 					break

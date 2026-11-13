@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0A7C75">
+  <title>WirePod</title>
+  <link rel="icon" href="../favicon.png">
+  <link rel="stylesheet" href="app.css">
+  <script>
+    // apply saved appearance before first paint so there is no flash
+    try {
+      var p = JSON.parse(localStorage.getItem("wirepod-next-prefs") || "{}"), r = document.documentElement;
+      if (p.theme === "light" || p.theme === "dark") r.setAttribute("data-theme", p.theme);
+      if (p.size === "large") r.setAttribute("data-size", "large");
+      if (p.font === "retro") r.setAttribute("data-font", "retro");
+    } catch (e) {}
+  </script>
+  <script type="importmap">
+    {"imports":{"preact":"./vendor/preact.module.js","preact/hooks":"./vendor/hooks.module.js","htm":"./vendor/htm.module.js"}}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main" onclick="event.preventDefault();var m=document.getElementById('main');if(m){m.setAttribute('tabindex','-1');m.focus();}">Skip to content</a>
+  <div id="root"></div>
+  <noscript><div class="card">WirePod needs JavaScript. The <a href="/classic">classic page</a> works without this one.</div></noscript>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

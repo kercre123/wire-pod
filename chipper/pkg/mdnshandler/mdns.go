@@ -71,8 +71,11 @@ func PostmDNS() {
 	logger.Println("Registering escapepod.local on network (loop)")
 	for {
 		ipAddr := vars.GetOutboundIP().String()
-		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
-		if os.Getenv("PRINT_MDNS") == "true" {
+		server, err := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
+		if err != nil {
+			// retry on the next cycle
+			logger.Println("mDNS registration error:", err)
+		} else if os.Getenv("PRINT_MDNS") == "true" {
 			logger.Println("mDNS broadcasted")
 		}
 		for {
@@ -83,8 +86,9 @@ func PostmDNS() {
 			MDNSTimeBeforeNextRegister = MDNSTimeBeforeNextRegister + (float32(1) / float32(4))
 			time.Sleep(time.Second / 4)
 		}
-		server.Shutdown()
-		server = nil
+		if server != nil {
+			server.Shutdown()
+		}
 		time.Sleep(time.Second / 3)
 	}
 }

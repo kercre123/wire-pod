@@ -179,6 +179,7 @@ func ParamChecker(req interface{}, intent string, speechText string, botSerial s
 			var guid string
 			var target string
 			matched := false
+			vars.BotInfoMu.RLock()
 			for _, bot := range vars.BotInfo.Robots {
 				if botSerial == bot.Esn {
 					guid = bot.GUID
@@ -187,6 +188,7 @@ func ParamChecker(req interface{}, intent string, speechText string, botSerial s
 					break
 				}
 			}
+			vars.BotInfoMu.RUnlock()
 			if matched {
 				vec, err := vector.New(vector.WithSerialNo(botSerial), vector.WithToken(guid), vector.WithTarget(target))
 				if err != nil {

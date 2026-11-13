@@ -17,6 +17,8 @@ import (
 )
 
 func IsBotInInfo(esn string) bool {
+	vars.BotInfoMu.RLock()
+	defer vars.BotInfoMu.RUnlock()
 	for _, robot := range vars.BotInfo.Robots {
 		if esn == strings.TrimSpace(strings.ToLower(robot.Esn)) {
 			return true
@@ -132,6 +134,8 @@ func StoreBotInfo(ctx context.Context, thing string) {
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
 	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
+	vars.BotInfoMu.Lock()
+	defer vars.BotInfoMu.Unlock()
 	vars.BotInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
 	for num, robot := range vars.BotInfo.Robots {
 		if robot.Esn == botEsn {
@@ -142,10 +146,12 @@ func StoreBotInfo(ctx context.Context, thing string) {
 	if appendNew {
 		logger.Println("Adding " + botEsn + " to bot info store")
 		vars.BotInfo.Robots = append(vars.BotInfo.Robots, struct {
-			Esn       string `json:"esn"`
-			IPAddress string `json:"ip_address"`
-			GUID      string `json:"guid"`
-			Activated bool   `json:"activated"`
+			Esn         string `json:"esn"`
+			IPAddress   string `json:"ip_address"`
+			GUID        string `json:"guid"`
+			Activated   bool   `json:"activated"`
+			Name        string `json:"name,omitempty"`
+			Personality string `json:"personality,omitempty"`
 		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
 	}
 	finalJsonBytes, _ := json.Marshal(vars.BotInfo)

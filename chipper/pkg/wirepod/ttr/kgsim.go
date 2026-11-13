@@ -17,6 +17,7 @@ import (
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
+	"github.com/kercre123/wire-pod/chipper/pkg/memories"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/sashabaranov/go-openai"
 )
@@ -134,6 +135,105 @@ func removeEmojis(input string) string {
 	return result
 }
 
+// samplerSettings returns temperature/top_p for the custom provider; 0 (unset) means 1.
+func samplerSettings() (float32, float32) {
+	temp, topP := float32(1), float32(1)
+	if vars.APIConfig.Knowledge.Provider == "custom" {
+		if vars.APIConfig.Knowledge.Temperature > 0 {
+			temp = vars.APIConfig.Knowledge.Temperature
+		}
+		if vars.APIConfig.Knowledge.TopP > 0 {
+			topP = vars.APIConfig.Knowledge.TopP
+		}
+	}
+	return temp, topP
+}
+
+// robotIdentityPrompt returns the per-robot name/personality preamble, or "" when neither is set.
+func robotIdentityPrompt(name, personality string) string {
+	name = strings.TrimSpace(name)
+	personality = strings.TrimSpace(personality)
+	var parts []string
+	if name != "" {
+		parts = append(parts, "Your name is "+name+". This name overrides any other name given in the instructions below.")
+	}
+	if personality != "" {
+		parts = append(parts, "Your personality and identity: "+personality)
+	}
+	return strings.Join(parts, " ")
+}
+
+func getRobotIdentity(esn string) (string, string) {
+	vars.BotInfoMu.RLock()
+	defer vars.BotInfoMu.RUnlock()
+	for _, bot := range vars.BotInfo.Robots {
+		if strings.EqualFold(esn, bot.Esn) {
+			return bot.Name, bot.Personality
+		}
+	}
+	return "", ""
+}
+
+// maskCommands replaces everything inside {{ }} (or after an unclosed {{) with underscores, keeping byte
+// offsets, so sentence-ending punctuation inside an LLM command parameter doesn't split the stream.
+func maskCommands(s string) string {
+	b := []byte(s)
+	for i := 0; i < len(b); {
+		if i+1 < len(b) && b[i] == '{' && b[i+1] == '{' {
+			end := len(b)
+			if j := strings.Index(s[i+2:], "}}"); j >= 0 {
+				end = i + 2 + j + 2
+			}
+			for k := i; k < end; k++ {
+				b[k] = '_'
+			}
+			i = end
+			continue
+		}
+		i++
+	}
+	return string(b)
+}
+
+// splitFirstSentence splits streamed text at the first sentence separator that is outside an LLM command.
+func splitFirstSentence(text string) (sentence, rest string, ok bool) {
+	text = strings.TrimSpace(text)
+	masked := maskCommands(text)
+	var sepStr string
+	switch {
+	case strings.Contains(masked, "..."):
+		sepStr = "..."
+	case strings.Contains(masked, ".'"):
+		sepStr = ".'"
+	case strings.Contains(masked, ".\""):
+		sepStr = ".\""
+	case strings.Contains(masked, "."):
+		sepStr = "."
+	case strings.Contains(masked, "?"):
+		sepStr = "?"
+	case strings.Contains(masked, "!"):
+		sepStr = "!"
+	default:
+		return "", text, false
+	}
+	idx := strings.Index(masked, sepStr)
+	return strings.TrimSpace(text[:idx]) + sepStr, text[idx+len(sepStr):], true
+}
+
+// composeRobotPrompt puts this robot's identity (name/personality) and long-term memories before the global prompt.
+func composeRobotPrompt(esn, globalPrompt string) string {
+	var parts []string
+	if identity := robotIdentityPrompt(getRobotIdentity(esn)); identity != "" {
+		logger.Println("Using custom name/personality for " + esn)
+		parts = append(parts, identity)
+	}
+	if mem := memories.PromptBlock(esn); mem != "" {
+		logger.Println("Using long-term memories for " + esn)
+		parts = append(parts, mem)
+	}
+	return strings.Join(append(parts, globalPrompt), "\n\n")
+}
+
 func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.ChatCompletionRequest {
 	defaultPrompt := "You are a helpful, animated robot called Vector. Keep the response concise yet informative."
 
@@ -147,6 +247,7 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	} else {
 		smsg.Content = defaultPrompt
 	}
+	smsg.Content = composeRobotPrompt(esn, smsg.Content)
 
 	var model string
 
@@ -169,18 +270,26 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	if vars.APIConfig.Knowledge.SaveChat {
 		rchat := GetChat(esn)
 		logger.Println("Using remembered chats, length of " + fmt.Sprint(len(rchat.Chats)) + " messages")
-		nChat = append(nChat, rchat.Chats...)
+		for _, m := range rchat.Chats {
+			// some servers (LM Studio) reject messages without content; an image message has none but parts
+			if strings.TrimSpace(m.Content) != "" || len(m.MultiContent) > 0 {
+				nChat = append(nChat, m)
+			}
+		}
 	}
-	nChat = append(nChat, openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleUser,
-		Content: transcribedText,
-	})
+	if strings.TrimSpace(transcribedText) != "" {
+		nChat = append(nChat, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: transcribedText,
+		})
+	}
 
+	temp, topP := samplerSettings()
 	aireq := openai.ChatCompletionRequest{
 		Model:               model,
 		MaxCompletionTokens: 2048,
-		Temperature:         1,
-		TopP:                1,
+		Temperature:         temp,
+		TopP:                topP,
 		FrequencyPenalty:    0,
 		PresencePenalty:     0,
 		Messages:            nChat,
@@ -190,6 +299,10 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 }
 
 func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bool) (string, error) {
+	if strings.TrimSpace(transcribedText) == "" {
+		logger.Println("Empty transcribed text, not calling the LLM")
+		return "", nil
+	}
 	start := make(chan bool)
 	stop := make(chan bool)
 	stopStop := make(chan bool)
@@ -200,6 +313,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	var robot *vector.Vector
 	var guid string
 	var target string
+	vars.BotInfoMu.RLock()
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -208,6 +322,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if matched {
 		var err error
 		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
@@ -299,6 +414,19 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
+				// a reply that is only a command, e.g. a silent {{rememberFact||...}}, has no sentence end
+				if len(fullRespSlice) == 0 && strings.Contains(fullRespText, "{{") {
+					fullRespSlice = append(fullRespSlice, strings.TrimSpace(fullRespText))
+					fullRespText = ""
+					select {
+					case successIntent <- true:
+					default:
+					}
+					select {
+					case speakReady <- fullRespSlice[0]:
+					default:
+					}
+				}
 				// prevents a crash
 				if len(fullRespSlice) == 0 {
 					logger.Println("LLM returned no response")
@@ -356,30 +484,15 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 
 			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
-			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
-				var sepStr string
-				if strings.Contains(fullRespText, "...") {
-					sepStr = "..."
-				} else if strings.Contains(fullRespText, ".'") {
-					sepStr = ".'"
-				} else if strings.Contains(fullRespText, ".\"") {
-					sepStr = ".\""
-				} else if strings.Contains(fullRespText, ".") {
-					sepStr = "."
-				} else if strings.Contains(fullRespText, "?") {
-					sepStr = "?"
-				} else if strings.Contains(fullRespText, "!") {
-					sepStr = "!"
-				}
-				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
-				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
-				fullRespText = splitResp[1]
+			if sentence, rest, ok := splitFirstSentence(fullRespText); ok {
+				fullRespSlice = append(fullRespSlice, sentence)
+				fullRespText = rest
 				select {
 				case successIntent <- true:
 				default:
 				}
 				select {
-				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
+				case speakReady <- sentence:
 				default:
 				}
 			}
@@ -512,6 +625,7 @@ func KGSim(esn string, textToSay string) error {
 	var robot *vector.Vector
 	var guid string
 	var target string
+	vars.BotInfoMu.RLock()
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -520,6 +634,7 @@ func KGSim(esn string, textToSay string) error {
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if matched {
 		var err error
 		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))

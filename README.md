@@ -12,6 +12,13 @@ The installation guide exists on the wiki: [Installation guide](https://github.c
 
 Check out the [wiki](https://github.com/kercre123/wire-pod/wiki) for more information on what wire-pod is, a guide on how to install wire-pod, troubleshooting, how to develop for it, and for some generally helpful tips.
 
+## New web UI and AI features
+
+wire-pod has an optional new web UI at `/next`. The original UI stays the default and is always at `/classic`; to open the new one by default, tick "Open WirePod in the new UI by default" in either UI. With an AI provider switched on, each robot can have its own name, personality and long-term memories, and the whole thing can run free on your own computer with LM Studio or Ollama.
+
+- [AI features: names, personalities, memories and running it locally](docs/ai-features.md)
+- [The new web UI: a tour, keyboard and phone support](docs/new-ui.md)
+
 ## Donate
 
 If you want to :P

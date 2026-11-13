@@ -42,6 +42,7 @@ func newRobot(serial string) (Robot, int, error) {
 
 	// find robot info in BotInfo
 	matched := false
+	vars.BotInfoMu.RLock()
 	for _, robot := range vars.BotInfo.Robots {
 		if strings.EqualFold(serial, robot.Esn) {
 			RobotObj.ESN = strings.TrimSpace(strings.ToLower(serial))
@@ -56,6 +57,7 @@ func newRobot(serial string) (Robot, int, error) {
 			logger.Println("Connecting to " + serial + " with GUID " + RobotObj.GUID)
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if !matched {
 		inhibitCreation = false
 		return RobotObj, 0, fmt.Errorf("error: robot not found in SDK info file")
@@ -73,8 +75,11 @@ func newRobot(serial string) (Robot, int, error) {
 		return RobotObj, 0, err
 	}
 
-	// connection check
-	_, err = RobotObj.Vector.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
+	// connection check. Bounded: a robot that accepts the connection but never answers would otherwise
+	// hold inhibitCreation, and with it every other robot's SDK calls, indefinitely.
+	checkCtx, cancelCheck := context.WithTimeout(context.Background(), 10*time.Second)
+	_, err = RobotObj.Vector.Conn.BatteryState(checkCtx, &vectorpb.BatteryStateRequest{})
+	cancelCheck()
 	if err != nil {
 		inhibitCreation = false
 		return RobotObj, 0, err
@@ -187,6 +192,7 @@ func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
 		return nil, fmt.Errorf("serial string missing")
 	}
 	matched := false
+	vars.BotInfoMu.RLock()
 	for _, robot := range vars.BotInfo.Robots {
 		if strings.EqualFold(serial, robot.Esn) {
 			matched = true
@@ -195,6 +201,7 @@ func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if !matched {
 		logger.Println("serial did not match any bot in bot json")
 		return nil, errors.New("serial did not match any bot in bot json")
