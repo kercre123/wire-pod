@@ -1,4 +1,4 @@
-// Run with: node --test chipper/webroot/next/test
+// Run with: node --test chipper/webroot/next/test/*.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
 import { chooseKg, kgPayload } from "../js/kg.js";

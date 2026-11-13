@@ -196,7 +196,7 @@ select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50
 
 /* ---------- robots home ---------- */
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:16px}
-.rcard{position:relative;display:grid;gap:14px;align-content:start;background:var(--surface);border-radius:20px;padding:18px;box-shadow:0 1px 2px var(--shadow),0 0 0 1px var(--ring);min-width:0;color:inherit;text-decoration:none}
+.rcard{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-content:start;background:var(--surface);border-radius:20px;padding:18px;box-shadow:0 1px 2px var(--shadow),0 0 0 1px var(--ring);min-width:0;color:inherit;text-decoration:none}
 .rcard:hover{box-shadow:0 6px 20px var(--shadow),0 0 0 1px var(--line)}
 .rc-top{display:flex;align-items:center;gap:12px}
 .rc-id{display:grid;min-width:0;flex:1}
