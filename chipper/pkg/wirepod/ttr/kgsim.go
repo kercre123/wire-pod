@@ -271,8 +271,8 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 		rchat := GetChat(esn)
 		logger.Println("Using remembered chats, length of " + fmt.Sprint(len(rchat.Chats)) + " messages")
 		for _, m := range rchat.Chats {
-			// some servers (LM Studio) reject messages without content
-			if strings.TrimSpace(m.Content) != "" {
+			// some servers (LM Studio) reject messages without content; an image message has none but parts
+			if strings.TrimSpace(m.Content) != "" || len(m.MultiContent) > 0 {
 				nChat = append(nChat, m)
 			}
 		}

@@ -86,15 +86,21 @@ export function Controls({ robot }) {
     return () => clearTimeout(t);
   }, [camPhase]);
 
-  // leaving this screen hands everything back
-  useEffect(() => () => {
-    const c = ctl.current;
-    if (c.cam) sdk("stop_cam_stream", esn).catch(() => {});
-    if (c.mirror) sdk("mirror_mode", esn, { enable: "false" }).catch(() => {});
-    if (c.controlled) {
-      sdk("move_wheels", esn, { lw: 0, rw: 0 }).catch(() => {});
-      sdk("release_behavior_control", esn).catch(() => {});
-    }
+  // leaving this screen hands everything back, and so does closing or reloading the tab, which never unmounts
+  // the component. keepalive lets those last requests finish while the page goes away.
+  useEffect(() => {
+    const handBack = (opts = {}) => {
+      const c = ctl.current;
+      if (c.cam) sdk("stop_cam_stream", esn, {}, opts).catch(() => {});
+      if (c.mirror) sdk("mirror_mode", esn, { enable: "false" }, opts).catch(() => {});
+      if (c.controlled) {
+        sdk("move_wheels", esn, { lw: 0, rw: 0 }, opts).catch(() => {});
+        sdk("release_behavior_control", esn, {}, opts).catch(() => {});
+      }
+    };
+    const onHide = () => handBack({ keepalive: true });
+    window.addEventListener("pagehide", onHide);
+    return () => { window.removeEventListener("pagehide", onHide); handBack(); };
   }, [esn]);
 
   // the robot dropped off the network: nothing here can work, so reset
