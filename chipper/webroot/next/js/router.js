@@ -5,6 +5,9 @@ export const ROBOT_TABS = ["personality", "memories", "settings", "controls", "a
 export const SETTINGS_SECTIONS = ["ai", "voice", "integrations", "server", "appearance"];
 
 export function parseHash(hash = location.hash) {
+  const q = hash.indexOf("?");
+  const query = new URLSearchParams(q >= 0 ? hash.slice(q + 1) : "");
+  if (q >= 0) hash = hash.slice(0, q);
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
   const [first, a, b] = parts;
   switch (first) {
@@ -14,7 +17,8 @@ export function parseHash(hash = location.hash) {
     case "robot":
       return a ? { name: "robot", esn: a, tab: ROBOT_TABS.includes(b) ? b : "personality" } : { name: "robots" };
     case "settings":
-      return { name: "settings", section: SETTINGS_SECTIONS.includes(a) ? a : null };
+      // ?return=#/robot/... says where to go back to after the section's work is done (only robot screens)
+      return { name: "settings", section: SETTINGS_SECTIONS.includes(a) ? a : null, back: /^#\/robot\//.test(query.get("return") || "") ? query.get("return") : null };
     case "add":
       return { name: "add" };
     case "welcome":
@@ -27,7 +31,7 @@ export function parseHash(hash = location.hash) {
 export const href = {
   robots: "#/",
   robot: (esn, tab) => `#/robot/${encodeURIComponent(esn)}${tab && tab !== "personality" ? "/" + tab : ""}`,
-  settings: (section) => `#/settings${section ? "/" + section : ""}`,
+  settings: (section, back) => `#/settings${section ? "/" + section : ""}${back ? "?return=" + encodeURIComponent(back) : ""}`,
   add: "#/add",
   welcome: "#/welcome",
 };

@@ -170,7 +170,7 @@ export function pageTitle(title) {
 }
 
 // Tabs with the keyboard pattern screen readers expect: arrows move, Home and End jump.
-// tabs: [[id, label, icon], ...]
+// tabs: [[id, label, icon, lockedHint?], ...]; a tab with a lockedHint shows a small lock badge and is still a normal tab
 export function Tabs({ tabs, value, onChange, label, idPrefix }) {
   const move = (e, i) => {
     let n = null;
@@ -204,8 +204,8 @@ export function Tabs({ tabs, value, onChange, label, idPrefix }) {
     return () => window.removeEventListener("resize", measure);
   }, []);
   return html`<div class=${"tabs-wrap" + (edge.l ? " fade-l" : "") + (edge.r ? " fade-r" : "")}><div class="tabs" role="tablist" aria-label=${label} ref=${strip} onScroll=${measure}>
-    ${tabs.map(([id, text, icon], i) => html`<button type="button" role="tab" key=${id} class="tab" id=${`${idPrefix}-tab-${id}`}
+    ${tabs.map(([id, text, icon, locked], i) => html`<button type="button" role="tab" key=${id} class="tab" id=${`${idPrefix}-tab-${id}`}
       aria-selected=${value === id ? "true" : "false"} aria-controls=${`${idPrefix}-panel`} tabindex=${value === id ? 0 : -1}
-      onClick=${() => onChange(id)} onKeyDown=${(e) => move(e, i)}><${Icon} name=${icon} size=${18} />${text}</button>`)}
+      onClick=${() => onChange(id)} onKeyDown=${(e) => move(e, i)}><${Icon} name=${icon} size=${18} />${text}${locked && html`<span class="lockbadge" aria-hidden="true"><${Icon} name="lock" size=${12} />AI</span><span class="sr-only"> (${locked})</span>`}</button>`)}
   </div></div>`;
 }

@@ -49,6 +49,19 @@ export function useServerInfo() {
   return s;
 }
 
+// Is AI on? The knowledge settings are the source of truth: switched on and a provider chosen.
+// Until the config has loaded nothing is locked, so the screen never flashes a "turn on AI" panel.
+export function aiStatus(config) {
+  const kg = config && config.knowledge;
+  if (!kg) return { known: false, on: true, provider: "", actions: true, canAct: true };
+  const on = !!kg.enable && !!kg.provider;
+  return { known: true, on, provider: kg.provider || "", actions: !!kg.commands_enable, canAct: ["openai", "custom", "together"].includes(kg.provider) };
+}
+
+export function useAI() {
+  return aiStatus(useServerInfo().config);
+}
+
 // "v1.0.3" or "commit abc1234" for source builds
 export function versionLabel(v) {
   if (!v) return "";

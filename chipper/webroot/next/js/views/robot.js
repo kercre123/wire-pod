@@ -4,6 +4,7 @@ import { Icon } from "../icons.js";
 import { href, go, ROBOT_TABS } from "../router.js";
 import { useRobots, robotName, robotTitle, refreshRobots, toast } from "../store.js";
 import { sdk, sdkJSON, describeError } from "../api.js";
+import { useAI } from "../server.js";
 import { Face, StatusPill, Battery, Tabs, Loading, Callout, Dialog, pageTitle } from "../ui.js";
 import { Personality } from "./personality.js";
 import { Memories } from "./memories.js";
@@ -80,6 +81,8 @@ export function RobotPage({ esn, tab }) {
   const [menu, setMenu] = useState(false);
   const [info, setInfo] = useState(false);
   const [sleeping, setSleeping] = useState(false);
+  const ai = useAI();
+  const locked = ai.known && !ai.on; // Personality and Memories need AI; their tabs stay, with a lock
   useEffect(() => pageTitle(robot ? robotName(robot) : "Robot"), [robot && robot.name, robot && robot.esn]);
 
   if (!robot) {
@@ -132,7 +135,7 @@ export function RobotPage({ esn, tab }) {
       <span><b>${name} isn’t answering.</b> Check that it’s powered on and on the same Wi-Fi as this computer. You can still edit its personality and memories.</span>
       <button type="button" class="btn small" onClick=${refreshRobots}><${Icon} name="refresh" size=${16} />Check again</button>
     <//>`}
-    <${Tabs} tabs=${TABS} value=${tab} onChange=${(t) => go(href.robot(robot.esn, t))} label="Robot sections" idPrefix="rt" />
+    <${Tabs} tabs=${locked ? TABS.map((t) => (t[0] === "personality" || t[0] === "memories" ? [...t, "needs AI"] : t)) : TABS} value=${tab} onChange=${(t) => go(href.robot(robot.esn, t))} label="Robot sections" idPrefix="rt" />
     <div role="tabpanel" id="rt-panel" aria-labelledby=${`rt-tab-${tab}`} tabindex="-1">${panel}</div>
     ${info && html`<${DebugInfo} robot=${robot} onClose=${() => setInfo(false)} />`}
   </div>`;

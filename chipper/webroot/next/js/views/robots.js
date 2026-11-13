@@ -1,14 +1,26 @@
 // Home: one card per robot, with a one-line server strip.
-import { html, useEffect } from "../html.js";
+import { html, useEffect, useState } from "../html.js";
 import { Icon } from "../icons.js";
 import { href } from "../router.js";
 import { useRobots, robotName, robotTitle } from "../store.js";
 import { Face, StatusPill, Battery, Loading, Callout, pageTitle } from "../ui.js";
-import { useServerInfo, versionLabel } from "../server.js";
+import { useAI, useServerInfo, versionLabel } from "../server.js";
 import { useHeard } from "../logs.js";
 import { aiSummary, languageLabel, timeAgo } from "../data.js";
 
-function RobotCard({ robot, heard }) {
+const HINT_KEY = "wirepod-next-ai-hint-dismissed";
+const hintDismissed = () => { try { return localStorage.getItem(HINT_KEY) === "1"; } catch (e) { return false; } };
+
+// One quiet line on the home page, not on every card.
+function AiHint() {
+  const [gone, setGone] = useState(hintDismissed);
+  if (gone) return null;
+  const dismiss = () => { try { localStorage.setItem(HINT_KEY, "1"); } catch (e) { /* private window: it just comes back next time */ } setGone(true); };
+  return html`<div class="aihint"><${Icon} name="spark" size=${18} /><span><a href=${href.settings("ai")}>Turn on AI</a> to give your robots personalities.</span>
+    <button type="button" class="btn quiet small" onClick=${dismiss} aria-label="Dismiss this hint">Dismiss</button></div>`;
+}
+
+function RobotCard({ robot, heard, aiOff }) {
   const name = robotName(robot);
   const offline = robot.state === "offline";
   let foot;
@@ -27,8 +39,8 @@ function RobotCard({ robot, heard }) {
     </div>
     ${robot.state === "checking" ? html`<div class="bat"><span class="cell none"></span><span>Checking…</span></div>` : html`<${Battery} battery=${robot.battery} />`}
     ${offline
-      ? html`<${Callout} icon="info"><span>${name} isn’t answering. Check that it’s powered on and on the same Wi-Fi as this computer. You can still edit its personality and memories.</span><//>`
-      : html`<p class="persona">${robot.personality || html`<span class="sub">No personality set yet. Open ${name} to give it one.</span>`}</p>`}
+      ? html`<${Callout} icon="info"><span>${name} isn’t answering. Check that it’s powered on and on the same Wi-Fi as this computer. You can still edit its ${aiOff ? "name" : "personality and memories"}.</span><//>`
+      : aiOff ? null : html`<p class="persona">${robot.personality || html`<span class="sub">No personality set yet. Open ${name} to give it one.</span>`}</p>`}
     <div class="rc-foot"><span>${foot}</span></div>
   </div>`;
 }
@@ -53,6 +65,8 @@ export function RobotsHome() {
   const { loaded, robots, error } = useRobots();
   const server = useServerInfo();
   const heard = useHeard();
+  const ai = useAI();
+  const aiOff = ai.known && !ai.on;
   useEffect(() => pageTitle("Robots"), []);
   const reachable = robots.filter((r) => r.state === "online").length;
   const checking = robots.some((r) => r.state === "checking");
@@ -70,8 +84,9 @@ export function RobotsHome() {
       <p class="sub">Add your Vector to give it a voice, a memory and a personality. It takes a few minutes and a Bluetooth connection.</p>
       <a class="btn pri" href=${href.add}><${Icon} name="plus" size=${18} />Add a robot</a>
     </div>`}
-    ${robots.length > 0 && html`<div class="cards">${robots.map((r) => html`<${RobotCard} key=${r.esn} robot=${r} heard=${heard[r.esn]} />`)}</div>`}
+    ${robots.length > 0 && aiOff && html`<${AiHint} />`}
+    ${robots.length > 0 && html`<div class="cards">${robots.map((r) => html`<${RobotCard} key=${r.esn} robot=${r} heard=${heard[r.esn]} aiOff=${aiOff} />`)}</div>`}
     <${Strip} server=${server} />
-    ${robots.length > 0 && html`<p class="sub" style="font-size:.8125rem">Tip: open a robot to change its name, personality and memories.</p>`}
+    ${robots.length > 0 && html`<p class="sub" style="font-size:.8125rem">Tip: open a robot to change its name${aiOff ? "" : ", personality and memories"}.</p>`}
   </div>`;
 }

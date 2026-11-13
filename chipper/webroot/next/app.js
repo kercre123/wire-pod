@@ -83,7 +83,7 @@ function App() {
   switch (route.name) {
     case "robots": view = html`<${RobotsHome} />`; break;
     case "robot": view = html`<${RobotPage} esn=${route.esn} tab=${route.tab} />`; break;
-    case "settings": view = html`<${Settings} section=${route.section} />`; break;
+    case "settings": view = html`<${Settings} section=${route.section} back=${route.back} />`; break;
     default: view = html`<${NotFound} />`;
   }
   return html`<div class="app">

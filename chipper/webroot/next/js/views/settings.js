@@ -1,7 +1,7 @@
 // Settings: everything that applies to the whole WirePod server, in five sections.
 import { html, useState, useEffect, useRef } from "../html.js";
 import { Icon } from "../icons.js";
-import { href } from "../router.js";
+import { href, go } from "../router.js";
 import { getJSON, getText, postJSON, describeError } from "../api.js";
 import { toast, confirmDialog, useStore, prefsStore, setPref } from "../store.js";
 import { Switch, Segmented, Loading, ErrorNote, Dialog, Callout, SecretInput, pageTitle, useUid } from "../ui.js";
@@ -64,7 +64,7 @@ function blankFor(p, keep) {
     intentgraph: keep.intentgraph, save_chat: keep.save_chat, commands_enable: keep.commands_enable, robotName: keep.robotName || "" };
 }
 
-function AIPane() {
+function AIPane({ back }) {
   const id = useUid("ai");
   const { data, error, reload, setData } = useLoad(() => getJSON("/api/get_kg_api"), []);
   const [kg, setKg] = useState(null);
@@ -100,8 +100,9 @@ function AIPane() {
       const body = payload();
       await postJSON("/api/set_kg_api", body);
       setData(body);
-      loadConfig();
+      await loadConfig(); // every screen sees AI on or off straight away
       toast("AI settings saved");
+      if (back && body.enable && body.provider) { setBusy(false); go(back); return; } // came here from a robot tab: return to it
     } catch (e) { fail(e); }
     setBusy(false);
   };
@@ -126,6 +127,7 @@ function AIPane() {
 
   return html`<div class="stack"><div class="card">
     <h2>AI & knowledge</h2><p class="sub">Where robots get answers when you ask a question.</p>
+    ${back && html`<${Callout}><span>Pick a provider and save. You’ll go straight back to your robot.</span><//>`}
     <span class="lbl" id=${`${id}-prov`}>Provider</span>
     <div class="prov" role="group" aria-labelledby=${`${id}-prov`}>
       ${PROVIDER_TILES.map(([v, n, d]) => html`<button type="button" key=${v} aria-pressed=${p === v ? "true" : "false"} onClick=${() => choose(v)}>${n}<small>${d}</small></button>`)}
@@ -413,7 +415,7 @@ function useWide() {
   return w;
 }
 
-export function Settings({ section: routeSection }) {
+export function Settings({ section: routeSection, back }) {
   const wide = useWide();
   // on a wide screen the first section is the landing page; resolved here, not by redirecting, so it renders once
   const section = routeSection || (wide ? "ai" : null);
@@ -430,7 +432,7 @@ export function Settings({ section: routeSection }) {
   };
   let pane = null;
   switch (section) {
-    case "ai": pane = html`<${AIPane} />`; break;
+    case "ai": pane = html`<${AIPane} back=${back} />`; break;
     case "voice": pane = html`<${VoicePane} />`; break;
     case "integrations": pane = html`<${IntegrationsPane} />`; break;
     case "server": pane = html`<${ServerPane} />`; break;

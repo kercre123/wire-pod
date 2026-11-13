@@ -5,6 +5,8 @@ import { robotName, toast, cacheGet, cachePut } from "../store.js";
 import { Icon } from "../icons.js";
 import { Loading, ErrorNote } from "../ui.js";
 import { People } from "./people.js";
+import { useAI } from "../server.js";
+import { AiUnlock, MemoriesNote } from "./ai-gate.js";
 
 const MAX_TEXT = 200;
 const MAX_COUNT = 50;
@@ -19,6 +21,8 @@ const fmtDate = (s) => {
 export function Memories({ robot }) {
   const name = robotName(robot);
   const esn = robot.esn;
+  const ai = useAI();
+  const off = ai.known && !ai.on; // memories are kept while AI is off; they just aren't shown or used
   const cacheKey = `memories:${esn}`;
   const [items, setItems] = useState(() => cacheGet(cacheKey) || null);
   useEffect(() => { if (items) cachePut(cacheKey, items); }, [items]);
@@ -105,9 +109,11 @@ export function Memories({ robot }) {
 
   const visible = (items || []).filter((m) => !hidden.includes(m.id));
   const full = (items || []).length >= MAX_COUNT;
+  if (off) return html`<div class="grid2"><${AiUnlock} robot=${robot} tab="memories" /><${People} robot=${robot} /></div>`;
   return html`<div class="grid2"><div class="card">
     <h2>What ${name} remembers</h2>
     <p class="sub">${name} brings these up in conversation (and can add its own when AI commands are on). Only ${name} knows them.</p>
+    ${ai.known && !ai.actions && html`<${MemoriesNote} robot=${robot} canAct=${ai.canAct} />`}
     <form class="addrow" onSubmit=${add}>
       <input class="inp" aria-label="New memory" aria-invalid=${addError ? "true" : "false"} maxlength=${MAX_TEXT} value=${text} disabled=${full}
         placeholder=${full ? `${name} can hold ${MAX_COUNT} memories. Delete one to add more.` : `Teach ${name} something, like “My dog is named Biscuit”`}
