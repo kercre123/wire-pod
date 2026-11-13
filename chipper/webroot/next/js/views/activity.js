@@ -105,13 +105,12 @@ function Mood({ robot }) {
   const [ready, setReady] = useState(false); // the robot is streaming events
   const card = useRef(null);
   const visible = useVisible(card);
-  // the robot only streams, and we only ask, while the card is on screen
+  // the event stream belongs to the robot (other viewers share it), so it follows the card; only the asking pauses
   useEffect(() => {
-    if (!visible) return;
     let alive = true;
     sdk("begin_event_stream", robot.esn).then(() => alive && setReady(true), () => alive && setFailed(true));
     return () => { alive = false; setReady(false); sdk("stop_event_stream", robot.esn).catch(() => {}); };
-  }, [robot.esn, visible]);
+  }, [robot.esn]);
   usePoll(async () => {
     try {
       const v = parseFloat(await sdk("get_stim_status", robot.esn, {}, { timeout: 5000 }));

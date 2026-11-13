@@ -82,7 +82,7 @@ function schedule() {
   clearTimeout(timer);
   if (pollers === 0 || document.hidden) return;
   const checking = robotsStore.get().robots.some((r) => r.state === "checking");
-  timer = setTimeout(() => { if (!document.hidden) tick(); }, checking ? 1200 : nextDelay(missed.size > 0 ? 2500 : 5000, fails)); // a tab hidden while waiting does not poll
+  timer = setTimeout(() => { if (!document.hidden) tick(); }, nextDelay(checking ? 1200 : missed.size > 0 ? 2500 : 5000, fails)); // a tab hidden while waiting does not poll
 }
 
 document.addEventListener("visibilitychange", () => {
