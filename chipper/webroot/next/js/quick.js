@@ -29,8 +29,6 @@ export async function runQuick(q, { esn, name, controlled, release, toast, call 
     await call("cloud_intent", esn, { intent: q.intent });
     toast(`${q.label}: sent to ${name}`);
   } catch (e) {
-    const m = describeError(e, name).message;
-    const why = /rpc error|code =|desc =/i.test(m) ? `Make sure ${name} is awake and on Wi-Fi, then try again.` : m;
-    toast(`${name} didn’t take “${q.label}”. ${why}`, { kind: "bad" });
+    toast(`${name} didn’t take “${q.label}”. ${describeError(e, name).message}`, { kind: "bad" });
   }
 }
