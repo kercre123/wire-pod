@@ -221,7 +221,7 @@ func splitFirstSentence(text string) (sentence, rest string, ok bool) {
 }
 
 // promoteTail makes the unsplit rest of a finished reply its own sentence when no sentence was found at
-// all, for example "Got it {{rememberFact||Lucas likes tea.}}", whose only punctuation is inside the
+// all, for example "Got it {{rememberFact||Sam likes tea.}}", whose only punctuation is inside the
 // command. Without it the whole reply, speech and command alike, would be dropped.
 func promoteTail(sentences []string, tail string) ([]string, bool) {
 	if len(sentences) > 0 || strings.TrimSpace(tail) == "" {

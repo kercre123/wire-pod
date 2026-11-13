@@ -19,13 +19,13 @@ func TestCreateAIReqRobotIdentity(t *testing.T) {
 		Activated   bool   `json:"activated"`
 		Name        string `json:"name,omitempty"`
 		Personality string `json:"personality,omitempty"`
-	}{Esn: "00902de7", Name: "Orbit", Personality: "grumpy but kind"})
+	}{Esn: "00aa11bb", Name: "Orbit", Personality: "grumpy but kind"})
 
 	sys := func(esn string) string {
 		return CreateAIReq("hello", esn, false, false).Messages[0].Content
 	}
 
-	got := sys("00902de7")
+	got := sys("00aa11bb")
 	if !strings.HasPrefix(got, "Your name is Orbit.") || !strings.Contains(got, "Your personality and identity: grumpy but kind") {
 		t.Fatalf("identity missing from system prompt: %q", got)
 	}
@@ -36,7 +36,7 @@ func TestCreateAIReqRobotIdentity(t *testing.T) {
 		t.Fatalf("identity leaked to another robot: %q", other)
 	}
 	vars.BotInfo.Robots[0].Name, vars.BotInfo.Robots[0].Personality = "", ""
-	if cleared := sys("00902de7"); strings.Contains(cleared, "Your name is") || strings.Contains(cleared, "personality") {
+	if cleared := sys("00aa11bb"); strings.Contains(cleared, "Your name is") || strings.Contains(cleared, "personality") {
 		t.Fatalf("cleared identity still present: %q", cleared)
 	}
 }
@@ -44,12 +44,12 @@ func TestCreateAIReqRobotIdentity(t *testing.T) {
 func TestMemoriesStayPerRobotInPrompt(t *testing.T) {
 	memories.DirOverride = t.TempDir()
 	defer func() { memories.DirOverride = "" }()
-	if _, _, err := memories.Add("aaaa1111", "Lucas's dog is named Biscuit"); err != nil {
+	if _, _, err := memories.Add("aaaa1111", "Sam's dog is named Biscuit"); err != nil {
 		t.Fatal(err)
 	}
 	a := CreateAIReq("hello", "aaaa1111", false, false).Messages[0].Content
 	b := CreateAIReq("hello", "bbbb2222", false, false).Messages[0].Content
-	if !strings.Contains(a, "Things you remember:\n- Lucas's dog is named Biscuit") {
+	if !strings.Contains(a, "Things you remember:\n- Sam's dog is named Biscuit") {
 		t.Fatalf("robot A prompt missing its memory: %q", a)
 	}
 	if strings.Contains(b, "Biscuit") || strings.Contains(b, "Things you remember") {
@@ -58,10 +58,10 @@ func TestMemoriesStayPerRobotInPrompt(t *testing.T) {
 }
 
 func TestRememberFactAction(t *testing.T) {
-	acts := GetActionsFromString("Okay! {{rememberFact||Lucas likes tea}} Noted.")
+	acts := GetActionsFromString("Okay! {{rememberFact||Sam likes tea}} Noted.")
 	var found bool
 	for _, a := range acts {
-		if a.Action == ActionRememberFact && a.Parameter == "Lucas likes tea" {
+		if a.Action == ActionRememberFact && a.Parameter == "Sam likes tea" {
 			found = true
 		}
 		if a.Action == ActionSayText && strings.Contains(a.Parameter, "rememberFact") {
@@ -74,11 +74,11 @@ func TestRememberFactAction(t *testing.T) {
 }
 
 func TestSplitFirstSentenceKeepsCommandsWhole(t *testing.T) {
-	s, rest, ok := splitFirstSentence("Got it {{rememberFact||Lucas likes tea.}} sure. Next")
-	if !ok || s != "Got it {{rememberFact||Lucas likes tea.}} sure." || rest != " Next" {
+	s, rest, ok := splitFirstSentence("Got it {{rememberFact||Sam likes tea.}} sure. Next")
+	if !ok || s != "Got it {{rememberFact||Sam likes tea.}} sure." || rest != " Next" {
 		t.Fatalf("bad split: %q %q %v", s, rest, ok)
 	}
-	if _, _, ok := splitFirstSentence("Okay {{rememberFact||Lucas likes tea."); ok {
+	if _, _, ok := splitFirstSentence("Okay {{rememberFact||Sam likes tea."); ok {
 		t.Fatal("split inside an unclosed command")
 	}
 	if s, rest, ok := splitFirstSentence("Hello there! More"); !ok || s != "Hello there!" || rest != " More" {
@@ -87,8 +87,8 @@ func TestSplitFirstSentenceKeepsCommandsWhole(t *testing.T) {
 }
 
 func TestPromoteTail(t *testing.T) {
-	got, ok := promoteTail(nil, " Got it {{rememberFact||Lucas likes tea.}} ")
-	if !ok || len(got) != 1 || got[0] != "Got it {{rememberFact||Lucas likes tea.}}" {
+	got, ok := promoteTail(nil, " Got it {{rememberFact||Sam likes tea.}} ")
+	if !ok || len(got) != 1 || got[0] != "Got it {{rememberFact||Sam likes tea.}}" {
 		t.Fatalf("tail not promoted: %q %v", got, ok)
 	}
 	if got, ok := promoteTail([]string{"Hi."}, "and more"); ok || len(got) != 1 {

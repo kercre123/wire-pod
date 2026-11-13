@@ -25,13 +25,13 @@ export function setKnowledge(knowledge) {
   loadConfig(); // and confirm with the server in the background
 }
 
-// Our own builds are named after the upstream release they are based on, like v1.2.18-lucas.5. The server
+// Custom builds are named after the upstream release they are based on, like v1.2.18-custom.5. The server
 // compares that string with upstream's v1.2.18 and calls it an update; a build at or ahead of the upstream
 // release is not behind it.
 const triple = (v) => { const m = /^v?(\d+)\.(\d+)\.(\d+)/.exec(v || ""); return m ? m.slice(1).map(Number) : null; };
 export function updateAvailable(v) {
   if (!v || !v.avail) return false;
-  if (v.fromsource || !/-lucas\.\d+$/.test(v.installedversion || "")) return true;
+  if (v.fromsource || !/-[a-z]+\.\d+$/.test(v.installedversion || "")) return true;
   const have = triple(v.installedversion), latest = triple(v.currentversion);
   if (!have || !latest) return true;
   for (let i = 0; i < 3; i++) if (have[i] !== latest[i]) return have[i] < latest[i];
