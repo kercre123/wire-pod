@@ -42,7 +42,7 @@ export function Memories({ robot }) {
       setItems(list);
       setError(null);
     } catch (e) {
-      setError(describeError(e, name));
+      if (id === reads.current) setError(describeError(e, name));
     }
   };
   useEffect(() => { load(); }, [esn]);

@@ -19,7 +19,7 @@ function Conversations({ robot }) {
   const load = async () => {
     const id = ++reads.current;
     try { const v = await getJSON(`/api-sdk/get_robot_chats?serial=${encodeURIComponent(robot.esn)}`); if (id !== reads.current) return; setLines(v); setError(null); }
-    catch (e) { setError(describeError(e, name)); }
+    catch (e) { if (id === reads.current) setError(describeError(e, name)); }
   };
   useEffect(() => {
     load();
@@ -83,7 +83,7 @@ function Stats({ robot, photoCount }) {
   const load = async () => {
     const id = ++reads.current;
     try { const v = await sdkJSON("get_robot_stats", robot.esn, {}, { timeout: 20000 }); if (id !== reads.current) return; setStats(v); setError(null); }
-    catch (e) { setError(describeError(e, name)); }
+    catch (e) { if (id === reads.current) setError(describeError(e, name)); }
   };
   useEffect(() => { load(); }, [robot.esn]);
   const n = (k) => (stats && typeof stats[k] === "number" ? stats[k] : 0);
@@ -155,7 +155,7 @@ function Photos({ robot, onCount }) {
       const v = t.trim() === "null" || !t.trim() ? [] : JSON.parse(t);
       if (id !== reads.current) return;
       setIds(v); onCount(v.length); setError(null);
-    } catch (e) { setError(describeError(e, name)); }
+    } catch (e) { if (id === reads.current) setError(describeError(e, name)); }
   };
   useEffect(() => { load(); }, [esn]);
   const del = async (id) => {

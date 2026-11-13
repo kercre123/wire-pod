@@ -44,7 +44,7 @@ export function People({ robot }) {
       setFaces(list);
       setError(null);
     } catch (e) {
-      setError(describeError(e, name));
+      if (id === reads.current) setError(describeError(e, name));
     }
   };
   useEffect(() => { if (online) load(); }, [esn, online]);

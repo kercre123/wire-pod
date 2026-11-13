@@ -5,7 +5,7 @@ import { Icon } from "../icons.js";
 import { href } from "../router.js";
 import { getJSON, postJSON, describeError } from "../api.js";
 import { robotName, toast } from "../store.js";
-import { loadConfig } from "../server.js";
+import { setKnowledge } from "../server.js";
 import { Callout } from "../ui.js";
 
 export function AiUnlock({ robot, tab }) {
@@ -36,7 +36,7 @@ export function MemoriesNote({ robot, canAct }) {
     try {
       const kg = await getJSON("/api/get_kg_api");
       await postJSON("/api/set_kg_api", { ...kg, commands_enable: true });
-      await loadConfig(); // the whole UI sees the new setting at once
+      setKnowledge({ commands_enable: true }); // the whole UI sees the new setting at once
       toast("The AI can now run robot commands");
     } catch (e) {
       toast(describeError(e).message, { kind: "bad" });

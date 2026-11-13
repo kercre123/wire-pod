@@ -6,12 +6,23 @@ import { getJSON } from "./api.js";
 export const serverStore = createStore({ config: null, configError: false, version: null, versionState: "idle" });
 let started = false;
 
+let configReads = 0; // only the newest read of the config may apply
 export async function loadConfig() {
+  const id = ++configReads;
   try {
-    serverStore.set({ config: await getJSON("/api/get_config", { timeout: 8000 }), configError: false });
+    const config = await getJSON("/api/get_config", { timeout: 8000 });
+    if (id === configReads) serverStore.set({ config, configError: false });
   } catch (e) {
-    serverStore.set({ configError: true });
+    if (id === configReads) serverStore.set({ configError: true });
   }
+}
+
+// After saving the AI settings the UI knows the new value for certain: use it now, and drop any read of the
+// old config that is still on its way, rather than waiting for (and trusting) another round trip.
+export function setKnowledge(knowledge) {
+  configReads++;
+  serverStore.set((s) => (s.config ? { config: { ...s.config, knowledge: { ...s.config.knowledge, ...knowledge } }, configError: false } : s));
+  loadConfig(); // and confirm with the server in the background
 }
 
 // Our own builds are named after the upstream release they are based on, like v1.2.18-lucas.5. The server

@@ -5,7 +5,7 @@ import { href, go } from "../router.js";
 import { getJSON, getText, postJSON, describeError } from "../api.js";
 import { toast, confirmDialog, useStore, prefsStore, setPref } from "../store.js";
 import { Switch, Segmented, Loading, ErrorNote, Dialog, Callout, SecretInput, pageTitle, useUid } from "../ui.js";
-import { useServerInfo, loadVersion, loadConfig, versionLabel } from "../server.js";
+import { useServerInfo, loadVersion, loadConfig, setKnowledge, versionLabel } from "../server.js";
 import { STT_LANGUAGES, KG_PROVIDERS, aiSummary, languageLabel, intentLabel } from "../data.js";
 import { ACCENTS } from "../theme.js";
 import { TechLog } from "./activity.js";
@@ -100,7 +100,7 @@ function AIPane({ back }) {
       const body = payload();
       await postJSON("/api/set_kg_api", body);
       setData(body);
-      await loadConfig(); // every screen sees AI on or off straight away
+      setKnowledge(body); // every screen sees AI on or off straight away
       toast("AI settings saved");
       if (back && body.enable && body.provider) { setBusy(false); go(back); return; } // came here from a robot tab: return to it
     } catch (e) { fail(e); }

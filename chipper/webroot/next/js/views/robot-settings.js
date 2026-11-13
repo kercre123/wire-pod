@@ -38,7 +38,7 @@ export function RobotSettings({ robot }) {
         if (v.custom_eye_color) { setHue(Math.round((v.custom_eye_color.hue || 0) * 360)); setSat(Math.round((v.custom_eye_color.saturation || 0) * 100)); }
       }
     } catch (e) {
-      setError(describeError(e, name));
+      if (id === reads.current) setError(describeError(e, name));
     }
   };
   useEffect(() => { if (online) load(); }, [esn, online]);
