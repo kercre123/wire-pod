@@ -19,13 +19,13 @@ func TestCreateAIReqRobotIdentity(t *testing.T) {
 		Activated   bool   `json:"activated"`
 		Name        string `json:"name,omitempty"`
 		Personality string `json:"personality,omitempty"`
-	}{Esn: "00aa11bb", Name: "Orbit", Personality: "grumpy but kind"})
+	}{Esn: "aaaa1111", Name: "Orbit", Personality: "grumpy but kind"})
 
 	sys := func(esn string) string {
 		return CreateAIReq("hello", esn, false, false).Messages[0].Content
 	}
 
-	got := sys("00aa11bb")
+	got := sys("aaaa1111")
 	if !strings.HasPrefix(got, "Your name is Orbit.") || !strings.Contains(got, "Your personality and identity: grumpy but kind") {
 		t.Fatalf("identity missing from system prompt: %q", got)
 	}
@@ -36,7 +36,7 @@ func TestCreateAIReqRobotIdentity(t *testing.T) {
 		t.Fatalf("identity leaked to another robot: %q", other)
 	}
 	vars.BotInfo.Robots[0].Name, vars.BotInfo.Robots[0].Personality = "", ""
-	if cleared := sys("00aa11bb"); strings.Contains(cleared, "Your name is") || strings.Contains(cleared, "personality") {
+	if cleared := sys("aaaa1111"); strings.Contains(cleared, "Your name is") || strings.Contains(cleared, "personality") {
 		t.Fatalf("cleared identity still present: %q", cleared)
 	}
 }
@@ -83,18 +83,5 @@ func TestSplitFirstSentenceKeepsCommandsWhole(t *testing.T) {
 	}
 	if s, rest, ok := splitFirstSentence("Hello there! More"); !ok || s != "Hello there!" || rest != " More" {
 		t.Fatalf("plain split changed: %q %q %v", s, rest, ok)
-	}
-}
-
-func TestPromoteTail(t *testing.T) {
-	got, ok := promoteTail(nil, " Got it {{rememberFact||Sam likes tea.}} ")
-	if !ok || len(got) != 1 || got[0] != "Got it {{rememberFact||Sam likes tea.}}" {
-		t.Fatalf("tail not promoted: %q %v", got, ok)
-	}
-	if got, ok := promoteTail([]string{"Hi."}, "and more"); ok || len(got) != 1 {
-		t.Fatalf("promoted although a sentence exists: %q %v", got, ok)
-	}
-	if got, ok := promoteTail(nil, "  "); ok || len(got) != 0 {
-		t.Fatalf("promoted an empty reply: %q %v", got, ok)
 	}
 }

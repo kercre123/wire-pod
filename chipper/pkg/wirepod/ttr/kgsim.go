@@ -220,16 +220,6 @@ func splitFirstSentence(text string) (sentence, rest string, ok bool) {
 	return strings.TrimSpace(text[:idx]) + sepStr, text[idx+len(sepStr):], true
 }
 
-// promoteTail makes the unsplit rest of a finished reply its own sentence when no sentence was found at
-// all, for example "Got it {{rememberFact||Sam likes tea.}}", whose only punctuation is inside the
-// command. Without it the whole reply, speech and command alike, would be dropped.
-func promoteTail(sentences []string, tail string) ([]string, bool) {
-	if len(sentences) > 0 || strings.TrimSpace(tail) == "" {
-		return sentences, false
-	}
-	return append(sentences, strings.TrimSpace(tail)), true
-}
-
 // composeRobotPrompt puts this robot's identity (name/personality) and long-term memories before the global prompt.
 func composeRobotPrompt(esn, globalPrompt string) string {
 	var parts []string
@@ -323,6 +313,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	var robot *vector.Vector
 	var guid string
 	var target string
+	vars.BotInfoMu.RLock()
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -331,6 +322,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if matched {
 		var err error
 		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))
@@ -422,8 +414,19 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		for {
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
-				var promoted bool
-				fullRespSlice, promoted = promoteTail(fullRespSlice, fullRespText)
+				// a reply that is only a command, e.g. a silent {{rememberFact||...}}, has no sentence end
+				if len(fullRespSlice) == 0 && strings.Contains(fullRespText, "{{") {
+					fullRespSlice = append(fullRespSlice, strings.TrimSpace(fullRespText))
+					fullRespText = ""
+					select {
+					case successIntent <- true:
+					default:
+					}
+					select {
+					case speakReady <- fullRespSlice[0]:
+					default:
+					}
+				}
 				// prevents a crash
 				if len(fullRespSlice) == 0 {
 					logger.Println("LLM returned no response")
@@ -440,10 +443,6 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 					break
 				}
 				isDone = true
-				if promoted {
-					// nobody was told a sentence was ready, because there was no punctuation outside the commands
-					go func() { successIntent <- true }()
-				}
 				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
 				newStr := fullRespSlice[0]
 				for i, str := range fullRespSlice {
@@ -626,6 +625,7 @@ func KGSim(esn string, textToSay string) error {
 	var robot *vector.Vector
 	var guid string
 	var target string
+	vars.BotInfoMu.RLock()
 	for _, bot := range vars.BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -634,6 +634,7 @@ func KGSim(esn string, textToSay string) error {
 			break
 		}
 	}
+	vars.BotInfoMu.RUnlock()
 	if matched {
 		var err error
 		robot, err = vector.New(vector.WithSerialNo(esn), vector.WithToken(guid), vector.WithTarget(target))

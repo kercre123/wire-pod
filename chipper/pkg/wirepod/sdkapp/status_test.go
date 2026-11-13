@@ -228,7 +228,7 @@ func TestRobotChatsAPI(t *testing.T) {
 	t.Cleanup(func() { vars.RememberedChats = old })
 
 	rec := httptest.NewRecorder()
-	handleRobotIdentityAPI(rec, httptest.NewRequest("GET", "/api-sdk/get_robot_chats?serial=00a1", nil))
+	handleRobotStatusAPI(rec, httptest.NewRequest("GET", "/api-sdk/get_robot_chats?serial=00a1", nil))
 	var lines []ChatLine
 	if err := json.Unmarshal(rec.Body.Bytes(), &lines); err != nil {
 		t.Fatal(err, rec.Body.String())
@@ -238,14 +238,14 @@ func TestRobotChatsAPI(t *testing.T) {
 	}
 
 	rec = httptest.NewRecorder()
-	handleRobotIdentityAPI(rec, httptest.NewRequest("GET", "/api-sdk/get_robot_chats?serial=00ff", nil))
+	handleRobotStatusAPI(rec, httptest.NewRequest("GET", "/api-sdk/get_robot_chats?serial=00ff", nil))
 	if rec.Code != 404 {
 		t.Fatalf("unknown robot should 404, got %d", rec.Code)
 	}
 
 	vars.RememberedChats = nil
 	rec = httptest.NewRecorder()
-	handleRobotIdentityAPI(rec, httptest.NewRequest("GET", "/api-sdk/get_robot_chats?serial=00a1", nil))
+	handleRobotStatusAPI(rec, httptest.NewRequest("GET", "/api-sdk/get_robot_chats?serial=00a1", nil))
 	if rec.Body.String() != "[]\n" {
 		t.Fatalf("no chats should be an empty list, got %q", rec.Body.String())
 	}

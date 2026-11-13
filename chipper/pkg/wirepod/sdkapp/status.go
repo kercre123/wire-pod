@@ -293,8 +293,41 @@ func eyeFromJdoc(esn string) *EyeInfo {
 	return eye
 }
 
+// ChatLine is one saved line of a robot's recent conversation.
+type ChatLine struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+// robotChats returns the user and assistant lines wire-pod has saved for a robot (the LLM's recent
+// context), oldest first. It is empty unless saving conversations is on.
+func robotChats(esn string) []ChatLine {
+	lines := []ChatLine{}
+	for _, chat := range vars.RememberedChats {
+		if !strings.EqualFold(chat.ESN, esn) {
+			continue
+		}
+		for _, m := range chat.Chats {
+			if (m.Role == "user" || m.Role == "assistant") && strings.TrimSpace(m.Content) != "" {
+				lines = append(lines, ChatLine{Role: m.Role, Content: m.Content})
+			}
+		}
+	}
+	return lines
+}
+
 // handleRobotStatusAPI serves /api-sdk/robots_status. It needs no robot connection.
 func handleRobotStatusAPI(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path == "/api-sdk/get_robot_chats" {
+		serial := strings.TrimSpace(r.FormValue("serial"))
+		if !robotKnown(serial) {
+			identityError(w, errRobotNotFound)
+			return true
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(robotChats(serial))
+		return true
+	}
 	if r.URL.Path != "/api-sdk/robots_status" {
 		return false
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -32,7 +33,7 @@ func setRobotIdentity(esn string, name *string, personality *string) error {
 			}
 			jsonBytes, err := json.Marshal(vars.BotInfo)
 			if err == nil {
-				err = os.WriteFile(vars.BotInfoPath, jsonBytes, 0644)
+				err = writeFileAtomic(vars.BotInfoPath, jsonBytes, 0644)
 			}
 			if err != nil {
 				vars.BotInfo.Robots[i].Name, vars.BotInfo.Robots[i].Personality = oldName, oldPersonality
@@ -41,6 +42,32 @@ func setRobotIdentity(esn string, name *string, personality *string) error {
 		}
 	}
 	return errRobotNotFound
+}
+
+// writeFileAtomic writes to a temp file in the same folder and renames it into place, so a failed or
+// interrupted save can't leave a truncated botSdkInfo.json behind.
+func writeFileAtomic(path string, data []byte, perm os.FileMode) error {
+	tmp, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+".tmp*")
+	if err != nil {
+		return err
+	}
+	tmpName := tmp.Name()
+	if _, err = tmp.Write(data); err == nil {
+		err = tmp.Sync()
+	}
+	if cerr := tmp.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Chmod(tmpName, perm)
+	}
+	if err == nil {
+		err = os.Rename(tmpName, path)
+	}
+	if err != nil {
+		os.Remove(tmpName)
+	}
+	return err
 }
 
 func robotKnown(esn string) bool {
@@ -52,29 +79,6 @@ func robotKnown(esn string) bool {
 		}
 	}
 	return false
-}
-
-// ChatLine is one saved line of a robot's recent conversation.
-type ChatLine struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-// robotChats returns the user and assistant lines wire-pod has saved for a robot (the LLM's recent
-// context), oldest first. It is empty unless saving conversations is on.
-func robotChats(esn string) []ChatLine {
-	lines := []ChatLine{}
-	for _, chat := range vars.RememberedChats {
-		if !strings.EqualFold(chat.ESN, esn) {
-			continue
-		}
-		for _, m := range chat.Chats {
-			if (m.Role == "user" || m.Role == "assistant") && strings.TrimSpace(m.Content) != "" {
-				lines = append(lines, ChatLine{Role: m.Role, Content: m.Content})
-			}
-		}
-	}
-	return lines
 }
 
 func identityError(w http.ResponseWriter, err error) {
@@ -96,13 +100,24 @@ func handleRobotIdentityAPI(w http.ResponseWriter, r *http.Request) bool {
 	default:
 		return false
 	case "/api-sdk/set_robot_name", "/api-sdk/set_robot_identity":
-		name := strings.Join(strings.Fields(r.FormValue("name")), " ")
-		if utf8.RuneCountInString(name) > 32 {
-			http.Error(w, "error: name must be 32 characters or fewer", http.StatusBadRequest)
-			return true
+		// set_robot_identity only changes the fields that are present in the request (an empty value clears
+		// one), so posting just "name" leaves the personality alone and vice versa.
+		r.ParseForm()
+		_, hasName := r.Form["name"]
+		_, hasPersonality := r.Form["personality"]
+		if r.URL.Path == "/api-sdk/set_robot_name" {
+			hasName, hasPersonality = true, false
 		}
-		var personality *string
-		if r.URL.Path == "/api-sdk/set_robot_identity" {
+		var name, personality *string
+		if hasName {
+			n := strings.Join(strings.Fields(r.FormValue("name")), " ")
+			if utf8.RuneCountInString(n) > 32 {
+				http.Error(w, "error: name must be 32 characters or fewer", http.StatusBadRequest)
+				return true
+			}
+			name = &n
+		}
+		if hasPersonality {
 			p := strings.TrimSpace(r.FormValue("personality"))
 			if utf8.RuneCountInString(p) > 1000 {
 				http.Error(w, "error: personality must be 1000 characters or fewer", http.StatusBadRequest)
@@ -110,19 +125,11 @@ func handleRobotIdentityAPI(w http.ResponseWriter, r *http.Request) bool {
 			}
 			personality = &p
 		}
-		if err := setRobotIdentity(strings.TrimSpace(r.FormValue("serial")), &name, personality); err != nil {
+		if err := setRobotIdentity(strings.TrimSpace(r.FormValue("serial")), name, personality); err != nil {
 			identityError(w, err)
 			return true
 		}
 		fmt.Fprint(w, "done")
-	case "/api-sdk/get_robot_chats":
-		serial := strings.TrimSpace(r.FormValue("serial"))
-		if !robotKnown(serial) {
-			identityError(w, errRobotNotFound)
-			return true
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(robotChats(serial))
 	case "/api-sdk/get_robot_memories", "/api-sdk/add_robot_memory", "/api-sdk/delete_robot_memory", "/api-sdk/clear_robot_memories":
 		serial := strings.TrimSpace(r.FormValue("serial"))
 		if !robotKnown(serial) {

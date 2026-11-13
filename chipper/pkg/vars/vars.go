@@ -394,12 +394,14 @@ func ReadSessionCerts() {
 		}
 		pemBytes, _ := pem.Decode(certBytes)
 		cert, _ := x509.ParseCertificate(pemBytes.Bytes)
+		BotInfoMu.RLock()
 		for _, robot := range BotInfo.Robots {
 			if esn == robot.Esn {
 				ip = robot.IPAddress
 				break
 			}
 		}
+		BotInfoMu.RUnlock()
 		rinfo.ESN = esn
 		rinfo.ID = cert.Issuer.CommonName
 		rinfo.IP = ip
@@ -427,6 +429,7 @@ func GetRobot(esn string) (*vector.Vector, error) {
 	var guid string
 	var target string
 	matched := false
+	BotInfoMu.RLock()
 	for _, bot := range BotInfo.Robots {
 		if esn == bot.Esn {
 			guid = bot.GUID
@@ -435,6 +438,7 @@ func GetRobot(esn string) (*vector.Vector, error) {
 			break
 		}
 	}
+	BotInfoMu.RUnlock()
 	if !matched {
 		return nil, errors.New("robot not in botsdkinfo")
 	}
