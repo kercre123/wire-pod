@@ -41,7 +41,7 @@ var PingerEnabled bool = true
 func pingJdocs(target string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	target = strings.Split(target, ":")[0]
+	target = vars.HostOnly(target)
 	var serial string
 	matched := false
 	for _, robot := range vars.GetBotInfo().Robots {
@@ -175,7 +175,7 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		}
 		if PingerEnabled {
 			//logger.Println("connCheck request from " + r.RemoteAddr)
-			robotTarget := strings.TrimSpace(strings.Split(r.RemoteAddr, ":")[0])
+			robotTarget := vars.HostOnly(r.RemoteAddr)
 			known := false
 			for _, bot := range vars.GetBotInfo().Robots {
 				if bot.IPAddress == robotTarget {
@@ -184,12 +184,11 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if known {
-				ping := ShouldPingJdocs(robotTarget)
-				if ping {
-					pingJdocs(robotTarget)
+				if ShouldPingJdocs(robotTarget) {
+					go pingJdocs(robotTarget)
 				}
 			} else {
-				go RunMDNS(strings.Split(r.RemoteAddr, ":")[0])
+				go RunMDNS(robotTarget)
 			}
 		}
 		fmt.Fprintf(w, "ok")

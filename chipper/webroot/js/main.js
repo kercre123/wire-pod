@@ -6,6 +6,15 @@ var GetLog = false;
 
 const getE = (element) => document.getElementById(element);
 
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function updateIntentSelection(element) {
   fetch("/api/get_custom_intents_json")
     .then((response) => response.json())
@@ -87,21 +96,21 @@ function editFormCreate() {
         form.id = "editIntentForm";
         form.name = "editIntentForm";
         form.innerHTML = `
-          <label for="name">Name:<br><input type="text" id="name" value="${intent.name}"></label><br>
-          <label for="description">Description:<br><input type="text" id="description" value="${intent.description}"></label><br>
-          <label for="utterances">Utterances:<br><input type="text" id="utterances" value="${intent.utterances.join(",")}"></label><br>
+          <label for="name">Name:<br><input type="text" id="name" value="${escapeHTML(intent.name)}"></label><br>
+          <label for="description">Description:<br><input type="text" id="description" value="${escapeHTML(intent.description)}"></label><br>
+          <label for="utterances">Utterances:<br><input type="text" id="utterances" value="${escapeHTML((intent.utterances || []).join(","))}"></label><br>
           <label for="intent">Intent:<br><select id="intent">${intentsJson
             .map(
               (name) =>
-                `<option value="${name}" ${name === intent.intent ? "selected" : ""
-                }>${name}</option>`
+                `<option value="${escapeHTML(name)}" ${name === intent.intent ? "selected" : ""
+                }>${escapeHTML(name)}</option>`
             )
             .join("")}</select></label><br>
-          <label for="paramname">Param Name:<br><input type="text" id="paramname" value="${intent.params.paramname}"></label><br>
-          <label for="paramvalue">Param Value:<br><input type="text" id="paramvalue" value="${intent.params.paramvalue}"></label><br>
-          <label for="exec">Exec:<br><input type="text" id="exec" value="${intent.exec}"></label><br>
-          <label for="execargs">Exec Args:<br><input type="text" id="execargs" value="${intent.execargs.join(",")}"></label><br>
-          <label for="luascript">Lua code to run:</label><br><textarea id="luascript">${intent.luascript}</textarea>
+          <label for="paramname">Param Name:<br><input type="text" id="paramname" value="${escapeHTML(intent.params?.paramname)}"></label><br>
+          <label for="paramvalue">Param Value:<br><input type="text" id="paramvalue" value="${escapeHTML(intent.params?.paramvalue)}"></label><br>
+          <label for="exec">Exec:<br><input type="text" id="exec" value="${escapeHTML(intent.exec)}"></label><br>
+          <label for="execargs">Exec Args:<br><input type="text" id="execargs" value="${escapeHTML((intent.execargs || []).join(","))}"></label><br>
+          <label for="luascript">Lua code to run:</label><br><textarea id="luascript">${escapeHTML(intent.luascript)}</textarea>
           <button onclick="editIntent(${intentNumber})">Submit</button>
         `;
         //form.querySelector("#submit").onclick = () => editIntent(intentNumber);
@@ -459,7 +468,7 @@ function displayError(elementId, message) {
   const element = getE(elementId);
   element.innerHTML = "";
   const error = document.createElement("p");
-  error.innerHTML = message;
+  error.textContent = message;
   element.appendChild(error);
 }
 
@@ -513,7 +522,7 @@ function showLog() {
     fetch(url)
       .then((response) => response.text())
       .then((logs) => {
-        logDivArea.innerHTML = logs || "No logs yet, you must say a command to Vector. (this updates automatically)";
+        logDivArea.textContent = logs || "No logs yet, you must say a command to Vector. (this updates automatically)";
         if (getE("logscrollbottom").checked) {
           logDivArea.scrollTop = logDivArea.scrollHeight;
         }

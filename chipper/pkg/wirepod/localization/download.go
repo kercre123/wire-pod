@@ -104,7 +104,13 @@ func DownloadVoskModel(language string) {
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		filep = filepath.Join(vars.AndroidPath, "/"+filename)
 	} else {
-		filep = os.TempDir() + "/" + filename
+		tmp, err := os.CreateTemp("", "vosk-model-*.zip")
+		if err != nil {
+			setDownloadStatus("error: " + err.Error())
+			return
+		}
+		filep = tmp.Name()
+		tmp.Close()
 	}
 	destpath := filepath.Join(vars.VoskModelPath, language) + "/"
 	DownloadFile(url, filep)
@@ -179,33 +185,44 @@ func UnzipFile(file, dest string) {
 	defer zipReader.Close()
 	setDownloadStatus("Unpacking model...")
 
+	cleanDest, err := filepath.Abs(dest)
+	if err != nil {
+		setDownloadStatus("error downloading: " + err.Error())
+		return
+	}
 	for _, f := range zipReader.File {
-		rc, err := f.Open()
-		if err != nil {
-			setDownloadStatus("error downloading: " + err.Error())
-			logger.Println("error opening zip file:", err)
+		path := filepath.Join(cleanDest, f.Name)
+		if path != cleanDest && !strings.HasPrefix(path, cleanDest+string(os.PathSeparator)) {
+			setDownloadStatus("error downloading: zip entry escapes destination: " + f.Name)
+			logger.Println("Refusing zip entry outside destination: " + f.Name)
 			return
 		}
-		defer rc.Close()
-
-		path := filepath.Join(dest, f.Name)
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
-		} else {
-			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				setDownloadStatus("error downloading: " + err.Error())
-				logger.Println("Error creating file:", err)
-				return
-			}
-			defer f.Close()
-
-			_, err = io.Copy(f, rc)
-			if err != nil {
-				setDownloadStatus("error downloading: " + err.Error())
-				logger.Println("Error writing to file:", err)
-				return
-			}
+			os.MkdirAll(path, 0755)
+			continue
+		}
+		if err := unzipEntry(f, path); err != nil {
+			setDownloadStatus("error downloading: " + err.Error())
+			logger.Println("Error unpacking zip entry:", err)
+			return
 		}
 	}
+}
+
+func unzipEntry(f *zip.File, path string) error {
+	rc, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode().Perm())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, rc)
+	return err
 }

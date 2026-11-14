@@ -71,7 +71,7 @@ func WriteConfigToDisk() {
 	cfgMu.Lock()
 	defer cfgMu.Unlock()
 	writeBytes, _ := json.Marshal(apiCfg)
-	os.WriteFile(ApiConfigPath, writeBytes, 0644)
+	WriteFileAtomic(ApiConfigPath, writeBytes, 0600)
 }
 
 func CreateConfigFromEnv() {
@@ -97,7 +97,7 @@ func CreateConfigFromEnv() {
 	WriteSTT()
 	apiCfg.HasReadFromEnv = true
 	writeBytes, _ := json.Marshal(apiCfg)
-	os.WriteFile(ApiConfigPath, writeBytes, 0644)
+	WriteFileAtomic(ApiConfigPath, writeBytes, 0600)
 }
 
 func WriteSTT() {
@@ -150,7 +150,7 @@ func ReadConfig() {
 		}
 
 		writeBytes, _ := json.Marshal(apiCfg)
-		os.WriteFile(ApiConfigPath, writeBytes, 0644)
+		WriteFileAtomic(ApiConfigPath, writeBytes, 0600)
 		logger.Println("API config successfully read")
 	}
 }

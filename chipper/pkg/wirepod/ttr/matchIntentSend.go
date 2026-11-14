@@ -2,10 +2,12 @@ package wirepod_ttr
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -13,6 +15,8 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/kercre123/wire-pod/chipper/pkg/vtt"
 )
+
+const customIntentExecTimeout = 30 * time.Second
 
 type systemIntentResponseStruct struct {
 	Status       string `json:"status"`
@@ -139,23 +143,24 @@ func customIntentHandler(req interface{}, voiceText string, botSerial string) bo
 						}
 						args = append(args, arg)
 					}
-					var customIntentExec *exec.Cmd
-					if len(args) == 0 {
-						logger.Println("Bot " + botSerial + " Executing: " + c.Exec)
-						customIntentExec = exec.Command(c.Exec)
-					} else {
-						logger.Println("Bot " + botSerial + " Executing: " + c.Exec + " " + strings.Join(args, " "))
-						customIntentExec = exec.Command(c.Exec, args...)
-					}
 					var out bytes.Buffer
-					var stderr bytes.Buffer
-					customIntentExec.Stdout = &out
-					customIntentExec.Stderr = &stderr
-					err := customIntentExec.Run()
-					if err != nil {
-						fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+					if c.Exec != "" {
+						logger.Println("Bot " + botSerial + " Executing: " + c.Exec + " " + strings.Join(args, " "))
+						ctx, cancel := context.WithTimeout(context.Background(), customIntentExecTimeout)
+						customIntentExec := exec.CommandContext(ctx, c.Exec, args...)
+						customIntentExec.WaitDelay = 2 * time.Second
+						var stderr bytes.Buffer
+						customIntentExec.Stdout = &out
+						customIntentExec.Stderr = &stderr
+						err := customIntentExec.Run()
+						cancel()
+						if ctx.Err() == context.DeadlineExceeded {
+							logger.Println("Bot " + botSerial + " Custom Intent Exec timed out after " + customIntentExecTimeout.String())
+						} else if err != nil {
+							fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+						}
+						logger.Println("Bot " + botSerial + " Custom Intent Exec Output: " + strings.TrimSpace(out.String()))
 					}
-					logger.Println("Bot " + botSerial + " Custom Intent Exec Output: " + strings.TrimSpace(string(out.String())))
 
 					if c.IsSystemIntent {
 						// A system intent returns its output in json format

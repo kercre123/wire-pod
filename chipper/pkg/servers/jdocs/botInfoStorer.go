@@ -116,11 +116,10 @@ func WriteToIniSecondary(esn, guid, ip string) {
 			logger.Println("WriteToIniSecondary: invalid robot name in session cert: " + botName)
 			return
 		}
-		os.WriteFile(filepath.Join(vars.SessionCertPath, esn), certBytesOrig, 0777)
+		vars.WriteFileAtomic(filepath.Join(vars.SessionCertPath, esn), certBytesOrig, 0644)
 		certPath = filepath.Join(vars.SDKIniPath, botName+"-"+esn+".cert")
-		out, err := os.Create(certPath)
-		if err == nil {
-			out.Write(certBytesOrig)
+		if err := vars.WriteFileAtomic(certPath, certBytesOrig, 0644); err != nil {
+			logger.Println(err)
 		}
 	}
 	logger.Println("WriteToIniSecondary: robot name is " + botName)
@@ -144,7 +143,7 @@ func WriteToIniSecondary(esn, guid, ip string) {
 func StoreBotInfo(ctx context.Context, thing string) {
 	var appendNew bool = true
 	p, _ := peer.FromContext(ctx)
-	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
+	ipAddr := vars.HostOnly(p.Addr.String())
 	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
 	err := vars.UpdateBotInfo(func(b *vars.RobotInfoStore) {
 		b.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="

@@ -37,7 +37,7 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 	vars.WriteJdocs()
 
 	p, _ := peer.FromContext(ctx)
-	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+	ipAddr := vars.HostOnly(p.Addr.String())
 
 	if err := vars.SetBotIP(esn, ipAddr); err != nil {
 		logger.Println("Error writing bot info: ", err)
@@ -61,14 +61,14 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	logger.Println(req.Items)
 	isAlreadyKnown := IsBotInInfo(esn)
 	p, _ := peer.FromContext(ctx)
-	ipAddr := strings.Split(p.Addr.String(), ":")[0]
+	ipAddr := vars.HostOnly(p.Addr.String())
 
 	if err := vars.SetBotIP(esn, ipAddr); err != nil {
 		logger.Println("Error writing bot info: ", err)
 	}
 
 	for _, pair := range tokenserver.SessionWriteStoreNames {
-		if ipAddr == strings.Split(pair[0], ":")[0] {
+		if ipAddr == vars.HostOnly(pair[0]) {
 			vars.DeleteData(req.Thing)
 			break
 		}
@@ -100,7 +100,7 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 			}
 			sessionMatched := false
 			for num, pair := range tokenserver.SessionWriteStoreNames {
-				if strings.EqualFold(ipAddr, strings.Split(pair[0], ":")[0]) {
+				if strings.EqualFold(ipAddr, vars.HostOnly(pair[0])) {
 					sessionMatched = true
 					fullPath := filepath.Join(vars.SDKIniPath, pair[1] + "-" + esn + ".cert")
 					if _, err := os.Stat(vars.SDKIniPath); err != nil {
@@ -109,9 +109,9 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 					}
 					logger.Println("Outputting session cert to " + fullPath)
 					// export to ~/.anki_vector
-					os.WriteFile(fullPath, tokenserver.SessionWriteStoreCerts[num], 0755)
+					vars.WriteFileAtomic(fullPath, tokenserver.SessionWriteStoreCerts[num], 0644)
 					// export to ./session-certs
-					os.WriteFile(filepath.Join(vars.SessionCertPath, esn), tokenserver.SessionWriteStoreCerts[num], 0755)
+					vars.WriteFileAtomic(filepath.Join(vars.SessionCertPath, esn), tokenserver.SessionWriteStoreCerts[num], 0644)
 					WriteToIniPrimary(pair[1], esn, botGUID, ipAddr)
 					vars.AddToRInfo(esn, pair[1], ipAddr)
 					tokenserver.RemoveFromSessionStore(num)

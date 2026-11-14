@@ -2,7 +2,7 @@ function updateSSHStatus(statusString) {
   setupStatus = document.getElementById("oskrSetupProgress");
   setupStatus.innerHTML = "";
   setupStatusP = document.createElement("p");
-  setupStatusP.innerHTML = statusString;
+  setupStatusP.textContent = statusString;
   setupStatus.appendChild(setupStatusP);
 }
 

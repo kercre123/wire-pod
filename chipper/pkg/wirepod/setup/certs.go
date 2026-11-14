@@ -78,14 +78,14 @@ func CreateCertCombo() error {
 	})
 
 	// export certificates
-	os.MkdirAll(vars.Certs, 0777)
+	os.MkdirAll(vars.Certs, 0700)
 	logger.Println("Outputting certificate to " + vars.CertPath)
-	err = os.WriteFile(vars.CertPath, certPEM.Bytes(), 0777)
+	err = vars.WriteFileAtomic(vars.CertPath, certPEM.Bytes(), 0644)
 	if err != nil {
 		return err
 	}
 	logger.Println("Outputting private key to " + vars.KeyPath)
-	err = os.WriteFile(vars.KeyPath, certPrivKeyPEM.Bytes(), 0777)
+	err = vars.WriteFileAtomic(vars.KeyPath, certPrivKeyPEM.Bytes(), 0600)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func CreateCertCombo() error {
 
 // outputs a server config to ../certs/server_config.json
 func CreateServerConfig() {
-	os.MkdirAll(vars.Certs, 0777)
+	os.MkdirAll(vars.Certs, 0700)
 	var config ClientServerConfig
 	//{"jdocs": "escapepod.local:443", "tms": "escapepod.local:443", "chipper": "escapepod.local:443", "check": "escapepod.local/ok:80", "logfiles": "s3://anki-device-logs-prod/victor", "appkey": "oDoa0quieSeir6goowai7f"}
 	if vars.Config().Server.EPConfig {
@@ -120,5 +120,7 @@ func CreateServerConfig() {
 		config.Appkey = "oDoa0quieSeir6goowai7f"
 	}
 	writeBytes, _ := json.Marshal(config)
-	os.WriteFile(vars.ServerConfigPath, writeBytes, 0777)
+	if err := vars.WriteFileAtomic(vars.ServerConfigPath, writeBytes, 0644); err != nil {
+		logger.Println("Error writing server config: ", err)
+	}
 }

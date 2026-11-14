@@ -72,7 +72,7 @@ function scanRobots(returning) {
       const buttonsDiv = document.createElement("div");
       parsed.forEach((robot) => {
         const button = document.createElement("button");
-        button.innerHTML = robot.name;
+        button.textContent = robot.name;
         button.onclick = () => connectRobot(robot.id);
         buttonsDiv.appendChild(button);
       });
@@ -169,13 +169,16 @@ function scanWifi() {
         <p>Select a Wi-Fi network to connect Vector to.</p>
         <button onclick="scanWifi()">Scan Again</button>
         <br>
-        ${networks
-          .map(
-            (network) =>
-              network.ssid && `<button onclick="createWiFiPassEntry('${network.ssid}', '${network.authtype}')">${network.ssid}</button>`
-          )
-          .join("")}
       `;
+      networks.forEach((network) => {
+        if (!network.ssid) {
+          return;
+        }
+        const button = document.createElement("button");
+        button.textContent = network.ssid;
+        button.onclick = () => createWiFiPassEntry(network.ssid, network.authtype);
+        authEl.appendChild(button);
+      });
     }).catch(() => {
       updateAuthel("Error scanning Wi-Fi networks... Reiniting BLE then scanning...");
       reInitBLE().then(() => scanRobots(true));
@@ -185,17 +188,21 @@ function scanWifi() {
 function createWiFiPassEntry(ssid, authtype) {
   authEl.innerHTML = `
     <button onclick="scanWifi()">Scan Again</button>
-    <p>Enter the password for ${ssid}</p>
+    <p id="passEntryLabel"></p>
     <input type="text" id="passEntry" placeholder="Password">
     <br>
-    <button onclick="connectWifi('${ssid}', '${authtype}')">Connect to Wi-Fi</button>
   `;
+  document.getElementById("passEntryLabel").textContent = "Enter the password for " + ssid;
+  const connectButton = document.createElement("button");
+  connectButton.textContent = "Connect to Wi-Fi";
+  connectButton.onclick = () => connectWifi(ssid, authtype);
+  authEl.appendChild(connectButton);
 }
 
 function connectWifi(ssid, authtype) {
   const password = document.getElementById("passEntry").value;
   authEl.innerHTML = "Connecting Vector to Wi-Fi...";
-  fetch(`/api-ble/connect_wifi?ssid=${ssid}&password=${password}&authType=${authtype}`)
+  fetch(`/api-ble/connect_wifi?ssid=${encodeURIComponent(ssid)}&password=${encodeURIComponent(password)}&authType=${encodeURIComponent(authtype)}`)
     .then((response) => response.text())
     .then((response) => {
       if (!response.includes("255")) {
@@ -294,7 +301,10 @@ function doOTA(url) {
 }
 
 function updateAuthel(update) {
-  authEl.innerHTML = `<p>${update}</p>`;
+  authEl.innerHTML = "";
+  const p = document.createElement("p");
+  p.textContent = update;
+  authEl.appendChild(p);
 }
 
 function doAuth() {

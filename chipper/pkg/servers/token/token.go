@@ -202,7 +202,7 @@ func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.Toke
 
 	// get esn using ip address of request
 	p, _ := peer.FromContext(ctx)
-	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
+	ipAddr := vars.HostOnly(p.Addr.String())
 	esn, err := GetEsnFromTarget(ipAddr)
 
 	// secondary handler

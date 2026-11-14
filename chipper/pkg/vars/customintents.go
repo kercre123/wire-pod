@@ -3,7 +3,6 @@ package vars
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"slices"
 	"sync"
 )
@@ -33,7 +32,7 @@ func saveCustomIntentsLocked() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(CustomIntentsPath, b, 0644)
+	return WriteFileAtomic(CustomIntentsPath, b, 0600)
 }
 
 func AddCustomIntent(intent CustomIntent) error {

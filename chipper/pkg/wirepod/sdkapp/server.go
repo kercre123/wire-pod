@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -537,8 +538,8 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/trigger_wake_word":
-		robotIP := strings.Split(robotObj.Target, ":")[0]
-		consoleURL := fmt.Sprintf("http://%s:8889/consolevarset?key=FakeButtonPressType&value=singlePressDetected", robotIP)
+		robotIP := vars.HostOnly(robotObj.Target)
+		consoleURL := "http://" + net.JoinHostPort(robotIP, "8889") + "/consolevarset?key=FakeButtonPressType&value=singlePressDetected"
 		
 		client := &http.Client{
 			Timeout: 10 * time.Second,

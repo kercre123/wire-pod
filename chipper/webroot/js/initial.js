@@ -19,7 +19,10 @@ function checkLanguage() {
 
 function updateSetupStatus(statusString) {
   const setupStatus = document.getElementById("setup-status");
-  setupStatus.innerHTML = `<p>${statusString}</p>`;
+  setupStatus.innerHTML = "";
+  const p = document.createElement("p");
+  p.textContent = statusString;
+  setupStatus.appendChild(p);
 }
 
 function sendSetupInfo() {

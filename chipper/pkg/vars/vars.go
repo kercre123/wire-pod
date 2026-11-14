@@ -122,7 +122,7 @@ func writeBotInfoLocked() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(BotInfoPath, writeBytes, 0644)
+	return WriteFileAtomic(BotInfoPath, writeBytes, 0600)
 }
 
 func SetBotIP(esn, ip string) error {
@@ -210,7 +210,7 @@ func Init() {
 		}
 		podDir := join(confDir, PodName)
 		appDir, _ := os.Executable()
-		os.Mkdir(podDir, 0777)
+		os.Mkdir(podDir, 0700)
 		JdocsDir = join(podDir, JdocsDir)
 		JdocsPath = JdocsDir + "/jdocs.json"
 		CustomIntentsPath = join(podDir, CustomIntentsPath)
@@ -227,9 +227,9 @@ func Init() {
 		if runtime.GOOS == "android" {
 			VersionFile = AndroidPath + "/static/version"
 		}
-		os.Mkdir(JdocsDir, 0777)
-		os.Mkdir(SessionCertPath, 0777)
-		os.Mkdir(Certs, 0777)
+		os.Mkdir(JdocsDir, 0700)
+		os.Mkdir(SessionCertPath, 0755)
+		os.Mkdir(Certs, 0700)
 	}
 
 	if os.Getenv("WEBSERVER_PORT") != "" {
@@ -364,7 +364,7 @@ func LoadIntents() ([]JsonIntent, error) {
 
 func writeJdocsLocked() {
 	writeBytes, _ := json.Marshal(botJdocs)
-	os.WriteFile(JdocsPath, writeBytes, 0644)
+	WriteFileAtomic(JdocsPath, writeBytes, 0600)
 }
 
 func WriteJdocs() {
