@@ -680,7 +680,13 @@ func BeginServer() {
 		checkMux := http.NewServeMux()
 		checkMux.HandleFunc("/ok:80", connCheck)
 		checkMux.HandleFunc("/ok", connCheck)
-		if err := http.ListenAndServe(":80", checkMux); err != nil {
+		srv := &http.Server{
+			Addr:              ":80",
+			Handler:           checkMux,
+			ReadHeaderTimeout: 10 * time.Second,
+			IdleTimeout:       2 * time.Minute,
+		}
+		if err := srv.ListenAndServe(); err != nil {
 			if vars.Packaged {
 				logger.WarnMsg("A process is using port 80. Wire-pod will keep running, but connCheck functionality will not work, so your bot may not always stay connected to your wire-pod instance.")
 			}
