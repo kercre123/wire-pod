@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"image/jpeg"
 	"io"
 	"net/http"
 	"os"
@@ -434,6 +433,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.URL.Path == "/api-sdk/stop_cam_stream":
 		robots[robotIndex].CamStreaming = false
+		stopCamViewer(r.FormValue("serial"))
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/get_image_ids":
@@ -545,69 +545,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func camStreamHandler(w http.ResponseWriter, r *http.Request) {
-	robotObj, robotIndex, err := getRobot(r.FormValue("serial"))
-	if err != nil {
-		fmt.Fprint(w, "error: "+err.Error())
-		return
-	}
-	if robots[robotIndex].CamStreaming {
-		robots[robotIndex].CamStreaming = false
-		time.Sleep(time.Second / 2)
-	}
-	robotObj.Vector.Conn.EnableImageStreaming(
-		robotObj.Ctx,
-		&vectorpb.EnableImageStreamingRequest{
-			Enable: true,
-		},
-	)
-	var client vectorpb.ExternalInterface_CameraFeedClient
-	client, err = robotObj.Vector.Conn.CameraFeed(
-		robotObj.Ctx,
-		&vectorpb.CameraFeedRequest{},
-	)
-	if err != nil {
-		fmt.Fprint(w, "error: "+err.Error())
-		return
-	}
-	w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=--boundary")
-	multi := io.MultiWriter(w)
-	robots[robotIndex].CamStreaming = true
-	for {
-		select {
-		case <-r.Context().Done():
-			robotObj.Vector.Conn.EnableImageStreaming(
-				robotObj.Ctx,
-				&vectorpb.EnableImageStreamingRequest{
-					Enable: false,
-				},
-			)
-			robots[robotIndex].CamStreaming = false
-			return
-		default:
-			if robots[robotIndex].CamStreaming {
-				response, err := client.Recv()
-				if err == nil {
-					imageBytes := response.GetData()
-					img, _, _ := image.Decode(bytes.NewReader(imageBytes))
-					fmt.Fprintf(multi, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
-					jpeg.Encode(multi, img, &jpeg.Options{
-						Quality: 50,
-					})
-				}
-			} else {
-				robotObj.Vector.Conn.EnableImageStreaming(
-					robotObj.Ctx,
-					&vectorpb.EnableImageStreamingRequest{
-						Enable: false,
-					},
-				)
-				return
-			}
-		}
-	}
-}
-
 func DisableCachingAndSniffing(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate;")
@@ -634,7 +571,7 @@ func BeginServer() {
 	http.HandleFunc("/ok", connCheck)
 	InitJdocsPinger()
 	// camstream
-	http.HandleFunc("/cam-stream", camStreamHandler)
+	http.HandleFunc("/cam-stream", handleCamStream)
 	logger.Println("Starting SDK app")
 	fmt.Printf("Starting server at port 80 for connCheck\n")
 	ipAddr := vars.GetOutboundIP().String()
