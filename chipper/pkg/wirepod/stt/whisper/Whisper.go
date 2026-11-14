@@ -107,7 +107,7 @@ func makeOpenAIReq(in []byte) string {
 	w.WriteField("model", "whisper-1")
 	// Without an explicit language whisper-1 guesses per utterance and gets short
 	// commands wrong, sometimes returning English for German speech.
-	if lang := strings.Split(vars.APIConfig.STT.Language, "-")[0]; lang != "" {
+	if lang := strings.Split(vars.Config().STT.Language, "-")[0]; lang != "" {
 		w.WriteField("language", lang)
 	}
 	if vp := buildVocabPrompt(); vp != "" {

@@ -46,11 +46,12 @@ func (tokenAuth) RequireTransportSecurity() bool {
 
 func Lookup(esn string) (Info, error) {
 	esn = strings.TrimSpace(esn)
-	for _, robot := range vars.BotInfo.Robots {
+	botInfo := vars.GetBotInfo()
+	for _, robot := range botInfo.Robots {
 		if strings.EqualFold(esn, robot.Esn) {
 			guid := robot.GUID
 			if guid == "" {
-				guid = vars.BotInfo.GlobalGUID
+				guid = botInfo.GlobalGUID
 			}
 			return Info{
 				ESN:    robot.Esn,

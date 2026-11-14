@@ -77,25 +77,24 @@ func GetEsnFromTarget(target string) (string, error) {
 
 func SetBotGUID(esn string, guid string, guidHash string) error {
 	matched := false
-	for num, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(esn, robot.Esn) {
-			vars.BotInfo.Robots[num].GUID = guid
-			vars.BotInfo.Robots[num].Activated = true
-			logger.Println("GUID and hash successfully written for " + robot.Esn)
-			matched = true
-			break
+	err := vars.UpdateBotInfo(func(b *vars.RobotInfoStore) {
+		for num, robot := range b.Robots {
+			if strings.EqualFold(esn, robot.Esn) {
+				b.Robots[num].GUID = guid
+				b.Robots[num].Activated = true
+				logger.Println("GUID and hash successfully written for " + robot.Esn)
+				matched = true
+				break
+			}
 		}
-	}
+	})
 	if !matched {
 		return fmt.Errorf("bot not found")
 	}
-	writeBytes, err := json.Marshal(vars.BotInfo)
 	if err != nil {
 		logger.Println(err)
-		return err
 	}
-	os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
-	return nil
+	return err
 }
 
 func WriteTokenHash(esn string, tokenHash string) error {
@@ -160,14 +159,15 @@ func ChangeGUIDInIni(esn string) {
 		logger.Println(err)
 		return
 	}
-	for _, robot := range vars.BotInfo.Robots {
+	botInfo := vars.GetBotInfo()
+	for _, robot := range botInfo.Robots {
 		matched := false
 		for _, section := range userIniData.Sections() {
 			if strings.EqualFold(section.Name(), esn) {
 				matched = true
 				section.Key("ip").SetValue(robot.IPAddress)
 				if robot.GUID == "" {
-					section.Key("guid").SetValue(vars.BotInfo.GlobalGUID)
+					section.Key("guid").SetValue(botInfo.GlobalGUID)
 				} else {
 					section.Key("guid").SetValue(robot.GUID)
 				}

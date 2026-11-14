@@ -9,8 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/sashabaranov/go-openai"
@@ -56,11 +58,14 @@ var WebPort string = "8080"
 
 // /home/name/.anki_vector/
 var SDKIniPath string
-var BotJdocs []botjdoc
-var BotInfo RobotInfoStore
-var CustomIntents []CustomIntent
-var CustomIntentsExist bool = false
-var DownloadedVoskModels []string
+var (
+	jdocsMu  sync.Mutex
+	botJdocs []botjdoc
+)
+var (
+	voskModelsMu         sync.Mutex
+	downloadedVoskModels []string
+)
 var VoskGrammerEnable bool = false
 
 // here to prevent import cycle (localization restructure)
@@ -75,24 +80,66 @@ var ChipperCert []byte
 var ChipperKey []byte
 var ChipperKeysLoaded bool
 
-var RecurringInfo []RecurringInfoStore
-
 type RememberedChat struct {
 	ESN   string                         `json:"esn"`
 	Chats []openai.ChatCompletionMessage `json:"chats"`
 }
 
-var RememberedChats []RememberedChat
+type BotInfoRobot struct {
+	Esn       string `json:"esn"`
+	IPAddress string `json:"ip_address"`
+	GUID      string `json:"guid"`
+	Activated bool   `json:"activated"`
+}
 
 type RobotInfoStore struct {
-	GlobalGUID string `json:"global_guid"`
-	Robots     []struct {
-		Esn       string `json:"esn"`
-		IPAddress string `json:"ip_address"`
-		// 192.168.1.150:443
-		GUID      string `json:"guid"`
-		Activated bool   `json:"activated"`
-	} `json:"robots"`
+	GlobalGUID string         `json:"global_guid"`
+	Robots     []BotInfoRobot `json:"robots"`
+}
+
+var (
+	botInfoMu sync.Mutex
+	botInfo   RobotInfoStore
+)
+
+func GetBotInfo() RobotInfoStore {
+	botInfoMu.Lock()
+	defer botInfoMu.Unlock()
+	info := botInfo
+	info.Robots = slices.Clone(botInfo.Robots)
+	return info
+}
+
+func UpdateBotInfo(fn func(b *RobotInfoStore)) error {
+	botInfoMu.Lock()
+	defer botInfoMu.Unlock()
+	fn(&botInfo)
+	return writeBotInfoLocked()
+}
+
+func writeBotInfoLocked() error {
+	writeBytes, err := json.Marshal(botInfo)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(BotInfoPath, writeBytes, 0644)
+}
+
+func SetBotIP(esn, ip string) error {
+	botInfoMu.Lock()
+	defer botInfoMu.Unlock()
+	changed := false
+	for i, bot := range botInfo.Robots {
+		if bot.Esn == esn && bot.IPAddress != ip {
+			logger.Println(esn + "'s IP address has changed to " + ip + ", noting")
+			botInfo.Robots[i].IPAddress = ip
+			changed = true
+		}
+	}
+	if !changed {
+		return nil
+	}
+	return writeBotInfoLocked()
 }
 
 type RecurringInfoStore struct {
@@ -228,24 +275,27 @@ func Init() {
 	// load api config (config.go)
 	ReadConfig()
 
-	// check models folder, add all models to DownloadedVoskModels
-	if APIConfig.STT.Service == "vosk" {
+	if Config().STT.Service == "vosk" {
 		GetDownloadedVoskModels()
 	}
 
 	// load jdocs. if there are any in the old format, conver
 	if _, err := os.Stat(JdocsPath); err == nil {
 		jsonBytes, _ := os.ReadFile(JdocsPath)
-		json.Unmarshal(jsonBytes, &BotJdocs)
+		jdocsMu.Lock()
+		json.Unmarshal(jsonBytes, &botJdocs)
+		jdocsMu.Unlock()
 		logger.Println("Loaded jdocs file")
 	}
 
 	// load bot sdk info
 	botBytes, err := os.ReadFile(BotInfoPath)
 	if err == nil {
-		json.Unmarshal(botBytes, &BotInfo)
+		botInfoMu.Lock()
+		json.Unmarshal(botBytes, &botInfo)
+		botInfoMu.Unlock()
 		var botList []string
-		for _, robot := range BotInfo.Robots {
+		for _, robot := range GetBotInfo().Robots {
 			botList = append(botList, robot.Esn)
 		}
 		logger.Println("Loaded bot info file, known bots: " + fmt.Sprint(botList))
@@ -263,17 +313,19 @@ func GetDownloadedVoskModels() {
 		return
 	}
 	for _, dir := range array {
-		DownloadedVoskModels = append(DownloadedVoskModels, dir.Name())
+		AddDownloadedVoskModel(dir.Name())
 	}
 }
 
 func LoadCustomIntents() {
 	jsonBytes, err := os.ReadFile(CustomIntentsPath)
 	if err == nil {
-		json.Unmarshal(jsonBytes, &CustomIntents)
-		CustomIntentsExist = true
+		customIntentsMu.Lock()
+		json.Unmarshal(jsonBytes, &customIntents)
+		customIntentsExists = true
+		customIntentsMu.Unlock()
 		logger.Println("Loaded custom intents:")
-		for _, intent := range CustomIntents {
+		for _, intent := range GetCustomIntents() {
 			logger.Println(intent.Name)
 		}
 	}
@@ -289,7 +341,7 @@ func LoadIntents() ([]JsonIntent, error) {
 	} else {
 		path = "./"
 	}
-	jsonFile, err := os.ReadFile(path + "intent-data/" + APIConfig.STT.Language + ".json")
+	jsonFile, err := os.ReadFile(path + "intent-data/" + Config().STT.Language + ".json")
 
 	// var matches [][]string
 	// var intents []string
@@ -305,30 +357,39 @@ func LoadIntents() ([]JsonIntent, error) {
 		// 	intents = append(intents, element.Name)
 		// 	matches = append(matches, element.Keyphrases)
 		// }
-		// logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + APIConfig.STT.Language + ")")
+		// logger.Println("Loaded " + strconv.Itoa(len(jsonIntents)) + " intents and " + strconv.Itoa(len(matches)) + " matches (language: " + Config().STT.Language + ")")
 	}
 	return jsonIntents, err
 }
 
-func WriteJdocs() {
-	writeBytes, _ := json.Marshal(BotJdocs)
+func writeJdocsLocked() {
+	writeBytes, _ := json.Marshal(botJdocs)
 	os.WriteFile(JdocsPath, writeBytes, 0644)
 }
 
-// removes a bot from jdocs file
+func WriteJdocs() {
+	jdocsMu.Lock()
+	defer jdocsMu.Unlock()
+	writeJdocsLocked()
+}
+
 func DeleteData(thing string) {
+	jdocsMu.Lock()
+	defer jdocsMu.Unlock()
 	var newdocs []botjdoc
-	for _, jdocentry := range BotJdocs {
+	for _, jdocentry := range botJdocs {
 		if jdocentry.Thing != thing {
 			newdocs = append(newdocs, jdocentry)
 		}
 	}
-	BotJdocs = newdocs
-	WriteJdocs()
+	botJdocs = newdocs
+	writeJdocsLocked()
 }
 
 func GetJdoc(thing, jdocname string) (AJdoc, bool) {
-	for _, botJdoc := range BotJdocs {
+	jdocsMu.Lock()
+	defer jdocsMu.Unlock()
+	for _, botJdoc := range botJdocs {
 		if botJdoc.Name == jdocname && botJdoc.Thing == thing {
 			return botJdoc.Jdoc, true
 		}
@@ -336,36 +397,28 @@ func GetJdoc(thing, jdocname string) (AJdoc, bool) {
 	return AJdoc{}, false
 }
 
-//    DocVersion     uint64 `protobuf:"varint,1,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"`            // first version = 1; 0 => invalid or doesn't exist
-// FmtVersion     uint64 `protobuf:"varint,2,opt,name=fmt_version,json=fmtVersion,proto3" json:"fmt_version,omitempty"`            // first version = 1; 0 => invalid
-// ClientMetadata string `protobuf:"bytes,3,opt,name=client_metadata,json=clientMetadata,proto3" json:"client_metadata,omitempty"` // arbitrary client-defined string, eg a data fingerprint (typ "", 32 chars max)
-// JsonDoc        string
-
 func AddJdoc(thing string, name string, jdoc AJdoc) uint64 {
+	jdocsMu.Lock()
+	defer jdocsMu.Unlock()
 	var latestVersion uint64 = 0
 	matched := false
-	for index, jdocentry := range BotJdocs {
+	for index, jdocentry := range botJdocs {
 		if jdocentry.Thing == thing && jdocentry.Name == name {
-			BotJdocs[index].Jdoc = jdoc
-			latestVersion = BotJdocs[index].Jdoc.DocVersion
+			botJdocs[index].Jdoc = jdoc
+			latestVersion = botJdocs[index].Jdoc.DocVersion
 			matched = true
 			break
 		}
 	}
 	if !matched {
-		var newbot botjdoc
-		newbot.Thing = thing
-		newbot.Name = name
-		newbot.Jdoc = jdoc
-		BotJdocs = append(BotJdocs, newbot)
+		botJdocs = append(botJdocs, botjdoc{Thing: thing, Name: name, Jdoc: jdoc})
 	}
-	WriteJdocs()
+	writeJdocsLocked()
 	return latestVersion
 }
 
 func ReadSessionCerts() {
 	logger.Println("Reading session certs for robot IDs")
-	var rinfo RecurringInfoStore
 	certDir, err := os.ReadDir(SessionCertPath)
 	if err != nil {
 		logger.Println(err)
@@ -392,33 +445,14 @@ func ReadSessionCerts() {
 			logger.Println("Session cert " + entry.Name() + " couldn't be parsed, skipping: " + err.Error())
 			continue
 		}
-		for _, robot := range BotInfo.Robots {
+		for _, robot := range GetBotInfo().Robots {
 			if esn == robot.Esn {
 				ip = robot.IPAddress
 				break
 			}
 		}
-		rinfo.ESN = esn
-		rinfo.ID = cert.Issuer.CommonName
-		rinfo.IP = ip
-		RecurringInfo = append(RecurringInfo, rinfo)
+		AddToRInfo(esn, cert.Issuer.CommonName, ip)
 	}
-}
-
-func AddToRInfo(esn string, id string, ip string) {
-	// the only bot constant is ESN
-	for i := range RecurringInfo {
-		if RecurringInfo[i].ESN == esn {
-			RecurringInfo[i].ID = id
-			RecurringInfo[i].IP = ip
-			return
-		}
-	}
-	var rinfo RecurringInfoStore
-	rinfo.ESN = esn
-	rinfo.ID = id
-	rinfo.IP = ip
-	RecurringInfo = append(RecurringInfo, rinfo)
 }
 
 func GetOutboundIP() net.IP {
@@ -446,4 +480,18 @@ func GetOutboundIP() net.IP {
 	defer conn.Close()
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 	return localAddr.IP
+}
+
+func AddDownloadedVoskModel(lang string) {
+	voskModelsMu.Lock()
+	defer voskModelsMu.Unlock()
+	if !slices.Contains(downloadedVoskModels, lang) {
+		downloadedVoskModels = append(downloadedVoskModels, lang)
+	}
+}
+
+func IsVoskModelDownloaded(lang string) bool {
+	voskModelsMu.Lock()
+	defer voskModelsMu.Unlock()
+	return slices.Contains(downloadedVoskModels, lang)
 }

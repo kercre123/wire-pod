@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -90,9 +91,10 @@ func handleAddCustomIntent(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	vars.CustomIntentsExist = true
-	vars.CustomIntents = append(vars.CustomIntents, intent)
-	saveCustomIntents()
+	if err := vars.AddCustomIntent(intent); err != nil {
+		http.Error(w, "error saving intent: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 	fmt.Fprint(w, "Intent added successfully.")
 }
 
@@ -108,60 +110,67 @@ func handleEditCustomIntent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	if request.Number < 1 || request.Number > len(vars.CustomIntents) {
-		http.Error(w, "invalid intent number", http.StatusBadRequest)
-		return
-	}
-	intent := &vars.CustomIntents[request.Number-1]
-	if request.Name != "" {
-		intent.Name = request.Name
-	}
-	if request.Description != "" {
-		intent.Description = request.Description
-	}
-	if len(request.Utterances) != 0 {
-		intent.Utterances = request.Utterances
-	}
-	if request.Intent != "" {
-		intent.Intent = request.Intent
-	}
-	if request.Params.ParamName != "" {
-		intent.Params.ParamName = request.Params.ParamName
-	}
-	if request.Params.ParamValue != "" {
-		intent.Params.ParamValue = request.Params.ParamValue
-	}
-	if request.Exec != "" {
-		intent.Exec = request.Exec
-	}
 	if request.LuaScript != "" {
-		intent.LuaScript = request.LuaScript
-		if err := scripting.ValidateLuaScript(intent.LuaScript); err != nil {
+		if err := scripting.ValidateLuaScript(request.LuaScript); err != nil {
 			http.Error(w, "lua validation error: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
-	if len(request.ExecArgs) != 0 {
-		intent.ExecArgs = request.ExecArgs
+	err := vars.EditCustomIntent(request.Number, func(intent *vars.CustomIntent) error {
+		if request.Name != "" {
+			intent.Name = request.Name
+		}
+		if request.Description != "" {
+			intent.Description = request.Description
+		}
+		if len(request.Utterances) != 0 {
+			intent.Utterances = request.Utterances
+		}
+		if request.Intent != "" {
+			intent.Intent = request.Intent
+		}
+		if request.Params.ParamName != "" {
+			intent.Params.ParamName = request.Params.ParamName
+		}
+		if request.Params.ParamValue != "" {
+			intent.Params.ParamValue = request.Params.ParamValue
+		}
+		if request.Exec != "" {
+			intent.Exec = request.Exec
+		}
+		if request.LuaScript != "" {
+			intent.LuaScript = request.LuaScript
+		}
+		if len(request.ExecArgs) != 0 {
+			intent.ExecArgs = request.ExecArgs
+		}
+		intent.IsSystemIntent = false
+		return nil
+	})
+	if errors.Is(err, vars.ErrNoSuchIntent) {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	intent.IsSystemIntent = false
-	saveCustomIntents()
+	if err != nil {
+		http.Error(w, "error saving intent: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 	fmt.Fprint(w, "Intent edited successfully.")
 }
 
 func handleGetCustomIntentsJSON(w http.ResponseWriter) {
-	if !vars.CustomIntentsExist {
+	if !vars.CustomIntentsExist() {
 		http.Error(w, "you must create an intent first", http.StatusBadRequest)
 		return
 	}
-	customIntentJSONFile, err := os.ReadFile(vars.CustomIntentsPath)
+	customIntentJSON, err := json.Marshal(vars.GetCustomIntents())
 	if err != nil {
-		http.Error(w, "could not read custom intents file", http.StatusInternalServerError)
+		http.Error(w, "could not marshal custom intents", http.StatusInternalServerError)
 		logger.Println(err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(customIntentJSONFile)
+	w.Write(customIntentJSON)
 }
 
 func handleRemoveCustomIntent(w http.ResponseWriter, r *http.Request) {
@@ -175,12 +184,15 @@ func handleRemoveCustomIntent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	if request.Number < 1 || request.Number > len(vars.CustomIntents) {
-		http.Error(w, "invalid intent number", http.StatusBadRequest)
+	err := vars.RemoveCustomIntent(request.Number)
+	if errors.Is(err, vars.ErrNoSuchIntent) {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	vars.CustomIntents = append(vars.CustomIntents[:request.Number-1], vars.CustomIntents[request.Number:]...)
-	saveCustomIntents()
+	if err != nil {
+		http.Error(w, "error saving intents: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 	fmt.Fprint(w, "Intent removed successfully.")
 }
 
@@ -197,11 +209,15 @@ func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if config.Provider == "" {
-		vars.APIConfig.Weather.Enable = false
+		vars.UpdateConfig(func(c *vars.APIConfig) {
+			c.Weather.Enable = false
+		})
 	} else {
-		vars.APIConfig.Weather.Enable = true
-		vars.APIConfig.Weather.Key = unmaskKey(strings.TrimSpace(config.Key), vars.APIConfig.Weather.Key)
-		vars.APIConfig.Weather.Provider = config.Provider
+		vars.UpdateConfig(func(c *vars.APIConfig) {
+			c.Weather.Enable = true
+			c.Weather.Key = unmaskKey(strings.TrimSpace(config.Key), c.Weather.Key)
+			c.Weather.Provider = config.Provider
+		})
 	}
 	vars.WriteConfigToDisk()
 	fmt.Fprint(w, "Changes successfully applied.")
@@ -209,7 +225,7 @@ func handleSetWeatherAPI(w http.ResponseWriter, r *http.Request) {
 
 func handleGetWeatherAPI(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	weather := vars.APIConfig.Weather
+	weather := vars.Config().Weather
 	weather.Key = maskKey(weather.Key)
 	json.NewEncoder(w).Encode(weather)
 }
@@ -218,21 +234,23 @@ func handleSetKGAPI(w http.ResponseWriter, r *http.Request) {
 	if !webguard.RequireJSON(w, r) {
 		return
 	}
-	kg := vars.APIConfig.Knowledge
+	kg := vars.Config().Knowledge
 	if err := json.NewDecoder(r.Body).Decode(&kg); err != nil {
 		fmt.Println(err)
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	kg.Key = unmaskKey(kg.Key, vars.APIConfig.Knowledge.Key)
-	vars.APIConfig.Knowledge = kg
+	vars.UpdateConfig(func(c *vars.APIConfig) {
+		kg.Key = unmaskKey(kg.Key, c.Knowledge.Key)
+		c.Knowledge = kg
+	})
 	vars.WriteConfigToDisk()
 	fmt.Fprint(w, "Changes successfully applied.")
 }
 
 func handleGetKGAPI(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	kg := vars.APIConfig.Knowledge
+	kg := vars.Config().Knowledge
 	kg.Key = maskKey(kg.Key)
 	json.NewEncoder(w).Encode(kg)
 }
@@ -248,17 +266,17 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	if vars.APIConfig.STT.Service == "vosk" {
+	if vars.Config().STT.Service == "vosk" {
 		if !isValidLanguage(request.Language, localization.ValidVoskModels) {
 			http.Error(w, "language not valid", http.StatusBadRequest)
 			return
 		}
-		if !isDownloadedLanguage(request.Language, vars.DownloadedVoskModels) {
+		if !vars.IsVoskModelDownloaded(request.Language) {
 			go localization.DownloadVoskModel(request.Language)
 			fmt.Fprint(w, "downloading language model...")
 			return
 		}
-	} else if vars.APIConfig.STT.Service == "whisper.cpp" {
+	} else if vars.Config().STT.Service == "whisper.cpp" {
 		if !isValidLanguage(request.Language, localization.ValidVoskModels) {
 			http.Error(w, "language not valid", http.StatusBadRequest)
 			return
@@ -267,8 +285,10 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "service must be vosk or whisper", http.StatusBadRequest)
 		return
 	}
-	vars.APIConfig.STT.Language = request.Language
-	vars.APIConfig.PastInitialSetup = true
+	vars.UpdateConfig(func(c *vars.APIConfig) {
+		c.STT.Language = request.Language
+		c.PastInitialSetup = true
+	})
 	vars.WriteConfigToDisk()
 	processreqs.ReloadVosk()
 	logger.Println("Reloaded voice processor successfully")
@@ -277,20 +297,17 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 
 func handleGetDownloadStatus(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(localization.DownloadStatus))
-	if localization.DownloadStatus == "success" || strings.Contains(localization.DownloadStatus, "error") {
-		localization.DownloadStatus = "not downloading"
-	}
+	w.Write([]byte(localization.TakeDownloadStatus()))
 }
 
 func handleGetSTTInfo(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vars.APIConfig.STT)
+	json.NewEncoder(w).Encode(vars.Config().STT)
 }
 
 func handleGetConfig(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	cfg := vars.APIConfig
+	cfg := vars.Config()
 	cfg.Weather.Key = maskKey(cfg.Weather.Key)
 	cfg.Knowledge.Key = maskKey(cfg.Knowledge.Key)
 	json.NewEncoder(w).Encode(cfg)
@@ -298,12 +315,12 @@ func handleGetConfig(w http.ResponseWriter) {
 
 func handleGetLogs(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(logger.LogList))
+	w.Write([]byte(logger.GetLogs()))
 }
 
 func handleGetDebugLogs(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(logger.LogTrayList))
+	w.Write([]byte(logger.GetDebugLogs()))
 }
 
 func handleIsRunning(w http.ResponseWriter) {
@@ -312,7 +329,7 @@ func handleIsRunning(w http.ResponseWriter) {
 }
 
 func handleDeleteChats(w http.ResponseWriter) {
-	vars.RememberedChats = []vars.RememberedChat{}
+	vars.ClearRememberedChats()
 	fmt.Fprint(w, "done")
 }
 
@@ -403,11 +420,6 @@ func handleGenerateCerts(w http.ResponseWriter) {
 		return
 	}
 	fmt.Fprint(w, "done")
-}
-
-func saveCustomIntents() {
-	customIntentJSONFile, _ := json.Marshal(vars.CustomIntents)
-	os.WriteFile(vars.CustomIntentsPath, customIntentJSONFile, 0644)
 }
 
 func DisableCachingAndSniffing(next http.Handler) http.Handler {
@@ -547,15 +559,6 @@ func anyEmpty(values ...string) bool {
 
 func isValidLanguage(language string, validLanguages []string) bool {
 	for _, lang := range validLanguages {
-		if lang == language {
-			return true
-		}
-	}
-	return false
-}
-
-func isDownloadedLanguage(language string, downloadedLanguages []string) bool {
-	for _, lang := range downloadedLanguages {
 		if lang == language {
 			return true
 		}

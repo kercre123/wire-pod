@@ -2,10 +2,10 @@ package sdkapp
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -44,7 +44,7 @@ func pingJdocs(target string) {
 	target = strings.Split(target, ":")[0]
 	var serial string
 	matched := false
-	for _, robot := range vars.BotInfo.Robots {
+	for _, robot := range vars.GetBotInfo().Robots {
 		if strings.TrimSpace(strings.ToLower(robot.IPAddress)) == strings.TrimSpace(strings.ToLower(target)) {
 			matched = true
 			serial = robot.Esn
@@ -62,7 +62,7 @@ func pingJdocs(target string) {
 	_, err = robotTmp.Conn.BatteryState(ctx, &vectorpb.BatteryStateRequest{})
 	if err != nil {
 		var closeRobot func()
-		robotTmp, closeRobot, err = botconn.DialWithGUID(serial, vars.BotInfo.GlobalGUID)
+		robotTmp, closeRobot, err = botconn.DialWithGUID(serial, vars.GetBotInfo().GlobalGUID)
 		if err != nil {
 			logger.Println(err)
 			logger.Println("Error pinging jdocs")
@@ -124,7 +124,7 @@ func InitJdocsPinger() {
 func ShouldPingJdocs(target string) bool {
 	var esn, guid, botip string
 	matched := false
-	for _, bot := range vars.BotInfo.Robots {
+	for _, bot := range vars.GetBotInfo().Robots {
 		if target == bot.IPAddress {
 			esn = bot.Esn
 			guid = bot.GUID
@@ -175,10 +175,15 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 		}
 		if PingerEnabled {
 			//logger.Println("connCheck request from " + r.RemoteAddr)
-			robotTarget := strings.Split(r.RemoteAddr, ":")[0]
-			jsonB, _ := json.Marshal(vars.BotInfo)
-			json := string(jsonB)
-			if strings.Contains(json, strings.TrimSpace(robotTarget)) {
+			robotTarget := strings.TrimSpace(strings.Split(r.RemoteAddr, ":")[0])
+			known := false
+			for _, bot := range vars.GetBotInfo().Robots {
+				if bot.IPAddress == robotTarget {
+					known = true
+					break
+				}
+			}
+			if known {
 				ping := ShouldPingJdocs(robotTarget)
 				if ping {
 					pingJdocs(robotTarget)
@@ -192,50 +197,56 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var MDNSAlreadyRun []string
+var (
+	mdnsAlreadyRunMu sync.Mutex
+	mdnsAlreadyRun   []string
+)
 
 var RunningMDNS bool
 
 func RunMDNS(botIP string) {
-	for _, ip := range MDNSAlreadyRun {
-		if ip == botIP {
-			return
-		}
+	mdnsAlreadyRunMu.Lock()
+	alreadyRun := slices.Contains(mdnsAlreadyRun, botIP)
+	mdnsAlreadyRunMu.Unlock()
+	if alreadyRun {
+		return
 	}
 	fmt.Println("Running mDNS...")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	entries := make(chan *zeroconf.ServiceEntry)
-	resolver, _ := zeroconf.NewResolver()
+	resolver, err := zeroconf.NewResolver()
+	if err != nil {
+		logger.Println("mDNS resolver error: ", err)
+		return
+	}
 	resolver.Browse(ctx, "_ankivector._tcp", "local", entries)
 	for entry := range entries {
+		if len(entry.AddrIPv4) == 0 {
+			continue
+		}
 		robotID := strings.Split(entry.HostName, ".")[0]
-		matched := false
-		for _, rinf := range vars.RecurringInfo {
-			if rinf.ID == robotID {
-				vars.AddToRInfo(rinf.ESN, robotID, fmt.Sprint(entry.AddrIPv4[0]))
-				for i, rob := range vars.BotInfo.Robots {
-					if rob.Esn == rinf.ESN {
-						vars.BotInfo.Robots[i].IPAddress = fmt.Sprint(entry.AddrIPv4[0])
-						jsonBytes, _ := json.Marshal(vars.BotInfo)
-						fmt.Println("Updating robot " + robotID)
-						go os.WriteFile(vars.BotInfoPath, jsonBytes, 0777)
-					}
-				}
-				go func() {
-					// wait for escapepod.local trasmit
-					if vars.APIConfig.Server.EPConfig {
-						time.Sleep(time.Second)
-					}
-					pingJdocs(fmt.Sprint(entry.AddrIPv4[0]))
-				}()
-				matched = true
-				break
-			}
-		}
+		ip := entry.AddrIPv4[0].String()
+		rinf, matched := vars.FindRecurringInfoByID(robotID)
 		if !matched {
-			MDNSAlreadyRun = append(MDNSAlreadyRun, botIP)
+			mdnsAlreadyRunMu.Lock()
+			if !slices.Contains(mdnsAlreadyRun, botIP) {
+				mdnsAlreadyRun = append(mdnsAlreadyRun, botIP)
+			}
+			mdnsAlreadyRunMu.Unlock()
+			continue
 		}
+		vars.AddToRInfo(rinf.ESN, robotID, ip)
+		fmt.Println("Updating robot " + robotID)
+		if err := vars.SetBotIP(rinf.ESN, ip); err != nil {
+			logger.Println("Error writing bot info: ", err)
+		}
+		go func() {
+			if vars.Config().Server.EPConfig {
+				time.Sleep(time.Second)
+			}
+			pingJdocs(ip)
+		}()
 	}
 	fmt.Println("Done running mDNS")
 }

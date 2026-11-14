@@ -26,11 +26,12 @@ var serverFiles string = "./webroot/sdkapp"
 
 func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/api-sdk/get_sdk_info" {
-		if len(vars.BotInfo.Robots) == 0 {
+		botInfo := vars.GetBotInfo()
+		if len(botInfo.Robots) == 0 {
 			http.Error(w, "no bots are authenticated", http.StatusInternalServerError)
 			return
 		}
-		jsonBytes, err := json.Marshal(vars.BotInfo)
+		jsonBytes, err := json.Marshal(botInfo)
 		if err != nil {
 			fmt.Fprintf(w, "error marshaling json")
 			return

@@ -35,14 +35,16 @@ func ParseSpokenResponse(serverResponseJSON string) (string, error) {
 }
 
 func InitKnowledge() {
-	if vars.APIConfig.Knowledge.Enable && vars.APIConfig.Knowledge.Provider == "houndify" {
-		if vars.APIConfig.Knowledge.ID == "" || vars.APIConfig.Knowledge.Key == "" {
-			vars.APIConfig.Knowledge.Enable = false
+	if vars.Config().Knowledge.Enable && vars.Config().Knowledge.Provider == "houndify" {
+		if vars.Config().Knowledge.ID == "" || vars.Config().Knowledge.Key == "" {
+			vars.UpdateConfig(func(c *vars.APIConfig) {
+				c.Knowledge.Enable = false
+			})
 			logger.Println("Houndify Client Key or ID was empty, not initializing kg client")
 		} else {
 			HKGclient = houndify.Client{
-				ClientID:  vars.APIConfig.Knowledge.ID,
-				ClientKey: vars.APIConfig.Knowledge.Key,
+				ClientID:  vars.Config().Knowledge.ID,
+				ClientKey: vars.Config().Knowledge.Key,
 			}
 			HKGclient.EnableConversationState()
 			logger.Println("Initialized Houndify client")
@@ -55,7 +57,7 @@ var NoResultSpoken string
 
 func houndifyKG(req sr.SpeechRequest) string {
 	var apiResponse string
-	if vars.APIConfig.Knowledge.Enable && vars.APIConfig.Knowledge.Provider == "houndify" {
+	if vars.Config().Knowledge.Enable && vars.Config().Knowledge.Provider == "houndify" {
 		logger.Println("Sending request to Houndify...")
 		serverResponse := StreamAudioToHoundify(req, HKGclient)
 		apiResponse, _ = ParseSpokenResponse(serverResponse)
@@ -90,8 +92,8 @@ func streamingKG(req *vtt.KnowledgeGraphRequest, speechReq sr.SpeechRequest) str
 
 // Takes a SpeechRequest, figures out knowledgegraph provider, makes request, returns API response
 func KgRequest(req *vtt.KnowledgeGraphRequest, speechReq sr.SpeechRequest) string {
-	if vars.APIConfig.Knowledge.Enable {
-		if vars.APIConfig.Knowledge.Provider == "houndify" {
+	if vars.Config().Knowledge.Enable {
+		if vars.Config().Knowledge.Provider == "houndify" {
 			return houndifyKG(speechReq)
 		}
 	}
@@ -101,7 +103,7 @@ func KgRequest(req *vtt.KnowledgeGraphRequest, speechReq sr.SpeechRequest) strin
 func (s *Server) ProcessKnowledgeGraph(req *vtt.KnowledgeGraphRequest) (*vtt.KnowledgeGraphResponse, error) {
 	InitKnowledge()
 	speechReq := sr.ReqToSpeechRequest(req)
-	if vars.APIConfig.Knowledge.Enable && vars.APIConfig.Knowledge.Provider != "houndify" {
+	if vars.Config().Knowledge.Enable && vars.Config().Knowledge.Provider != "houndify" {
 		streamingKG(req, speechReq)
 	} else {
 		apiResponse := KgRequest(req, speechReq)
@@ -128,7 +130,7 @@ func cleanHoundifyResponse(response string) string {
 }
 
 func houndifyTextRequest(queryText string, device string, session string) string {
-	if !vars.APIConfig.Knowledge.Enable || vars.APIConfig.Knowledge.Provider != "houndify" {
+	if !vars.Config().Knowledge.Enable || vars.Config().Knowledge.Provider != "houndify" {
 		return "Houndify is not enabled."
 	}
 	

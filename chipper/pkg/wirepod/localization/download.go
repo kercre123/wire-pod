@@ -11,7 +11,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"net/http"
 	"os"
@@ -19,6 +18,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -29,7 +30,34 @@ var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
 
 //var URLPrefix string = "https://alphacephei.com/vosk/models/"
 
-var DownloadStatus string = "not downloading"
+var (
+	downloadStatusMu sync.Mutex
+	downloadStatus   = "not downloading"
+	downloading      atomic.Bool
+)
+
+var downloadClient = &http.Client{
+	Transport: &http.Transport{
+		Proxy:           http.ProxyFromEnvironment,
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	},
+}
+
+func setDownloadStatus(s string) {
+	downloadStatusMu.Lock()
+	downloadStatus = s
+	downloadStatusMu.Unlock()
+}
+
+func TakeDownloadStatus() string {
+	downloadStatusMu.Lock()
+	defer downloadStatusMu.Unlock()
+	s := downloadStatus
+	if s == "success" || strings.Contains(s, "error") {
+		downloadStatus = "not downloading"
+	}
+	return s
+}
 
 func DownloadVoskModel(language string) {
 	filename := "vosk-model-small-"
@@ -65,6 +93,11 @@ func DownloadVoskModel(language string) {
 		logger.Println("Language not valid? " + language)
 		return
 	}
+	if !downloading.CompareAndSwap(false, true) {
+		logger.Println("Not downloading model because download is currently happening")
+		return
+	}
+	defer downloading.Store(false)
 	os.MkdirAll(vars.VoskModelPath, 0755)
 	url := URLPrefix + filename
 	var filep string
@@ -78,92 +111,78 @@ func DownloadVoskModel(language string) {
 	UnzipFile(filep, destpath)
 	os.Rename(destpath+strings.TrimSuffix(filename, ".zip"), destpath+"model")
 	os.Remove(filep)
-	vars.DownloadedVoskModels = append(vars.DownloadedVoskModels, language)
-	DownloadStatus = "Reloading voice processor"
-	vars.APIConfig.STT.Language = language
-	vars.APIConfig.PastInitialSetup = true
+	vars.AddDownloadedVoskModel(language)
+	setDownloadStatus("Reloading voice processor")
+	vars.UpdateConfig(func(c *vars.APIConfig) {
+		c.STT.Language = language
+		c.PastInitialSetup = true
+	})
 	vars.WriteConfigToDisk()
 	ReloadVosk()
 	logger.Println("Reloaded voice processor successfully")
-	DownloadStatus = "success"
+	setDownloadStatus("success")
 }
 
 func PrintDownloadPercent(done chan int64, path string, total int64) {
-	var stop bool = false
 	for {
 		select {
 		case <-done:
-			stop = true
-		default:
-			file, err := os.Open(path)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fi, err := file.Stat()
-			if err != nil {
-				log.Fatal(err)
-			}
-			size := fi.Size()
-			if size == 0 {
-				size = 1
-			}
-			var percent float64 = float64(size) / float64(total) * 100
-			showPercent := math.Floor(percent)
-			DownloadStatus = "Model download status: " + fmt.Sprint(showPercent) + "%"
+			return
+		case <-time.After(time.Second / 2):
 		}
-		if stop {
-			DownloadStatus = "completed"
-			break
+		fi, err := os.Stat(path)
+		if err != nil {
+			continue
 		}
-		time.Sleep(time.Second / 2)
+		size := fi.Size()
+		if size == 0 {
+			size = 1
+		}
+		percent := float64(size) / float64(total) * 100
+		setDownloadStatus("Model download status: " + fmt.Sprint(math.Floor(percent)) + "%")
 	}
 }
 
 func DownloadFile(url string, dest string) {
-	if strings.Contains(DownloadStatus, "success") || strings.Contains(DownloadStatus, "error") || strings.Contains(DownloadStatus, "not downloading") {
-		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		logger.Println("Downloading " + url + " to " + dest)
-		out, _ := os.Create(dest)
-		defer out.Close()
-		headResp, err := http.Head(url)
-		if err != nil {
-			logger.Println(err)
-			DownloadStatus = "error: " + err.Error()
-			return
-		}
-		defer headResp.Body.Close()
-		size, _ := strconv.Atoi(headResp.Header.Get("Content-Length"))
-		done := make(chan int64)
-		go PrintDownloadPercent(done, dest, int64(size))
-		resp, err := http.Get(url)
-		if err != nil {
-			DownloadStatus = "error: " + err.Error()
-			logger.Println(err)
-			return
-		}
-		defer resp.Body.Close()
-		n, _ := io.Copy(out, resp.Body)
-		done <- n
-		DownloadStatus = "Completed download"
-	} else {
-		logger.Println("Not downloading model because download is currently happening")
+	logger.Println("Downloading " + url + " to " + dest)
+	out, _ := os.Create(dest)
+	defer out.Close()
+	headResp, err := downloadClient.Head(url)
+	if err != nil {
+		logger.Println(err)
+		setDownloadStatus("error: " + err.Error())
+		return
 	}
+	defer headResp.Body.Close()
+	size, _ := strconv.Atoi(headResp.Header.Get("Content-Length"))
+	done := make(chan int64)
+	defer close(done)
+	go PrintDownloadPercent(done, dest, int64(size))
+	resp, err := downloadClient.Get(url)
+	if err != nil {
+		setDownloadStatus("error: " + err.Error())
+		logger.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+	io.Copy(out, resp.Body)
+	setDownloadStatus("Completed download")
 }
 
 func UnzipFile(file, dest string) {
 	zipReader, err := zip.OpenReader(file)
 	if err != nil {
-		DownloadStatus = "error downloading: " + err.Error()
+		setDownloadStatus("error downloading: " + err.Error())
 		logger.Println("error opening zip file:", err)
 		return
 	}
 	defer zipReader.Close()
-	DownloadStatus = "Unpacking model..."
+	setDownloadStatus("Unpacking model...")
 
 	for _, f := range zipReader.File {
 		rc, err := f.Open()
 		if err != nil {
-			DownloadStatus = "error downloading: " + err.Error()
+			setDownloadStatus("error downloading: " + err.Error())
 			logger.Println("error opening zip file:", err)
 			return
 		}
@@ -175,7 +194,7 @@ func UnzipFile(file, dest string) {
 		} else {
 			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 			if err != nil {
-				DownloadStatus = "error downloading: " + err.Error()
+				setDownloadStatus("error downloading: " + err.Error())
 				logger.Println("Error creating file:", err)
 				return
 			}
@@ -183,7 +202,7 @@ func UnzipFile(file, dest string) {
 
 			_, err = io.Copy(f, rc)
 			if err != nil {
-				DownloadStatus = "error downloading: " + err.Error()
+				setDownloadStatus("error downloading: " + err.Error())
 				logger.Println("Error writing to file:", err)
 				return
 			}

@@ -40,7 +40,7 @@ func Init() error {
 		fmt.Println("Initializing vosk with grammer optimizations")
 		GrammerEnable = true
 	}
-	if vars.APIConfig.PastInitialSetup {
+	if vars.Config().PastInitialSetup {
 		vosk.SetLogLevel(-1)
 		if modelLoaded {
 			logger.Println("A model was already loaded, freeing all recognizers and model")
@@ -54,7 +54,7 @@ func Init() error {
 			grmRecs = []ARec{}
 			model.Free()
 		}
-		sttLanguage := vars.APIConfig.STT.Language
+		sttLanguage := vars.Config().STT.Language
 		if len(sttLanguage) == 0 {
 			sttLanguage = "en-US"
 		}
@@ -72,7 +72,7 @@ func Init() error {
 		model = aModel
 		if GrammerEnable {
 			logger.Println("Initializing grammer list")
-			Grammer = GetGrammerList(vars.APIConfig.STT.Language)
+			Grammer = GetGrammerList(vars.Config().STT.Language)
 		}
 
 		logger.Println("Initializing VOSK recognizers")
@@ -186,7 +186,7 @@ func getRec(withGrm bool) (*vosk.VoskRecognizer, int) {
 func STT(req sr.SpeechRequest) (string, error) {
 	logger.Println("(Bot " + req.Device + ", Vosk) Processing...")
 	var withGrm bool
-	if (vars.APIConfig.Knowledge.IntentGraph || req.IsKG) || !GrammerEnable {
+	if (vars.Config().Knowledge.IntentGraph || req.IsKG) || !GrammerEnable {
 		logger.Println("Using general recognizer")
 		withGrm = false
 	} else {

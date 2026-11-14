@@ -35,7 +35,7 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 
 	// intercept if not intent graph but intent graph is enabled
-	if !isIntentGraph && vars.APIConfig.Knowledge.IntentGraph && intentThing == "intent_system_unmatched" {
+	if !isIntentGraph && vars.Config().Knowledge.IntentGraph && intentThing == "intent_system_unmatched" {
 		intentThing = "intent_greeting_hello"
 	}
 
@@ -99,8 +99,8 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 
 func customIntentHandler(req interface{}, voiceText string, botSerial string) bool {
 	var successMatched bool = false
-	if vars.CustomIntentsExist {
-		for _, c := range vars.CustomIntents {
+	if vars.CustomIntentsExist() {
+		for _, c := range vars.GetCustomIntents() {
 			for _, v := range c.Utterances {
 				//if strings.Contains(voiceText, strings.ToLower(strings.TrimSpace(v))) {
 				// Check whether the custom sentence is either at the end of the spoken text or space-separated...
@@ -135,7 +135,7 @@ func customIntentHandler(req interface{}, voiceText string, botSerial string) bo
 						case "!intentName":
 							arg = c.Name
 						case "!locale":
-							arg = vars.APIConfig.STT.Language
+							arg = vars.Config().STT.Language
 						}
 						args = append(args, arg)
 					}
@@ -199,7 +199,7 @@ func pluginFunctionHandler(req interface{}, voiceText string, botSerial string) 
 				logger.Println("Bot " + botSerial + " matched plugin " + PluginNames[num] + ", executing function")
 				var guid string
 				var target string
-				for _, bot := range vars.BotInfo.Robots {
+				for _, bot := range vars.GetBotInfo().Robots {
 					if bot.Esn == botSerial {
 						guid = bot.GUID
 						target = bot.IPAddress + ":443"

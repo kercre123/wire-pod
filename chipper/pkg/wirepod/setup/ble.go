@@ -429,7 +429,7 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprint(w, "success")
 				return
 			}
-			if !vars.APIConfig.Server.EPConfig {
+			if !vars.Config().Server.EPConfig {
 				logger.Println("BLE authentication was not successful")
 				fmt.Fprint(w, "error authenticating")
 				return

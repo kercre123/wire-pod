@@ -141,7 +141,7 @@ func setupScriptPath() string {
 }
 
 func certPathForBot() string {
-	if !vars.APIConfig.Server.EPConfig {
+	if !vars.Config().Server.EPConfig {
 		return vars.CertPath
 	}
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {

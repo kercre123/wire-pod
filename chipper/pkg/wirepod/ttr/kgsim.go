@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -14,55 +15,20 @@ import (
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 
-	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"github.com/sashabaranov/go-openai"
 )
 
-func GetChat(esn string) vars.RememberedChat {
-	for _, chat := range vars.RememberedChats {
-		if chat.ESN == esn {
-			return chat
-		}
-	}
-	return vars.RememberedChat{
-		ESN: esn,
-	}
-}
-
-func PlaceChat(chat vars.RememberedChat) {
-	for i, achat := range vars.RememberedChats {
-		if achat.ESN == chat.ESN {
-			vars.RememberedChats[i] = chat
-			return
-		}
-	}
-	vars.RememberedChats = append(vars.RememberedChats, chat)
-}
-
-// remember last 16 lines of chat
 func Remember(user, ai openai.ChatCompletionMessage, esn string) {
-	chatAppend := []openai.ChatCompletionMessage{
-		user,
-		ai,
-	}
-	currentChat := GetChat(esn)
-	if len(currentChat.Chats) == 16 {
-		var newChat vars.RememberedChat
-		newChat.ESN = currentChat.ESN
-		for i, chat := range currentChat.Chats {
-			if i < 2 {
-				continue
-			}
-			newChat.Chats = append(newChat.Chats, chat)
+	vars.UpdateRememberedChat(esn, func(chat *vars.RememberedChat) {
+		if len(chat.Chats) >= 16 {
+			chat.Chats = slices.Clone(chat.Chats[len(chat.Chats)-14:])
 		}
-		currentChat = newChat
-	}
-	currentChat.ESN = esn
-	currentChat.Chats = append(currentChat.Chats, chatAppend...)
-	PlaceChat(currentChat)
+		chat.Chats = append(chat.Chats, user, ai)
+	})
 }
 
 func isMn(r rune) bool {
@@ -142,8 +108,8 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	smsg := openai.ChatCompletionMessage{
 		Role: openai.ChatMessageRoleSystem,
 	}
-	if strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt) != "" {
-		smsg.Content = strings.TrimSpace(vars.APIConfig.Knowledge.OpenAIPrompt)
+	if strings.TrimSpace(vars.Config().Knowledge.OpenAIPrompt) != "" {
+		smsg.Content = strings.TrimSpace(vars.Config().Knowledge.OpenAIPrompt)
 	} else {
 		smsg.Content = defaultPrompt
 	}
@@ -152,22 +118,22 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 
 	if gpt3tryagain {
 		model = openai.GPT3Dot5Turbo
-	} else if vars.APIConfig.Knowledge.Provider == "openai" {
+	} else if vars.Config().Knowledge.Provider == "openai" {
 		model = openai.GPT4oMini
-		if m := strings.TrimSpace(vars.APIConfig.Knowledge.Model); m != "" {
+		if m := strings.TrimSpace(vars.Config().Knowledge.Model); m != "" {
 			model = m
 		}
 		logger.Println("Using " + model)
 	} else {
-		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
-		model = vars.APIConfig.Knowledge.Model
+		logger.Println("Using " + vars.Config().Knowledge.Model)
+		model = vars.Config().Knowledge.Model
 	}
 
 	smsg.Content = CreatePrompt(smsg.Content, model, isKG)
 
 	nChat = append(nChat, smsg)
-	if vars.APIConfig.Knowledge.SaveChat {
-		rchat := GetChat(esn)
+	if vars.Config().Knowledge.SaveChat {
+		rchat := vars.GetRememberedChat(esn)
 		logger.Println("Using remembered chats, length of " + fmt.Sprint(len(rchat.Chats)) + " messages")
 		nChat = append(nChat, rchat.Chats...)
 	}
@@ -227,21 +193,23 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	var fullRespSlice []string
 	var isDone bool
 	var c *openai.Client
-	switch vars.APIConfig.Knowledge.Provider {
+	switch vars.Config().Knowledge.Provider {
 	case "together":
-		if vars.APIConfig.Knowledge.Model == "" {
-			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
+		if vars.Config().Knowledge.Model == "" {
+			vars.UpdateConfig(func(c *vars.APIConfig) {
+				c.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
+			})
 			vars.WriteConfigToDisk()
 		}
-		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
+		conf := openai.DefaultConfig(vars.Config().Knowledge.Key)
 		conf.BaseURL = "https://api.together.xyz/v1"
 		c = openai.NewClientWithConfig(conf)
 	case "custom":
-		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
-		conf.BaseURL = vars.APIConfig.Knowledge.Endpoint
+		conf := openai.DefaultConfig(vars.Config().Knowledge.Key)
+		conf.BaseURL = vars.Config().Knowledge.Endpoint
 		c = openai.NewClientWithConfig(conf)
 	case "openai":
-		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
+		c = openai.NewClient(vars.Config().Knowledge.Key)
 	}
 	speakReady := make(chan string)
 	successIntent := make(chan bool)
@@ -251,7 +219,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
 		log.Printf("Error creating chat completion stream: %v", err)
-		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
+		if strings.Contains(err.Error(), "does not exist") && vars.Config().Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			aireq := CreateAIReq(transcribedText, esn, true, isKG)
@@ -313,7 +281,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 					extraBit := strings.TrimPrefix(fullRespText, newStr)
 					fullRespSlice = append(fullRespSlice, extraBit)
 				}
-				if vars.APIConfig.Knowledge.SaveChat {
+				if vars.Config().Knowledge.SaveChat {
 					Remember(openai.ChatCompletionMessage{
 						Role:    openai.ChatMessageRoleUser,
 						Content: transcribedText,
@@ -418,7 +386,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 				Loops: 1,
 			},
 		)
-		if !vars.APIConfig.Knowledge.CommandsEnable {
+		if !vars.Config().Knowledge.CommandsEnable {
 			go func() {
 				for {
 					if stopTTSLoop {
@@ -464,7 +432,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 			}
 			numInResp = numInResp + 1
 		}
-		if !vars.APIConfig.Knowledge.CommandsEnable {
+		if !vars.Config().Knowledge.CommandsEnable {
 			stopTTSLoop = true
 			for range TTSLoopStopped {
 				break

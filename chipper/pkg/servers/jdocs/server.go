@@ -2,7 +2,6 @@ package jdocsserver
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"strings"
 	"path/filepath"
@@ -40,13 +39,8 @@ func (s *JdocServer) WriteDoc(ctx context.Context, req *jdocspb.WriteDocReq) (*j
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 
-	for ind, bot := range vars.BotInfo.Robots {
-		if bot.Esn == esn && bot.IPAddress != ipAddr {
-			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
-			vars.BotInfo.Robots[ind].IPAddress = ipAddr
-			writeBytes, _ := json.Marshal(vars.BotInfo)
-			os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
-		}
+	if err := vars.SetBotIP(esn, ipAddr); err != nil {
+		logger.Println("Error writing bot info: ", err)
 	}
 
 	return &jdocspb.WriteDocResp{
@@ -69,13 +63,8 @@ func (s *JdocServer) ReadDocs(ctx context.Context, req *jdocspb.ReadDocsReq) (*j
 	p, _ := peer.FromContext(ctx)
 	ipAddr := strings.Split(p.Addr.String(), ":")[0]
 
-	for ind, bot := range vars.BotInfo.Robots {
-		if bot.Esn == esn && bot.IPAddress != ipAddr {
-			logger.Println(esn + "'s IP address has changed to " + ipAddr + ", noting")
-			vars.BotInfo.Robots[ind].IPAddress = ipAddr
-			writeBytes, _ := json.Marshal(vars.BotInfo)
-			os.WriteFile(vars.BotInfoPath, writeBytes, 0644)
-		}
+	if err := vars.SetBotIP(esn, ipAddr); err != nil {
+		logger.Println("Error writing bot info: ", err)
 	}
 
 	for _, pair := range tokenserver.SessionWriteStoreNames {
