@@ -70,7 +70,7 @@ func grantedEvent() *vectorpb.BehaviorControlResponse {
 	}
 }
 
-func waitFor(t *testing.T, what string, cond func() bool) {
+func waitUntil(t *testing.T, what string, cond func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
@@ -138,7 +138,7 @@ func TestPriorityIsDefaultUnlessOverrideNamed(t *testing.T) {
 
 func TestHoldRequestsControlAtGivenPriority(t *testing.T) {
 	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour, 10*time.Millisecond)
-	waitFor(t, "first request", func() bool { return len(h.stream.log()) == 1 })
+	waitUntil(t, "first request", func() bool { return len(h.stream.log()) == 1 })
 	if got := h.stream.log()[0]; got != "req:DEFAULT" {
 		t.Fatalf("first message %q, want req:DEFAULT", got)
 	}
@@ -148,7 +148,7 @@ func TestHoldAsksAgainAfterControlIsLost(t *testing.T) {
 	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 30*time.Millisecond, 10*time.Millisecond)
 	h.stream.resps <- grantedEvent()
 	h.stream.resps <- lostEvent()
-	waitFor(t, "re-request", func() bool { return len(h.stream.log()) == 2 })
+	waitUntil(t, "re-request", func() bool { return len(h.stream.log()) == 2 })
 	if got := h.stream.log(); got[1] != "req:DEFAULT" {
 		t.Fatalf("after losing control sent %v, want a second req:DEFAULT", got)
 	}
@@ -159,7 +159,7 @@ func TestLostEventsWhileWaitingCauseOneRequest(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		h.stream.resps <- lostEvent()
 	}
-	waitFor(t, "re-request", func() bool { return len(h.stream.log()) >= 2 })
+	waitUntil(t, "re-request", func() bool { return len(h.stream.log()) >= 2 })
 	time.Sleep(150 * time.Millisecond)
 	if n := len(h.stream.log()); n != 2 {
 		t.Fatalf("four lost events in one wait produced %d messages, want 2: %v", n, h.stream.log())
@@ -197,7 +197,7 @@ func TestNoRequestAfterLossOnceNoLongerWanted(t *testing.T) {
 
 func TestReleaseEndsTheHold(t *testing.T) {
 	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour, 10*time.Millisecond)
-	waitFor(t, "first request", func() bool { return len(h.stream.log()) == 1 })
+	waitUntil(t, "first request", func() bool { return len(h.stream.log()) == 1 })
 	h.want.Store(false)
 	if r := h.result(t); r != "released" {
 		t.Fatalf("hold ended %q, want released", r)
