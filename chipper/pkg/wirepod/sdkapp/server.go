@@ -432,8 +432,9 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/stop_cam_stream":
+		// Each /cam-stream viewer ends when its own connection closes; the
+		// shared feed stays for other viewers (see camstream.go).
 		robots[robotIndex].CamStreaming = false
-		stopCamViewer(r.FormValue("serial"))
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/get_image_ids":

@@ -3,7 +3,6 @@ package sdkapp
 import (
 	"bytes"
 	"context"
-	"errors"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -12,56 +11,102 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"sync"
 	"testing"
 	"time"
 )
 
+// fakeCamera behaves like the robot gateway: frames flow while streaming is
+// on; in "stall" mode it goes silent after two frames (as when another
+// subscriber leaves and the gateway turns streaming off) until streaming is
+// switched back on.
 type fakeCamera struct {
-	mu          sync.Mutex
-	enabled     bool
-	checkErr    error
-	enableCalls []bool
-	frames      chan []byte // nil: the feed stays silent until cancelled
-}
-
-func (f *fakeCamera) IsImageStreamingEnabled(ctx context.Context) (bool, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	return f.enabled, f.checkErr
+	mu      sync.Mutex
+	mode    string // "silent", "stream", "stall", "finite"
+	frame   []byte
+	finite  [][]byte
+	sent    int
+	stalled bool
+	opens   int
+	enables []bool
+	closed  bool
 }
 
 func (f *fakeCamera) EnableImageStreaming(ctx context.Context, enable bool) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	f.enableCalls = append(f.enableCalls, enable)
-	f.enabled = enable
+	f.enables = append(f.enables, enable)
+	if enable {
+		f.stalled = false
+	}
 	return nil
 }
 
 func (f *fakeCamera) OpenCameraFeed(ctx context.Context) (func() ([]byte, error), error) {
+	f.mu.Lock()
+	f.opens++
+	f.mu.Unlock()
+	go func() { // like a gRPC stream, the feed closes when its context ends
+		<-ctx.Done()
+		f.markClosed()
+	}()
 	return func() ([]byte, error) {
-		if f.frames == nil {
-			<-ctx.Done()
-			return nil, ctx.Err()
-		}
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case frame, ok := <-f.frames:
-			if !ok {
-				return nil, io.EOF
+		for i := 0; i < 2000; i++ {
+			if ctx.Err() != nil {
+				f.markClosed()
+				return nil, ctx.Err()
 			}
-			return frame, nil
+			if frame, err, ok := f.next(ctx); ok {
+				return frame, err
+			}
+			select {
+			case <-ctx.Done():
+				f.markClosed()
+				return nil, ctx.Err()
+			case <-time.After(5 * time.Millisecond):
+			}
 		}
+		return nil, io.EOF
 	}, nil
 }
 
-func (f *fakeCamera) calls() []bool {
+func (f *fakeCamera) next(ctx context.Context) ([]byte, error, bool) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	return append([]bool(nil), f.enableCalls...)
+	switch f.mode {
+	case "stream":
+		f.sent++
+		return f.frame, nil, true
+	case "stall":
+		if f.sent == 2 && !f.stalled && len(f.enables) == 0 {
+			f.stalled = true
+		}
+		if f.stalled {
+			return nil, nil, false
+		}
+		f.sent++
+		return f.frame, nil, true
+	case "finite":
+		if len(f.finite) == 0 {
+			return nil, io.EOF, true
+		}
+		fr := f.finite[0]
+		f.finite = f.finite[1:]
+		return fr, nil, true
+	}
+	return nil, nil, false
+}
+
+func (f *fakeCamera) markClosed() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.closed = true
+}
+
+func (f *fakeCamera) snapshot() (opens int, enables []bool, closed bool, sent int) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.opens, append([]bool(nil), f.enables...), f.closed, f.sent
 }
 
 func tinyJPEG(t *testing.T, shade uint8) []byte {
@@ -79,60 +124,218 @@ func tinyJPEG(t *testing.T, shade uint8) []byte {
 	return buf.Bytes()
 }
 
-func get() *http.Request {
-	return httptest.NewRequest(http.MethodGet, "/cam-stream?serial=00e20145", nil)
+func fastTimings(t *testing.T, idle, reenable, linger time.Duration) {
+	t.Helper()
+	oldIdle, oldRe, oldLinger := camIdleTimeout, camReenableAfter, camLinger
+	camIdleTimeout, camReenableAfter, camLinger = idle, reenable, linger
+	t.Cleanup(func() {
+		stopAllCamFeeds()
+		camIdleTimeout, camReenableAfter, camLinger = oldIdle, oldRe, oldLinger
+	})
 }
 
-func equalCalls(got []bool, want ...bool) bool {
-	if len(got) != len(want) {
-		return false
+// stopAllCamFeeds ends every feed and waits for its goroutines to see it.
+func stopAllCamFeeds() {
+	camFeedsMu.Lock()
+	feeds := make([]*camFeed, 0, len(camFeeds))
+	for _, f := range camFeeds {
+		feeds = append(feeds, f)
 	}
-	for i := range got {
-		if got[i] != want[i] {
-			return false
+	camFeedsMu.Unlock()
+	for _, f := range feeds {
+		f.stop()
+	}
+	time.Sleep(20 * time.Millisecond)
+}
+
+// safeRecorder is an http.ResponseWriter the test can read while the
+// handler is still writing.
+type safeRecorder struct {
+	mu     sync.Mutex
+	header http.Header
+	code   int
+	body   bytes.Buffer
+}
+
+func newSafeRecorder() *safeRecorder {
+	return &safeRecorder{header: http.Header{}, code: http.StatusOK}
+}
+
+func (r *safeRecorder) Header() http.Header { return r.header }
+func (r *safeRecorder) WriteHeader(code int) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.code = code
+}
+func (r *safeRecorder) Write(b []byte) (int, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.body.Write(b)
+}
+func (r *safeRecorder) Flush() {}
+func (r *safeRecorder) Bytes() []byte {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return append([]byte(nil), r.body.Bytes()...)
+}
+func (r *safeRecorder) Code() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.code
+}
+
+// view runs one viewer until ctx ends or the handler returns.
+func view(ctx context.Context, esn string, cam sdkCameraClient) (*safeRecorder, chan struct{}) {
+	rec := newSafeRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/cam-stream?serial="+esn, nil).WithContext(ctx)
+	done := make(chan struct{})
+	go func() {
+		streamCamera(rec, req, esn, cam)
+		close(done)
+	}()
+	return rec, done
+}
+
+func waitFor(t *testing.T, what string, limit time.Duration, cond func() bool) {
+	t.Helper()
+	for i := 0; i < int(limit/(5*time.Millisecond)); i++ {
+		if cond() {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if !cond() {
+		t.Fatalf("timed out waiting for %s", what)
+	}
+}
+
+func assertNeverDisabled(t *testing.T, cam *fakeCamera) {
+	t.Helper()
+	_, enables, _, _ := cam.snapshot()
+	for _, e := range enables {
+		if !e {
+			t.Fatalf("image streaming was turned off: %v", enables)
 		}
 	}
-	return true
 }
 
 func TestCamStreamMissingSerial(t *testing.T) {
 	rec := httptest.NewRecorder()
-	streamCamera(rec, get(), " ", &fakeCamera{}, 50*time.Millisecond)
+	streamCamera(rec, httptest.NewRequest(http.MethodGet, "/cam-stream", nil), " ", &fakeCamera{})
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("want 400, got %d", rec.Code)
 	}
 }
 
-func TestCamStreamSilentRobotTimesOutAndRestores(t *testing.T) {
-	cam := &fakeCamera{}
-	rec := httptest.NewRecorder()
-	start := time.Now()
-	streamCamera(rec, get(), "00e20145", cam, 50*time.Millisecond)
-	if time.Since(start) > time.Second {
-		t.Fatalf("handler did not give up on a silent feed")
+func TestSilentRobotTimesOutAndFeedCloses(t *testing.T) {
+	fastTimings(t, 60*time.Millisecond, 20*time.Millisecond, 80*time.Millisecond)
+	cam := &fakeCamera{mode: "silent"}
+	rec, done := view(context.Background(), "e0000001", cam)
+	waitFor(t, "viewer to give up", time.Second, func() bool {
+		select {
+		case <-done:
+			return true
+		default:
+			return false
+		}
+	})
+	if rec.Code() != http.StatusGatewayTimeout {
+		t.Fatalf("want 504, got %d", rec.Code())
 	}
-	if rec.Code != http.StatusGatewayTimeout || !strings.Contains(rec.Body.String(), "camera_frame_timeout") {
-		t.Fatalf("want 504 camera_frame_timeout, got %d %q", rec.Code, rec.Body.String())
-	}
-	if c := cam.calls(); !equalCalls(c, true, false) {
-		t.Fatalf("want enable then disable, got %v", c)
-	}
+	waitFor(t, "feed to close after linger", time.Second, func() bool { _, _, closed, _ := cam.snapshot(); return closed })
+	assertNeverDisabled(t, cam)
 }
 
-func TestCamStreamIsValidMultipartAndLeavesExistingStreamingOn(t *testing.T) {
-	frames := make(chan []byte, 2)
-	frames <- tinyJPEG(t, 10)
-	frames <- tinyJPEG(t, 200)
-	close(frames)
-	cam := &fakeCamera{enabled: true, frames: frames}
-	rec := httptest.NewRecorder()
-	streamCamera(rec, get(), "00e20145", cam, time.Second)
+func TestViewersShareOneFeed(t *testing.T) {
+	fastTimings(t, time.Second, time.Second, 50*time.Millisecond)
+	cam := &fakeCamera{mode: "stream", frame: tinyJPEG(t, 10)}
+	ctx, cancel := context.WithCancel(context.Background())
+	recA, doneA := view(ctx, "e0000002", cam)
+	recB, doneB := view(ctx, "e0000002", cam)
+	waitFor(t, "frames to both viewers", time.Second, func() bool {
+		_, _, _, sent := cam.snapshot()
+		return sent > 6
+	})
+	cancel()
+	<-doneA
+	<-doneB
+	if opens, _, _, _ := cam.snapshot(); opens != 1 {
+		t.Fatalf("want one shared feed, robot saw %d", opens)
+	}
+	for name, rec := range map[string]*safeRecorder{"A": recA, "B": recB} {
+		if !bytes.Contains(rec.Bytes(), []byte{0xff, 0xd8}) {
+			t.Fatalf("viewer %s got no frame", name)
+		}
+	}
+	assertNeverDisabled(t, cam)
+}
 
+func TestLeavingViewerDoesNotStopOthers(t *testing.T) {
+	fastTimings(t, time.Second, time.Second, 50*time.Millisecond)
+	cam := &fakeCamera{mode: "stream", frame: tinyJPEG(t, 20)}
+	ctxA, cancelA := context.WithCancel(context.Background())
+	ctxB, cancelB := context.WithCancel(context.Background())
+	_, doneA := view(ctxA, "e0000003", cam)
+	recB, doneB := view(ctxB, "e0000003", cam)
+	waitFor(t, "first frames", time.Second, func() bool { _, _, _, s := cam.snapshot(); return s > 3 })
+	cancelA()
+	<-doneA
+	before := len(recB.Bytes())
+	waitFor(t, "B to keep receiving", time.Second, func() bool { return len(recB.Bytes()) > before+100 })
+	cancelB()
+	<-doneB
+	if opens, _, closed, _ := cam.snapshot(); opens != 1 {
+		t.Fatalf("want one feed, got %d (closed=%v)", opens, closed)
+	}
+	assertNeverDisabled(t, cam)
+}
+
+func TestFeedLingersForTheNextViewer(t *testing.T) {
+	fastTimings(t, time.Second, time.Second, 300*time.Millisecond)
+	cam := &fakeCamera{mode: "stream", frame: tinyJPEG(t, 30)}
+	ctx1, cancel1 := context.WithCancel(context.Background())
+	_, done1 := view(ctx1, "e0000004", cam)
+	waitFor(t, "first frames", time.Second, func() bool { _, _, _, s := cam.snapshot(); return s > 2 })
+	cancel1()
+	<-done1
+	time.Sleep(50 * time.Millisecond)
+	ctx2, cancel2 := context.WithCancel(context.Background())
+	rec2, done2 := view(ctx2, "e0000004", cam)
+	waitFor(t, "second viewer frames", time.Second, func() bool { return bytes.Contains(rec2.Bytes(), []byte{0xff, 0xd8}) })
+	cancel2()
+	<-done2
+	if opens, _, _, _ := cam.snapshot(); opens != 1 {
+		t.Fatalf("a viewer within the linger should reuse the feed; robot saw %d opens", opens)
+	}
+	waitFor(t, "feed to close after linger", 2*time.Second, func() bool { _, _, closed, _ := cam.snapshot(); return closed })
+	assertNeverDisabled(t, cam)
+}
+
+func TestSilenceIsHealedByReenabling(t *testing.T) {
+	fastTimings(t, time.Second, 30*time.Millisecond, 50*time.Millisecond)
+	cam := &fakeCamera{mode: "stall", frame: tinyJPEG(t, 40)}
+	ctx, cancel := context.WithCancel(context.Background())
+	_, done := view(ctx, "e0000005", cam)
+	waitFor(t, "frames after the stall", 2*time.Second, func() bool { _, _, _, s := cam.snapshot(); return s > 4 })
+	cancel()
+	<-done
+	_, enables, _, _ := cam.snapshot()
+	if len(enables) == 0 {
+		t.Fatalf("streaming was never switched back on")
+	}
+	assertNeverDisabled(t, cam)
+}
+
+func TestBodyIsValidMultipart(t *testing.T) {
+	fastTimings(t, time.Second, time.Second, 50*time.Millisecond)
+	cam := &fakeCamera{mode: "finite", finite: [][]byte{tinyJPEG(t, 50), []byte("not a jpeg"), tinyJPEG(t, 60)}}
+	rec, done := view(context.Background(), "e0000006", cam)
+	<-done
 	mediaType, params, err := mime.ParseMediaType(rec.Header().Get("Content-Type"))
 	if err != nil || mediaType != "multipart/x-mixed-replace" {
 		t.Fatalf("bad content type %q: %v", rec.Header().Get("Content-Type"), err)
 	}
-	reader := multipart.NewReader(rec.Body, params["boundary"])
+	reader := multipart.NewReader(bytes.NewReader(rec.Bytes()), params["boundary"])
 	parts := 0
 	for i := 0; i < 4; i++ {
 		part, perr := reader.NextPart()
@@ -146,88 +349,7 @@ func TestCamStreamIsValidMultipartAndLeavesExistingStreamingOn(t *testing.T) {
 		parts++
 	}
 	if parts != 2 {
-		t.Fatalf("want 2 parseable parts, got %d", parts)
+		t.Fatalf("want 2 parseable parts (undecodable frame skipped), got %d", parts)
 	}
-	if c := cam.calls(); len(c) != 0 {
-		t.Fatalf("streaming was already on; want no toggles, got %v", c)
-	}
-}
-
-func TestCamStreamUnknownStateIsNotTurnedOff(t *testing.T) {
-	cam := &fakeCamera{checkErr: errors.New("deadline exceeded")}
-	rec := httptest.NewRecorder()
-	streamCamera(rec, get(), "00e20145", cam, 50*time.Millisecond)
-	if c := cam.calls(); !equalCalls(c, true) {
-		t.Fatalf("state unknown: want enable only, got %v", c)
-	}
-}
-
-func TestCamStreamReplacementHandsOverOwnership(t *testing.T) {
-	cam := &fakeCamera{}
-	first := make(chan struct{})
-	go func() {
-		streamCamera(httptest.NewRecorder(), get(), "00e20145", cam, 2*time.Second)
-		close(first)
-	}()
-	time.Sleep(50 * time.Millisecond)
-	second := make(chan struct{})
-	go func() {
-		streamCamera(httptest.NewRecorder(), get(), "00e20145", cam, 150*time.Millisecond)
-		close(second)
-	}()
-	select {
-	case <-first:
-	case <-time.After(time.Second):
-		t.Fatalf("first viewer was not ended by the second")
-	}
-	if c := cam.calls(); !equalCalls(c, true) {
-		t.Fatalf("replacement must not turn streaming off, got %v", c)
-	}
-	select {
-	case <-second:
-	case <-time.After(2 * time.Second):
-		t.Fatalf("second viewer did not time out")
-	}
-	if c := cam.calls(); !equalCalls(c, true, false) {
-		t.Fatalf("last viewer must turn streaming off once, got %v", c)
-	}
-}
-
-func TestStopCamViewerEndsStream(t *testing.T) {
-	cam := &fakeCamera{}
-	done := make(chan struct{})
-	go func() {
-		streamCamera(httptest.NewRecorder(), get(), "00e20145", cam, 5*time.Second)
-		close(done)
-	}()
-	time.Sleep(50 * time.Millisecond)
-	stopCamViewer(" 00E20145 ")
-	select {
-	case <-done:
-	case <-time.After(time.Second):
-		t.Fatalf("stopCamViewer did not end the stream")
-	}
-	if c := cam.calls(); !equalCalls(c, true, false) {
-		t.Fatalf("want enable then disable, got %v", c)
-	}
-}
-
-func TestClientDisconnectEndsStream(t *testing.T) {
-	cam := &fakeCamera{}
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
-	go func() {
-		streamCamera(httptest.NewRecorder(), get().WithContext(ctx), "00e20145", cam, 5*time.Second)
-		close(done)
-	}()
-	time.Sleep(50 * time.Millisecond)
-	cancel()
-	select {
-	case <-done:
-	case <-time.After(time.Second):
-		t.Fatalf("handler outlived its client")
-	}
-	if c := cam.calls(); !equalCalls(c, true, false) {
-		t.Fatalf("want enable then disable, got %v", c)
-	}
+	assertNeverDisabled(t, cam)
 }
