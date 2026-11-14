@@ -17,12 +17,12 @@ const (
 // StreamingConnectionCheck is used by the end device to make sure it can successfully communicate
 func (s *Server) StreamingConnectionCheck(stream pb.ChipperGrpc_StreamingConnectionCheckServer) error {
 	req, err := stream.Recv()
-	logger.Println("Incoming connection check from " + req.DeviceId)
 	if err != nil {
 		logger.Println("Connection check unexpected error")
 		logger.Println(err)
 		return err
 	}
+	logger.Println("Incoming connection check from " + req.DeviceId)
 
 	ctx, cancel := context.WithTimeout(stream.Context(), connectionCheckTimeout)
 	defer cancel()

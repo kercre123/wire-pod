@@ -416,4 +416,4 @@ function getCurrentSettings() {
   };
 }
 
-renderBatteryInfo(esn);
+renderBotStatus(esn);

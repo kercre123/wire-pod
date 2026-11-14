@@ -38,6 +38,8 @@ type JdocsPingerRobot struct {
 // setting JDOCS_PINGER_ENABLED=false will disable jdocs pinger
 var PingerEnabled bool = true
 
+const jdocsPingDelay = 3 * time.Second
+
 func pingJdocs(target string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -173,9 +175,9 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "ran")
 			return
 		}
+		robotTarget := vars.HostOnly(r.RemoteAddr)
+		vars.MarkBotSeenByIP(robotTarget)
 		if PingerEnabled {
-			//logger.Println("connCheck request from " + r.RemoteAddr)
-			robotTarget := vars.HostOnly(r.RemoteAddr)
 			known := false
 			for _, bot := range vars.GetBotInfo().Robots {
 				if bot.IPAddress == robotTarget {
@@ -185,7 +187,10 @@ func connCheck(w http.ResponseWriter, r *http.Request) {
 			}
 			if known {
 				if ShouldPingJdocs(robotTarget) {
-					go pingJdocs(robotTarget)
+					go func() {
+						time.Sleep(jdocsPingDelay)
+						pingJdocs(robotTarget)
+					}()
 				}
 			} else {
 				go RunMDNS(robotTarget)

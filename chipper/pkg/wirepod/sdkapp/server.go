@@ -40,6 +40,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(jsonBytes))
 		return
 	}
+	if r.URL.Path == "/api-sdk/get_active_bots" {
+		activeBotsHandler(w)
+		return
+	}
 	robotObj, err := getRobot(r.FormValue("serial"))
 	if err != nil {
 		fmt.Fprint(w, "error: "+err.Error())
