@@ -5,11 +5,13 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
-	"os"
+	"errors"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/digital-dream-labs/api/go/tokenpb"
@@ -18,6 +20,8 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 	"gopkg.in/ini.v1"
@@ -31,129 +35,198 @@ var (
 	TimeFormat     = time.RFC3339Nano
 	ExpirationTime = time.Hour * 24
 	UserId         = "wirepod"
-	GlobalGUID     = "tni1TRsTRTaNSapjo0Y+Sw=="
 )
 
-// array of {"target", "guid", "guidhash"}
-// for primary user auth
-var TokenHashStore [][3]string
+const maxAppTokens = 5
 
-// array of {"esn", "target", "guid", "guidhash"}
-// for secondary user auth
-var SecondaryTokenStore [][4]string
+var (
+	jwtKeyOnce sync.Once
+	jwtKey     *rsa.PrivateKey
+	jwtKeyErr  error
+)
 
-// {"target", "name"}
-var SessionWriteStoreNames [][2]string
-var SessionWriteStoreCerts [][]byte
-
-type RobotInfoStore struct {
-	GlobalGUID string `json:"global_guid"`
-	Robots     []struct {
-		Esn       string `json:"esn"`
-		IPAddress string `json:"ip_address"`
-		// 192.168.1.150:443
-		GUID      string `json:"guid"`
-		Activated bool   `json:"activated"`
-	} `json:"robots"`
+func sessionIsValid(session string) bool {
+	return true
 }
 
-func GetEsnFromTarget(target string) (string, error) {
-	jsonBytes, err := os.ReadFile(vars.BotInfoPath)
+func userIDForSession(session string) string {
+	return UserId
+}
+
+func userOwnsBot(thing, userID string) bool {
+	return true
+}
+
+func Thingifier(esn string) string {
+	esn = strings.ToLower(strings.TrimSpace(esn))
+	if strings.HasPrefix(esn, "vic:") {
+		return esn
+	}
+	return "vic:" + esn
+}
+
+func peerIP(ctx context.Context) string {
+	p, ok := peer.FromContext(ctx)
+	if !ok || p.Addr == nil {
+		return ""
+	}
+	return vars.HostOnly(p.Addr.String())
+}
+
+func PeerCertThing(ctx context.Context) (string, bool) {
+	p, ok := peer.FromContext(ctx)
+	if !ok {
+		return "", false
+	}
+	tlsInfo, ok := p.AuthInfo.(credentials.TLSInfo)
+	if !ok || len(tlsInfo.State.PeerCertificates) == 0 {
+		return "", false
+	}
+	return Thingifier(tlsInfo.State.PeerCertificates[0].Subject.CommonName), true
+}
+
+func thingFromPeer(ctx context.Context) (string, error) {
+	if thing, ok := PeerCertThing(ctx); ok {
+		if _, err := vars.ESNFromThing(thing); err != nil {
+			return "", err
+		}
+		return thing, nil
+	}
+	ip := peerIP(ctx)
+	for _, bot := range vars.GetBotInfo().Robots {
+		if ip != "" && bot.IPAddress == ip {
+			return Thingifier(bot.Esn), nil
+		}
+	}
+	return "", errors.New("no client certificate and bot isn't known by IP")
+}
+
+func metadataValue(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	values := md.Get(key)
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
+}
+
+func userIDFromJWT(tokenString string) string {
+	parts := strings.Split(tokenString, ".")
+	if len(parts) < 2 {
+		return ""
+	}
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return ""
+	}
+	var payload map[string]interface{}
+	if err := json.Unmarshal(payloadBytes, &payload); err != nil {
+		return ""
+	}
+	userID, _ := payload["user_id"].(string)
+	return userID
+}
+
+func AddAppToken(thing string) (string, error) {
+	guid, tokenHash, err := CreateTokenAndHashedToken()
 	if err != nil {
 		return "", err
 	}
-	var robotInfo RobotInfoStore
-	err = json.Unmarshal(jsonBytes, &robotInfo)
-	if err != nil {
-		return "", err
-	}
-	for _, robot := range robotInfo.Robots {
-		if strings.TrimSpace(target) == strings.TrimSpace(robot.IPAddress) {
-			return robot.Esn, nil
+	vars.UpdateJdoc(thing, "vic.AppTokens", func(jdoc *vars.AJdoc, exists bool) {
+		if !exists {
+			jdoc.FmtVersion = 1
+			jdoc.ClientMetadata = "wirepod-new-token"
 		}
-	}
-	return "", fmt.Errorf("bot not found")
-}
-
-func SetBotGUID(esn string, guid string, guidHash string) error {
-	matched := false
-	err := vars.UpdateBotInfo(func(b *vars.RobotInfoStore) {
-		for num, robot := range b.Robots {
-			if strings.EqualFold(esn, robot.Esn) {
-				b.Robots[num].GUID = guid
-				b.Robots[num].Activated = true
-				logger.Println("GUID and hash successfully written for " + robot.Esn)
-				matched = true
-				break
-			}
+		var tokens ClientTokenManager
+		json.Unmarshal([]byte(jdoc.JsonDoc), &tokens)
+		tokens.ClientTokens = append(tokens.ClientTokens, ClientToken{
+			Hash:       tokenHash,
+			ClientName: "wirepod",
+			AppId:      "SDK",
+			IssuedAt:   time.Now().Format(TimeFormat),
+		})
+		if len(tokens.ClientTokens) > maxAppTokens {
+			tokens.ClientTokens = tokens.ClientTokens[len(tokens.ClientTokens)-maxAppTokens:]
 		}
+		jdocJson, _ := json.Marshal(tokens)
+		jdoc.JsonDoc = string(jdocJson)
+		jdoc.DocVersion++
 	})
-	if !matched {
-		return fmt.Errorf("bot not found")
+	return guid, nil
+}
+
+func signedJWT(userID, thing string) (string, error) {
+	jwtKeyOnce.Do(func() {
+		jwtKey, jwtKeyErr = rsa.GenerateKey(rand.Reader, 2048)
+	})
+	if jwtKeyErr != nil {
+		return "", jwtKeyErr
 	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
+		"expires":      time.Now().AddDate(0, 1, 0).Format(TimeFormat),
+		"iat":          time.Now().Format(TimeFormat),
+		"permissions":  nil,
+		"requestor_id": thing,
+		"token_id":     uuid.New().String(),
+		"token_type":   "user+robot",
+		"user_id":      userID,
+	})
+	return token.SignedString(jwtKey)
+}
+
+func issueToken(ctx context.Context, userID, thing string) (*tokenpb.TokenBundle, error) {
+	esn := strings.TrimPrefix(thing, "vic:")
+	guid, err := AddAppToken(thing)
 	if err != nil {
-		logger.Println(err)
+		return nil, err
 	}
-	return err
-}
-
-func WriteTokenHash(esn string, tokenHash string) error {
-	// will return blank jdoc if it doesn't exist
-	jdoc, jdocExists := vars.GetJdoc(esn, "vic.AppTokens")
-	var tokenJson ClientTokenManager
-	if !jdocExists {
-		jdoc.DocVersion = 1
-		jdoc.FmtVersion = 1
-		jdoc.ClientMetadata = "wirepod-new-token"
+	if err := vars.RecordBot(esn, peerIP(ctx), guid); err != nil {
+		logger.Println("Error writing bot info: ", err)
 	}
-	json.Unmarshal([]byte(jdoc.JsonDoc), &tokenJson)
-	var clientToken ClientToken
-	clientToken.IssuedAt = time.Now().Format(TimeFormat)
-	clientToken.ClientName = "wirepod"
-	clientToken.Hash = tokenHash
-	clientToken.AppId = "SDK"
-	tokenJson.ClientTokens = append(tokenJson.ClientTokens, clientToken)
-	jdocJsoc, err := json.Marshal(tokenJson)
+	jwtToken, err := signedJWT(userID, thing)
 	if err != nil {
-		logger.Println("Error marshaling token hash json")
-		logger.Println(err)
+		return nil, err
 	}
-	jdoc.JsonDoc = string(jdocJsoc)
-	var ajdoc vars.AJdoc
-	ajdoc.ClientMetadata = jdoc.ClientMetadata
-	ajdoc.DocVersion = jdoc.DocVersion
-	ajdoc.FmtVersion = jdoc.FmtVersion
-	ajdoc.JsonDoc = jdoc.JsonDoc
-	vars.AddJdoc("vic:"+esn, "vic.AppTokens", ajdoc)
-	vars.WriteJdocs()
-	return nil
+	return &tokenpb.TokenBundle{
+		Token:       jwtToken,
+		ClientToken: guid,
+	}, nil
 }
 
-func RemoveFromSecondStore(index int) {
-	logger.Println("Removing " + SecondaryTokenStore[index][0] + " from temporary token-hash store")
-	SecondaryTokenStore = append(SecondaryTokenStore[:index], SecondaryTokenStore[index+1:]...)
+func robotNameFromSessionCert(sessionCert []byte) (string, error) {
+	block, _ := pem.Decode(sessionCert)
+	if block == nil {
+		return "", errors.New("session certificate isn't valid PEM")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return "", errors.New("invalid session certificate: " + err.Error())
+	}
+	if !vars.ValidRobotName(cert.Issuer.CommonName) {
+		return "", errors.New("invalid robot name in session certificate")
+	}
+	return cert.Issuer.CommonName, nil
 }
 
-func RemoveFromPrimaryStore(index int) {
-	logger.Println("Removing " + TokenHashStore[index][0] + " from temporary token-hash store")
-	TokenHashStore = append(TokenHashStore[:index], TokenHashStore[index+1:]...)
-}
-
-func RemoveFromSessionStore(index int) {
-	//var SessionWriteStoreNames [][2]string
-	//var SessionWriteStoreCerts [][]byte
-	logger.Println("Removing " + SessionWriteStoreNames[index][0] + " from cert-write store")
-	SessionWriteStoreNames = append(SessionWriteStoreNames[:index], SessionWriteStoreNames[index+1:]...)
-	SessionWriteStoreCerts = append(SessionWriteStoreCerts[:index], SessionWriteStoreCerts[index+1:]...)
+func saveSessionCert(name, esn string, sessionCert []byte) {
+	if err := vars.WriteFileAtomic(filepath.Join(vars.SessionCertPath, esn), sessionCert, 0644); err != nil {
+		logger.Println("Error writing session cert: ", err)
+	}
+	if err := ensureDir(vars.SDKIniPath); err != nil {
+		logger.Println(err)
+		return
+	}
+	fullPath := filepath.Join(vars.SDKIniPath, name+"-"+esn+".cert")
+	logger.Println("Outputting session cert to " + fullPath)
+	if err := vars.WriteFileAtomic(fullPath, sessionCert, 0644); err != nil {
+		logger.Println("Error writing session cert: ", err)
+	}
 }
 
 func ChangeGUIDInIni(esn string) {
-	// 	[008060ec]
-	// cert = /home/kerigan/.anki_vector/Vector-B6H9-008060ec.cert
-	// ip = 192.168.1.155
-	// name = Vector-B6H9
-	// guid = 1YbXk1yrS9C1I78snYy8xA==
-
 	userIniData, err := ini.Load(vars.SDKIniPath + "sdk_config.ini")
 	if err != nil {
 		logger.Println(err)
@@ -161,6 +234,9 @@ func ChangeGUIDInIni(esn string) {
 	}
 	botInfo := vars.GetBotInfo()
 	for _, robot := range botInfo.Robots {
+		if !strings.EqualFold(robot.Esn, esn) {
+			continue
+		}
 		matched := false
 		for _, section := range userIniData.Sections() {
 			if strings.EqualFold(section.Name(), esn) {
@@ -180,131 +256,74 @@ func ChangeGUIDInIni(esn string) {
 	userIniData.SaveTo(vars.SDKIniPath + "sdk_config.ini")
 }
 
-func GenerateUUID() string {
-	uuid := uuid.New()
-	return uuid.String()
-}
-
-func CreateJWT(ctx context.Context, skipGuid bool, isPrimary bool) *tokenpb.TokenBundle {
-	// defaults
-	requestorId := "vic:00601b50"
-	clientToken := GlobalGUID
-	bundle := &tokenpb.TokenBundle{}
-	secondary := false
-	secondaryGUID := ""
-	secondaryHash := ""
-
-	// figure out current time and the time in one month
-	currentTime := time.Now().Format(TimeFormat)
-	expiresAt := time.Now().AddDate(0, 1, 0).Format(TimeFormat)
-	logger.Println("Current time: " + currentTime)
-	logger.Println("Token expires: " + expiresAt)
-
-	// get esn using ip address of request
-	p, _ := peer.FromContext(ctx)
-	ipAddr := vars.HostOnly(p.Addr.String())
-	esn, err := GetEsnFromTarget(ipAddr)
-
-	// secondary handler
-	if err == nil {
-		for num, robot := range SecondaryTokenStore {
-			if robot[0] == esn {
-				skipGuid = true
-				secondary = true
-				secondaryGUID = robot[2]
-				secondaryHash = robot[3]
-				RemoveFromSecondStore(num)
-				break
-			}
-		}
-	}
-
-	// create token and hash
-	// if esn is not found, put tokenHash into ram
-	if err == nil && !isPrimary {
-		logger.Println("Found ESN for target " + ipAddr + ": " + esn)
-		requestorId = "vic:" + esn
-		if !skipGuid {
-			guid, tokenHash, _ := CreateTokenAndHashedToken()
-			WriteTokenHash(esn, tokenHash)
-			SetBotGUID(esn, guid, tokenHash)
-			ChangeGUIDInIni(esn)
-			clientToken = guid
-		}
-	} else {
-		logger.Println("ESN not found in store or this is an associate primary user request, act as if this is a new robot")
-		if !skipGuid {
-			logger.Println("Adding " + ipAddr + " to TokenHashStore")
-			guid, tokenHash, _ := CreateTokenAndHashedToken()
-			TokenHashStore = append(TokenHashStore, [3]string{ipAddr, guid, tokenHash})
-			clientToken = guid
-		}
-	}
-	if !skipGuid {
-		bundle.ClientToken = clientToken
-	}
-
-	if secondary {
-		SetBotGUID(esn, secondaryGUID, secondaryHash)
-		bundle.ClientToken = secondaryGUID
-		logger.Println("Secondary client: " + secondaryGUID)
-	}
-
-	requestUUID := GenerateUUID()
-	logger.Println("UUID for this token request: " + requestUUID)
-
-	// create actual JWT token
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
-		"expires":     expiresAt,
-		"iat":         currentTime,
-		"permissions": nil,
-		// the requestorId will be vic:00601b50 on first auth because we don't have access
-		// to the factory certs like the official servers do. future token requests should
-		// have the actual bot esn because they are "associated" with wire-pod
-		"requestor_id": requestorId,
-		"token_id":     requestUUID,
-		"token_type":   "user+robot",
-		"user_id":      UserId,
-	})
-	rsaKey, _ := rsa.GenerateKey(rand.Reader, 1024)
-	tokenString, _ := token.SignedString(rsaKey)
-	bundle.Token = tokenString
-	return bundle
-}
-
 func (s *TokenServer) AssociatePrimaryUser(ctx context.Context, req *tokenpb.AssociatePrimaryUserRequest) (*tokenpb.AssociatePrimaryUserResponse, error) {
 	logger.Println("Token: Incoming Associate Primary User request")
-	pemBytes, _ := pem.Decode(req.SessionCertificate)
-	if pemBytes == nil {
-		return nil, status.Error(codes.InvalidArgument, "session certificate isn't valid PEM")
-	}
-	cert, err := x509.ParseCertificate(pemBytes.Bytes)
+	thing, err := thingFromPeer(ctx)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid session certificate: "+err.Error())
+		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if !vars.ValidRobotName(cert.Issuer.CommonName) {
-		return nil, status.Error(codes.InvalidArgument, "invalid robot name in session certificate")
+	session := metadataValue(ctx, "anki-user-session")
+	if !sessionIsValid(session) {
+		return nil, status.Error(codes.Unauthenticated, "session_expired")
 	}
-	SessionWriteStoreCerts = append(SessionWriteStoreCerts, req.SessionCertificate)
-	p, _ := peer.FromContext(ctx)
-	SessionWriteStoreNames = append(SessionWriteStoreNames, [2]string{p.Addr.String(), cert.Issuer.CommonName})
-	return &tokenpb.AssociatePrimaryUserResponse{
-		Data: CreateJWT(ctx, false, true),
-	}, nil
+	name, err := robotNameFromSessionCert(req.SessionCertificate)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	esn := strings.TrimPrefix(thing, "vic:")
+	ip := peerIP(ctx)
+	logger.LogUI("New bot being associated with wire-pod. ESN: " + esn + ", IP: " + ip)
+
+	vars.DeleteData(thing)
+	bundle, err := issueToken(ctx, userIDForSession(session), thing)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	saveSessionCert(name, esn, req.SessionCertificate)
+	WriteToIniPrimary(name, esn, bundle.ClientToken, ip)
+	vars.AddToRInfo(esn, name, ip)
+	return &tokenpb.AssociatePrimaryUserResponse{Data: bundle}, nil
+}
+
+func (s *TokenServer) refresh(ctx context.Context, checkSession bool, session string) (*tokenpb.TokenBundle, error) {
+	thing, err := thingFromPeer(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if checkSession && !sessionIsValid(session) {
+		return nil, status.Error(codes.Unauthenticated, "session_expired")
+	}
+	userID := userIDFromJWT(metadataValue(ctx, "anki-access-token"))
+	if userID == "" {
+		userID = userIDForSession(session)
+	}
+	if !userOwnsBot(thing, userID) {
+		return nil, status.Error(codes.PermissionDenied, "bot not associated with account")
+	}
+	bundle, err := issueToken(ctx, userID, thing)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	ChangeGUIDInIni(strings.TrimPrefix(thing, "vic:"))
+	return bundle, nil
 }
 
 func (s *TokenServer) AssociateSecondaryClient(ctx context.Context, req *tokenpb.AssociateSecondaryClientRequest) (*tokenpb.AssociateSecondaryClientResponse, error) {
 	logger.Println("Token: Incoming Associate Secondary Client request")
-	return &tokenpb.AssociateSecondaryClientResponse{
-		Data: CreateJWT(ctx, false, false),
-	}, nil
+	bundle, err := s.refresh(ctx, true, req.UserSession)
+	if err != nil {
+		return nil, err
+	}
+	return &tokenpb.AssociateSecondaryClientResponse{Data: bundle}, nil
 }
 
 func (s *TokenServer) RefreshToken(ctx context.Context, req *tokenpb.RefreshTokenRequest) (*tokenpb.RefreshTokenResponse, error) {
 	logger.Println("Token: Incoming Refresh Token request")
-	return &tokenpb.RefreshTokenResponse{
-		Data: CreateJWT(ctx, false, false),
-	}, nil
+	bundle, err := s.refresh(ctx, false, "")
+	if err != nil {
+		return nil, err
+	}
+	return &tokenpb.RefreshTokenResponse{Data: bundle}, nil
 }
 
 func NewTokenServer() *TokenServer {

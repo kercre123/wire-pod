@@ -125,6 +125,42 @@ func writeBotInfoLocked() error {
 	return WriteFileAtomic(BotInfoPath, writeBytes, 0600)
 }
 
+func RecordBot(esn, ip, guid string) error {
+	botInfoMu.Lock()
+	defer botInfoMu.Unlock()
+	changed := false
+	found := false
+	for i, bot := range botInfo.Robots {
+		if !strings.EqualFold(bot.Esn, esn) {
+			continue
+		}
+		found = true
+		if ip != "" && bot.IPAddress != ip {
+			logger.Println(esn + "'s IP address has changed to " + ip + ", noting")
+			botInfo.Robots[i].IPAddress = ip
+			changed = true
+		}
+		if guid != "" && bot.GUID != guid {
+			botInfo.Robots[i].GUID = guid
+			botInfo.Robots[i].Activated = true
+			changed = true
+		}
+	}
+	if !found {
+		logger.Println("Adding " + esn + " to bot info store")
+		botInfo.Robots = append(botInfo.Robots, BotInfoRobot{Esn: esn, IPAddress: ip, GUID: guid, Activated: guid != ""})
+		changed = true
+	}
+	if botInfo.GlobalGUID == "" {
+		botInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
+		changed = true
+	}
+	if !changed {
+		return nil
+	}
+	return writeBotInfoLocked()
+}
+
 func SetBotIP(esn, ip string) error {
 	botInfoMu.Lock()
 	defer botInfoMu.Unlock()
@@ -395,6 +431,23 @@ func GetJdoc(thing, jdocname string) (AJdoc, bool) {
 		}
 	}
 	return AJdoc{}, false
+}
+
+func UpdateJdoc(thing string, name string, fn func(jdoc *AJdoc, exists bool)) AJdoc {
+	jdocsMu.Lock()
+	defer jdocsMu.Unlock()
+	for i := range botJdocs {
+		if botJdocs[i].Thing == thing && botJdocs[i].Name == name {
+			fn(&botJdocs[i].Jdoc, true)
+			writeJdocsLocked()
+			return botJdocs[i].Jdoc
+		}
+	}
+	var jdoc AJdoc
+	fn(&jdoc, false)
+	botJdocs = append(botJdocs, botjdoc{Thing: thing, Name: name, Jdoc: jdoc})
+	writeJdocsLocked()
+	return jdoc
 }
 
 func AddJdoc(thing string, name string, jdoc AJdoc) uint64 {

@@ -1,7 +1,6 @@
-package jdocsserver
+package tokenserver
 
 import (
-	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"io"
@@ -12,22 +11,9 @@ import (
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
-	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
 )
 
-func IsBotInInfo(esn string) bool {
-	for _, robot := range vars.GetBotInfo().Robots {
-		if esn == strings.TrimSpace(strings.ToLower(robot.Esn)) {
-			return true
-		}
-	}
-	return false
-}
-
-// This function write a bot name, esn, guid, and target to sdk_config.ini
-// Should only be used for primary auth
-// IP should just be "xxx.xxx.xxx.xxx", no port
 func WriteToIniPrimary(botName, esn, guid, ip string) {
 	userIniData, err := ini.Load(vars.SDKIniPath + "sdk_config.ini")
 	if err != nil {
@@ -61,8 +47,6 @@ func WriteToIniPrimary(botName, esn, guid, ip string) {
 	logger.Println("WriteToIniPrimary: successfully wrote INI")
 }
 
-// Less information is given with a secondary auth request, we have to get the cert from the Anki servers
-// If a cert is already there, it does not get the Anki server cert
 func WriteToIniSecondary(esn, guid, ip string) {
 	certPath := ""
 	botName := ""
@@ -140,25 +124,6 @@ func WriteToIniSecondary(esn, guid, ip string) {
 	userIniData.SaveTo(vars.SDKIniPath + "sdk_config.ini")
 }
 
-func StoreBotInfo(ctx context.Context, thing string) {
-	var appendNew bool = true
-	p, _ := peer.FromContext(ctx)
-	ipAddr := vars.HostOnly(p.Addr.String())
-	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
-	err := vars.UpdateBotInfo(func(b *vars.RobotInfoStore) {
-		b.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
-		for num, robot := range b.Robots {
-			if robot.Esn == botEsn {
-				appendNew = false
-				b.Robots[num].IPAddress = ipAddr
-			}
-		}
-		if appendNew {
-			logger.Println("Adding " + botEsn + " to bot info store")
-			b.Robots = append(b.Robots, vars.BotInfoRobot{Esn: botEsn, IPAddress: ipAddr})
-		}
-	})
-	if err != nil {
-		logger.Println("Error writing bot info: ", err)
-	}
+func ensureDir(dir string) error {
+	return os.MkdirAll(dir, 0755)
 }

@@ -15,7 +15,6 @@ import (
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
-	"github.com/digital-dream-labs/hugh/log"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/mdnshandler"
 	chipperserver "github.com/kercre123/wire-pod/chipper/pkg/servers/chipper"
@@ -28,11 +27,8 @@ import (
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
-
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
-
-	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
 )
 
 var voiceProcessor *wp.Server
@@ -83,16 +79,12 @@ func recoverStream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServe
 }
 
 func grpcServe(l net.Listener, p *wp.Server) error {
-	srv, err := grpcserver.New(
-		grpcserver.WithViper(),
-		grpcserver.WithReflectionService(),
-		grpcserver.WithInsecureSkipVerify(),
-		grpcserver.WithUnaryServerInterceptors(recoverUnary),
-		grpcserver.WithStreamServerInterceptors(recoverStream),
+	srv := grpc.NewServer(
+		grpc.Creds(cmuxTLSCreds{}),
+		grpc.ChainUnaryInterceptor(recoverUnary),
+		grpc.ChainStreamInterceptor(recoverStream),
 	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	reflection.Register(srv)
 
 	s, _ := chipperserver.New(
 		chipperserver.WithIntentProcessor(p),
@@ -102,13 +94,12 @@ func grpcServe(l net.Listener, p *wp.Server) error {
 
 	tokenServer := tokenserver.NewTokenServer()
 	jdocsServer := jdocsserver.NewJdocsServer()
-	//jdocsserver.IniToJson()
 
-	chipperpb.RegisterChipperGrpcServer(srv.Transport(), s)
-	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsServer)
-	tokenpb.RegisterTokenServer(srv.Transport(), tokenServer)
+	chipperpb.RegisterChipperGrpcServer(srv, s)
+	jdocspb.RegisterJdocsServer(srv, jdocsServer)
+	tokenpb.RegisterTokenServer(srv, tokenServer)
 
-	return srv.Transport().Serve(l)
+	return srv.Serve(l)
 }
 
 func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) error {
@@ -211,7 +202,10 @@ func StartChipper() {
 	}
 
 	logger.Println("Initiating TLS listener, cmux, gRPC handler, and REST handler")
-	tlsConf := &tls.Config{Certificates: []tls.Certificate{cert}}
+	tlsConf := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequestClientCert,
+	}
 	var ports []string
 	if runtime.GOOS == "android" && cfg.Server.Port == "443" {
 		logger.Println("not starting chipper at port 443 because android")
