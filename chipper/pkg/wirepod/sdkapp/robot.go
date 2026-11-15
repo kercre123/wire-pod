@@ -1,7 +1,10 @@
 package sdkapp
 
 import (
+	"bytes"
 	"context"
+	"image"
+	"image/jpeg"
 	"math"
 	"strings"
 	"sync"
@@ -28,8 +31,15 @@ type Robot struct {
 	stimState atomic.Uint32
 
 	bc     robotTask
-	cam    robotTask
 	events robotTask
+
+	camMu   sync.Mutex
+	camFeed *camFeed
+}
+
+type camFeed struct {
+	cancel context.CancelFunc
+	subs   map[chan []byte]struct{}
 }
 
 type robotTask struct {
@@ -89,9 +99,79 @@ func (r *Robot) setStimState(v float32) {
 
 func (r *Robot) close() {
 	r.bc.stop()
-	r.cam.stop()
 	r.events.stop()
 	r.cancel()
+}
+
+func (r *Robot) subscribeCam() (<-chan []byte, func()) {
+	ch := make(chan []byte, 1)
+	r.camMu.Lock()
+	f := r.camFeed
+	if f == nil {
+		ctx, cancel := context.WithCancel(r.Ctx)
+		f = &camFeed{cancel: cancel, subs: map[chan []byte]struct{}{}}
+		r.camFeed = f
+		go r.runCamFeed(ctx, f)
+	}
+	f.subs[ch] = struct{}{}
+	r.camMu.Unlock()
+	return ch, func() {
+		r.camMu.Lock()
+		defer r.camMu.Unlock()
+		if _, ok := f.subs[ch]; !ok {
+			return
+		}
+		delete(f.subs, ch)
+		if len(f.subs) == 0 && r.camFeed == f {
+			r.camFeed = nil
+			f.cancel()
+		}
+	}
+}
+
+func (r *Robot) runCamFeed(ctx context.Context, f *camFeed) {
+	defer func() {
+		r.camMu.Lock()
+		if r.camFeed == f {
+			r.camFeed = nil
+		}
+		f.cancel()
+		for ch := range f.subs {
+			close(ch)
+		}
+		clear(f.subs)
+		r.camMu.Unlock()
+	}()
+	feed, err := r.Vector.Conn.CameraFeed(ctx, &vectorpb.CameraFeedRequest{})
+	if err != nil {
+		logger.Println("Camera feed error for " + r.ESN + ": " + err.Error())
+		return
+	}
+	for {
+		resp, err := feed.Recv()
+		if err != nil {
+			return
+		}
+		img, _, err := image.Decode(bytes.NewReader(resp.GetData()))
+		if err != nil {
+			continue
+		}
+		var buf bytes.Buffer
+		if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 50}); err != nil {
+			continue
+		}
+		r.touch()
+		frame := buf.Bytes()
+		r.camMu.Lock()
+		for ch := range f.subs {
+			select {
+			case <-ch:
+			default:
+			}
+			ch <- frame
+		}
+		r.camMu.Unlock()
+	}
 }
 
 func (r *Robot) watchIdle() {

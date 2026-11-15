@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"image/jpeg"
 	"io"
 	"net"
 	"net/http"
@@ -445,7 +444,6 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/stop_cam_stream":
-		robotObj.cam.stop()
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-sdk/get_image_ids":
@@ -604,47 +602,25 @@ func camStreamHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "error: "+err.Error())
 		return
 	}
-	ctx, done, replaced := robot.cam.start(r.Context())
-	defer done()
-	stopWithRobot := context.AfterFunc(robot.Ctx, done)
-	defer stopWithRobot()
-	if replaced {
-		time.Sleep(time.Second / 2)
-	}
-	robot.Vector.Conn.EnableImageStreaming(
-		ctx,
-		&vectorpb.EnableImageStreamingRequest{
-			Enable: true,
-		},
-	)
-	defer robot.Vector.Conn.EnableImageStreaming(
-		robot.Ctx,
-		&vectorpb.EnableImageStreamingRequest{
-			Enable: false,
-		},
-	)
-	feed, err := robot.Vector.Conn.CameraFeed(
-		ctx,
-		&vectorpb.CameraFeedRequest{},
-	)
-	if err != nil {
-		fmt.Fprint(w, "error: "+err.Error())
-		return
-	}
+	frames, unsubscribe := robot.subscribeCam()
+	defer unsubscribe()
+	flusher, _ := w.(http.Flusher)
 	w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=--boundary")
 	for {
-		response, err := feed.Recv()
-		if err != nil {
+		select {
+		case <-r.Context().Done():
 			return
-		}
-		img, _, err := image.Decode(bytes.NewReader(response.GetData()))
-		if err != nil {
-			continue
-		}
-		robot.touch()
-		fmt.Fprintf(w, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
-		if err := jpeg.Encode(w, img, &jpeg.Options{Quality: 50}); err != nil {
-			return
+		case frame, ok := <-frames:
+			if !ok {
+				return
+			}
+			fmt.Fprintf(w, "--boundary\r\nContent-Type: image/jpeg\r\n\r\n")
+			if _, err := w.Write(frame); err != nil {
+				return
+			}
+			if flusher != nil {
+				flusher.Flush()
+			}
 		}
 	}
 }
