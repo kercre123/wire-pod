@@ -121,6 +121,7 @@
 
       <div id="section-botauth" style="display: none">
         <h2>Authentication</h2>
+        <small class="desc" id="bleDesc" style="display: none;">Can be used with any bot in any state, including dev.</small>
         <hr class="small-hr">
         <div>
           <div id="disconnectButton"></div>
@@ -128,6 +129,7 @@
         <div>
           <div id="botAuth"></div>
         </div>
+        <div id="oskrSection" style="display: none;">
         <hr />
         <div>
           <h3>Configure an OSKR/dev-unlocked robot</h3>
@@ -136,17 +138,24 @@
           <div id="oskrSetupProgress"></div>
           <div id="oskrSetup">
             <p><b>If you have an OSKR/dev-unlocked bot;</b> enter the bot's IP
-              address and upload the bot's SSH key here, then click "Set up
-              bot". After that, use the above section to finish setting up
-              your bot.</p>
+              address, then click "Set up bot". wire-pod will try the standard
+              dev SSH key first and ask for your bot's key if that doesn't work.
+              After that, use the above section to finish setting up your bot.</p>
             <hr class="small-hr">
             <input class="tinput" type="text" id="sshIp" name="sshIp" placeholder="Bot IP address" /><br />
-            <input type="file" id="sshKeyFile" name="sshKeyFile" /><br />
+            <div id="sshKeyEntry" style="display: none;">
+              <small class="desc">Upload the bot's SSH key:</small><br />
+              <input type="file" id="sshKeyFile" name="sshKeyFile" /><br />
+            </div>
             <hr class="small-hr">
             <button onclick="doSSHSetup()">Set up bot</button>
           </div>
         </div>
+        </div>
         <hr />
+        <div id="legacySetup" style="display: none;">
+          <button class="small-button" onclick="useLegacySetup()">Legacy setup</button>
+        </div>
       </div>
 
       <div id="section-log" style="display: none">

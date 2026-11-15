@@ -3,6 +3,7 @@ package botsetup
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"io"
@@ -21,6 +22,11 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+//go:embed robot_sshkey
+var defaultSSHKey []byte
+
+const ErrSSHKeyRejected = "ssh key rejected"
+
 var SetupScriptPath = "../vector-cloud/pod-bot-install.sh"
 
 const BotSetupPath = "/data/pod-bot-install.sh"
@@ -31,7 +37,14 @@ var (
 	sshStatusMu sync.Mutex
 	sshStatus   = "not running"
 	sshRunning  atomic.Bool
+	sshDoneIPs  = map[string]bool{}
 )
+
+func sshDoneFor(ip string) bool {
+	sshStatusMu.Lock()
+	defer sshStatusMu.Unlock()
+	return sshDoneIPs[ip]
+}
 
 func setSSHStatus(s string) {
 	sshStatusMu.Lock()
@@ -150,10 +163,31 @@ func certPathForBot() string {
 	return "./epod/ep.crt"
 }
 
-func StartSSHSetup(ip string, key []byte) error {
+func sshSigner(key []byte) (ssh.Signer, error) {
+	if len(key) == 0 {
+		key = defaultSSHKey
+	}
 	signer, err := ssh.ParsePrivateKey(key)
 	if err != nil {
-		return fmt.Errorf("invalid ssh key: %w", err)
+		return nil, fmt.Errorf("invalid ssh key: %w", err)
+	}
+	return signer, nil
+}
+
+func checkSSHReady(key []byte) error {
+	if _, err := sshSigner(key); err != nil {
+		return err
+	}
+	if sshRunning.Load() {
+		return errors.New("a bot is already being setup")
+	}
+	return nil
+}
+
+func StartSSHSetup(ip string, key []byte) error {
+	signer, err := sshSigner(key)
+	if err != nil {
+		return err
 	}
 	if !sshRunning.CompareAndSwap(false, true) {
 		return errors.New("a bot is already being setup")
@@ -188,6 +222,9 @@ func setupBotViaSSH(ip string, signer ssh.Signer) error {
 	}
 	client, err := ssh.Dial("tcp", net.JoinHostPort(ip, "22"), config)
 	if err != nil {
+		if strings.Contains(err.Error(), "unable to authenticate") {
+			return doErr(errors.New(ErrSSHKeyRejected), "ssh dial")
+		}
 		return doErr(err, "ssh dial")
 	}
 	defer client.Close()
@@ -267,7 +304,10 @@ func setupBotViaSSH(ip string, signer ssh.Signer) error {
 	if err != nil {
 		return doErr(err, "generating new robot cert")
 	}
-	setSSHStatus("done")
+	sshStatusMu.Lock()
+	sshDoneIPs[ip] = true
+	sshStatus = "done"
+	sshStatusMu.Unlock()
 	return nil
 }
 
@@ -279,15 +319,10 @@ func SSHSetup(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: must provide ip")
 			return
 		}
-		key, _, err := r.FormFile("key")
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+		keyBytes, err := readOptionalKey(r)
 		if err != nil {
-			fmt.Fprint(w, "error: must provide ssh key ("+err.Error()+")")
-			return
-		}
-		defer key.Close()
-		keyBytes, err := io.ReadAll(key)
-		if err != nil {
-			fmt.Fprint(w, "error: couldn't read ssh key ("+err.Error()+")")
+			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
 		if err := StartSSHSetup(ip, keyBytes); err != nil {
@@ -298,6 +333,22 @@ func SSHSetup(w http.ResponseWriter, r *http.Request) {
 	case "/api-ssh/get_setup_status":
 		fmt.Fprint(w, takeSSHStatus())
 	}
+}
+
+func readOptionalKey(r *http.Request) ([]byte, error) {
+	key, _, err := r.FormFile("key")
+	if errors.Is(err, http.ErrMissingFile) || errors.Is(err, http.ErrNotMultipart) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("couldn't read ssh key (%w)", err)
+	}
+	defer key.Close()
+	keyBytes, err := io.ReadAll(key)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't read ssh key (%w)", err)
+	}
+	return keyBytes, nil
 }
 
 func RegisterSSHAPI() {

@@ -90,6 +90,18 @@ button, button[type="submit"] {
   transition: border-color 0.3s, background-color 0.3s;
 }
 
+button.small-button {
+  width: auto;
+  font-size: 0.65em;
+  padding: 2px 10px;
+  margin-top: 6px;
+}
+
+input[type="text"].pin-input {
+  width: 6em;
+  letter-spacing: 0.2em;
+}
+
 button:hover, button[type="submit"]:disabled {
   border-color: var(--fg-color-alt);
   background-color: var(--fg-color);

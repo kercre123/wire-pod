@@ -7,12 +7,14 @@ function updateSSHStatus(statusString) {
 }
 
 function doSSHSetup() {
-  const ip = document.getElementById("sshIp").value;
+  const ip = document.getElementById("sshIp").value.trim();
   const key = document.getElementById("sshKeyFile").files[0];
 
-  if (ip && key) {
+  if (ip) {
     const formData = new FormData();
-    formData.append("key", key);
+    if (key) {
+      formData.append("key", key);
+    }
     formData.append("ip", ip);
 
     fetch("/api-ssh/setup", {
@@ -30,7 +32,7 @@ function doSSHSetup() {
         }
       });
   } else {
-    updateSSHStatus("You must enter an IP address and upload a key.");
+    updateSSHStatus("You must enter an IP address.");
   }
 }
 
@@ -44,6 +46,11 @@ function updateSSHSetup() {
           updateSSHStatus(
             "File transfer complete! Use the above section to complete bot setup. The bot should eventually be on the onboarding screen."
           );
+          document.getElementById("oskrSetup").style.display = "block";
+          clearInterval(interval);
+        } else if (response.includes("ssh key rejected")) {
+          updateSSHStatus("The default dev SSH key didn't work on this bot. Upload the bot's SSH key and try again.");
+          document.getElementById("sshKeyEntry").style.display = "block";
           document.getElementById("oskrSetup").style.display = "block";
           clearInterval(interval);
         } else if (response.includes("error")) {

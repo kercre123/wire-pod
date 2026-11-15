@@ -1,6 +1,3 @@
-//go:build inbuiltble
-// +build inbuiltble
-
 package botsetup
 
 import (
@@ -11,14 +8,16 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"net"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/digital-dream-labs/vector-bluetooth/ble"
+	"github.com/kercre123/vector-bluetooth/ble"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/mdnshandler"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
@@ -124,6 +123,10 @@ func initBLE() error {
 	if err != nil {
 		return err
 	}
+	if err := checkAdapterReady(client); err != nil {
+		client.Close()
+		return err
+	}
 	bleClient = client
 	bleStatusStop = make(chan struct{})
 	go watchBLEStatus(ch, bleStatusStop)
@@ -190,11 +193,26 @@ func RobotStatus(client *ble.VectorBLE) (string, error) {
 	case strings.Contains(firmware, "0.9.0"):
 		return "in_recovery_prod", nil
 	case IsDevRobot(esn, firmware):
+		if ip, err := bleRobotIP(client); err == nil && sshDoneFor(ip) {
+			return "in_firmware_dev_ready", nil
+		}
 		return "in_firmware_dev", nil
 	case strings.Contains(firmware, "ep-"):
 		return "in_firmware_ep", nil
 	}
 	return "in_firmware_nonep", nil
+}
+
+func bleRobotIP(client *ble.VectorBLE) (string, error) {
+	resp, err := client.WifiIP()
+	if err != nil {
+		return "", err
+	}
+	ip := net.ParseIP(strings.TrimSpace(resp.IPv4))
+	if ip == nil || ip.IsUnspecified() {
+		return "", errors.New("robot doesn't have an IP address, is it connected to Wi-Fi?")
+	}
+	return ip.String(), nil
 }
 
 func AuthRobot(client *ble.VectorBLE) (bool, error) {
@@ -225,8 +243,11 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api-ble/init":
 		if bleClient != nil {
-			fmt.Fprint(w, "success (ble already initiated, disconnect to reinit)")
-			return
+			if runtime.GOOS != "linux" || checkAdapterReady(bleClient) == nil {
+				fmt.Fprint(w, "success (ble already initiated, disconnect to reinit)")
+				return
+			}
+			resetBLE()
 		}
 		if err := initBLE(); err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
@@ -395,13 +416,13 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 		returnJson, _ := json.Marshal(returnNetworks)
 		w.Write(returnJson)
 	case "/api-ble/connect_wifi":
-		if r.FormValue("ssid") == "" || r.FormValue("password") == "" {
-			fmt.Fprint(w, "error: ssid or password empty")
-			return
-		}
 		authType, err := strconv.Atoi(r.FormValue("authType"))
 		if err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		if r.FormValue("ssid") == "" || (r.FormValue("password") == "" && authType != 0) {
+			fmt.Fprint(w, "error: ssid or password empty")
 			return
 		}
 		resp, err := bleClient.WifiConnect(r.FormValue("ssid"), r.FormValue("password"), 15, authType)
@@ -440,6 +461,31 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 		}
 		logger.Println("BLE authentication attempts exhausted")
 		fmt.Fprint(w, "error authenticating")
+	case "/api-ble/dev_ssh_setup":
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+		keyBytes, err := readOptionalKey(r)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		if err := checkSSHReady(keyBytes); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		ip, err := bleRobotIP(bleClient)
+		if err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		if err := resetBLE(); err != nil {
+			logger.Println("Error closing BLE before SSH setup: " + err.Error())
+		}
+		logger.Println("BLE disconnected, starting SSH setup for " + ip)
+		if err := StartSSHSetup(ip, keyBytes); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, "running "+ip)
 	case "/api-ble/reset_onboarding":
 		if err := sendOnboardingInput(`{"onboarding_set_phase_request": {"phase": 2}}`); err != nil {
 			fmt.Fprint(w, "error: "+err.Error())
