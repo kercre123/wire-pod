@@ -1,4 +1,4 @@
-const vectorEpodSetup = "https://wpsetup.keriganc.com";
+const vectorEpodSetup = "https://wp.pvic.xyz";
 let authEl = document.getElementById("botAuth");
 let statusP = document.createElement("p");
 let OTAUpdating = false;
