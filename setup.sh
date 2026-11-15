@@ -611,6 +611,7 @@ fi
 
 if [[ $1 == "daemon-enable" ]]; then
     getPackages
+    getSTT
     setupSystemd
     exit 0
 fi

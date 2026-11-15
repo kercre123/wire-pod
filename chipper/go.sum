@@ -336,6 +336,8 @@ github.com/karrick/godirwalk v1.8.0/go.mod h1:H5KPZjojv4lE+QYImBI8xVtrBRgYrIVsaR
 github.com/karrick/godirwalk v1.10.3/go.mod h1:RoGL9dQei4vP9ilrpETWE8CLOZ1kiN0LhBygSwrAsHA=
 github.com/kercre123/vector-bluetooth v1.0.2 h1:TJF6JDTzJOYa7+SCV0Yv4BCkIuffezOIL7haWlvHlrQ=
 github.com/kercre123/vector-bluetooth v1.0.2/go.mod h1:S1NzKdpTOPIHRA0xMQSF1KOeWUPL1lm/gIdkbIBLxU0=
+github.com/kercre123/vector-bluetooth v1.0.3 h1:ozIZwbYRKxMAfll65pk7Ke/etUnE2DJOjULGZOlETZQ=
+github.com/kercre123/vector-bluetooth v1.0.3/go.mod h1:S1NzKdpTOPIHRA0xMQSF1KOeWUPL1lm/gIdkbIBLxU0=
 github.com/kercre123/vosk-api v1.0.1 h1:D5CeAMNHPj87M9fKrqP+a2gEQefq7sJCpaiuRscbiJY=
 github.com/kercre123/vosk-api v1.0.1/go.mod h1:mJlLhtYS207jVY9QffYGxhX6Up0UfSQ3p0uNbXsf3Zc=
 github.com/kercre123/vosk-api/go v1.0.2 h1:NDJUNv2ddw128amiVZ2xE2gKfKHeBRRhboSh+yiH6Wg=

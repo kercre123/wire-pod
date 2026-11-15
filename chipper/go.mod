@@ -14,7 +14,7 @@ require (
 	github.com/go-audio/wav v1.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.5.0
-	github.com/kercre123/vector-bluetooth v1.0.2
+	github.com/kercre123/vector-bluetooth v1.0.3
 	github.com/kercre123/vosk-api/go v1.0.2
 	github.com/kercre123/whisper.cpp/bindings/go v0.0.0-20250602164512-60cd96acff3a
 	github.com/kercre123/zeroconf v1.0.1
