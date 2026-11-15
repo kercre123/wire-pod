@@ -1,33 +1,19 @@
-package jdocsserver
+package tokenserver
 
 import (
-	"context"
 	"crypto/x509"
-	"encoding/json"
 	"encoding/pem"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
-	"google.golang.org/grpc/peer"
 	"gopkg.in/ini.v1"
 )
 
-func IsBotInInfo(esn string) bool {
-	for _, robot := range vars.BotInfo.Robots {
-		if esn == strings.TrimSpace(strings.ToLower(robot.Esn)) {
-			return true
-		}
-	}
-	return false
-}
-
-// This function write a bot name, esn, guid, and target to sdk_config.ini
-// Should only be used for primary auth
-// IP should just be "xxx.xxx.xxx.xxx", no port
 func WriteToIniPrimary(botName, esn, guid, ip string) {
 	userIniData, err := ini.Load(vars.SDKIniPath + "sdk_config.ini")
 	if err != nil {
@@ -61,8 +47,6 @@ func WriteToIniPrimary(botName, esn, guid, ip string) {
 	logger.Println("WriteToIniPrimary: successfully wrote INI")
 }
 
-// Less information is given with a secondary auth request, we have to get the cert from the Anki servers
-// If a cert is already there, it does not get the Anki server cert
 func WriteToIniSecondary(esn, guid, ip string) {
 	certPath := ""
 	botName := ""
@@ -95,18 +79,31 @@ func WriteToIniSecondary(esn, guid, ip string) {
 			logger.Println("The DDL servers are down at the moment. The cert will not be gotten. The Python SDK will not be configured.")
 			return
 		}
-		certBytesOrig, _ := io.ReadAll(resp.Body)
-		os.WriteFile(vars.SessionCertPath+"/"+esn, certBytesOrig, 0777)
+		defer resp.Body.Close()
+		certBytesOrig, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Println(err)
+			return
+		}
 		block, _ := pem.Decode(certBytesOrig)
+		if block == nil {
+			logger.Println("WriteToIniSecondary: session cert from DDL server isn't valid PEM")
+			return
+		}
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			logger.Println(err)
+			return
 		}
 		botName = cert.Issuer.CommonName
-		certPath = vars.SDKIniPath + botName + "-" + esn + ".cert"
-		out, err := os.Create(certPath)
-		if err == nil {
-			out.Write(certBytesOrig)
+		if !vars.ValidRobotName(botName) {
+			logger.Println("WriteToIniSecondary: invalid robot name in session cert: " + botName)
+			return
+		}
+		vars.WriteFileAtomic(filepath.Join(vars.SessionCertPath, esn), certBytesOrig, 0644)
+		certPath = filepath.Join(vars.SDKIniPath, botName+"-"+esn+".cert")
+		if err := vars.WriteFileAtomic(certPath, certBytesOrig, 0644); err != nil {
+			logger.Println(err)
 		}
 	}
 	logger.Println("WriteToIniSecondary: robot name is " + botName)
@@ -127,27 +124,6 @@ func WriteToIniSecondary(esn, guid, ip string) {
 	userIniData.SaveTo(vars.SDKIniPath + "sdk_config.ini")
 }
 
-func StoreBotInfo(ctx context.Context, thing string) {
-	var appendNew bool = true
-	p, _ := peer.FromContext(ctx)
-	ipAddr := strings.TrimSpace(strings.Split(p.Addr.String(), ":")[0])
-	botEsn := strings.TrimSpace(strings.Split(thing, ":")[1])
-	vars.BotInfo.GlobalGUID = "tni1TRsTRTaNSapjo0Y+Sw=="
-	for num, robot := range vars.BotInfo.Robots {
-		if robot.Esn == botEsn {
-			appendNew = false
-			vars.BotInfo.Robots[num].IPAddress = ipAddr
-		}
-	}
-	if appendNew {
-		logger.Println("Adding " + botEsn + " to bot info store")
-		vars.BotInfo.Robots = append(vars.BotInfo.Robots, struct {
-			Esn       string `json:"esn"`
-			IPAddress string `json:"ip_address"`
-			GUID      string `json:"guid"`
-			Activated bool   `json:"activated"`
-		}{Esn: botEsn, IPAddress: ipAddr, GUID: "", Activated: false})
-	}
-	finalJsonBytes, _ := json.Marshal(vars.BotInfo)
-	os.WriteFile(vars.BotInfoPath, finalJsonBytes, 0644)
+func ensureDir(dir string) error {
+	return os.MkdirAll(dir, 0755)
 }

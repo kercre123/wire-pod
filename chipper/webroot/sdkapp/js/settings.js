@@ -9,7 +9,10 @@ function updateColor(id) {
   l_id = id.replace("section", "icon");
   let elements = document.getElementsByName("icon");
   for (var i = 0; i < elements.length; i++) {
-    document.getElementById(elements[i].id).style.color = bgColorAlt;
+    elements[i].style.color = bgColorAlt;
   }
-  document.getElementById(l_id).style.color = fgColor;
+  var icon = document.getElementById(l_id);
+  if (icon) {
+    icon.style.color = fgColor;
+  }
 }

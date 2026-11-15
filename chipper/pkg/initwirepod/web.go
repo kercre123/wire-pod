@@ -29,8 +29,10 @@ func ChipperHTTPApi(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: port is invalid")
 			return
 		}
-		vars.APIConfig.Server.EPConfig = false
-		vars.APIConfig.Server.Port = port
+		vars.UpdateConfig(func(c *vars.APIConfig) {
+			c.Server.EPConfig = false
+			c.Server.Port = port
+		})
 		err = botsetup.CreateCertCombo()
 		botsetup.CreateServerConfig()
 		if err != nil {
@@ -38,15 +40,19 @@ func ChipperHTTPApi(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
 		}
-		vars.APIConfig.PastInitialSetup = true
+		vars.UpdateConfig(func(c *vars.APIConfig) {
+			c.PastInitialSetup = true
+		})
 		vars.WriteConfigToDisk()
 		RestartServer()
 		fmt.Fprint(w, "done")
 		return
 	case r.URL.Path == "/api-chipper/use_ep":
-		vars.APIConfig.Server.EPConfig = true
-		vars.APIConfig.Server.Port = "443"
-		vars.APIConfig.PastInitialSetup = true
+		vars.UpdateConfig(func(c *vars.APIConfig) {
+			c.Server.EPConfig = true
+			c.Server.Port = "443"
+			c.PastInitialSetup = true
+		})
 		botsetup.CreateServerConfig()
 		vars.WriteConfigToDisk()
 		RestartServer()

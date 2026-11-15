@@ -3,65 +3,78 @@ package sdkapp
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 )
 
 var transCfg = &http.Transport{
-	TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ignore SSL warnings
+	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 }
 
-func setCustomEyeColor(robot Robot, hue string, sat string) {
-	url := "https://" + robot.Target + "/v1/update_settings"
-	var updateJSON = []byte(`{"update_settings": true, "settings": {"custom_eye_color": {"enabled": true, "hue": ` + hue + `, "saturation": ` + sat + `} } }`)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))
+func updateSettings(robot *Robot, settings map[string]interface{}) error {
+	body, err := json.Marshal(map[string]interface{}{
+		"update_settings": true,
+		"settings":        settings,
+	})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", "https://"+robot.Target+"/v1/update_settings", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
 	req.Header.Set("Authorization", "Bearer "+robot.GUID)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Transport: transCfg}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	defer resp.Body.Close()
+	resp.Body.Close()
+	return nil
 }
 
-func setPresetEyeColor(robot Robot, value string) {
-	url := "https://" + robot.Target + "/v1/update_settings"
-	var updateJSON = []byte(`{"update_settings": true, "settings": {"custom_eye_color": {"enabled": false}, "eye_color": ` + value + `} }`)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))
-	req.Header.Set("Authorization", "Bearer "+robot.GUID)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{Transport: transCfg}
-	resp, err := client.Do(req)
+func setCustomEyeColor(robot *Robot, hue string, sat string) error {
+	h, err := strconv.ParseFloat(hue, 64)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("invalid hue: %w", err)
 	}
-	defer resp.Body.Close()
+	s, err := strconv.ParseFloat(sat, 64)
+	if err != nil {
+		return fmt.Errorf("invalid saturation: %w", err)
+	}
+	return updateSettings(robot, map[string]interface{}{
+		"custom_eye_color": map[string]interface{}{
+			"enabled":    true,
+			"hue":        h,
+			"saturation": s,
+		},
+	})
 }
 
-func setSettingSDKstring(robot Robot, setting string, value string) {
-	url := "https://" + robot.Target + "/v1/update_settings"
-	var updateJSON = []byte(`{"update_settings": true, "settings": {"` + setting + `": "` + value + `" } }`)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))
-	req.Header.Set("Authorization", "Bearer "+robot.GUID)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{Transport: transCfg}
-	resp, err := client.Do(req)
+func setPresetEyeColor(robot *Robot, value string) error {
+	color, err := strconv.Atoi(value)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("invalid eye color: %w", err)
 	}
-	defer resp.Body.Close()
+	return updateSettings(robot, map[string]interface{}{
+		"custom_eye_color": map[string]interface{}{"enabled": false},
+		"eye_color":        color,
+	})
 }
 
-func setSettingSDKintbool(robot Robot, setting string, value string) {
-	url := "https://" + robot.Target + "/v1/update_settings"
-	var updateJSON = []byte(`{"update_settings": true, "settings": {"` + setting + `": ` + value + ` } }`)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(updateJSON))
-	req.Header.Set("Authorization", "Bearer "+robot.GUID)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{Transport: transCfg}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
+func setSettingSDKstring(robot *Robot, setting string, value string) error {
+	return updateSettings(robot, map[string]interface{}{setting: value})
+}
+
+func setSettingSDKintbool(robot *Robot, setting string, value string) error {
+	if i, err := strconv.Atoi(value); err == nil {
+		return updateSettings(robot, map[string]interface{}{setting: i})
 	}
-	defer resp.Body.Close()
+	if b, err := strconv.ParseBool(value); err == nil {
+		return updateSettings(robot, map[string]interface{}{setting: b})
+	}
+	return fmt.Errorf("invalid value for %s: %q", setting, value)
 }

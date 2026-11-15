@@ -222,29 +222,29 @@ var texts = map[string][]string{
 func GetText(key string) string {
 	var data = texts[key]
 	if data != nil {
-		if vars.APIConfig.STT.Language == "it-IT" {
+		if vars.Config().STT.Language == "it-IT" {
 			return data[1]
-		} else if vars.APIConfig.STT.Language == "es-ES" {
+		} else if vars.Config().STT.Language == "es-ES" {
 			return data[2]
-		} else if vars.APIConfig.STT.Language == "fr-FR" {
+		} else if vars.Config().STT.Language == "fr-FR" {
 			return data[3]
-		} else if vars.APIConfig.STT.Language == "de-DE" {
+		} else if vars.Config().STT.Language == "de-DE" {
 			return data[4]
-		} else if vars.APIConfig.STT.Language == "pl-PL" {
+		} else if vars.Config().STT.Language == "pl-PL" {
 			return data[5]
-		} else if vars.APIConfig.STT.Language == "zh-CN" {
+		} else if vars.Config().STT.Language == "zh-CN" {
 			return data[6]
-		} else if vars.APIConfig.STT.Language == "tr-TR" {
+		} else if vars.Config().STT.Language == "tr-TR" {
 			return data[7]
-		} else if vars.APIConfig.STT.Language == "ru-RU" {
+		} else if vars.Config().STT.Language == "ru-RU" {
 			return data[8]
-		} else if vars.APIConfig.STT.Language == "nt-NL" {
+		} else if vars.Config().STT.Language == "nt-NL" {
 			return data[9]
-		} else if vars.APIConfig.STT.Language == "uk-UA" {
+		} else if vars.Config().STT.Language == "uk-UA" {
 			return data[10]
-		} else if vars.APIConfig.STT.Language == "vi-VN" {
+		} else if vars.Config().STT.Language == "vi-VN" {
 			return data[11]
-		} else if vars.APIConfig.STT.Language == "ko-KR" {
+		} else if vars.Config().STT.Language == "ko-KR" {
 			return data[12]
 		}
 	}
@@ -252,7 +252,7 @@ func GetText(key string) string {
 }
 
 func ReloadVosk() {
-	if vars.APIConfig.STT.Service == "vosk" || vars.APIConfig.STT.Service == "whisper.cpp" {
+	if vars.Config().STT.Service == "vosk" || vars.Config().STT.Service == "whisper.cpp" {
 		vars.IntentList, _ = vars.LoadIntents()
 		vars.SttInitFunc()
 	}

@@ -1,17 +1,20 @@
 package initwirepod
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"runtime"
+	"runtime/debug"
+	"sync"
+	"time"
 
 	chipperpb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/api/go/jdocspb"
 	"github.com/digital-dream-labs/api/go/tokenpb"
-	"github.com/digital-dream-labs/hugh/log"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/mdnshandler"
 	chipperserver "github.com/kercre123/wire-pod/chipper/pkg/servers/chipper"
@@ -22,22 +25,19 @@ import (
 	wp "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	sdkWeb "github.com/kercre123/wire-pod/chipper/pkg/wirepod/sdkapp"
 	"github.com/soheilhy/cmux"
-
-	//	grpclog "github.com/digital-dream-labs/hugh/grpc/interceptors/logger"
-
-	grpcserver "github.com/digital-dream-labs/hugh/grpc/server"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
-var PostingmDNS bool
-
-var serverOne cmux.CMux
-var serverTwo cmux.CMux
-var listenerOne net.Listener
-var listenerTwo net.Listener
 var voiceProcessor *wp.Server
 
-// grpcServer *grpc.Servervar
-var chipperServing bool = false
+var (
+	chipperMu      sync.Mutex
+	chipperClosers []func()
+	chipperDone    chan struct{}
+)
 
 func serveOk(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "ok")
@@ -48,20 +48,43 @@ func httpServe(l net.Listener) error {
 	mux.HandleFunc("/ok:80", serveOk)
 	mux.HandleFunc("/ok", serveOk)
 	s := &http.Server{
-		Handler: mux,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       2 * time.Minute,
 	}
 	return s.Serve(l)
 }
 
+func logPanic(method string, r interface{}) error {
+	logger.Println("gRPC: panic in " + method + ": " + fmt.Sprint(r) + "\n" + string(debug.Stack()))
+	return status.Error(codes.Internal, "internal error")
+}
+
+func recoverUnary(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = logPanic(info.FullMethod, r)
+		}
+	}()
+	return handler(ctx, req)
+}
+
+func recoverStream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = logPanic(info.FullMethod, r)
+		}
+	}()
+	return handler(srv, ss)
+}
+
 func grpcServe(l net.Listener, p *wp.Server) error {
-	srv, err := grpcserver.New(
-		grpcserver.WithViper(),
-		grpcserver.WithReflectionService(),
-		grpcserver.WithInsecureSkipVerify(),
+	srv := grpc.NewServer(
+		grpc.Creds(cmuxTLSCreds{}),
+		grpc.ChainUnaryInterceptor(recoverUnary),
+		grpc.ChainStreamInterceptor(recoverStream),
 	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	reflection.Register(srv)
 
 	s, _ := chipperserver.New(
 		chipperserver.WithIntentProcessor(p),
@@ -71,13 +94,12 @@ func grpcServe(l net.Listener, p *wp.Server) error {
 
 	tokenServer := tokenserver.NewTokenServer()
 	jdocsServer := jdocsserver.NewJdocsServer()
-	//jdocsserver.IniToJson()
 
-	chipperpb.RegisterChipperGrpcServer(srv.Transport(), s)
-	jdocspb.RegisterJdocsServer(srv.Transport(), jdocsServer)
-	tokenpb.RegisterTokenServer(srv.Transport(), tokenServer)
+	chipperpb.RegisterChipperGrpcServer(srv, s)
+	jdocspb.RegisterJdocsServer(srv, jdocsServer)
+	tokenpb.RegisterTokenServer(srv, tokenServer)
 
-	return srv.Transport().Serve(l)
+	return srv.Serve(l)
 }
 
 func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) error {
@@ -104,12 +126,14 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	err := BeginWirepodSpecific(sttInitFunc, sttHandlerFunc, voiceProcessorName)
 	if err != nil {
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
-	} else if !vars.APIConfig.PastInitialSetup {
+	} else if !vars.Config().PastInitialSetup {
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
-	} else if (vars.APIConfig.STT.Service == "vosk" || vars.APIConfig.STT.Service == "whisper.cpp") && vars.APIConfig.STT.Language == "" {
-		logger.Println("\033[33m\033[1mLanguage value is blank, but STT service is " + vars.APIConfig.STT.Service + ". Reinitiating setup process.\033[0m")
+	} else if (vars.Config().STT.Service == "vosk" || vars.Config().STT.Service == "whisper.cpp") && vars.Config().STT.Language == "" {
+		logger.Println("\033[33m\033[1mLanguage value is blank, but STT service is " + vars.Config().STT.Service + ". Reinitiating setup process.\033[0m")
 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
-		vars.APIConfig.PastInitialSetup = false
+		vars.UpdateConfig(func(c *vars.APIConfig) {
+			c.PastInitialSetup = false
+		})
 	} else {
 		go StartChipper()
 	}
@@ -117,115 +141,128 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{}, 
 	wpweb.StartWebServer()
 }
 
-func RestartServer() {
-	if chipperServing {
-		serverOne.Close()
-		serverTwo.Close()
-		listenerOne.Close()
-		listenerTwo.Close()
+func StopServer() {
+	mdnshandler.StopmDNS()
+	chipperMu.Lock()
+	closers := chipperClosers
+	done := chipperDone
+	chipperClosers = nil
+	chipperDone = nil
+	chipperMu.Unlock()
+	for _, c := range closers {
+		c()
 	}
+	if done == nil {
+		return
+	}
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		logger.Println("Timed out waiting for chipper server to stop")
+	}
+}
+
+func RestartServer() {
+	StopServer()
 	go StartChipper()
 }
 
-func StopServer() {
-	if chipperServing {
-		serverOne.Close()
-		serverTwo.Close()
-		listenerOne.Close()
-		listenerTwo.Close()
+func loadChipperCert(cfg vars.APIConfig) (tls.Certificate, error) {
+	var certPub, certPriv []byte
+	var err error
+	switch {
+	case cfg.Server.EPConfig && (runtime.GOOS == "android" || runtime.GOOS == "ios"):
+		certPub, _ = os.ReadFile(vars.AndroidPath + "/static/epod/ep.crt")
+		certPriv, err = os.ReadFile(vars.AndroidPath + "/static/epod/ep.key")
+	case cfg.Server.EPConfig:
+		certPub, _ = os.ReadFile("./epod/ep.crt")
+		certPriv, err = os.ReadFile("./epod/ep.key")
+	case runtime.GOOS == "android" || runtime.GOOS == "ios":
+		certPub, _ = os.ReadFile(vars.AndroidPath + "/wire-pod/certs/cert.crt")
+		certPriv, err = os.ReadFile(vars.AndroidPath + "/wire-pod/certs/cert.key")
+	default:
+		certPub, _ = os.ReadFile("../certs/cert.crt")
+		certPriv, err = os.ReadFile("../certs/cert.key")
 	}
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+	return tls.X509KeyPair(certPub, certPriv)
 }
 
 func StartChipper() {
-	// load certs
-	if vars.APIConfig.Server.EPConfig && runtime.GOOS != "android" {
+	cfg := vars.Config()
+	if cfg.Server.EPConfig && runtime.GOOS != "android" {
 		go mdnshandler.PostmDNS()
 	}
-	var certPub []byte
-	var certPriv []byte
-	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
-		if vars.APIConfig.Server.EPConfig {
-			certPub, _ = os.ReadFile(vars.AndroidPath + "/static/epod/ep.crt")
-			certPriv, _ = os.ReadFile(vars.AndroidPath + "/static/epod/ep.key")
-		} else {
-			var err error
-			certPub, _ = os.ReadFile(vars.AndroidPath + "/wire-pod/certs/cert.crt")
-			certPriv, err = os.ReadFile(vars.AndroidPath + "/wire-pod/certs/cert.key")
-			if err != nil {
-				logger.Println("wire-pod is not setup.")
-				return
-			}
-		}
-	} else {
-		if vars.APIConfig.Server.EPConfig {
-			certPub, _ = os.ReadFile("./epod/ep.crt")
-			certPriv, _ = os.ReadFile("./epod/ep.key")
-		} else {
-			var err error
-			certPub, _ = os.ReadFile("../certs/cert.crt")
-			certPriv, err = os.ReadFile("../certs/cert.key")
-			if err != nil {
-				logger.Println("wire-pod is not setup.")
-				return
-			}
-		}
+	cert, err := loadChipperCert(cfg)
+	if err != nil {
+		logger.Println("wire-pod is not setup (couldn't load chipper cert): ", err)
+		return
 	}
 
 	logger.Println("Initiating TLS listener, cmux, gRPC handler, and REST handler")
-	cert, err := tls.X509KeyPair(certPub, certPriv)
-	if err != nil {
-		logger.Println(err)
-		os.Exit(1)
+	tlsConf := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequestClientCert,
 	}
-	if runtime.GOOS == "android" && vars.APIConfig.Server.Port == "443" {
+	var ports []string
+	if runtime.GOOS == "android" && cfg.Server.Port == "443" {
 		logger.Println("not starting chipper at port 443 because android")
 	} else {
-		logger.Println("Starting chipper server at port " + vars.APIConfig.Server.Port)
-		listenerOne, err = tls.Listen("tcp", ":"+vars.APIConfig.Server.Port, &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			CipherSuites: nil,
-		})
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		ports = append(ports, cfg.Server.Port)
 	}
-	serverOne = cmux.New(listenerOne)
-	grpcListenerOne := serverOne.Match(cmux.HTTP2())
-	httpListenerOne := serverOne.Match(cmux.HTTP1Fast())
-	go grpcServe(grpcListenerOne, voiceProcessor)
-	go httpServe(httpListenerOne)
+	if cfg.Server.EPConfig && os.Getenv("NO8084") != "true" {
+		ports = append(ports, "8084")
+	}
 
-	if vars.APIConfig.Server.EPConfig && os.Getenv("NO8084") != "true" {
-		logger.Println("Starting chipper server at port 8084 for 2.0.1 compatibility")
-		listenerTwo, err = tls.Listen("tcp", ":8084", &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			CipherSuites: nil,
-		})
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+	var muxes []cmux.CMux
+	var closers []func()
+	closeAll := func() {
+		for _, c := range closers {
+			c()
 		}
-		serverTwo = cmux.New(listenerTwo)
-		grpcListenerTwo := serverTwo.Match(cmux.HTTP2())
-		httpListenerTwo := serverTwo.Match(cmux.HTTP1Fast())
-		go grpcServe(grpcListenerTwo, voiceProcessor)
-		go httpServe(httpListenerTwo)
 	}
+	for _, port := range ports {
+		if port == "8084" {
+			logger.Println("Starting chipper server at port 8084 for 2.0.1 compatibility")
+		} else {
+			logger.Println("Starting chipper server at port " + port)
+		}
+		l, err := tls.Listen("tcp", ":"+port, tlsConf)
+		if err != nil {
+			logger.Println("Error starting chipper server at port "+port+": ", err)
+			closeAll()
+			return
+		}
+		m := cmux.New(l)
+		go grpcServe(m.Match(cmux.HTTP2()), voiceProcessor)
+		go httpServe(m.Match(cmux.HTTP1Fast()))
+		muxes = append(muxes, m)
+		closers = append(closers, m.Close, func() { l.Close() })
+	}
+	if len(muxes) == 0 {
+		logger.Println("No chipper ports to serve")
+		return
+	}
+
+	done := make(chan struct{})
+	chipperMu.Lock()
+	chipperClosers = closers
+	chipperDone = done
+	chipperMu.Unlock()
 
 	fmt.Println("\033[33m\033[1mwire-pod started successfully!\033[0m")
 
-	chipperServing = true
-	if vars.APIConfig.Server.EPConfig && os.Getenv("NO8084") != "true" {
-		if runtime.GOOS != "android" {
-			go serverOne.Serve()
-		}
-		serverTwo.Serve()
-		logger.Println("Stopping chipper server")
-		chipperServing = false
-	} else {
-		serverOne.Serve()
-		logger.Println("Stopping chipper server")
-		chipperServing = false
+	var wg sync.WaitGroup
+	for _, m := range muxes {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Serve()
+		}()
 	}
+	wg.Wait()
+	logger.Println("Stopping chipper server")
+	close(done)
 }

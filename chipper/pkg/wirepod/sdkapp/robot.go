@@ -1,217 +1,272 @@
 package sdkapp
 
 import (
+	"bytes"
 	"context"
-	"errors"
-	"fmt"
-	"strconv"
+	"image"
+	"image/jpeg"
+	"math"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/digital-dream-labs/hugh/grpc/client"
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
-	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
-var robots []Robot
-var timerStopIndexes []int
-var inhibitCreation bool
+const robotIdleTimeout = 5 * time.Minute
 
 type Robot struct {
-	ESN               string
-	GUID              string
-	Target            string
-	Vector            *vector.Vector
-	BcAssumption      bool
-	CamStreaming      bool
-	EventStreamClient vectorpb.ExternalInterface_EventStreamClient
-	EventsStreaming   bool
-	StimState         float32
-	ConnTimer         int32
-	Ctx               context.Context
+	ESN    string
+	GUID   string
+	Target string
+	Vector *vector.Vector
+	Ctx    context.Context
+
+	cancel    context.CancelFunc
+	lastUsed  atomic.Int64
+	stimState atomic.Uint32
+
+	bc     robotTask
+	events robotTask
+
+	camMu   sync.Mutex
+	camFeed *camFeed
 }
 
-func newRobot(serial string) (Robot, int, error) {
-	inhibitCreation = true
-	var RobotObj Robot
-
-	// generate context
-	RobotObj.Ctx = context.Background()
-
-	// find robot info in BotInfo
-	matched := false
-	for _, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(serial, robot.Esn) {
-			RobotObj.ESN = strings.TrimSpace(strings.ToLower(serial))
-			RobotObj.Target = robot.IPAddress + ":443"
-			matched = true
-			if robot.GUID == "" {
-				robot.GUID = vars.BotInfo.GlobalGUID
-				RobotObj.GUID = vars.BotInfo.GlobalGUID
-			} else {
-				RobotObj.GUID = robot.GUID
-			}
-			logger.Println("Connecting to " + serial + " with GUID " + RobotObj.GUID)
-		}
-	}
-	if !matched {
-		inhibitCreation = false
-		return RobotObj, 0, fmt.Errorf("error: robot not found in SDK info file")
-	}
-
-	// create Vector instance
-	var err error
-	RobotObj.Vector, err = vector.New(
-		vector.WithTarget(RobotObj.Target),
-		vector.WithSerialNo(RobotObj.ESN),
-		vector.WithToken(RobotObj.GUID),
-	)
-	if err != nil {
-		inhibitCreation = false
-		return RobotObj, 0, err
-	}
-
-	// connection check
-	_, err = RobotObj.Vector.Conn.BatteryState(context.Background(), &vectorpb.BatteryStateRequest{})
-	if err != nil {
-		inhibitCreation = false
-		return RobotObj, 0, err
-	}
-
-	// create client for event stream
-	RobotObj.EventStreamClient, err = RobotObj.Vector.Conn.EventStream(
-		RobotObj.Ctx,
-		&vectorpb.EventRequest{
-			ListType: &vectorpb.EventRequest_WhiteList{
-				WhiteList: &vectorpb.FilterList{
-					// this will be used only for stimulation graph for now
-					List: []string{"stimulation_info"},
-				},
-			},
-		},
-	)
-	if err != nil {
-		inhibitCreation = false
-		return RobotObj, 0, err
-	}
-	RobotObj.CamStreaming = false
-	RobotObj.EventsStreaming = false
-
-	// we have confirmed robot connection works, append to list of bots
-	robots = append(robots, RobotObj)
-	robotIndex := len(robots) - 1
-
-	// begin inactivity timer
-	go connTimer(robotIndex)
-
-	inhibitCreation = false
-	return RobotObj, robotIndex, nil
+type camFeed struct {
+	cancel context.CancelFunc
+	subs   map[chan []byte]struct{}
 }
 
-func getRobot(serial string) (Robot, int, error) {
-	// look in robot list
-	for {
-		if !inhibitCreation {
-			break
-		}
-		time.Sleep(time.Second / 2)
-	}
-	for index, robot := range robots {
-		if strings.EqualFold(serial, robot.ESN) {
-			return robot, index, nil
-		}
-	}
-	return newRobot(serial)
+type robotTask struct {
+	mu     sync.Mutex
+	cancel context.CancelFunc
+	gen    int
 }
 
-// if connection is inactive for more than 5 minutes, remove robot
-// run this as a goroutine
-func connTimer(ind int) {
-	// Check if the index is in the list
-	if len(robots) <= ind {
+func (t *robotTask) start(parent context.Context) (context.Context, func(), bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	replaced := t.cancel != nil
+	if replaced {
+		t.cancel()
+	}
+	ctx, cancel := context.WithCancel(parent)
+	t.gen++
+	gen := t.gen
+	t.cancel = cancel
+	done := func() {
+		cancel()
+		t.mu.Lock()
+		if t.gen == gen {
+			t.cancel = nil
+		}
+		t.mu.Unlock()
+	}
+	return ctx, done, replaced
+}
+
+func (t *robotTask) stop() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.cancel != nil {
+		t.cancel()
+		t.cancel = nil
+	}
+}
+
+func (t *robotTask) running() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.cancel != nil
+}
+
+func (r *Robot) touch() {
+	r.lastUsed.Store(time.Now().UnixNano())
+}
+
+func (r *Robot) StimState() float32 {
+	return math.Float32frombits(r.stimState.Load())
+}
+
+func (r *Robot) setStimState(v float32) {
+	r.stimState.Store(math.Float32bits(v))
+}
+
+func (r *Robot) close() {
+	r.bc.stop()
+	r.events.stop()
+	r.cancel()
+}
+
+func (r *Robot) subscribeCam() (<-chan []byte, func()) {
+	ch := make(chan []byte, 1)
+	r.camMu.Lock()
+	f := r.camFeed
+	if f == nil {
+		ctx, cancel := context.WithCancel(r.Ctx)
+		f = &camFeed{cancel: cancel, subs: map[chan []byte]struct{}{}}
+		r.camFeed = f
+		go r.runCamFeed(ctx, f)
+	}
+	f.subs[ch] = struct{}{}
+	r.camMu.Unlock()
+	return ch, func() {
+		r.camMu.Lock()
+		defer r.camMu.Unlock()
+		if _, ok := f.subs[ch]; !ok {
+			return
+		}
+		delete(f.subs, ch)
+		if len(f.subs) == 0 && r.camFeed == f {
+			r.camFeed = nil
+			f.cancel()
+		}
+	}
+}
+
+func (r *Robot) runCamFeed(ctx context.Context, f *camFeed) {
+	defer func() {
+		r.camMu.Lock()
+		if r.camFeed == f {
+			r.camFeed = nil
+		}
+		f.cancel()
+		for ch := range f.subs {
+			close(ch)
+		}
+		clear(f.subs)
+		r.camMu.Unlock()
+	}()
+	feed, err := r.Vector.Conn.CameraFeed(ctx, &vectorpb.CameraFeedRequest{})
+	if err != nil {
+		logger.Println("Camera feed error for " + r.ESN + ": " + err.Error())
 		return
 	}
-
-	robots[ind].ConnTimer = 0
 	for {
-		time.Sleep(time.Second)
-		// check if timer needs to be stopped
-		for _, num := range timerStopIndexes {
-			if num == ind {
-				logger.Println("Conn timer for robot index " + strconv.Itoa(ind) + " stopping")
-				var newIndexes []int
-				for _, num := range timerStopIndexes {
-					if num != ind {
-						newIndexes = append(newIndexes, num)
-					}
-				}
-				timerStopIndexes = newIndexes
+		resp, err := feed.Recv()
+		if err != nil {
+			return
+		}
+		img, _, err := image.Decode(bytes.NewReader(resp.GetData()))
+		if err != nil {
+			continue
+		}
+		var buf bytes.Buffer
+		if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 50}); err != nil {
+			continue
+		}
+		r.touch()
+		frame := buf.Bytes()
+		r.camMu.Lock()
+		for ch := range f.subs {
+			select {
+			case <-ch:
+			default:
+			}
+			ch <- frame
+		}
+		r.camMu.Unlock()
+	}
+}
+
+func (r *Robot) watchIdle() {
+	t := time.NewTicker(10 * time.Second)
+	defer t.Stop()
+	for {
+		select {
+		case <-r.Ctx.Done():
+			return
+		case <-t.C:
+			if time.Since(time.Unix(0, r.lastUsed.Load())) >= robotIdleTimeout {
+				logger.Println("Closing SDK connection for " + r.ESN + ", source: idle timer")
+				removeRobot(r)
 				return
 			}
 		}
-		if robots[ind].ConnTimer >= 300 {
-			logger.Println("Closing SDK connection for " + robots[ind].ESN + ", source: connTimer")
-			removeRobot(robots[ind].ESN, "connTimer")
-			return
-		}  
-		robots[ind].ConnTimer = robots[ind].ConnTimer + 1
 	}
 }
 
-func removeRobot(serial, source string) {
-	inhibitCreation = true
-	var newRobots []Robot
-	for ind, robot := range robots {
-		if !strings.EqualFold(serial, robot.ESN) {
-			newRobots = append(newRobots, robot)
-		} else {
-			if source == "server" {
-				timerStopIndexes = append(timerStopIndexes, ind)
-			}
-			robots[ind].CamStreaming = false
-			robots[ind].EventsStreaming = false
-			robots[ind].BcAssumption = false
-			// give time for all of that to stop
-			time.Sleep(time.Second * 3)
-		}
-	}
-	robots = newRobots
-	inhibitCreation = false
-}
+var (
+	robotsMu      sync.Mutex
+	robots        = map[string]*Robot{}
+	robotsPending = map[string]chan struct{}{}
+)
 
-func NewWP(serial string, useGlobal bool) (*vector.Vector, error) {
-	var target, guid string
-	if serial == "" {
-		return nil, fmt.Errorf("serial string missing")
-	}
-	matched := false
-	for _, robot := range vars.BotInfo.Robots {
-		if strings.EqualFold(serial, robot.Esn) {
-			matched = true
-			target = robot.IPAddress + ":443"
-			guid = robot.GUID
-			break
-		}
-	}
-	if !matched {
-		logger.Println("serial did not match any bot in bot json")
-		return nil, errors.New("serial did not match any bot in bot json")
-	}
-	c, err := client.New(
-		client.WithTarget(target),
-		client.WithInsecureSkipVerify(),
-	)
+func newRobot(esn string) (*Robot, error) {
+	info, err := botconn.Lookup(esn)
 	if err != nil {
 		return nil, err
 	}
-	if err := c.Connect(); err != nil {
+	logger.Println("Connecting to " + esn + " with GUID " + info.GUID)
+	vec, err := botconn.Get(esn)
+	if err != nil {
 		return nil, err
 	}
-	return vector.New(
-		vector.WithTarget(target),
-		vector.WithSerialNo(serial),
-		vector.WithToken(guid),
-	)
+	ctx, cancel := context.WithCancel(context.Background())
+	checkCtx, checkCancel := context.WithTimeout(ctx, 10*time.Second)
+	defer checkCancel()
+	if _, err := vec.Conn.BatteryState(checkCtx, &vectorpb.BatteryStateRequest{}); err != nil {
+		cancel()
+		return nil, err
+	}
+	r := &Robot{
+		ESN:    esn,
+		GUID:   info.GUID,
+		Target: info.Target,
+		Vector: vec,
+		Ctx:    ctx,
+		cancel: cancel,
+	}
+	r.touch()
+	return r, nil
+}
+
+func getRobot(serial string) (*Robot, error) {
+	esn := strings.ToLower(strings.TrimSpace(serial))
+	for {
+		robotsMu.Lock()
+		if r, ok := robots[esn]; ok {
+			robotsMu.Unlock()
+			r.touch()
+			return r, nil
+		}
+		if wait, ok := robotsPending[esn]; ok {
+			robotsMu.Unlock()
+			<-wait
+			continue
+		}
+		done := make(chan struct{})
+		robotsPending[esn] = done
+		robotsMu.Unlock()
+
+		r, err := newRobot(esn)
+
+		robotsMu.Lock()
+		delete(robotsPending, esn)
+		if err == nil {
+			robots[esn] = r
+		}
+		robotsMu.Unlock()
+		close(done)
+
+		if err != nil {
+			return nil, err
+		}
+		go r.watchIdle()
+		return r, nil
+	}
+}
+
+func removeRobot(r *Robot) {
+	robotsMu.Lock()
+	if robots[r.ESN] == r {
+		delete(robots, r.ESN)
+	}
+	robotsMu.Unlock()
+	r.close()
 }

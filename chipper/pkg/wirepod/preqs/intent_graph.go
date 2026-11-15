@@ -43,7 +43,7 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 	}
 	// if !successMatched {
 	// 	logger.Println("No intent was matched.")
-	// 	if vars.APIConfig.Knowledge.Enable && vars.APIConfig.Knowledge.Provider == "openai" && len([]rune(transcribedText)) >= 8 {
+	// 	if vars.Config().Knowledge.Enable && vars.Config().Knowledge.Provider == "openai" && len([]rune(transcribedText)) >= 8 {
 	// 		apiResponse := openaiRequest(transcribedText)
 	// 		response := &pb.IntentGraphResponse{
 	// 			Session:      req.Session,
@@ -60,8 +60,8 @@ func (s *Server) ProcessIntentGraph(req *vtt.IntentGraphRequest) (*vtt.IntentGra
 	// 	return nil, nil
 	// }
 	if !successMatched {
-		if vars.APIConfig.Knowledge.IntentGraph && vars.APIConfig.Knowledge.Enable {
-			if vars.APIConfig.Knowledge.Provider == "houndify" {
+		if vars.Config().Knowledge.IntentGraph && vars.Config().Knowledge.Enable {
+			if vars.Config().Knowledge.Provider == "houndify" {
 				if len([]rune(transcribedText)) >= 8 {
 					logger.Println("No intent matched, forwarding to Houndify for device " + req.Device + "...")
 					InitKnowledge() // Errors without this for whatever reason even though I think it should be inited already

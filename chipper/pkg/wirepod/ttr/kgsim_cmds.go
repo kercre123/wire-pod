@@ -151,7 +151,7 @@ func ModelIsSupported(cmd LLMCommand, model string) bool {
 
 func CreatePrompt(origPrompt string, model string, isKG bool) string {
 	prompt := origPrompt + "\n\n" + "Keep in mind, user input comes from speech-to-text software, so respond accordingly. No special characters, especially these: & ^ * # @ - . No lists. No formatting."
-	if vars.APIConfig.Knowledge.CommandsEnable {
+	if vars.Config().Knowledge.CommandsEnable {
 		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nUse the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
 		for _, cmd := range ValidLLMCommands {
 			if ModelIsSupported(cmd, model) {
@@ -159,7 +159,7 @@ func CreatePrompt(origPrompt string, model string, isKG bool) string {
 				prompt = prompt + promptAppendage
 			}
 		}
-		if isKG && vars.APIConfig.Knowledge.SaveChat {
+		if isKG && vars.Config().Knowledge.SaveChat {
 			promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question near the end of your response, you MUST use newVoiceRequest. If you decide you want to end the conversation, you should not use it."
 			prompt = prompt + promptAppentage
 		} else {
@@ -290,7 +290,7 @@ func DoSayText(input string, robot *vector.Vector) error {
 	// just before vector speaks
 	removeSpecialCharacters(input)
 
-	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || vars.APIConfig.Knowledge.OpenAIVoiceWithEnglish {
+	if (vars.Config().STT.Language != "en-US" && vars.Config().Knowledge.Provider == "openai") || vars.Config().Knowledge.OpenAIVoiceWithEnglish {
 		err := DoSayText_OpenAI(robot, input)
 		return err
 	}
@@ -331,13 +331,13 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 	if strings.TrimSpace(input) == "" {
 		return nil
 	}
-	openaiVoice := getOpenAIVoice(vars.APIConfig.Knowledge.OpenAIVoice)
-	// if vars.APIConfig.Knowledge.OpenAIVoice == "" {
+	openaiVoice := getOpenAIVoice(vars.Config().Knowledge.OpenAIVoice)
+	// if vars.Config().Knowledge.OpenAIVoice == "" {
 	// 	openaiVoice = openai.VoiceFable
 	// } else {
-	// 	openaiVoice = getOpenAIVoice(vars.APIConfig.Knowledge.OpenAIPrompt)
+	// 	openaiVoice = getOpenAIVoice(vars.Config().Knowledge.OpenAIPrompt)
 	// }
-	oc := openai.NewClient(vars.APIConfig.Knowledge.Key)
+	oc := openai.NewClient(vars.Config().Knowledge.Key)
 	resp, err := oc.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
 		Model:          openai.TTSModel1,
 		Input:          input,
@@ -466,20 +466,22 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 	var fullRespSlice []string
 	var isDone bool
 	var c *openai.Client
-	switch vars.APIConfig.Knowledge.Provider {
+	switch vars.Config().Knowledge.Provider {
 	case "together":
-		if vars.APIConfig.Knowledge.Model == "" {
-			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-2-70b-chat-hf"
+		if vars.Config().Knowledge.Model == "" {
+			vars.UpdateConfig(func(c *vars.APIConfig) {
+				c.Knowledge.Model = "meta-llama/Llama-2-70b-chat-hf"
+			})
 			vars.WriteConfigToDisk()
 		}
-		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
+		conf := openai.DefaultConfig(vars.Config().Knowledge.Key)
 		conf.BaseURL = "https://api.together.xyz/v1"
 		c = openai.NewClientWithConfig(conf)
 	case "openai":
-		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
+		c = openai.NewClient(vars.Config().Knowledge.Key)
 	case "custom":
-		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
-		conf.BaseURL = vars.APIConfig.Knowledge.Endpoint
+		conf := openai.DefaultConfig(vars.Config().Knowledge.Key)
+		conf.BaseURL = vars.Config().Knowledge.Endpoint
 		c = openai.NewClientWithConfig(conf)
 	}
 	ctx := context.Background()
@@ -494,19 +496,19 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		Messages:            msgs,
 		Stream:              true,
 	}
-	if vars.APIConfig.Knowledge.Provider == "openai" {
+	if vars.Config().Knowledge.Provider == "openai" {
 		aireq.Model = openai.GPT4oMini
 		logger.Println("Using " + aireq.Model)
 	} else {
-		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
-		aireq.Model = vars.APIConfig.Knowledge.Model
+		logger.Println("Using " + vars.Config().Knowledge.Model)
+		aireq.Model = vars.Config().Knowledge.Model
 	}
 	if stopImaging {
 		return
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
-		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
+		if strings.Contains(err.Error(), "does not exist") && vars.Config().Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			aireq.Model = openai.GPT3Dot5Turbo
@@ -542,7 +544,7 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 					extraBit := strings.TrimPrefix(fullRespText, newStr)
 					fullRespSlice = append(fullRespSlice, extraBit)
 				}
-				if vars.APIConfig.Knowledge.SaveChat {
+				if vars.Config().Knowledge.SaveChat {
 					Remember(msgs[len(msgs)-1],
 						openai.ChatCompletionMessage{
 							Role:    openai.ChatMessageRoleAssistant,
