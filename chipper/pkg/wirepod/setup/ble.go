@@ -510,9 +510,14 @@ func BluetoothSetupAPI(w http.ResponseWriter, r *http.Request) {
 			}
 			time.Sleep(time.Second * 21)
 		}
-		if err := sendOnboardingInput(`{"onboarding_mark_complete_and_exit": {}}`); err != nil {
+		err := sendOnboardingInput(`{"onboarding_mark_complete_and_exit": {}}`)
+		var syntaxErr *json.SyntaxError
+		if err != nil && !errors.As(err, &syntaxErr) {
 			fmt.Fprint(w, "error: "+err.Error())
 			return
+		}
+		if err := resetBLE(); err != nil {
+			logger.Println("Error disconnecting BLE after onboarding: " + err.Error())
 		}
 		fmt.Fprint(w, "done")
 	default:

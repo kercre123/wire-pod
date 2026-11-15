@@ -150,7 +150,10 @@ function showBLEError(msg) {
   updateAuthel(msg);
   const retry = document.createElement("button");
   retry.textContent = "Start over";
-  retry.onclick = () => reInitBLE().then(() => checkBLECapability());
+  retry.onclick = () => {
+    updateAuthel("Starting Bluetooth...");
+    reInitBLE().then(() => checkBLECapability());
+  };
   authEl.appendChild(retry);
 }
 
@@ -451,7 +454,7 @@ function showRepairAfterSSH() {
     <p>1. Wait for Vector's face to come back.</p>
     <p>2. Double press the button. A key should appear on screen.</p>
     <p>3. Click 'Begin Scanning' and pair with your Vector.</p>
-    <button onclick="reInitBLE().then(() => scanRobots(false))">Begin Scanning</button>
+    <button onclick="updateAuthel('Starting Bluetooth...'); reInitBLE().then(() => scanRobots(false))">Begin Scanning</button>
   `;
 }
 
@@ -532,12 +535,13 @@ function doOnboard() {
       showBLEError("Vector was authenticated, but taking him out of onboarding mode failed: " + response);
       return;
     }
-    fetch("/api-ble/disconnect");
+    document.getElementById("disconnectButton").innerHTML = "";
     updateAuthel("Vector is now fully set up! Use the Bot Settings tab to further configure your bot.");
-    const disconnectButtonDiv = document.getElementById("disconnectButton");
-    disconnectButtonDiv.innerHTML = `
-      <button class="small-button" onclick="checkBLECapability()">Return to pair instructions</button>
-    `;
+    const back = document.createElement("button");
+    back.className = "small-button";
+    back.textContent = "Set up another bot";
+    back.onclick = checkBLECapability;
+    authEl.appendChild(back);
   }).catch(() => {
     showBLEError("Vector was authenticated, but taking him out of onboarding mode failed.");
   });
