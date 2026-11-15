@@ -79,6 +79,10 @@ func recoverStream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServe
 }
 
 func grpcServe(l net.Listener, p *wp.Server) error {
+	return NewGRPCServer(p).Serve(l)
+}
+
+func NewGRPCServer(p *wp.Server) *grpc.Server {
 	srv := grpc.NewServer(
 		grpc.Creds(cmuxTLSCreds{}),
 		grpc.ChainUnaryInterceptor(recoverUnary),
@@ -98,8 +102,7 @@ func grpcServe(l net.Listener, p *wp.Server) error {
 	chipperpb.RegisterChipperGrpcServer(srv, s)
 	jdocspb.RegisterJdocsServer(srv, jdocsServer)
 	tokenpb.RegisterTokenServer(srv, tokenServer)
-
-	return srv.Serve(l)
+	return srv
 }
 
 func BeginWirepodSpecific(sttInitFunc func() error, sttHandlerFunc interface{}, voiceProcessorName string) error {
