@@ -321,7 +321,7 @@ function whatToDo() {
           doOTA("local");
           break;
         case "in_recovery_dev":
-          doOTA("http://wpsetup.keriganc.com:81/1.6.0.3331.ota");
+          doOTA("http://ota.pvic.xyz/vic/latest/dev.ota");
           break;
         case "in_firmware_nonep":
           showRecoveryInstructions();
@@ -447,7 +447,7 @@ function pollDevSSHSetup() {
 
 function showRepairAfterSSH() {
   authEl.innerHTML = `
-    <p>SSH setup is done! Vector will restart into onboarding mode, so he needs to be paired again to finish.</p>
+    <p>Phase 1 of setup completed successfully. Vector will restart into onboarding mode, and will <b>need to be paired again</b> to finish setup.</p>
     <p>1. Wait for Vector's face to come back.</p>
     <p>2. Double press the button. A key should appear on screen.</p>
     <p>3. Click 'Begin Scanning' and pair with your Vector.</p>

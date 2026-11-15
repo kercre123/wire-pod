@@ -88,7 +88,17 @@ func watchBLEStatus(ch chan ble.StatusChannel, stop chan struct{}) {
 }
 
 func IsDevRobot(esn, firmware string) bool {
-	return strings.Contains(firmware, "ankidev") || strings.HasPrefix(esn, "00e")
+	return strings.Contains(firmware, "ankidev") || strings.Contains(firmware, "Unlock")
+}
+
+func closeBLEClient(c *ble.VectorBLE) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Println("BLE close panicked (likely never connected to a bot): ", r)
+			err = nil
+		}
+	}()
+	return c.Close()
 }
 
 func newBLEClient() (*ble.VectorBLE, chan ble.StatusChannel, error) {
@@ -111,7 +121,7 @@ func newBLEClient() (*ble.VectorBLE, chan ble.StatusChannel, error) {
 	case <-time.After(10 * time.Second):
 		go func() {
 			if r := <-res; r.client != nil {
-				r.client.Close()
+				closeBLEClient(r.client)
 			}
 		}()
 		return nil, nil, errors.New("error: took more than 10 seconds to init BLE")
@@ -124,7 +134,7 @@ func initBLE() error {
 		return err
 	}
 	if err := checkAdapterReady(client); err != nil {
-		client.Close()
+		closeBLEClient(client)
 		return err
 	}
 	bleClient = client
@@ -137,11 +147,11 @@ func resetBLE() error {
 	if bleClient == nil {
 		return nil
 	}
-	err := bleClient.Close()
+	client := bleClient
 	close(bleStatusStop)
 	bleClient = nil
 	bleStatusStop = nil
-	return err
+	return closeBLEClient(client)
 }
 
 func ScanForVectors(client *ble.VectorBLE) ([]VectorsBle, error) {
@@ -188,9 +198,9 @@ func RobotStatus(client *ble.VectorBLE) (string, error) {
 	esn := status.ESN
 	firmware := status.Version
 	switch {
-	case IsDevRobot(esn, firmware) && strings.Contains(firmware, "0.9.0"):
+	case IsDevRobot(esn, firmware) && (strings.Contains(firmware, "0.9.0") || strings.Contains(firmware, "0.9.3")):
 		return "in_recovery_dev", nil
-	case strings.Contains(firmware, "0.9.0"):
+	case (strings.Contains(firmware, "0.9.0") || strings.Contains(firmware, "0.9.3")):
 		return "in_recovery_prod", nil
 	case IsDevRobot(esn, firmware):
 		if ip, err := bleRobotIP(client); err == nil && sshDoneFor(ip) {

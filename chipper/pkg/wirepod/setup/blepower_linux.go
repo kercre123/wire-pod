@@ -9,6 +9,7 @@ import (
 	"github.com/kercre123/vector-bluetooth/ble"
 )
 
+// client is used in the "other" variant of this function
 func checkAdapterReady(client *ble.VectorBLE) error {
 	bus, err := dbus.SystemBus()
 	if err != nil {
