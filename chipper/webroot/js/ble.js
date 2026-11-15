@@ -318,7 +318,7 @@ function whatToDo() {
     .then((response) => {
       switch (response) {
         case "in_recovery_prod":
-          doOTA("http://wpsetup.keriganc.com:81/vicos-2.0.1.6076ep.ota");
+          doOTA("http://anki2.ca:81/otas/Anki/prod/2.0.1.6086ep.ota");
           break;
         case "in_recovery_dev":
           doOTA("http://ota.pvic.xyz/vic/latest/dev.ota");
