@@ -35,6 +35,11 @@ require (
 )
 
 require (
+	github.com/alphacep/vosk-api/go v0.3.50 // indirect
+	github.com/kercre123/vosk-api v1.0.1 // indirect
+)
+
+require (
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
