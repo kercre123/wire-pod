@@ -158,8 +158,11 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			ajdoc.DocVersion = resp.NamedJdocs[0].Doc.DocVersion
 			ajdoc.FmtVersion = resp.NamedJdocs[0].Doc.FmtVersion
 			ajdoc.JsonDoc = resp.NamedJdocs[0].Doc.JsonDoc
-			vars.AddJdoc("vic:"+robotObj.ESN, "vic.RobotSettings", ajdoc)
-			logger.Println("Updating vic.RobotSettings (source: sdkapp)")
+			thing := "vic:" + robotObj.ESN
+			if old, ok := vars.GetJdoc(thing, "vic.RobotSettings"); !ok || old.DocVersion != ajdoc.DocVersion || old.JsonDoc != ajdoc.JsonDoc {
+				vars.AddJdoc(thing, "vic.RobotSettings", ajdoc)
+				logger.Println("Updating vic.RobotSettings (source: sdkapp)")
+			}
 			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/octet-stream")
 			w.Write([]byte(json))
