@@ -54,23 +54,15 @@ func SetBControlFunctions(L *lua.LState) {
 				}
 			}
 
-			for {
-				select {
-				case <-stop:
-					if err := r.Send(
-						&vectorpb.BehaviorControlRequest{
-							RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
-								ControlRelease: &vectorpb.ControlRelease{},
-							},
-						},
-					); err != nil {
-						logger.Println(err)
-						return
-					}
-					return
-				default:
-					continue
-				}
+			<-stop
+			if err := r.Send(
+				&vectorpb.BehaviorControlRequest{
+					RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
+						ControlRelease: &vectorpb.ControlRelease{},
+					},
+				},
+			); err != nil {
+				logger.Println(err)
 			}
 			// * end - modified from official vector-go-sdk
 		}()

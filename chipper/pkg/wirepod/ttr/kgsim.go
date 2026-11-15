@@ -503,24 +503,16 @@ func KGSim(esn string, textToSay string) error {
 				}
 			}
 
-			for {
-				select {
-				case <-stop:
-					logger.Println("KGSim: releasing behavior control (interrupt)")
-					if err := r.Send(
-						&vectorpb.BehaviorControlRequest{
-							RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
-								ControlRelease: &vectorpb.ControlRelease{},
-							},
-						},
-					); err != nil {
-						log.Println(err)
-						return
-					}
-					return
-				default:
-					continue
-				}
+			<-stop
+			logger.Println("KGSim: releasing behavior control (interrupt)")
+			if err := r.Send(
+				&vectorpb.BehaviorControlRequest{
+					RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
+						ControlRelease: &vectorpb.ControlRelease{},
+					},
+				},
+			); err != nil {
+				log.Println(err)
 			}
 			// * end - modified from official vector-go-sdk
 		}()
