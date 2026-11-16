@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -179,7 +180,7 @@ func GetActionsFromString(input string) []RobotAction {
 		return []RobotAction{
 			{
 				Action:    ActionSayText,
-				Parameter: input,
+				Parameter: stripCommandStems(input),
 			},
 		}
 	}
@@ -189,31 +190,45 @@ func GetActionsFromString(input string) []RobotAction {
 			continue
 		}
 		if !strings.Contains(spl, "}}") {
-			// sayText
 			action := RobotAction{
 				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(spl),
+				Parameter: stripCommandStems(strings.TrimSpace(spl)),
 			}
 			actions = append(actions, action)
 			continue
 		}
 
-		cmdPlusParam := strings.Split(strings.TrimSpace(strings.Split(spl, "}}")[0]), "||")
+		inner := strings.TrimSpace(strings.Split(spl, "}}")[0])
+		cmdPlusParam := strings.Split(inner, "||")
 		cmd := strings.TrimSpace(cmdPlusParam[0])
-		param := strings.TrimSpace(cmdPlusParam[1])
-		action := CmdParamToAction(cmd, param)
-		if action.Action != -1 {
-			actions = append(actions, action)
-		}
-		if len(strings.Split(spl, "}}")) != 1 {
-			action := RobotAction{
-				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(strings.Split(spl, "}}")[1]),
+		if len(cmdPlusParam) >= 2 {
+			param := strings.TrimSpace(cmdPlusParam[1])
+			action := CmdParamToAction(cmd, param)
+			if action.Action != -1 {
+				actions = append(actions, action)
 			}
-			actions = append(actions, action)
+		}
+
+		afterParts := strings.SplitN(spl, "}}", 2)
+		if len(afterParts) == 2 {
+			spoken := stripCommandStems(strings.TrimSpace(afterParts[1]))
+			if spoken != "" {
+				action := RobotAction{
+					Action:    ActionSayText,
+					Parameter: spoken,
+				}
+				actions = append(actions, action)
+			}
 		}
 	}
 	return actions
+}
+
+// stripCommandStems removes any leaked command keywords or malformed tag
+// debris that slipped past the {{ }} parser, so they are never spoken aloud.
+func stripCommandStems(s string) string {
+	re := regexp.MustCompile(`\{\{[^}]*\}?\}?|(playAnimationWI|playAnimation|getImage|newVoiceRequest)\w*`)
+	return strings.TrimSpace(re.ReplaceAllString(s, ""))
 }
 
 func CmdParamToAction(cmd, param string) RobotAction {
