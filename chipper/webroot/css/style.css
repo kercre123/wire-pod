@@ -428,7 +428,16 @@ input[type='radio']:disabled:after {
   gap: 4px;
 }
 
+/* vertical barrier between the bot actions and the info/delete buttons */
+.botMenuDivider {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 2px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .botMenuAction,
+.botInfoBtn,
 .botDeleteBtn {
   display: flex;
   align-items: center;
@@ -439,11 +448,13 @@ input[type='radio']:disabled:after {
   cursor: pointer;
 }
 
-.botMenuAction {
+.botMenuAction,
+.botInfoBtn {
   color: var(--text-color);
 }
 
-.botMenuAction:hover {
+.botMenuAction:hover,
+.botInfoBtn:hover {
   background: rgba(255, 255, 255, 0.12);
 }
 

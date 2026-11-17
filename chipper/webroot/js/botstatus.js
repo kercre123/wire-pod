@@ -120,6 +120,34 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// copies text to the clipboard. navigator.clipboard only exists on https or localhost,
+// and wire-pod is usually served over plain http on a LAN address, so fall back to execCommand
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      console.error("Clipboard API failed, trying fallback:", e);
+    }
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.top = "-1000px";
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch (e) {
+    console.error("Copy fallback failed:", e);
+  }
+  ta.remove();
+  return ok;
+}
+
 // icon-only button for the bot menu
 function makeMenuAction(className, title, icon, onAction) {
   const btn = document.createElement("div");
@@ -205,6 +233,34 @@ function makeBotChip(bot) {
     sendBotIntent(bot.esn, "intent_imperative_fetchcube");
   }));
 
+  const divider = document.createElement("div");
+  divider.className = "botMenuDivider";
+  menuButtons.appendChild(divider);
+
+  // works whether or not the bot is active (it only copies what wire-pod already knows)
+  const botInfoBtn = document.createElement("div");
+  botInfoBtn.className = "botInfoBtn";
+  botInfoBtn.title = "Copy ESN and IP";
+  botInfoBtn.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+  botInfoBtn.onclick = function(e) {
+    e.stopPropagation();
+    // chip.dataset.ip is refreshed on every poll by updateBotChip
+    const ip = chip.dataset.ip || "unknown";
+    copyText("ESN: " + bot.esn + "\nIP: " + ip).then((ok) => {
+      const icon = botInfoBtn.querySelector("i");
+      icon.className = "fa-solid " + (ok ? "fa-check" : "fa-circle-info");
+      botInfoBtn.title = ok ? "Copied!" : "Unable to copy";
+      if (!ok) {
+        alert("Unable to copy to the clipboard.\nESN: " + bot.esn + "\nIP: " + ip);
+      }
+      setTimeout(() => {
+        icon.className = "fa-solid fa-circle-info";
+        botInfoBtn.title = "Copy ESN and IP";
+      }, 1500);
+    });
+  };
+  menuButtons.appendChild(botInfoBtn);
+
   const botDeleteBtn = document.createElement("div");
   botDeleteBtn.className = 'botDeleteBtn';
   botDeleteBtn.title = "Delete";
@@ -258,6 +314,7 @@ function makeBotChip(bot) {
 
 function updateBotChip(c, bot) {
   c.name.textContent = bot.name || bot.esn;
+  c.chip.dataset.ip = bot.ip_address || "";
   c.chip.title = "ESN: " + bot.esn + (bot.ip_address ? "\nIP: " + bot.ip_address : "");
   c.chip.classList.toggle("active", bot.active);
   c.statusText.textContent = bot.active ? "active" : lastSeenText(bot.seconds_since_seen);
