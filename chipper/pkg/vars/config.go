@@ -114,6 +114,17 @@ func WriteSTT() {
 	}
 }
 
+// SttHasLanguage reports whether the provider recognizes a language chosen in
+// the web interface, so wire-pod has to load that language's intents instead
+// of falling back to en-US.
+func SttHasLanguage(service string) bool {
+	switch service {
+	case "vosk", "whisper.cpp", "whisper", "wyoming":
+		return true
+	}
+	return false
+}
+
 func ReadConfig() {
 	cfgMu.Lock()
 	defer cfgMu.Unlock()
