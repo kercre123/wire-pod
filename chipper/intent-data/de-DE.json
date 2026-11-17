@@ -81,7 +81,7 @@
   },
   {
     "name": "intent_play_popawheelie",
-    "keyphrases": [ "Wheelie", "Willi", "Vheli", "Wheelie ausführen", "Willi ausführen", "Vheli ausführen", "Mach einen Wheelie", "Mach einen Vheli", "Mach einen Willi", "Mache einen Wheelie", "Mache einen Vheli", "Mache einen Willi", "Mach nen Wheelie", "Mach nen Willi", "Mach nen Vheli", "Mach Wheelie", "Mache Wheelie", "Handstand", "Handstand ausführen", "Mache einen Handstand", "Mach einen Handstand", "Mach Handstand", "Mache Handstand", "Handstand machen", "Kopfstand", "Mach Kopfstand", "Mache Kopfstand", "Mach einen Kopfstand", "Mache einen Kopfstand", "Kopfstand machen", "Kopfstand ausführen" ]
+    "keyphrases": [ "Wheelie", "Willi", "Willy", "Vheli", "Wheelie ausführen", "Willi ausführen", "Willy ausführen", "Vheli ausführen", "Mach einen Wheelie", "Mach einen Vheli", "Mach einen Willi",  "Mach einen Willy", "Mache einen Wheelie", "Mache einen Vheli", "Mache einen Willi", "Mache einen Willy", "Mach nen Wheelie", "Mach nen Willi", "Mach nen Willy", "Mach nen Vheli", "Mach Wheelie", "Mache Wheelie", "Handstand", "Handstand ausführen", "Mache einen Handstand", "Mach einen Handstand", "Mach Handstand", "Mache Handstand", "Handstand machen", "Kopfstand", "Mach Kopfstand", "Mache Kopfstand", "Mach einen Kopfstand", "Mache einen Kopfstand", "Kopfstand machen", "Kopfstand ausführen" ]
   },
   {
     "name": "intent_play_fistbump",
@@ -89,7 +89,7 @@
   },
   {
     "name": "intent_play_blackjack",
-    "keyphrases": [ "Spielen wir Blackjack", "Blackjack", "Blackjack spielen", "Lass uns Blackjack spielen" ]
+    "keyphrases": [ "Spielen wir Black jack", "Black jack", "Black jack spielen", "Lass uns Black jack spielen" ]
   },
   {
     "name": "intent_imperative_affirmative",
@@ -107,21 +107,21 @@
   },
   {
     "name": "intent_imperative_praise",
-    "keyphrases": [ "Gut", "Großartig", "mythisch", "stark", "beeindruckend", "toll", "super", "Guter", "Fantastisch" ],
+    "keyphrases": [ "Gut", "Großartig", "mythisch", "stark", "beeindruckend", "toll", "super", "Guter", "Guter Roboter", "Fantastisch", "Cool", "Klasse" ],
     "requiresexact": true
   },
   {
     "name": "intent_imperative_abuse",
-    "keyphrases": [ "Gut", "Großartig", "Mythisch", "Stark", "Beeindruckend", "Toll", "Super", "Guter", "Guter Roboter", "Fantastisch", "Cool", "Klasse" ],
+    "keyphrases": [ "böse", "böser roboter", "schlecht", "unartig", "hass"],
     "requiresexact": true
   },
   {
     "name": "intent_imperative_apologize",
-    "keyphrases": [ "Es tut mir leid", "Tut mir leid", "Entschuldigung", "Sorry" ]
+    "keyphrases": [ "Es tut mir leid", "Tut mir leid", "Entschuldigung", "Sorry", "tschuldigung" ]
   },
   {
     "name": "intent_imperative_backup",
-    "keyphrases": [ "Zurück", "Abrechen", "Abbruch" ]
+    "keyphrases": [ "Zurück", "Abbrechen", "Abbruch" ]
   },
   {
     "name": "intent_imperative_volumedown",
@@ -137,7 +137,8 @@
   },
   {
     "name": "intent_imperative_volumelevel_extend",
-    "keyphrases": [ "Volumen", "Volumen anzeigen", "Volumen ansehen", "Volumen zeigen", "Zeige mir das Volumen", "Zeig mir das Volumen", "Lautstärke", "Lautstärke anzeigen", "Lautstärke ansehen", "Lautstärke zeigen", "Zeige mir die Lautstärke", "Zeig mir dir Lautstärke" ]
+    "keyphrases": [ "Volumen", "Volumen anzeigen", "Volumen ansehen", "Volumen zeigen", "Zeige mir das Volumen", "Zeig mir das Volumen", "Lautstärke", "Lautstärke anzeigen", "Lautstärke ansehen", "Lautstärke zeigen", "Zeige mir die Lautstärke", "Zeig mir dir Lautstärke" ],
+    "requiresexact": true
   },
   {
     "name": "intent_imperative_shutup",
@@ -190,7 +191,7 @@
   },
   {
     "name": "intent_imperative_fetchcube",
-    "keyphrases": [ "Sammel den Würfel auf", "Sammle den Würfel auf", "Sammel deinen Würfel auf", "Sammle deinen Würfel auf", "Hole den Würfel", "Hol den Würfel", "Hole deinen Würfel", "Hol deinen Würfel", "Bringe mir den Würfel", "Bring mir den Würfel", "Bringe mir deinen Würfel", "Bring mir deinen Würfel" ]
+    "keyphrases": [ "Sammel den Würfel auf", "Sammle den Würfel auf", "Sammel deinen Würfel auf", "Sammle deinen Würfel auf", "Hole den Würfel", "Hol den Würfel", "Hole deinen Würfel", "Hol deinen Würfel", "Bringe mir den Würfel", "Bring mir den Würfel", "Bringe mir deinen Würfel", "Bring mir deinen Würfel", "würfel aufsammeln" ]
   },
   {
     "name": "intent_imperative_findcube",
