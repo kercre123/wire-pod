@@ -101,16 +101,24 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 	}
 }
 
+// matchKey lowercases text and folds "ё" into "е" for comparisons only, so
+// Russian phrases match whether the recognizer writes "ё" (Vosk) or not
+// (GigaAM, Whisper). The recognized text itself is passed on unchanged.
+func matchKey(s string) string {
+	return strings.ReplaceAll(strings.ToLower(s), "ё", "е")
+}
+
 func customIntentHandler(req interface{}, voiceText string, botSerial string) bool {
 	var successMatched bool = false
 	if vars.CustomIntentsExist() {
+		voiceKey := matchKey(voiceText)
 		for _, c := range vars.GetCustomIntents() {
 			for _, v := range c.Utterances {
 				//if strings.Contains(voiceText, strings.ToLower(strings.TrimSpace(v))) {
 				// Check whether the custom sentence is either at the end of the spoken text or space-separated...
-				var seekText = strings.ToLower(strings.TrimSpace(v))
+				var seekText = matchKey(strings.TrimSpace(v))
 				// System intents can also match any utterances (*)
-				if (c.IsSystemIntent && strings.HasPrefix(seekText, "*")) || strings.Contains(voiceText, seekText) {
+				if (c.IsSystemIntent && strings.HasPrefix(seekText, "*")) || strings.Contains(voiceKey, seekText) {
 					logger.Println("Bot " + botSerial + " Custom Intent Matched: " + c.Name + " - " + c.Description + " - " + c.Intent)
 					var intentParams map[string]string
 					var isParam bool = false
@@ -270,7 +278,7 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 		// Look for a perfect match first
 		for _, b := range intents {
 			for _, c := range b.Keyphrases {
-				if voiceText == strings.ToLower(c) {
+				if matchKey(voiceText) == matchKey(c) {
 					logger.Println("Bot " + botSerial + " Perfect match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
 					if isOpus {
 						ParamChecker(req, b.Name, voiceText, botSerial)
@@ -294,7 +302,7 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 			matched = 0
 			for _, b := range intents {
 				for _, c := range b.Keyphrases {
-					if strings.Contains(voiceText, strings.ToLower(c)) && !b.RequireExactMatch {
+					if strings.Contains(matchKey(voiceText), matchKey(c)) && !b.RequireExactMatch {
 						logger.Println("Bot " + botSerial + " Partial match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
 						if isOpus {
 							ParamChecker(req, b.Name, voiceText, botSerial)
