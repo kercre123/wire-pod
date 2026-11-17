@@ -1,0 +1,37 @@
+diff --git a/debian/pod/main.go b/debian/pod/main.go
+index 58021bb..00a2f54 100644
+--- a/debian/pod/main.go
++++ b/debian/pod/main.go
+@@ -9,7 +9,7 @@ import (
+ 	"strings"
+ 
+ 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+-	stt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/vosk"
++	stt "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/wyoming"
+ 	"gopkg.in/ini.v1"
+ )
+ 
+@@ -118,7 +118,9 @@ func main() {
+ 	if *verb {
+ 		os.Setenv("DEBUG_LOGGING", "true")
+ 	}
+-	os.Setenv("STT_SERVICE", "vosk")
++	// speech recognition goes to an external Wyoming server instead of the
++	// built-in Vosk: no libvosk, no model in memory
++	os.Setenv("STT_SERVICE", stt.Name)
+ 	os.Chdir("/etc/wire-pod")
+ 	DoPerfMode(perfMode)
+ 	StartFromProgramInit(stt.Init, stt.STT, stt.Name)
+diff --git a/debian/pod/server.go b/debian/pod/server.go
+index fa1c5b8..4bc9f88 100644
+--- a/debian/pod/server.go
++++ b/debian/pod/server.go
+@@ -106,7 +106,7 @@ func StartFromProgramInit(sttInitFunc func() error, sttHandlerFunc interface{},
+ 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
+ 	} else if !vars.Config().PastInitialSetup {
+ 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
+-	} else if (vars.Config().STT.Service == "vosk" || vars.Config().STT.Service == "whisper.cpp") && vars.Config().STT.Language == "" {
++	} else if (vars.Config().STT.Service == "vosk" || vars.Config().STT.Service == "whisper.cpp" || vars.Config().STT.Service == "wyoming") && vars.Config().STT.Language == "" {
+ 		logger.Println("\033[33m\033[1mLanguage value is blank, but STT service is " + vars.Config().STT.Service + ". Reinitiating setup process.\033[0m")
+ 		logger.Println("\033[33m\033[1mWire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.\033[0m")
+ 		vars.UpdateConfig(func(c *vars.APIConfig) {
