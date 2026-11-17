@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	pb "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -106,6 +108,22 @@ func IntentPass(req interface{}, intentThing string, speechText string, intentPa
 // (GigaAM, Whisper). The recognized text itself is passed on unchanged.
 func matchKey(s string) string {
 	return strings.ReplaceAll(strings.ToLower(s), "ё", "е")
+}
+
+// containsKeyphrase reports whether a built-in keyphrase occurs in the text.
+// Short keyphrases ("да", "нет", "дом") must be separate words, otherwise "да"
+// matches "давай" and "когда".
+func containsKeyphrase(text, keyphrase string) bool {
+	text, keyphrase = matchKey(text), matchKey(strings.TrimSpace(keyphrase))
+	if keyphrase == "" {
+		return false
+	}
+	if utf8.RuneCountInString(keyphrase) > 3 {
+		return strings.Contains(text, keyphrase)
+	}
+	notWordRune := func(r rune) bool { return !unicode.IsLetter(r) && !unicode.IsNumber(r) }
+	words := " " + strings.Join(strings.FieldsFunc(text, notWordRune), " ") + " "
+	return strings.Contains(words, " "+strings.Join(strings.FieldsFunc(keyphrase, notWordRune), " ")+" ")
 }
 
 func customIntentHandler(req interface{}, voiceText string, botSerial string) bool {
@@ -302,7 +320,7 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 			matched = 0
 			for _, b := range intents {
 				for _, c := range b.Keyphrases {
-					if strings.Contains(matchKey(voiceText), matchKey(c)) && !b.RequireExactMatch {
+					if containsKeyphrase(voiceText, c) && !b.RequireExactMatch {
 						logger.Println("Bot " + botSerial + " Partial match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
 						if isOpus {
 							ParamChecker(req, b.Name, voiceText, botSerial)
