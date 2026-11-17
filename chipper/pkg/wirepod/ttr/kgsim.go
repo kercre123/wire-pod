@@ -263,6 +263,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 				for range kgReadyToAnswer {
 					break
 				}
+				<-start
 				stop <- true
 				time.Sleep(time.Second / 3)
 				KGSim(esn, "There was an error getting data from the L. L. M.")
@@ -309,6 +310,7 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 						for range kgReadyToAnswer {
 							break
 						}
+						<-start
 						stop <- true
 						time.Sleep(time.Second / 3)
 						KGSim(esn, "There was an error getting data from the L. L. M.")
