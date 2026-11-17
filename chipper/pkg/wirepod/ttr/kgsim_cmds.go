@@ -174,42 +174,39 @@ func CreatePrompt(origPrompt string, model string, isKG bool) string {
 }
 
 func GetActionsFromString(input string) []RobotAction {
-	splitInput := strings.Split(input, "{{")
-	if len(splitInput) == 1 {
-		return []RobotAction{
-			{
+	var actions []RobotAction
+	addText := func(text string) {
+		text = strings.TrimSpace(strings.ReplaceAll(text, "}}", ""))
+		if text != "" {
+			actions = append(actions, RobotAction{
 				Action:    ActionSayText,
-				Parameter: input,
-			},
+				Parameter: text,
+			})
 		}
 	}
-	var actions []RobotAction
-	for _, spl := range splitInput {
-		if strings.TrimSpace(spl) == "" {
+	rest := input
+	for {
+		open := strings.Index(rest, "{{")
+		if open == -1 {
+			addText(rest)
+			break
+		}
+		addText(rest[:open])
+		rest = rest[open+2:]
+		end := strings.Index(rest, "}}")
+		if end == -1 {
+			addText(rest)
+			break
+		}
+		cmd, param, _ := strings.Cut(rest[:end], "||")
+		cmd = strings.TrimSpace(cmd)
+		param = strings.TrimSpace(param)
+		rest = rest[end+2:]
+		if cmd == "" {
 			continue
 		}
-		if !strings.Contains(spl, "}}") {
-			// sayText
-			action := RobotAction{
-				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(spl),
-			}
-			actions = append(actions, action)
-			continue
-		}
-
-		cmdPlusParam := strings.Split(strings.TrimSpace(strings.Split(spl, "}}")[0]), "||")
-		cmd := strings.TrimSpace(cmdPlusParam[0])
-		param := strings.TrimSpace(cmdPlusParam[1])
 		action := CmdParamToAction(cmd, param)
 		if action.Action != -1 {
-			actions = append(actions, action)
-		}
-		if len(strings.Split(spl, "}}")) != 1 {
-			action := RobotAction{
-				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(strings.Split(spl, "}}")[1]),
-			}
 			actions = append(actions, action)
 		}
 	}
@@ -462,7 +459,6 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 
 	// recreate openai
 	var fullRespText string
-	var fullfullRespText string
 	var fullRespSlice []string
 	var isDone bool
 	var c *openai.Client
@@ -528,21 +524,30 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 
 	fmt.Println("LLM stream response: ")
 	go func() {
+		defer close(speakReady)
+		pushSentence := func(sentence string) {
+			fullRespSlice = append(fullRespSlice, sentence)
+			select {
+			case speakReady <- sentence:
+			default:
+			}
+		}
 		for {
 			response, err := stream.Recv()
-			if errors.Is(err, io.EOF) {
-				isDone = true
-				newStr := fullRespSlice[0]
-				for i, str := range fullRespSlice {
-					if i == 0 {
-						continue
-					}
-					newStr = newStr + " " + str
+			if err != nil {
+				if !errors.Is(err, io.EOF) {
+					logger.Println("Stream error: " + err.Error())
 				}
-				if strings.TrimSpace(newStr) != strings.TrimSpace(fullfullRespText) {
+				if strings.TrimSpace(fullRespText) != "" {
 					logger.Println("LLM debug: there is content after the last punctuation mark")
-					extraBit := strings.TrimPrefix(fullRespText, newStr)
-					fullRespSlice = append(fullRespSlice, extraBit)
+					pushSentence(strings.TrimSpace(fullRespText))
+					fullRespText = ""
+				}
+				newStr := strings.Join(fullRespSlice, " ")
+				isDone = true
+				if newStr == "" {
+					logger.Println("LLM returned no response")
+					return
 				}
 				if vars.Config().Knowledge.SaveChat {
 					Remember(msgs[len(msgs)-1],
@@ -557,34 +562,19 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 				return
 			}
 
-			if err != nil {
-				logger.Println("Stream error: " + err.Error())
-				return
+			if len(response.Choices) == 0 {
+				continue
 			}
-			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
+
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
-			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
-				var sepStr string
-				if strings.Contains(fullRespText, "...") {
-					sepStr = "..."
-				} else if strings.Contains(fullRespText, ".'") {
-					sepStr = ".'"
-				} else if strings.Contains(fullRespText, ".\"") {
-					sepStr = ".\""
-				} else if strings.Contains(fullRespText, ".") {
-					sepStr = "."
-				} else if strings.Contains(fullRespText, "?") {
-					sepStr = "?"
-				} else if strings.Contains(fullRespText, "!") {
-					sepStr = "!"
+			for {
+				idx, sep := findSentenceEnd(fullRespText)
+				if idx == -1 {
+					break
 				}
-				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
-				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
-				fullRespText = splitResp[1]
-				select {
-				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
-				default:
-				}
+				sentence := strings.TrimSpace(fullRespText[:idx+len(sep)])
+				fullRespText = fullRespText[idx+len(sep):]
+				pushSentence(sentence)
 			}
 		}
 	}()

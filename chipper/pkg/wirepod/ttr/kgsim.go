@@ -155,6 +155,34 @@ func CreateAIReq(transcribedText, esn string, gpt3tryagain, isKG bool) openai.Ch
 	return aireq
 }
 
+func findSentenceEnd(text string) (int, string) {
+	seps := []string{"...", ".'", ".\"", ".", "?", "!"}
+	depth := 0
+	for i := 0; i < len(text); i++ {
+		if strings.HasPrefix(text[i:], "{{") {
+			depth++
+			i++
+			continue
+		}
+		if strings.HasPrefix(text[i:], "}}") {
+			if depth > 0 {
+				depth--
+			}
+			i++
+			continue
+		}
+		if depth > 0 {
+			continue
+		}
+		for _, sep := range seps {
+			if strings.HasPrefix(text[i:], sep) {
+				return i, sep
+			}
+		}
+	}
+	return -1, ""
+}
+
 func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bool) (string, error) {
 	start := make(chan bool)
 	stop := make(chan bool)
@@ -189,7 +217,6 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 		}()
 	}
 	var fullRespText string
-	var fullfullRespText string
 	var fullRespSlice []string
 	var isDone bool
 	var c *openai.Client
@@ -249,9 +276,30 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 	})
 	fmt.Println("LLM stream response: ")
 	go func() {
+		defer close(speakReady)
+		sentIntent := false
+		pushSentence := func(sentence string) {
+			fullRespSlice = append(fullRespSlice, sentence)
+			if !sentIntent {
+				sentIntent = true
+				successIntent <- true
+			}
+			select {
+			case speakReady <- sentence:
+			default:
+			}
+		}
 		for {
 			response, err := stream.Recv()
-			if errors.Is(err, io.EOF) {
+			if err != nil {
+				if !errors.Is(err, io.EOF) {
+					logger.Println("Stream error: " + err.Error())
+				}
+				if strings.TrimSpace(fullRespText) != "" {
+					logger.Println("LLM debug: there is content after the last punctuation mark")
+					pushSentence(strings.TrimSpace(fullRespText))
+					fullRespText = ""
+				}
 				// prevents a crash
 				if len(fullRespSlice) == 0 {
 					logger.Println("LLM returned no response")
@@ -265,22 +313,10 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 						time.Sleep(time.Second / 3)
 						KGSim(esn, "There was an error getting data from the L. L. M.")
 					}
-					break
+					return
 				}
+				newStr := strings.Join(fullRespSlice, " ")
 				isDone = true
-				// if fullRespSlice != fullRespText, add that missing bit to fullRespSlice
-				newStr := fullRespSlice[0]
-				for i, str := range fullRespSlice {
-					if i == 0 {
-						continue
-					}
-					newStr = newStr + " " + str
-				}
-				if strings.TrimSpace(newStr) != strings.TrimSpace(fullfullRespText) {
-					logger.Println("LLM debug: there is content after the last punctuation mark")
-					extraBit := strings.TrimPrefix(fullRespText, newStr)
-					fullRespSlice = append(fullRespSlice, extraBit)
-				}
 				if vars.Config().Knowledge.SaveChat {
 					Remember(openai.ChatCompletionMessage{
 						Role:    openai.ChatMessageRoleUser,
@@ -297,44 +333,19 @@ func StreamingKGSim(req interface{}, esn string, transcribedText string, isKG bo
 				return
 			}
 
-			if err != nil {
-				logger.Println("Stream error: " + err.Error())
-				return
-			}
-
 			if len(response.Choices) == 0 {
-				logger.Println("Empty response")
-				return
+				continue
 			}
 
-			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
-			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
-				var sepStr string
-				if strings.Contains(fullRespText, "...") {
-					sepStr = "..."
-				} else if strings.Contains(fullRespText, ".'") {
-					sepStr = ".'"
-				} else if strings.Contains(fullRespText, ".\"") {
-					sepStr = ".\""
-				} else if strings.Contains(fullRespText, ".") {
-					sepStr = "."
-				} else if strings.Contains(fullRespText, "?") {
-					sepStr = "?"
-				} else if strings.Contains(fullRespText, "!") {
-					sepStr = "!"
+			for {
+				idx, sep := findSentenceEnd(fullRespText)
+				if idx == -1 {
+					break
 				}
-				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
-				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
-				fullRespText = splitResp[1]
-				select {
-				case successIntent <- true:
-				default:
-				}
-				select {
-				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
-				default:
-				}
+				sentence := strings.TrimSpace(fullRespText[:idx+len(sep)])
+				fullRespText = fullRespText[idx+len(sep):]
+				pushSentence(sentence)
 			}
 		}
 	}()
