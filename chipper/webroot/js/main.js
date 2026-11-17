@@ -399,8 +399,17 @@ function updateKGAPI() {
     });
 }
 
+// STT provider reported by the server; the Wyoming one has extra settings
+let sttProvider = "";
+
 function setSTTLanguage() {
   const data = { language: getE("languageSelection").value };
+  if (sttProvider === "wyoming") {
+    data.wyoming_address = getE("wyomingAddress").value.trim();
+    data.wyoming_model = getE("wyomingModel").value.trim();
+    data.wyoming_language = getE("wyomingLanguage").value.trim();
+    data.wyoming_timeout = parseInt(getE("wyomingTimeout").value, 10) || 0;
+  }
 
   displayMessage("languageStatus", "Setting...");
 
@@ -418,9 +427,46 @@ function setSTTLanguage() {
         updateSTTLanguageDownload();
       } else {
         displayMessage("languageStatus", response);
-        getE("languageSelectionDiv").style.display = response.includes("success") ? "block" : "none";
+        // a Wyoming validation error (i.e. a bad address) must not hide the form
+        getE("languageSelectionDiv").style.display =
+          response.includes("success") || sttProvider === "wyoming" ? "block" : "none";
       }
     });
+}
+
+function testWyoming() {
+  const address = getE("wyomingAddress").value.trim();
+  displayMessage("wyomingStatus", "Connecting...");
+  fetch("/api/test_wyoming", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ address }),
+  })
+    .then((response) => response.json())
+    .then((res) => {
+      if (!res.ok) {
+        displayError("wyomingStatus", res.error);
+        return;
+      }
+      const modelList = getE("wyomingModelList");
+      modelList.replaceChildren();
+      const programs = res.programs.map((program) => {
+        const models = (program.models || []).map((model) => {
+          const option = document.createElement("option");
+          option.value = model.name;
+          modelList.appendChild(option);
+          const langs = model.languages || [];
+          // whisper models list ~100 languages, show only the start
+          const shown = langs.slice(0, 5).join(", ") + (langs.length > 5 ? ", ..." : "");
+          return langs.length ? `${model.name} [${shown}]` : model.name;
+        });
+        return `${program.name}: ${models.join(", ")}`;
+      });
+      displayMessage("wyomingStatus", "Connected. " + programs.join("; "));
+    })
+    .catch((err) => displayError("wyomingStatus", "Request failed: " + err));
 }
 
 function updateSTTLanguageDownload() {
@@ -586,12 +632,22 @@ function showLanguage() {
   fetch("/api/get_stt_info")
     .then((response) => response.json())
     .then((parsed) => {
-      if (parsed.provider !== "vosk" && parsed.provider !== "whisper.cpp") {
-        displayError("languageStatus", `To set the STT language, the provider must be Vosk or Whisper. The current one is '${parsed.sttProvider}'.`);
+      sttProvider = parsed.provider;
+      if (parsed.provider !== "vosk" && parsed.provider !== "whisper.cpp" && parsed.provider !== "wyoming") {
+        displayError("languageStatus", `To set the STT language, the provider must be Vosk, Whisper or Wyoming. The current one is '${parsed.provider}'.`);
         getE("languageSelectionDiv").style.display = "none";
       } else {
         getE("languageSelectionDiv").style.display = "block";
         getE("languageSelection").value = parsed.language;
+        const isWyoming = parsed.provider === "wyoming";
+        getE("wyomingSettingsDiv").style.display = isWyoming ? "block" : "none";
+        getE("setLanguageButton").textContent = isWyoming ? "Save" : "Set Language";
+        if (isWyoming) {
+          getE("wyomingAddress").value = parsed.wyoming_address || "";
+          getE("wyomingModel").value = parsed.wyoming_model || "";
+          getE("wyomingLanguage").value = parsed.wyoming_language || "";
+          getE("wyomingTimeout").value = parsed.wyoming_timeout || "";
+        }
       }
     });
 }

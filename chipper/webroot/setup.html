@@ -232,9 +232,31 @@
               <option value="vi-VN">VietNamese (VN)</option>
             </select>
           </div>
+          <div id="wyomingSettingsDiv" style="display: none">
+            <hr class="small-hr">
+            <h3>Wyoming server</h3>
+            <small class="desc">Speech is recognized by an external Wyoming STT server (wyoming-faster-whisper,
+              wyoming-vosk, GigaAM via onnx-asr...). The language above selects which intents wire-pod uses.</small><br />
+            <label for="wyomingAddress">Server address <small class="desc">(host:port, i.e.
+                192.168.2.15:10300)</small>:</label>
+            <input type="text" name="wyomingAddress" id="wyomingAddress" /><br />
+            <label for="wyomingModel">Model <small class="desc">(leave blank for the server's default; "Test
+                connection" lists the available ones)</small>:</label>
+            <input type="text" name="wyomingModel" id="wyomingModel" list="wyomingModelList" /><br />
+            <datalist id="wyomingModelList"></datalist>
+            <label for="wyomingLanguage">Language sent to the server <small class="desc">(leave blank to use the
+                language above, i.e. 'ru')</small>:</label>
+            <input type="text" name="wyomingLanguage" id="wyomingLanguage" /><br />
+            <label for="wyomingTimeout">Timeout, seconds <small class="desc">(0 or blank for 15)</small>:</label>
+            <input type="number" name="wyomingTimeout" id="wyomingTimeout" min="0" max="300" /><br />
+            <div id="wyomingStatus"></div>
+            <button onclick="testWyoming()">
+              Test connection
+            </button>
+          </div>
           <div>
             <hr class="small-hr">
-            <button onclick="setSTTLanguage()">
+            <button id="setLanguageButton" onclick="setSTTLanguage()">
               Set Language
             </button>
           </div>

@@ -21,6 +21,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/localization"
 	processreqs "github.com/kercre123/wire-pod/chipper/pkg/wirepod/preqs"
 	botsetup "github.com/kercre123/wire-pod/chipper/pkg/wirepod/setup"
+	wyoming "github.com/kercre123/wire-pod/chipper/pkg/wirepod/stt/wyoming"
 )
 
 var SttInitFunc func() error
@@ -49,6 +50,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetDownloadStatus(w)
 	case "get_stt_info":
 		handleGetSTTInfo(w)
+	case "test_wyoming":
+		handleTestWyoming(w, r)
 	case "get_config":
 		handleGetConfig(w)
 	case "get_logs":
@@ -262,9 +265,51 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	var request struct {
 		Language string `json:"language"`
+		// wyoming provider only; nil means "leave unchanged"
+		WyomingAddress  *string `json:"wyoming_address"`
+		WyomingModel    *string `json:"wyoming_model"`
+		WyomingLanguage *string `json:"wyoming_language"`
+		WyomingTimeout  *int    `json:"wyoming_timeout"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	if vars.Config().STT.Service == "wyoming" {
+		if !isValidLanguage(request.Language, localization.ValidVoskModels) {
+			http.Error(w, "language not valid", http.StatusBadRequest)
+			return
+		}
+		if request.WyomingAddress != nil && strings.TrimSpace(*request.WyomingAddress) != "" {
+			if _, err := wyoming.NormalizeAddress(*request.WyomingAddress); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+		if request.WyomingTimeout != nil && (*request.WyomingTimeout < 0 || *request.WyomingTimeout > 300) {
+			http.Error(w, "timeout must be between 0 and 300 seconds", http.StatusBadRequest)
+			return
+		}
+		vars.UpdateConfig(func(c *vars.APIConfig) {
+			c.STT.Language = request.Language
+			c.PastInitialSetup = true
+			if request.WyomingAddress != nil {
+				c.STT.WyomingAddress = strings.TrimSpace(*request.WyomingAddress)
+			}
+			if request.WyomingModel != nil {
+				c.STT.WyomingModel = strings.TrimSpace(*request.WyomingModel)
+			}
+			if request.WyomingLanguage != nil {
+				c.STT.WyomingLanguage = strings.TrimSpace(*request.WyomingLanguage)
+			}
+			if request.WyomingTimeout != nil {
+				c.STT.WyomingTimeout = *request.WyomingTimeout
+			}
+		})
+		vars.WriteConfigToDisk()
+		processreqs.ReloadVosk()
+		logger.Println("Wyoming STT settings updated")
+		fmt.Fprint(w, "Settings saved successfully.")
 		return
 	}
 	if vars.Config().STT.Service == "vosk" {
@@ -283,7 +328,7 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		http.Error(w, "service must be vosk or whisper", http.StatusBadRequest)
+		http.Error(w, "service must be vosk, whisper.cpp or wyoming", http.StatusBadRequest)
 		return
 	}
 	vars.UpdateConfig(func(c *vars.APIConfig) {
@@ -296,6 +341,28 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Language switched successfully.")
 }
 
+// handleTestWyoming asks a Wyoming server what speech-to-text models it has,
+// so the address can be checked and a model picked before saving.
+func handleTestWyoming(w http.ResponseWriter, r *http.Request) {
+	if !webguard.RequireJSON(w, r) {
+		return
+	}
+	var request struct {
+		Address string `json:"address"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	programs, err := wyoming.Describe(request.Address, 5*time.Second)
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]any{"ok": false, "error": err.Error()})
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]any{"ok": true, "programs": programs})
+}
+
 func handleGetDownloadStatus(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(localization.TakeDownloadStatus()))
@@ -303,7 +370,17 @@ func handleGetDownloadStatus(w http.ResponseWriter) {
 
 func handleGetSTTInfo(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(vars.Config().STT)
+	stt := vars.Config().STT
+	if stt.Service == "wyoming" {
+		// show what the systemd unit set until it is saved from the web interface
+		if stt.WyomingAddress == "" {
+			stt.WyomingAddress = os.Getenv("WYOMING_STT_ADDRESS")
+		}
+		if stt.WyomingModel == "" {
+			stt.WyomingModel = os.Getenv("WYOMING_STT_MODEL")
+		}
+	}
+	json.NewEncoder(w).Encode(stt)
 }
 
 func handleGetConfig(w http.ResponseWriter) {
