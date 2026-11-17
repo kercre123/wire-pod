@@ -378,6 +378,151 @@ input[type='radio']:disabled:after {
   color: var(--bg-color-alt);
   cursor: default;
   transition: all 0.1s ease-in-out;
+  position: relative;
+}
+
+.botMenuButton {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  right: -10px;
+  /* filled circle with the ellipsis icon inside */
+  border-radius: 50%;
+  background: var(--button-color);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--text-color);
+  font-size: 11px;
+  box-sizing: border-box;
+}
+
+.botMenuButton:hover {
+  background: var(--button-color-alt);
+  color: var(--text-color-alt);
+}
+
+/* popup below the menu button, hidden until the button is clicked.
+   the menu button is vertically centered (20px tall) and sticks out 10px past
+   the chip's right edge, so the popup sits 6px under it, centered on it */
+.botMenuButtons {
+  display: none;
+  position: absolute;
+  top: calc(50% + 16px);
+  /* the button's center is the chip's right edge (right: -10px, 20px wide) */
+  left: 100%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--bg-color);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+.botMenuButtons.open {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.botMenuAction,
+.botDeleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.botMenuAction {
+  color: var(--text-color);
+}
+
+.botMenuAction:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* bot isn't active: actions are disabled, delete still works */
+.botChip:not(.active) .botMenuAction {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.botChip:not(.active) .botMenuAction:hover {
+  background: none;
+}
+
+.botDeleteBtn {
+  color: #db5757;
+}
+
+.botDeleteBtn:hover {
+  color: #ff4d4d;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.dialogBox {
+  width: min(90vw, 360px);
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--bg-color);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color: var(--text-color);
+}
+
+.dialogMessage {
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.dialogButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.dialogBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--button-color);
+  color: var(--text-color);
+  font-family: var(--body-font-family);
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.dialogBtn:hover,
+.dialogBtn:focus-visible {
+  border-color: white;
+  outline: none;
+}
+
+.dialogBtnDanger {
+  background: #b33a3a;
+  border-color: #db5757;
+}
+
+.dialogBtnDanger:hover,
+.dialogBtnDanger:focus-visible {
+  background: #d94444;
 }
 
 .botChip.active {

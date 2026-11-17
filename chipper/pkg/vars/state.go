@@ -68,3 +68,11 @@ func AddToRInfo(esn string, id string, ip string) {
 	}
 	recurringInfo = append(recurringInfo, RecurringInfoStore{ESN: esn, ID: id, IP: ip})
 }
+
+func RemoveFromRInfo(esn string) {
+	rinfoMu.Lock()
+	defer rinfoMu.Unlock()
+	recurringInfo = slices.DeleteFunc(recurringInfo, func(r RecurringInfoStore) bool {
+		return r.ESN == esn
+	})
+}

@@ -43,6 +43,10 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 		activeBotsHandler(w)
 		return
 	}
+	if r.URL.Path == "/api-sdk/set_bot_name" {
+		setBotNameHandler(w, r)
+		return
+	}
 	robotObj, err := getRobot(r.FormValue("serial"))
 	if err != nil {
 		fmt.Fprint(w, "error: "+err.Error())
@@ -567,6 +571,60 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// deleteBotViaSerial removes a bot from jdocs.json (entries whose thing is
+// "vic:<serial>") and from botSdkInfo.json (robots whose esn matches), removes
+// its session cert and recurring info entry, and drops any live SDK connection.
+func deleteBotViaSerial(serial string) error {
+	serial = strings.TrimSpace(serial)
+	if serial == "" {
+		return fmt.Errorf("serial is required")
+	}
+	// serial is used in a file path below, so it must be a plain file name
+	if serial == "." || serial == ".." || filepath.Base(serial) != serial || strings.ContainsAny(serial, `/\`) {
+		return fmt.Errorf("invalid serial")
+	}
+
+	// drop live connection, if any
+	robotsMu.Lock()
+	var live *Robot
+	for esn, r := range robots {
+		if strings.EqualFold(esn, serial) {
+			live = r
+			delete(robots, esn)
+		}
+	}
+	robotsMu.Unlock()
+	if live != nil {
+		live.close()
+	}
+
+	// jdocs.json: del(.[] | select(.thing == "vic:<serial>"))
+	vars.DeleteData("vic:" + serial)
+
+	// botSdkInfo.json: .robots |= map(select(.esn != serial))
+	err := vars.UpdateBotInfo(func(b *vars.RobotInfoStore) {
+		kept := make([]vars.BotInfoRobot, 0, len(b.Robots))
+		for _, bot := range b.Robots {
+			if !strings.EqualFold(bot.Esn, serial) {
+				kept = append(kept, bot)
+			}
+		}
+		b.Robots = kept
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update bot info: %w", err)
+	}
+
+	// session-certs/<serial> and the in-memory recurring info built from it
+	if err := os.Remove(filepath.Join(vars.SessionCertPath, serial)); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove session cert: %w", err)
+	}
+	vars.RemoveFromRInfo(serial)
+
+	logger.Println("Deleted bot " + serial)
+	return nil
+}
+
 func startEventStream(robot *Robot) {
 	ctx, done, _ := robot.events.start(robot.Ctx)
 	go func() {
@@ -644,6 +702,13 @@ func BeginServer() {
 		logger.Println("Jdocs pinger has been disabled")
 	}
 	http.HandleFunc("/api-sdk/", SdkapiHandler)
+	http.HandleFunc("/delete_bot", func(w http.ResponseWriter, r *http.Request) {
+		if err := deleteBotViaSerial(r.FormValue("serial")); err != nil {
+			fmt.Fprint(w, "error: "+err.Error())
+			return
+		}
+		fmt.Fprint(w, "success")
+	})
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		serverFiles = filepath.Join(vars.AndroidPath, "/static/webroot")
 	}
