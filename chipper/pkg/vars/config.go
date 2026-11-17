@@ -44,6 +44,11 @@ type APIConfig struct {
 	STT struct {
 		Service  string `json:"provider"`
 		Language string `json:"language"`
+		// wyoming provider: external speech-to-text server
+		WyomingAddress  string `json:"wyoming_address,omitempty"`
+		WyomingModel    string `json:"wyoming_model,omitempty"`
+		WyomingLanguage string `json:"wyoming_language,omitempty"`
+		WyomingTimeout  int    `json:"wyoming_timeout,omitempty"`
 	} `json:"STT"`
 	Server struct {
 		// false for ip, true for escape pod
