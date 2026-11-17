@@ -90,6 +90,7 @@ type BotInfoRobot struct {
 	IPAddress string `json:"ip_address"`
 	GUID      string `json:"guid"`
 	Activated bool   `json:"activated"`
+	Name      string `json:"name,omitempty"`
 }
 
 type RobotInfoStore struct {
@@ -547,4 +548,21 @@ func IsVoskModelDownloaded(lang string) bool {
 	voskModelsMu.Lock()
 	defer voskModelsMu.Unlock()
 	return slices.Contains(downloadedVoskModels, lang)
+}
+
+// SetBotDisplayName sets (or, if name is empty, clears) the display name of a known bot.
+func SetBotDisplayName(esn, name string) error {
+	botInfoMu.Lock()
+	defer botInfoMu.Unlock()
+	found := false
+	for i, bot := range botInfo.Robots {
+		if strings.EqualFold(bot.Esn, esn) {
+			botInfo.Robots[i].Name = name
+			found = true
+		}
+	}
+	if !found {
+		return fmt.Errorf("unknown bot: %s", esn)
+	}
+	return writeBotInfoLocked()
 }

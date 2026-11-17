@@ -105,8 +105,59 @@ function stopStim() {
   }
 }
 
+// display name (wire-pod only, doesn't rename the robot)
+async function loadBotName() {
+  const input = document.getElementById("botNameInput");
+  try {
+    const bots = await fetchActiveBots();
+    const bot = bots.find((b) => b.esn.toLowerCase() === esn.toLowerCase());
+    if (bot) {
+      input.value = bot.display_name || "";
+      // placeholder shows what's used when no display name is set
+      input.placeholder = bot.display_name ? "Display name" : (bot.name || "Display name");
+    }
+  } catch (error) {
+    console.error("Unable to load bot name:", error);
+  }
+}
+
+async function postBotName(name) {
+  try {
+    const response = await fetch(
+      "/api-sdk/set_bot_name?serial=" + encodeURIComponent(esn) + "&name=" + encodeURIComponent(name),
+      { method: "POST" }
+    );
+    if (!response.ok) {
+      throw new Error("bad response: " + response.status);
+    }
+    const data = (await response.text()).trim();
+    if (data !== "success") {
+      alert("Unable to set name: " + data.replace(/^error:\s*/, ""));
+      return;
+    }
+    await loadBotName();
+  } catch (error) {
+    console.error("Unable to set bot name:", error);
+    alert("Unable to set name: " + error.message);
+  }
+}
+
+function saveBotName() {
+  const name = document.getElementById("botNameInput").value.trim();
+  if (name === "") {
+    alert("Name cannot be blank. Use Reset to go back to the default name.");
+    return;
+  }
+  postBotName(name);
+}
+
+function clearBotName() {
+  postBotName("");
+}
+
 const sectionHooks = {
   "section-stim": { enter: startStim, leave: stopStim },
+  "section-name": { enter: loadBotName },
 };
 
 let currentSection = null;
@@ -450,4 +501,4 @@ function getCurrentSettings() {
   };
 }
 
-renderBotStatus(esn);
+renderBotStatus(esn);
