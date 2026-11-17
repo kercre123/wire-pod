@@ -285,65 +285,47 @@ func ProcessTextAll(req interface{}, voiceText string, intents []vars.JsonIntent
 		req3 = str
 		botSerial = req3.Device
 	}
-	var matched int = 0
-	var intentNum int = 0
-	var successMatched bool = false
 	voiceText = strings.ToLower(voiceText)
+	sendIntent := func(name string) {
+		if isOpus {
+			ParamChecker(req, name, voiceText, botSerial)
+		} else {
+			prehistoricParamChecker(req, name, voiceText)
+		}
+	}
+	// An exact built-in phrase ("как меня зовут", "иди на зарядку") goes to the
+	// robot before custom intents and plugins are tried: their utterances match
+	// as substrings and may contain generic words such as "как".
+	for _, b := range intents {
+		for _, c := range b.Keyphrases {
+			if matchKey(voiceText) == matchKey(c) {
+				logger.Println("Bot " + botSerial + " Perfect match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
+				sendIntent(b.Name)
+				return true
+			}
+		}
+	}
 	pluginMatched := pluginFunctionHandler(req, voiceText, botSerial)
 	customIntentMatched := customIntentHandler(req, voiceText, botSerial)
-	if !customIntentMatched && !pluginMatched {
-		logger.Println("Not a custom intent")
-		// Look for a perfect match first
-		for _, b := range intents {
-			for _, c := range b.Keyphrases {
-				if matchKey(voiceText) == matchKey(c) {
-					logger.Println("Bot " + botSerial + " Perfect match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
-					if isOpus {
-						ParamChecker(req, b.Name, voiceText, botSerial)
-					} else {
-						prehistoricParamChecker(req, b.Name, voiceText)
-					}
-					successMatched = true
-					matched = 1
-					break
-				}
-			}
-			if matched == 1 {
-				matched = 0
-				break
-			}
-			intentNum = intentNum + 1
-		}
-		// Not found? Then let's be happy with a bare substring search
-		if !successMatched {
-			intentNum = 0
-			matched = 0
-			for _, b := range intents {
-				for _, c := range b.Keyphrases {
-					if containsKeyphrase(voiceText, c) && !b.RequireExactMatch {
-						logger.Println("Bot " + botSerial + " Partial match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
-						if isOpus {
-							ParamChecker(req, b.Name, voiceText, botSerial)
-						} else {
-							prehistoricParamChecker(req, b.Name, voiceText)
-						}
-						successMatched = true
-						matched = 1
-						break
-					}
-				}
-				if matched == 1 {
-					matched = 0
-					break
-				}
-				intentNum = intentNum + 1
-			}
-		}
-	} else {
+	if customIntentMatched || pluginMatched {
 		logger.Println("This is a custom intent or plugin!")
-		successMatched = true
+		return true
 	}
-	return successMatched
+	logger.Println("Not a custom intent")
+	// Not found? Then let's be happy with a substring search
+	for _, b := range intents {
+		if b.RequireExactMatch {
+			continue
+		}
+		for _, c := range b.Keyphrases {
+			if containsKeyphrase(voiceText, c) {
+				logger.Println("Bot " + botSerial + " Partial match for intent " + b.Name + " (" + strings.ToLower(c) + ")")
+				sendIntent(b.Name)
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func KnowledgeGraphResponseIG(req *vtt.IntentGraphRequest, spokenText string, queryText string) error {
