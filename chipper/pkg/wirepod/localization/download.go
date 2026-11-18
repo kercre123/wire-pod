@@ -59,36 +59,96 @@ func TakeDownloadStatus() string {
 	return s
 }
 
-func DownloadVoskModel(language string) {
+func DownloadVoskModel(language string, useLargeModel bool) {
 	filename := "vosk-model-small-"
+	if useLargeModel {
+		filename = "vosk-model-"
+	}
+
 	if language == "en-US" {
-		filename = filename + "en-us-0.15.zip"
+		if useLargeModel {
+			filename = "vosk-model-en-us-0.42.zip"
+		} else {
+			filename = filename + "en-us-0.15.zip"
+		}
 	} else if language == "it-IT" {
-		filename = filename + "it-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-it-0.48.zip"
+		} else {
+			filename = filename + "it-0.22.zip"
+		}
 	} else if language == "es-ES" {
-		filename = filename + "es-0.42.zip"
+		if useLargeModel {
+			filename = "vosk-model-es-0.42.zip"
+		} else {
+			filename = filename + "es-0.42.zip"
+		}
 	} else if language == "fr-FR" {
-		filename = filename + "fr-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-fr-0.22.zip"
+		} else {
+			filename = filename + "fr-0.22.zip"
+		}
 	} else if language == "de-DE" {
-		filename = filename + "de-0.15.zip"
+		if useLargeModel {
+			filename = "vosk-model-de-0.15.zip"
+		} else {
+			filename = filename + "de-0.15.zip"
+		}
 	} else if language == "pt-BR" {
-		filename = filename + "pt-0.3.zip"
+		if useLargeModel {
+			filename = "vosk-model-pt-0.3.zip"
+		} else {
+			filename = filename + "pt-0.3.zip"
+		}
 	} else if language == "pl-PL" {
-		filename = filename + "pl-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-pl-0.22.zip"
+		} else {
+			filename = filename + "pl-0.22.zip"
+		}
 	} else if language == "zh-CN" {
-		filename = filename + "cn-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-cn-0.22.zip"
+		} else {
+			filename = filename + "cn-0.22.zip"
+		}
 	} else if language == "tr-TR" {
-		filename = filename + "tr-0.3.zip"
+		if useLargeModel {
+			filename = "vosk-model-tr-0.3.zip"
+		} else {
+			filename = filename + "tr-0.3.zip"
+		}
 	} else if language == "ru-RU" {
-		filename = filename + "ru-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-ru-0.22.zip"
+		} else {
+			filename = filename + "ru-0.22.zip"
+		}
 	} else if language == "nt-NL" {
-		filename = filename + "nl-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-nl-0.22.zip"
+		} else {
+			filename = filename + "nl-0.22.zip"
+		}
 	} else if language == "uk-UA" {
-		filename = filename + "uk-v3-small.zip"
+		if useLargeModel {
+			filename = "vosk-model-uk-v3-large.zip"
+		} else {
+			filename = filename + "uk-v3-small.zip"
+		}
 	} else if language == "vi-VN" {
-		filename = filename + "vn-0.4.zip"
+		if useLargeModel {
+			filename = "vosk-model-vn-0.4.zip"
+		} else {
+			filename = filename + "vn-0.4.zip"
+		}
 	} else if language == "ko-KR" {
-		filename = filename + "ko-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-ko-0.22.zip"
+		} else {
+			filename = filename + "ko-0.22.zip"
+		}
 	} else {
 		logger.Println("Language not valid? " + language)
 		return

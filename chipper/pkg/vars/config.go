@@ -42,8 +42,9 @@ type APIConfig struct {
 		Temperature            float32 `json:"temp"`
 	} `json:"knowledge"`
 	STT struct {
-		Service  string `json:"provider"`
-		Language string `json:"language"`
+		Service       string `json:"provider"`
+		Language      string `json:"language"`
+		UseLargeModel bool   `json:"use_large_model"`
 	} `json:"STT"`
 	Server struct {
 		// false for ip, true for escape pod
