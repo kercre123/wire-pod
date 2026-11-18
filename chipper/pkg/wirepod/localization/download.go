@@ -146,7 +146,12 @@ func DownloadVoskModel(language string, useLargeModel bool) {
 	}
 	defer downloading.Store(false)
 	os.MkdirAll(vars.VoskModelPath, 0755)
-	url := URLPrefix + filename
+	if useLargeModel {
+		url := LargeURLPrefix + filename
+	}
+	else {
+		url := URLPrefix + filename
+	}
 	var filep string
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		filep = filepath.Join(vars.AndroidPath, "/"+filename)
