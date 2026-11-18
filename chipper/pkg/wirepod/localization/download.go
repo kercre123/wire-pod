@@ -28,7 +28,9 @@ import (
 
 var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
 
-//var URLPrefix string = "https://alphacephei.com/vosk/models/"
+// Small models are hosted on the kercre123 mirror.
+// Large models are hosted on the official Vosk site.
+var LargeURLPrefix string = "https://alphacephei.com/vosk/models/"
 
 var (
 	downloadStatusMu sync.Mutex
