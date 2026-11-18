@@ -61,19 +61,16 @@ func TakeDownloadStatus() string {
 
 func DownloadVoskModel(language string, useLargeModel bool) {
 	filename := "vosk-model-small-"
-	if useLargeModel {
-		filename = "vosk-model-"
-	}
 
 	if language == "en-US" {
 		if useLargeModel {
-			filename = "vosk-model-en-us-0.42.zip"
+			filename = "vosk-model-en-us-0.22.zip"
 		} else {
 			filename = filename + "en-us-0.15.zip"
 		}
 	} else if language == "it-IT" {
 		if useLargeModel {
-			filename = "vosk-model-it-0.48.zip"
+			filename = "vosk-model-it-0.22.zip"
 		} else {
 			filename = filename + "it-0.22.zip"
 		}
@@ -91,22 +88,19 @@ func DownloadVoskModel(language string, useLargeModel bool) {
 		}
 	} else if language == "de-DE" {
 		if useLargeModel {
-			filename = "vosk-model-de-0.15.zip"
+			filename = "vosk-model-de-0.21.zip"
 		} else {
 			filename = filename + "de-0.15.zip"
 		}
 	} else if language == "pt-BR" {
 		if useLargeModel {
-			filename = "vosk-model-pt-0.3.zip"
+			filename = "vosk-model-pt-fb-v0.1.1-20220516_2113.zip"
 		} else {
 			filename = filename + "pt-0.3.zip"
 		}
-	} else if language == "pl-PL" {
-		if useLargeModel {
-			filename = "vosk-model-pl-0.22.zip"
-		} else {
-			filename = filename + "pl-0.22.zip"
-		}
+	} else if language == "pl-PL" {	
+		filename = "vosk-model-small-pl-0.22"
+
 	} else if language == "zh-CN" {
 		if useLargeModel {
 			filename = "vosk-model-cn-0.22.zip"
@@ -114,26 +108,20 @@ func DownloadVoskModel(language string, useLargeModel bool) {
 			filename = filename + "cn-0.22.zip"
 		}
 	} else if language == "tr-TR" {
-		if useLargeModel {
-			filename = "vosk-model-tr-0.3.zip"
-		} else {
-			filename = filename + "tr-0.3.zip"
-		}
+		filename = filename + "tr-0.3.zip"
+
 	} else if language == "ru-RU" {
 		if useLargeModel {
-			filename = "vosk-model-ru-0.22.zip"
+			filename = "vosk-model-ru-0.42.zip"
 		} else {
 			filename = filename + "ru-0.22.zip"
 		}
 	} else if language == "nt-NL" {
-		if useLargeModel {
-			filename = "vosk-model-nl-0.22.zip"
-		} else {
-			filename = filename + "nl-0.22.zip"
-		}
+		filename = filename + "nl-0.22.zip"
+
 	} else if language == "uk-UA" {
 		if useLargeModel {
-			filename = "vosk-model-uk-v3-large.zip"
+			filename = "vosk-model-uk-v3.zip"
 		} else {
 			filename = filename + "uk-v3-small.zip"
 		}
@@ -144,11 +132,8 @@ func DownloadVoskModel(language string, useLargeModel bool) {
 			filename = filename + "vn-0.4.zip"
 		}
 	} else if language == "ko-KR" {
-		if useLargeModel {
-			filename = "vosk-model-ko-0.22.zip"
-		} else {
 			filename = filename + "ko-0.22.zip"
-		}
+
 	} else {
 		logger.Println("Language not valid? " + language)
 		return
