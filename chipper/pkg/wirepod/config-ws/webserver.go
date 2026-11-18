@@ -274,7 +274,7 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !vars.IsVoskModelDownloaded(request.Language) {
-			useLarge := false
+			useLarge := vars.Config().STT.UseLargeModel
 			if request.UseLargeModel != nil {
 				useLarge = *request.UseLargeModel
 			}
