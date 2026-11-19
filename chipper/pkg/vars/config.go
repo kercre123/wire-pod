@@ -107,6 +107,9 @@ func WriteSTT() {
 	apiCfg.STT.Service = os.Getenv("STT_SERVICE")
 	if os.Getenv("STT_SERVICE") == "vosk" || os.Getenv("STT_SERVICE") == "whisper.cpp" {
 		apiCfg.STT.Language = os.Getenv("STT_LANGUAGE")
+		if os.Getenv("VOSK_LARGE") == "true" {
+            apiCfg.STT.UseLargeModel = true
+        }
 	}
 }
 
