@@ -26,11 +26,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
-var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
-
-// Small models are hosted on the kercre123 mirror.
-// Large models are hosted on the official Vosk site.
-var LargeURLPrefix string = "https://alphacephei.com/vosk/models/"
+var URLPrefix string = "https://alphacephei.com/vosk/models/"
 
 var (
 	downloadStatusMu sync.Mutex
@@ -146,12 +142,7 @@ func DownloadVoskModel(language string, useLargeModel bool) {
 	}
 	defer downloading.Store(false)
 	os.MkdirAll(vars.VoskModelPath, 0755)
-	var url string
-	if useLargeModel {
-		url = LargeURLPrefix + filename
-	} else {
-		url = URLPrefix + filename
-	}
+	url := URLPrefix + filename
 	var filep string
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		filep = filepath.Join(vars.AndroidPath, "/"+filename)

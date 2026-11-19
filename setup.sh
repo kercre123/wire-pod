@@ -161,7 +161,8 @@ function getSTT() {
             echo
             echo "Which Vosk model size would you like to use?"
             echo "1: Small (~50MB each, faster, less accurate)"
-            echo "2: Large (~1GB each, slower, more accurate)"
+            echo "2: Large (~1.5GB each, might be slower, more accurate)"
+            echo "NOTE: Large might be unavailable in some languages. It will fallback to the small model in that case."
             echo
             read -p "Enter a number (1): " voskModelNum
             if [[ ! -n ${voskModelNum} ]]; then
