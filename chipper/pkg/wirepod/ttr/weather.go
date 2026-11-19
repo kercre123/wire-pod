@@ -168,10 +168,10 @@ func getWeather(location string, botUnits string, hoursFromNow int) (string, str
 	var speakable_location_string string
 	var temperature string
 	var temperature_unit string
-	weatherAPIEnabled := vars.APIConfig.Weather.Enable
-	weatherAPIKey := vars.APIConfig.Weather.Key
-	weatherAPIUnit := vars.APIConfig.Weather.Unit
-	weatherAPIProvider := vars.APIConfig.Weather.Provider
+	weatherAPIEnabled := vars.Config().Weather.Enable
+	weatherAPIKey := vars.Config().Weather.Key
+	weatherAPIUnit := vars.Config().Weather.Unit
+	weatherAPIProvider := vars.Config().Weather.Provider
 	if weatherAPIEnabled && weatherAPIKey != "" {
 		weatherEnabled = true
 		logger.Println("Weather API enabled")

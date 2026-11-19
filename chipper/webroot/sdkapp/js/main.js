@@ -53,58 +53,143 @@ let myChart = new Chart(stimChart, {
   },
 });
 
-function stimHandler() {
-  // array to store data
-  let stimData = [];
+let stimTimer = null;
 
-  // get the data every half a second
-  interval = setInterval(() => {
-    if (stimRunning == false) {
-      sendForm("/api-sdk/stop_event_stream");
-      clearInterval(interval);
+function postQuiet(formURL) {
+  fetch(formURL + (formURL.includes("?") ? "&" : "?") + "serial=" + esn, {
+    method: "POST",
+    keepalive: true,
+  }).catch(() => {});
+}
+
+function startStim() {
+  stopStim();
+  let stimData = [];
+  let inFlight = false;
+  stimRunning = true;
+  postQuiet("/api-sdk/begin_event_stream");
+  stimTimer = setInterval(() => {
+    if (inFlight) {
+      return;
     }
+    inFlight = true;
     fetch("/api-sdk/get_stim_status?serial=" + esn)
       .then((response) => response.json())
       .then((data) => {
-        // add the data to the array
+        if (!stimRunning) {
+          return;
+        }
         stimData.push(data);
-
-        // if the array has more than 12 datapoints, remove the first one
         if (stimData.length > 12) {
           stimData.shift();
         }
-
-        // update the chart with the new data
-        myChart.data.labels = [];
-        myChart.data.datasets[0].data = [];
-        //var time = new Date().toLocaleTimeString([], {hour12: false});
-        stimData.forEach((datapoint) => {
-          myChart.data.labels.push(" ");
-          myChart.data.datasets[0].data.push(datapoint);
-        });
-
+        myChart.data.labels = stimData.map(() => " ");
+        myChart.data.datasets[0].data = stimData.slice();
         myChart.update();
+      })
+      .catch(() => {})
+      .finally(() => {
+        inFlight = false;
       });
   }, 500);
 }
 
+function stopStim() {
+  if (stimTimer !== null) {
+    clearInterval(stimTimer);
+    stimTimer = null;
+  }
+  if (stimRunning) {
+    stimRunning = false;
+    postQuiet("/api-sdk/stop_event_stream");
+  }
+}
+
+// display name (wire-pod only, doesn't rename the robot)
+async function loadBotName() {
+  const input = document.getElementById("botNameInput");
+  try {
+    const bots = await fetchActiveBots();
+    const bot = bots.find((b) => b.esn.toLowerCase() === esn.toLowerCase());
+    if (bot) {
+      input.value = bot.display_name || "";
+      // placeholder shows what's used when no display name is set
+      input.placeholder = bot.display_name ? "Display name" : (bot.name || "Display name");
+    }
+  } catch (error) {
+    console.error("Unable to load bot name:", error);
+  }
+}
+
+async function postBotName(name) {
+  try {
+    const response = await fetch(
+      "/api-sdk/set_bot_name?serial=" + encodeURIComponent(esn) + "&name=" + encodeURIComponent(name),
+      { method: "POST" }
+    );
+    if (!response.ok) {
+      throw new Error("bad response: " + response.status);
+    }
+    const data = (await response.text()).trim();
+    if (data !== "success") {
+      alert("Unable to set name: " + data.replace(/^error:\s*/, ""));
+      return;
+    }
+    await loadBotName();
+  } catch (error) {
+    console.error("Unable to set bot name:", error);
+    alert("Unable to set name: " + error.message);
+  }
+}
+
+function saveBotName() {
+  const name = document.getElementById("botNameInput").value.trim();
+  if (name === "") {
+    alert("Name cannot be blank. Use Reset to go back to the default name.");
+    return;
+  }
+  postBotName(name);
+}
+
+function clearBotName() {
+  postBotName("");
+}
+
+const sectionHooks = {
+  "section-stim": { enter: startStim, leave: stopStim },
+  "section-name": { enter: loadBotName },
+};
+
+let currentSection = null;
+
 function showSection(id) {
+  const target = document.getElementById(id);
+  if (!target) {
+    return;
+  }
+  const changed = currentSection !== id;
+  const prev = sectionHooks[currentSection];
+  if (changed && prev && prev.leave) {
+    prev.leave();
+  }
   var headings = document.getElementsByClassName("toggleable-section");
   for (var i = 0; i < headings.length; i++) {
     headings[i].style.display = "none";
   }
-  document.getElementById(id).style.display = "block";
-  updateColor(id);
-  if (id == "section-stim") {
-    logDiv = document.getElementById("stimStatus");
-    logP = document.createElement("p");
-    stimRunning = true;
-    sendForm("/api-sdk/begin_event_stream");
-    stimHandler();
-  } else {
-    stimRunning = false;
+  target.style.display = "block";
+  try {
+    updateColor(id);
+  } catch (e) {
+    console.error(e);
+  }
+  currentSection = id;
+  const next = sectionHooks[id];
+  if (changed && next && next.enter) {
+    next.enter();
   }
 }
+
+window.addEventListener("pagehide", stopStim);
 
 function sendForm(formURL) {
   let xhr = new XMLHttpRequest();
@@ -416,4 +501,4 @@ function getCurrentSettings() {
   };
 }
 
-renderBatteryInfo(esn);
+renderBotStatus(esn);

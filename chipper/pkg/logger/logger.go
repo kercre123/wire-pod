@@ -3,15 +3,19 @@ package logger
 import (
 	"fmt"
 	"os"
+	"strings"
+	"sync"
 	"time"
 )
 
 var debugLogging bool = true
-var LogList string
-var LogArray []string
 
-var LogTrayList string
-var LogTrayArray []string
+var (
+	logMu       sync.Mutex
+	logArray    []string
+	logTrayList []string
+)
+
 var LogTrayChan chan string
 
 func GetLogTrayChan() chan string {
@@ -20,11 +24,27 @@ func GetLogTrayChan() chan string {
 
 func Init() {
 	LogTrayChan = make(chan string)
-	if os.Getenv("DEBUG_LOGGING") == "true" {
-		debugLogging = true
-	} else {
-		debugLogging = false
+	debugLogging = os.Getenv("DEBUG_LOGGING") == "true"
+}
+
+func GetLogs() string {
+	logMu.Lock()
+	defer logMu.Unlock()
+	return strings.Join(logArray, "")
+}
+
+func GetDebugLogs() string {
+	logMu.Lock()
+	defer logMu.Unlock()
+	return strings.Join(logTrayList, "")
+}
+
+func appendCapped(list []string, line string, max int) []string {
+	list = append(list, line)
+	if len(list) >= max {
+		list = list[1:]
 	}
+	return list
 }
 
 func Println(a ...any) {
@@ -35,27 +55,19 @@ func Println(a ...any) {
 }
 
 func LogUI(a ...any) {
-	LogArray = append(LogArray, time.Now().Format("2006.01.02 15:04:05")+": "+fmt.Sprint(a...)+"\n")
-	if len(LogArray) >= 50 {
-		LogArray = LogArray[1:]
-	}
-	LogList = ""
-	for _, b := range LogArray {
-		LogList = LogList + b
-	}
+	line := time.Now().Format("2006.01.02 15:04:05") + ": " + fmt.Sprint(a...) + "\n"
+	logMu.Lock()
+	logArray = appendCapped(logArray, line, 50)
+	logMu.Unlock()
 }
 
 func LogTray(a ...any) {
-	LogTrayArray = append(LogTrayArray, time.Now().Format("2006.01.02 15:04:05")+": "+fmt.Sprint(a...)+"\n")
-	if len(LogTrayArray) >= 200 {
-		LogTrayArray = LogTrayArray[1:]
-	}
-	LogTrayList = ""
-	for _, b := range LogTrayArray {
-		LogTrayList = LogTrayList + b
-	}
+	line := time.Now().Format("2006.01.02 15:04:05") + ": " + fmt.Sprint(a...) + "\n"
+	logMu.Lock()
+	logTrayList = appendCapped(logTrayList, line, 200)
+	logMu.Unlock()
 	select {
-	case LogTrayChan <- time.Now().Format("2006.01.02 15:04:05") + ": " + fmt.Sprint(a...) + "\n":
+	case LogTrayChan <- line:
 	default:
 	}
 }

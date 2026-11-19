@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -70,7 +69,7 @@ func grantedEvent() *vectorpb.BehaviorControlResponse {
 	}
 }
 
-func waitUntil(t *testing.T, what string, cond func() bool) {
+func bcWaitUntil(t *testing.T, what string, cond func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
@@ -83,40 +82,40 @@ func waitUntil(t *testing.T, what string, cond func() bool) {
 }
 
 type holdRun struct {
-	stream *fakeControlStream
-	want   atomic.Bool
-	calls  atomic.Int64
-	done   chan string
-	cancel context.CancelFunc
+	stream  *fakeControlStream
+	release context.CancelFunc
+	done    chan error
 }
 
-func startHold(t *testing.T, prio vectorpb.ControlRequest_Priority, regain, poll time.Duration) *holdRun {
+// startHold runs runControlHold against a fake stream. The stream ends with
+// the test, the hold when release is called.
+func startHold(t *testing.T, prio vectorpb.ControlRequest_Priority, regain time.Duration) *holdRun {
 	t.Helper()
-	ctx, cancel := context.WithCancel(context.Background())
-	h := &holdRun{stream: newFakeControlStream(ctx), done: make(chan string, 1), cancel: cancel}
-	h.want.Store(true)
-	wanted := func() bool { h.calls.Add(1); return h.want.Load() }
-	go func() { h.done <- holdBehaviorControl(ctx, h.stream, prio, wanted, regain, poll) }()
+	streamCtx, endStream := context.WithCancel(context.Background())
+	releaseCtx, release := context.WithCancel(context.Background())
+	h := &holdRun{stream: newFakeControlStream(streamCtx), release: release, done: make(chan error, 1)}
+	go func() { h.done <- runControlHold(releaseCtx, h.stream, prio, regain) }()
 	t.Cleanup(func() {
-		cancel()
+		release()
+		endStream()
 		select {
 		case <-h.done:
 		case <-time.After(2 * time.Second):
-			t.Errorf("hold did not end after cancel")
+			t.Errorf("hold did not end")
 		}
 	})
 	return h
 }
 
-func (h *holdRun) result(t *testing.T) string {
+func (h *holdRun) result(t *testing.T) error {
 	t.Helper()
 	select {
-	case r := <-h.done:
-		h.done <- r
-		return r
+	case err := <-h.done:
+		h.done <- err
+		return err
 	case <-time.After(2 * time.Second):
-		t.Fatalf("hold did not end")
-		return ""
+		t.Fatal("hold did not end")
+		return nil
 	}
 }
 
@@ -137,29 +136,29 @@ func TestPriorityIsDefaultUnlessOverrideNamed(t *testing.T) {
 }
 
 func TestHoldRequestsControlAtGivenPriority(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour, 10*time.Millisecond)
-	waitUntil(t, "first request", func() bool { return len(h.stream.log()) == 1 })
+	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour)
+	bcWaitUntil(t, "first request", func() bool { return len(h.stream.log()) == 1 })
 	if got := h.stream.log()[0]; got != "req:DEFAULT" {
 		t.Fatalf("first message %q, want req:DEFAULT", got)
 	}
 }
 
 func TestHoldAsksAgainAfterControlIsLost(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 30*time.Millisecond, 10*time.Millisecond)
+	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 30*time.Millisecond)
 	h.stream.resps <- grantedEvent()
 	h.stream.resps <- lostEvent()
-	waitUntil(t, "re-request", func() bool { return len(h.stream.log()) == 2 })
+	bcWaitUntil(t, "re-request", func() bool { return len(h.stream.log()) == 2 })
 	if got := h.stream.log(); got[1] != "req:DEFAULT" {
 		t.Fatalf("after losing control sent %v, want a second req:DEFAULT", got)
 	}
 }
 
 func TestLostEventsWhileWaitingCauseOneRequest(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 60*time.Millisecond, 10*time.Millisecond)
+	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 60*time.Millisecond)
 	for i := 0; i < 4; i++ {
 		h.stream.resps <- lostEvent()
 	}
-	waitUntil(t, "re-request", func() bool { return len(h.stream.log()) >= 2 })
+	bcWaitUntil(t, "re-request", func() bool { return len(h.stream.log()) >= 2 })
 	time.Sleep(150 * time.Millisecond)
 	if n := len(h.stream.log()); n != 2 {
 		t.Fatalf("four lost events in one wait produced %d messages, want 2: %v", n, h.stream.log())
@@ -167,7 +166,7 @@ func TestLostEventsWhileWaitingCauseOneRequest(t *testing.T) {
 }
 
 func TestRepeatedLossStillGetsControlBack(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 60*time.Millisecond, 10*time.Millisecond)
+	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 60*time.Millisecond)
 	stop := time.Now().Add(300 * time.Millisecond)
 	for time.Now().Before(stop) {
 		h.stream.resps <- lostEvent()
@@ -182,25 +181,27 @@ func TestRepeatedLossStillGetsControlBack(t *testing.T) {
 	}
 }
 
-func TestNoRequestAfterLossOnceNoLongerWanted(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 80*time.Millisecond, time.Hour)
+func TestNoRequestAfterRelease(t *testing.T) {
+	h := startHold(t, vectorpb.ControlRequest_DEFAULT, 80*time.Millisecond)
+	bcWaitUntil(t, "first request", func() bool { return len(h.stream.log()) == 1 })
 	h.stream.resps <- lostEvent()
 	time.Sleep(20 * time.Millisecond)
-	h.want.Store(false)
+	h.release()
+	h.result(t)
 	time.Sleep(150 * time.Millisecond)
 	for _, m := range h.stream.log()[1:] {
 		if strings.HasPrefix(m, "req:") {
-			t.Fatalf("asked for control again after release was wanted: %v", h.stream.log())
+			t.Fatalf("asked for control again after release: %v", h.stream.log())
 		}
 	}
 }
 
 func TestReleaseEndsTheHold(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour, 10*time.Millisecond)
-	waitUntil(t, "first request", func() bool { return len(h.stream.log()) == 1 })
-	h.want.Store(false)
-	if r := h.result(t); r != "released" {
-		t.Fatalf("hold ended %q, want released", r)
+	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour)
+	bcWaitUntil(t, "first request", func() bool { return len(h.stream.log()) == 1 })
+	h.release()
+	if err := h.result(t); err != nil {
+		t.Fatalf("release returned %v", err)
 	}
 	log := h.stream.log()
 	if log[len(log)-1] != "release" {
@@ -209,43 +210,9 @@ func TestReleaseEndsTheHold(t *testing.T) {
 }
 
 func TestStreamErrorEndsTheHold(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour, time.Hour)
+	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour)
 	h.stream.fail <- errors.New("robot gone")
-	if r := h.result(t); !strings.Contains(r, "robot gone") {
-		t.Fatalf("hold ended %q, want the stream error", r)
-	}
-}
-
-func TestHoldDoesNotSpin(t *testing.T) {
-	h := startHold(t, vectorpb.ControlRequest_DEFAULT, time.Hour, 20*time.Millisecond)
-	time.Sleep(200 * time.Millisecond)
-	if n := h.calls.Load(); n > 20 {
-		t.Fatalf("checked whether control is wanted %d times in 200 ms, want about 10", n)
-	}
-}
-
-func TestNewerHoldSupersedesOlder(t *testing.T) {
-	first := claimBcHold("00e1e2e3")
-	if !bcHoldCurrent("00e1e2e3", first) {
-		t.Fatal("a fresh hold is not current")
-	}
-	second := claimBcHold("00e1e2e3")
-	if bcHoldCurrent("00e1e2e3", first) {
-		t.Fatal("older hold still current after a newer one")
-	}
-	dropBcHold("00e1e2e3", first)
-	if !bcHoldCurrent("00e1e2e3", second) {
-		t.Fatal("dropping the older hold removed the newer one")
-	}
-	dropBcHold("00e1e2e3", second)
-}
-
-func TestAssumeWithoutConnectionDoesNothing(t *testing.T) {
-	assumeBehaviorControl(Robot{ESN: "00f0f1f2"}, 0, "default")
-	bcHoldsMu.Lock()
-	_, held := bcHolds["00f0f1f2"]
-	bcHoldsMu.Unlock()
-	if held {
-		t.Fatal("a hold was registered for a robot with no connection")
+	if err := h.result(t); err == nil || !strings.Contains(err.Error(), "robot gone") {
+		t.Fatalf("hold ended with %v, want the stream error", err)
 	}
 }

@@ -47,7 +47,7 @@ func GetGrammerList(lang string) string {
 		}
 	}
 	// add custom intent matches
-	for _, intent := range vars.CustomIntents {
+	for _, intent := range vars.GetCustomIntents() {
 		for _, utterance := range intent.Utterances {
 			wors := strings.Split(utterance, " ")
 			for _, wor := range wors {

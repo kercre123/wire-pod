@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
@@ -12,20 +13,27 @@ import (
 	"github.com/kercre123/zeroconf"
 )
 
-// legacy ZeroConf code
+var (
+	mdnsMu     sync.Mutex
+	mdnsCancel context.CancelFunc
+	mdnsNow    = make(chan struct{}, 1)
+)
 
-var PostingmDNS bool
-var MDNSNow chan bool
-var MDNSTimeBeforeNextRegister float32
-
-func PostmDNSWhenNewVector() {
-	time.Sleep(time.Second * 5)
-	for {
-		resolver, _ := zeroconf.NewResolver(nil)
-		entries := make(chan *zeroconf.ServiceEntry)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*80)
-		err := resolver.Browse(ctx, "_ankivector._tcp", "local.", entries)
+func postmDNSWhenNewVector(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(5 * time.Second):
+	}
+	for ctx.Err() == nil {
+		resolver, err := zeroconf.NewResolver(nil)
 		if err != nil {
+			logger.Println("mDNS resolver error: ", err)
+			return
+		}
+		entries := make(chan *zeroconf.ServiceEntry)
+		browseCtx, cancel := context.WithTimeout(ctx, time.Second*80)
+		if err := resolver.Browse(browseCtx, "_ankivector._tcp", "local.", entries); err != nil {
 			fmt.Println(err)
 			cancel()
 			return
@@ -41,14 +49,22 @@ func PostmDNSWhenNewVector() {
 		}
 		cancel()
 	}
-
 }
 
 func PostmDNSNow() {
 	logger.Println("Broadcasting mDNS now (outside of timer loop)")
 	select {
-	case MDNSNow <- true:
+	case mdnsNow <- struct{}{}:
 	default:
+	}
+}
+
+func StopmDNS() {
+	mdnsMu.Lock()
+	defer mdnsMu.Unlock()
+	if mdnsCancel != nil {
+		mdnsCancel()
+		mdnsCancel = nil
 	}
 }
 
@@ -57,34 +73,39 @@ func PostmDNS() {
 		fmt.Println("mDNS is disabled")
 		return
 	}
-	if PostingmDNS {
+	mdnsMu.Lock()
+	if mdnsCancel != nil {
+		mdnsMu.Unlock()
 		return
 	}
-	go PostmDNSWhenNewVector()
-	MDNSNow = make(chan bool)
-	go func() {
-		for range MDNSNow {
-			MDNSTimeBeforeNextRegister = 30
-		}
-	}()
-	PostingmDNS = true
+	ctx, cancel := context.WithCancel(context.Background())
+	mdnsCancel = cancel
+	mdnsMu.Unlock()
+
+	go postmDNSWhenNewVector(ctx)
 	logger.Println("Registering escapepod.local on network (loop)")
 	for {
 		ipAddr := vars.GetOutboundIP().String()
-		server, _ := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
-		if os.Getenv("PRINT_MDNS") == "true" {
+		server, err := zeroconf.RegisterProxy("escapepod", "_app-proto._tcp", "local.", 8084, "escapepod", []string{ipAddr}, []string{"txtv=0", "lo=1", "la=2"}, nil)
+		if err != nil {
+			logger.Println("mDNS register error: ", err)
+		} else if os.Getenv("PRINT_MDNS") == "true" {
 			logger.Println("mDNS broadcasted")
 		}
-		for {
-			if MDNSTimeBeforeNextRegister >= 30 {
-				MDNSTimeBeforeNextRegister = 0
-				break
-			}
-			MDNSTimeBeforeNextRegister = MDNSTimeBeforeNextRegister + (float32(1) / float32(4))
-			time.Sleep(time.Second / 4)
+		stopped := false
+		select {
+		case <-ctx.Done():
+			stopped = true
+		case <-mdnsNow:
+		case <-time.After(30 * time.Second):
 		}
-		server.Shutdown()
-		server = nil
+		if server != nil {
+			server.Shutdown()
+		}
+		if stopped {
+			logger.Println("Stopped broadcasting escapepod.local")
+			return
+		}
 		time.Sleep(time.Second / 3)
 	}
 }

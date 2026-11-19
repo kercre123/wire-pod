@@ -151,7 +151,7 @@ func ModelIsSupported(cmd LLMCommand, model string) bool {
 
 func CreatePrompt(origPrompt string, model string, isKG bool) string {
 	prompt := origPrompt + "\n\n" + "Keep in mind, user input comes from speech-to-text software, so respond accordingly. No special characters, especially these: & ^ * # @ - . No lists. No formatting."
-	if vars.APIConfig.Knowledge.CommandsEnable {
+	if vars.Config().Knowledge.CommandsEnable {
 		prompt = prompt + "\n\n" + "You are running ON an Anki Vector robot. You have a set of commands. If you include an emoji, I will make you start over. If you want to use a command but it doesn't exist or your desired parameter isn't in the list, avoid using the command. The format is {{command||parameter}}. You can embed these in sentences. Example: \"User: How are you feeling? | Response: \"{{playAnimationWI||sad}} I'm feeling sad...\". Square brackets ([]) are not valid.\n\nUse the playAnimation or playAnimationWI commands if you want to express emotion! You are very animated and good at following instructions. Animation takes precendence over words. You are to include many animations in your response.\n\nHere is every valid command:"
 		for _, cmd := range ValidLLMCommands {
 			if ModelIsSupported(cmd, model) {
@@ -159,7 +159,7 @@ func CreatePrompt(origPrompt string, model string, isKG bool) string {
 				prompt = prompt + promptAppendage
 			}
 		}
-		if isKG && vars.APIConfig.Knowledge.SaveChat {
+		if isKG && vars.Config().Knowledge.SaveChat {
 			promptAppentage := "\n\nNOTE: You are in 'conversation' mode. If you ask the user a question near the end of your response, you MUST use newVoiceRequest. If you decide you want to end the conversation, you should not use it."
 			prompt = prompt + promptAppentage
 		} else {
@@ -174,42 +174,39 @@ func CreatePrompt(origPrompt string, model string, isKG bool) string {
 }
 
 func GetActionsFromString(input string) []RobotAction {
-	splitInput := strings.Split(input, "{{")
-	if len(splitInput) == 1 {
-		return []RobotAction{
-			{
+	var actions []RobotAction
+	addText := func(text string) {
+		text = strings.TrimSpace(strings.ReplaceAll(text, "}}", ""))
+		if text != "" {
+			actions = append(actions, RobotAction{
 				Action:    ActionSayText,
-				Parameter: input,
-			},
+				Parameter: text,
+			})
 		}
 	}
-	var actions []RobotAction
-	for _, spl := range splitInput {
-		if strings.TrimSpace(spl) == "" {
+	rest := input
+	for {
+		open := strings.Index(rest, "{{")
+		if open == -1 {
+			addText(rest)
+			break
+		}
+		addText(rest[:open])
+		rest = rest[open+2:]
+		end := strings.Index(rest, "}}")
+		if end == -1 {
+			addText(rest)
+			break
+		}
+		cmd, param, _ := strings.Cut(rest[:end], "||")
+		cmd = strings.TrimSpace(cmd)
+		param = strings.TrimSpace(param)
+		rest = rest[end+2:]
+		if cmd == "" {
 			continue
 		}
-		if !strings.Contains(spl, "}}") {
-			// sayText
-			action := RobotAction{
-				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(spl),
-			}
-			actions = append(actions, action)
-			continue
-		}
-
-		cmdPlusParam := strings.Split(strings.TrimSpace(strings.Split(spl, "}}")[0]), "||")
-		cmd := strings.TrimSpace(cmdPlusParam[0])
-		param := strings.TrimSpace(cmdPlusParam[1])
 		action := CmdParamToAction(cmd, param)
 		if action.Action != -1 {
-			actions = append(actions, action)
-		}
-		if len(strings.Split(spl, "}}")) != 1 {
-			action := RobotAction{
-				Action:    ActionSayText,
-				Parameter: strings.TrimSpace(strings.Split(spl, "}}")[1]),
-			}
 			actions = append(actions, action)
 		}
 	}
@@ -290,7 +287,7 @@ func DoSayText(input string, robot *vector.Vector) error {
 	// just before vector speaks
 	removeSpecialCharacters(input)
 
-	if (vars.APIConfig.STT.Language != "en-US" && vars.APIConfig.Knowledge.Provider == "openai") || vars.APIConfig.Knowledge.OpenAIVoiceWithEnglish {
+	if (vars.Config().STT.Language != "en-US" && vars.Config().Knowledge.Provider == "openai") || vars.Config().Knowledge.OpenAIVoiceWithEnglish {
 		err := DoSayText_OpenAI(robot, input)
 		return err
 	}
@@ -331,13 +328,13 @@ func DoSayText_OpenAI(robot *vector.Vector, input string) error {
 	if strings.TrimSpace(input) == "" {
 		return nil
 	}
-	openaiVoice := getOpenAIVoice(vars.APIConfig.Knowledge.OpenAIVoice)
-	// if vars.APIConfig.Knowledge.OpenAIVoice == "" {
+	openaiVoice := getOpenAIVoice(vars.Config().Knowledge.OpenAIVoice)
+	// if vars.Config().Knowledge.OpenAIVoice == "" {
 	// 	openaiVoice = openai.VoiceFable
 	// } else {
-	// 	openaiVoice = getOpenAIVoice(vars.APIConfig.Knowledge.OpenAIPrompt)
+	// 	openaiVoice = getOpenAIVoice(vars.Config().Knowledge.OpenAIPrompt)
 	// }
-	oc := openai.NewClient(vars.APIConfig.Knowledge.Key)
+	oc := openai.NewClient(vars.Config().Knowledge.Key)
 	resp, err := oc.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
 		Model:          openai.TTSModel1,
 		Input:          input,
@@ -462,24 +459,25 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 
 	// recreate openai
 	var fullRespText string
-	var fullfullRespText string
 	var fullRespSlice []string
 	var isDone bool
 	var c *openai.Client
-	switch vars.APIConfig.Knowledge.Provider {
+	switch vars.Config().Knowledge.Provider {
 	case "together":
-		if vars.APIConfig.Knowledge.Model == "" {
-			vars.APIConfig.Knowledge.Model = "meta-llama/Llama-2-70b-chat-hf"
+		if vars.Config().Knowledge.Model == "" {
+			vars.UpdateConfig(func(c *vars.APIConfig) {
+				c.Knowledge.Model = "meta-llama/Llama-2-70b-chat-hf"
+			})
 			vars.WriteConfigToDisk()
 		}
-		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
+		conf := openai.DefaultConfig(vars.Config().Knowledge.Key)
 		conf.BaseURL = "https://api.together.xyz/v1"
 		c = openai.NewClientWithConfig(conf)
 	case "openai":
-		c = openai.NewClient(vars.APIConfig.Knowledge.Key)
+		c = openai.NewClient(vars.Config().Knowledge.Key)
 	case "custom":
-		conf := openai.DefaultConfig(vars.APIConfig.Knowledge.Key)
-		conf.BaseURL = vars.APIConfig.Knowledge.Endpoint
+		conf := openai.DefaultConfig(vars.Config().Knowledge.Key)
+		conf.BaseURL = vars.Config().Knowledge.Endpoint
 		c = openai.NewClientWithConfig(conf)
 	}
 	ctx := context.Background()
@@ -494,19 +492,19 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 		Messages:            msgs,
 		Stream:              true,
 	}
-	if vars.APIConfig.Knowledge.Provider == "openai" {
+	if vars.Config().Knowledge.Provider == "openai" {
 		aireq.Model = openai.GPT4oMini
 		logger.Println("Using " + aireq.Model)
 	} else {
-		logger.Println("Using " + vars.APIConfig.Knowledge.Model)
-		aireq.Model = vars.APIConfig.Knowledge.Model
+		logger.Println("Using " + vars.Config().Knowledge.Model)
+		aireq.Model = vars.Config().Knowledge.Model
 	}
 	if stopImaging {
 		return
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, aireq)
 	if err != nil {
-		if strings.Contains(err.Error(), "does not exist") && vars.APIConfig.Knowledge.Provider == "openai" {
+		if strings.Contains(err.Error(), "does not exist") && vars.Config().Knowledge.Provider == "openai" {
 			logger.Println("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			logger.LogUI("GPT-4 model cannot be accessed with this API key. You likely need to add more than $5 dollars of funds to your OpenAI account.")
 			aireq.Model = openai.GPT3Dot5Turbo
@@ -526,23 +524,32 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 
 	fmt.Println("LLM stream response: ")
 	go func() {
+		defer close(speakReady)
+		pushSentence := func(sentence string) {
+			fullRespSlice = append(fullRespSlice, sentence)
+			select {
+			case speakReady <- sentence:
+			default:
+			}
+		}
 		for {
 			response, err := stream.Recv()
-			if errors.Is(err, io.EOF) {
-				isDone = true
-				newStr := fullRespSlice[0]
-				for i, str := range fullRespSlice {
-					if i == 0 {
-						continue
-					}
-					newStr = newStr + " " + str
+			if err != nil {
+				if !errors.Is(err, io.EOF) {
+					logger.Println("Stream error: " + err.Error())
 				}
-				if strings.TrimSpace(newStr) != strings.TrimSpace(fullfullRespText) {
+				if strings.TrimSpace(fullRespText) != "" {
 					logger.Println("LLM debug: there is content after the last punctuation mark")
-					extraBit := strings.TrimPrefix(fullRespText, newStr)
-					fullRespSlice = append(fullRespSlice, extraBit)
+					pushSentence(strings.TrimSpace(fullRespText))
+					fullRespText = ""
 				}
-				if vars.APIConfig.Knowledge.SaveChat {
+				newStr := strings.Join(fullRespSlice, " ")
+				isDone = true
+				if newStr == "" {
+					logger.Println("LLM returned no response")
+					return
+				}
+				if vars.Config().Knowledge.SaveChat {
 					Remember(msgs[len(msgs)-1],
 						openai.ChatCompletionMessage{
 							Role:    openai.ChatMessageRoleAssistant,
@@ -555,34 +562,19 @@ func DoGetImage(msgs []openai.ChatCompletionMessage, param string, robot *vector
 				return
 			}
 
-			if err != nil {
-				logger.Println("Stream error: " + err.Error())
-				return
+			if len(response.Choices) == 0 {
+				continue
 			}
-			fullfullRespText = fullfullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
+
 			fullRespText = fullRespText + removeSpecialCharacters(response.Choices[0].Delta.Content)
-			if strings.Contains(fullRespText, "...") || strings.Contains(fullRespText, ".'") || strings.Contains(fullRespText, ".\"") || strings.Contains(fullRespText, ".") || strings.Contains(fullRespText, "?") || strings.Contains(fullRespText, "!") {
-				var sepStr string
-				if strings.Contains(fullRespText, "...") {
-					sepStr = "..."
-				} else if strings.Contains(fullRespText, ".'") {
-					sepStr = ".'"
-				} else if strings.Contains(fullRespText, ".\"") {
-					sepStr = ".\""
-				} else if strings.Contains(fullRespText, ".") {
-					sepStr = "."
-				} else if strings.Contains(fullRespText, "?") {
-					sepStr = "?"
-				} else if strings.Contains(fullRespText, "!") {
-					sepStr = "!"
+			for {
+				idx, sep := findSentenceEnd(fullRespText)
+				if idx == -1 {
+					break
 				}
-				splitResp := strings.Split(strings.TrimSpace(fullRespText), sepStr)
-				fullRespSlice = append(fullRespSlice, strings.TrimSpace(splitResp[0])+sepStr)
-				fullRespText = splitResp[1]
-				select {
-				case speakReady <- strings.TrimSpace(splitResp[0]) + sepStr:
-				default:
-				}
+				sentence := strings.TrimSpace(fullRespText[:idx+len(sep)])
+				fullRespText = fullRespText[idx+len(sep):]
+				pushSentence(sentence)
 			}
 		}
 	}()

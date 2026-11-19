@@ -5,22 +5,11 @@ set -e
 echo
 
 UNAME=$(uname -a)
-ROOT="/root"
 
 if [[ ${UNAME} == *"Darwin"* ]]; then
     if [[ -f /usr/local/Homebrew/bin/brew ]] || [[ -f /opt/Homebrew/bin/brew ]]; then
         TARGET="darwin"
-        ROOT="$HOME"
         echo "macOS detected."
-        if [[ ! -f /usr/local/go/bin/go ]]; then
-            if [[ -f /usr/local/bin/go ]]; then
-                mkdir -p /usr/local/go/bin
-                ln -s /usr/local/bin/go /usr/local/go/bin/go
-            else
-                echo "Go was not found. You must download it from https://go.dev/dl/ for your macOS."
-                exit 1
-            fi
-        fi
     else
         echo "macOS detected, but 'brew' was not found. Install it with the following command and try running setup.sh again:"
         echo '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
@@ -69,6 +58,9 @@ if [[ ! -d ./chipper ]]; then
     exit 1
 fi
 
+source ./goenv.sh
+VOSK_DIR="${POD_DIR}/vosk/libvosk"
+
 if [[ $1 != "-f" ]]; then
     if [[ ${ARCH} == "x86_64" ]] && [[ ${TARGET} != "darwin" ]]; then
         CPUINFO=$(cat /proc/cpuinfo)
@@ -93,7 +85,7 @@ function getPackages() {
         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev cmake lld
         elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium go pkg-config cmake lld
+        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium pkg-config cmake lld
         elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel cmake lld
@@ -103,34 +95,8 @@ function getPackages() {
     fi
     touch ./vector-cloud/packagesGotten
     echo
-    echo "Installing golang binary package"
-    mkdir golang
-    cd golang
-    if [[ ${TARGET} != "darwin" ]] && [[ ${TARGET} != "arch" ]]; then
-        if [[ ! -f /usr/local/go/bin/go ]]; then
-            if [[ ${ARCH} == "x86_64" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-amd64.tar.gz
-                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz
-                elif [[ ${ARCH} == "aarch64" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-arm64.tar.gz
-                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.4.linux-arm64.tar.gz
-                elif [[ ${ARCH} == "armv7l" ]]; then
-                wget -q --show-progress --no-check-certificate https://go.dev/dl/go1.22.4.linux-armv6l.tar.gz
-                rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.4.linux-armv6l.tar.gz
-            fi
-	    if [[ ! -f /usr/bin/go ]] && [[ ! -e /usr/bin/go ]]; then
-                ln -s /usr/local/go/bin/go /usr/bin/go
-	    fi
-        fi
-    else
-        echo "This is a macOS or arch target, assuming Go is installed already"
-        if [[ ${TARGET} == "arch" ]] && [[ ! -d /usr/local/go/bin ]]; then
-            mkdir -p /usr/local/go/bin
-            ln -s /usr/bin/go /usr/local/go/bin/go
-        fi
-    fi
-    cd ..
-    rm -rf golang
+    echo "Getting Go ${GO_VERSION}"
+    getGo
     echo
 }
 
@@ -194,34 +160,34 @@ function getSTT() {
         origDir="$(pwd)"
         if [[ ! -f ./vosk/completed ]]; then
             echo "Getting VOSK assets"
-            rm -fr ${ROOT}/.vosk
-            mkdir ${ROOT}/.vosk
-            cd ${ROOT}/.vosk
+            rm -rf "${VOSK_DIR}"
+            mkdir -p "${POD_DIR}/vosk"
+            cd "${POD_DIR}/vosk"
             VOSK_VER="0.3.45"
             if [[ ${TARGET} == "darwin" ]]; then
                 VOSK_VER="0.3.42"
-                VOSK_DIR="vosk-osx-${VOSK_VER}"
+                VOSK_ZIP_DIR="vosk-osx-${VOSK_VER}"
                 elif [[ ${ARCH} == "x86_64" ]]; then
-                VOSK_DIR="vosk-linux-x86_64-${VOSK_VER}"
+                VOSK_ZIP_DIR="vosk-linux-x86_64-${VOSK_VER}"
                 elif [[ ${ARCH} == "aarch64" ]]; then
-                VOSK_DIR="vosk-linux-aarch64-${VOSK_VER}"
+                VOSK_ZIP_DIR="vosk-linux-aarch64-${VOSK_VER}"
                 elif [[ ${ARCH} == "armv7l" ]]; then
-                VOSK_DIR="vosk-linux-armv7l-${VOSK_VER}"
+                VOSK_ZIP_DIR="vosk-linux-armv7l-${VOSK_VER}"
             fi
-            VOSK_ARCHIVE="$VOSK_DIR.zip"
+            VOSK_ARCHIVE="${VOSK_ZIP_DIR}.zip"
             wget -q --show-progress --no-check-certificate "https://github.com/alphacep/vosk-api/releases/download/v${VOSK_VER}/${VOSK_ARCHIVE}"
             unzip "$VOSK_ARCHIVE"
-            mv "$VOSK_DIR" libvosk
+            mv "${VOSK_ZIP_DIR}" libvosk
             rm -fr "$VOSK_ARCHIVE"
             
             cd ${origDir}/chipper
             export CGO_ENABLED=1
-            export CGO_CFLAGS="-I${ROOT}/.vosk/libvosk"
-            export CGO_LDFLAGS="-L ${ROOT}/.vosk/libvosk -lvosk -ldl -lpthread"
-            export LD_LIBRARY_PATH="${ROOT}/.vosk/libvosk:$LD_LIBRARY_PATH"
-            /usr/local/go/bin/go get -u github.com/kercre123/vosk-api/go/...
-            /usr/local/go/bin/go get github.com/kercre123/vosk-api
-            /usr/local/go/bin/go install github.com/kercre123/vosk-api/go
+            export CGO_CFLAGS="-I${VOSK_DIR}"
+            export CGO_LDFLAGS="-L ${VOSK_DIR} -lvosk -ldl -lpthread"
+            export LD_LIBRARY_PATH="${VOSK_DIR}:$LD_LIBRARY_PATH"
+            "${GO}" get -u github.com/kercre123/vosk-api/go/...
+            "${GO}" get github.com/kercre123/vosk-api
+            "${GO}" install github.com/kercre123/vosk-api/go
             cd ${origDir}
         fi
         elif [[ ${sttService} == "whisper" ]]; then
@@ -294,9 +260,9 @@ function getSTT() {
             export CGO_LDFLAGS="-L/root/.coqui/"
             export CGO_CXXFLAGS="-I/root/.coqui/"
             export LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH"
-            /usr/local/go/bin/go get -u github.com/asticode/go-asticoqui/...
-            /usr/local/go/bin/go get github.com/asticode/go-asticoqui
-            /usr/local/go/bin/go install github.com/asticode/go-asticoqui
+            "${GO}" get -u github.com/asticode/go-asticoqui/...
+            "${GO}" get github.com/asticode/go-asticoqui
+            "${GO}" install github.com/asticode/go-asticoqui
             cd ${origDir}
             mkdir -p stt
             cd stt
@@ -573,14 +539,14 @@ function setupSystemd() {
     export GOLDFLAGS="-X 'github.com/kercre123/wire-pod/chipper/pkg/vars.CommitSHA=${COMMIT_HASH}'"
     if [[ ${STT_SERVICE} == "leopard" ]]; then
         echo "wire-pod.service created, building chipper with Picovoice STT service..."
-        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/leopard/main.go
+        "${GO}" build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/leopard/main.go
         elif [[ ${STT_SERVICE} == "vosk" ]]; then
         echo "wire-pod.service created, building chipper with VOSK STT service..."
         export CGO_ENABLED=1
-        export CGO_CFLAGS="-I/root/.vosk/libvosk"
-        export CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread"
-        export LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/vosk/main.go
+        export CGO_CFLAGS="-I${VOSK_DIR}"
+        export CGO_LDFLAGS="-L ${VOSK_DIR} -lvosk -ldl -lpthread"
+        export LD_LIBRARY_PATH="${VOSK_DIR}:$LD_LIBRARY_PATH"
+        "${GO}" build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/vosk/main.go
         elif [[ ${STT_SERVICE} == "whisper.cpp" ]]; then
         echo "wire-pod.service created, building chipper with Whisper.CPP STT service..."
         export CGO_ENABLED=1
@@ -589,13 +555,13 @@ function setupSystemd() {
         export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/../whisper.cpp"
         export CGO_LDFLAGS="-L$(pwd)/../whisper.cpp"
         export CGO_CFLAGS="-I$(pwd)/../whisper.cpp"
-        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/experimental/whisper.cpp/main.go
+        "${GO}" build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/experimental/whisper.cpp/main.go
     else
         echo "wire-pod.service created, building chipper with Coqui STT service..."
         export CGO_LDFLAGS="-L/root/.coqui/"
         export CGO_CXXFLAGS="-I/root/.coqui/"
         export LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH"
-        /usr/local/go/bin/go build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/coqui/main.go
+        "${GO}" build -tags $GOTAGS -ldflags="${GOLDFLAGS}" cmd/coqui/main.go
     fi
     sync
     mv main chipper
@@ -645,6 +611,7 @@ fi
 
 if [[ $1 == "daemon-enable" ]]; then
     getPackages
+    getSTT
     setupSystemd
     exit 0
 fi

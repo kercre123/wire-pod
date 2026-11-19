@@ -36,20 +36,22 @@ fi
 
 git fetch --all
 git reset --hard origin/main
+source ./goenv.sh
 if [[ -f ./chipper/chipper ]]; then
+    getGo || exit 1
     cd chipper
     source source.sh
     sudo systemctl stop wire-pod
     if [[ ${STT_SERVICE} == "leopard" ]]; then
         echo "wire-pod.service created, building chipper with Picovoice STT service..."
-        sudo /usr/local/go/bin/go build cmd/leopard/main.go
+        sudo "${GO}" build cmd/leopard/main.go
     elif [[ ${STT_SERVICE} == "vosk" ]]; then
         echo "wire-pod.service created, building chipper with VOSK STT service..."
         export CGO_ENABLED=1
-        sudo LD_LIBRARY_PATH="/root/.vosk/libvosk:$LD_LIBRARY_PATH" CGO_LDFLAGS="-L /root/.vosk/libvosk -lvosk -ldl -lpthread" CGO_CFLAGS="-I/root/.vosk/libvosk" CGO_ENABLED=1 /usr/local/go/bin/go build cmd/vosk/main.go
+        sudo LD_LIBRARY_PATH="${VOSK_DIR}:$LD_LIBRARY_PATH" CGO_LDFLAGS="-L ${VOSK_DIR} -lvosk -ldl -lpthread" CGO_CFLAGS="-I${VOSK_DIR}" CGO_ENABLED=1 "${GO}" build cmd/vosk/main.go
     elif [[ ${STT_SERVICE} == "coqui" ]]; then
         echo "wire-pod.service created, building chipper with Coqui STT service..."
-        sudo LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH" CGO_CXXFLAGS="-I/root/.coqui/" CGO_LDFLAGS="-L/root/.coqui/" /usr/local/go/bin/go build cmd/coqui/main.go
+        sudo LD_LIBRARY_PATH="/root/.coqui/:$LD_LIBRARY_PATH" CGO_CXXFLAGS="-I/root/.coqui/" CGO_LDFLAGS="-L/root/.coqui/" "${GO}" build cmd/coqui/main.go
     else
 	echo "Unsupported STT ${STT_SERVICE}. You must build this manually. The code has been updated, though."
 	exit 1

@@ -3,6 +3,7 @@ package vars
 import (
 	"encoding/json"
 	"os"
+	"sync"
 
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 )
@@ -11,9 +12,12 @@ import (
 
 var ApiConfigPath = "./apiConfig.json"
 
-var APIConfig apiConfig
+var (
+	cfgMu  sync.RWMutex
+	apiCfg APIConfig
+)
 
-type apiConfig struct {
+type APIConfig struct {
 	Weather struct {
 		Enable   bool   `json:"enable"`
 		Provider string `json:"provider"`
@@ -50,48 +54,64 @@ type apiConfig struct {
 	PastInitialSetup bool `json:"pastinitialsetup"`
 }
 
+func Config() APIConfig {
+	cfgMu.RLock()
+	defer cfgMu.RUnlock()
+	return apiCfg
+}
+
+func UpdateConfig(fn func(c *APIConfig)) {
+	cfgMu.Lock()
+	defer cfgMu.Unlock()
+	fn(&apiCfg)
+}
+
 func WriteConfigToDisk() {
 	logger.Println("Configuration changed, writing to disk")
-	writeBytes, _ := json.Marshal(APIConfig)
-	os.WriteFile(ApiConfigPath, writeBytes, 0644)
+	cfgMu.Lock()
+	defer cfgMu.Unlock()
+	writeBytes, _ := json.Marshal(apiCfg)
+	WriteFileAtomic(ApiConfigPath, writeBytes, 0600)
 }
 
 func CreateConfigFromEnv() {
 	// if no config exists, create it
 	if os.Getenv("WEATHERAPI_ENABLED") == "true" {
-		APIConfig.Weather.Enable = true
-		APIConfig.Weather.Provider = os.Getenv("WEATHERAPI_PROVIDER")
-		APIConfig.Weather.Key = os.Getenv("WEATHERAPI_KEY")
-		APIConfig.Weather.Unit = os.Getenv("WEATHERAPI_UNIT")
+		apiCfg.Weather.Enable = true
+		apiCfg.Weather.Provider = os.Getenv("WEATHERAPI_PROVIDER")
+		apiCfg.Weather.Key = os.Getenv("WEATHERAPI_KEY")
+		apiCfg.Weather.Unit = os.Getenv("WEATHERAPI_UNIT")
 	} else {
-		APIConfig.Weather.Enable = false
+		apiCfg.Weather.Enable = false
 	}
 	if os.Getenv("KNOWLEDGE_ENABLED") == "true" {
-		APIConfig.Knowledge.Enable = true
-		APIConfig.Knowledge.Provider = os.Getenv("KNOWLEDGE_PROVIDER")
+		apiCfg.Knowledge.Enable = true
+		apiCfg.Knowledge.Provider = os.Getenv("KNOWLEDGE_PROVIDER")
 		if os.Getenv("KNOWLEDGE_PROVIDER") == "houndify" {
-			APIConfig.Knowledge.ID = os.Getenv("KNOWLEDGE_ID")
+			apiCfg.Knowledge.ID = os.Getenv("KNOWLEDGE_ID")
 		}
-		APIConfig.Knowledge.Key = os.Getenv("KNOWLEDGE_KEY")
+		apiCfg.Knowledge.Key = os.Getenv("KNOWLEDGE_KEY")
 	} else {
-		APIConfig.Knowledge.Enable = false
+		apiCfg.Knowledge.Enable = false
 	}
 	WriteSTT()
-	APIConfig.HasReadFromEnv = true
-	writeBytes, _ := json.Marshal(APIConfig)
-	os.WriteFile(ApiConfigPath, writeBytes, 0644)
+	apiCfg.HasReadFromEnv = true
+	writeBytes, _ := json.Marshal(apiCfg)
+	WriteFileAtomic(ApiConfigPath, writeBytes, 0600)
 }
 
 func WriteSTT() {
 	// was not part of the original code, so this is its own function
 	// launched if stt not found in config
-	APIConfig.STT.Service = os.Getenv("STT_SERVICE")
+	apiCfg.STT.Service = os.Getenv("STT_SERVICE")
 	if os.Getenv("STT_SERVICE") == "vosk" || os.Getenv("STT_SERVICE") == "whisper.cpp" {
-		APIConfig.STT.Language = os.Getenv("STT_LANGUAGE")
+		apiCfg.STT.Language = os.Getenv("STT_LANGUAGE")
 	}
 }
 
 func ReadConfig() {
+	cfgMu.Lock()
+	defer cfgMu.Unlock()
 	if _, err := os.Stat(ApiConfigPath); err != nil {
 		CreateConfigFromEnv()
 		logger.Println("API config JSON created")
@@ -99,38 +119,38 @@ func ReadConfig() {
 		// read config
 		configBytes, err := os.ReadFile(ApiConfigPath)
 		if err != nil {
-			APIConfig.Knowledge.Enable = false
-			APIConfig.Weather.Enable = false
+			apiCfg.Knowledge.Enable = false
+			apiCfg.Weather.Enable = false
 			logger.Println("Failed to read API config file")
 			logger.Println(err)
 			return
 		}
-		err = json.Unmarshal(configBytes, &APIConfig)
+		err = json.Unmarshal(configBytes, &apiCfg)
 		if err != nil {
-			APIConfig.Knowledge.Enable = false
-			APIConfig.Weather.Enable = false
+			apiCfg.Knowledge.Enable = false
+			apiCfg.Weather.Enable = false
 			logger.Println("Failed to unmarshal API config JSON")
 			logger.Println(err)
 			return
 		}
 		// stt service is the only thing controlled by shell
-		if APIConfig.STT.Service != os.Getenv("STT_SERVICE") {
+		if apiCfg.STT.Service != os.Getenv("STT_SERVICE") {
 			WriteSTT()
 		}
-		if !APIConfig.HasReadFromEnv {
-			if APIConfig.Server.Port != os.Getenv("DDL_RPC_PORT") {
-				APIConfig.HasReadFromEnv = true
-				APIConfig.PastInitialSetup = true
+		if !apiCfg.HasReadFromEnv {
+			if apiCfg.Server.Port != os.Getenv("DDL_RPC_PORT") {
+				apiCfg.HasReadFromEnv = true
+				apiCfg.PastInitialSetup = true
 			}
 		}
 
-		if APIConfig.Knowledge.Model == "meta-llama/Llama-2-70b-chat-hf" {
+		if apiCfg.Knowledge.Model == "meta-llama/Llama-2-70b-chat-hf" {
 			logger.Println("Setting Together model to Llama3")
-			APIConfig.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
+			apiCfg.Knowledge.Model = "meta-llama/Llama-3-70b-chat-hf"
 		}
 
-		writeBytes, _ := json.Marshal(APIConfig)
-		os.WriteFile(ApiConfigPath, writeBytes, 0644)
+		writeBytes, _ := json.Marshal(apiCfg)
+		WriteFileAtomic(ApiConfigPath, writeBytes, 0600)
 		logger.Println("API config successfully read")
 	}
 }

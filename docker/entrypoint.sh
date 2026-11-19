@@ -139,8 +139,8 @@ apply_env_overrides() {
 persist_directories
 persist_files
 
-if [ ! -e /root/.vosk ]; then
-    ln -sfn /opt/vosk /root/.vosk
+if [ ! -e "${APP_ROOT}/vosk/libvosk" ]; then
+    ln -sfn /opt/vosk/libvosk "${APP_ROOT}/vosk/libvosk"
 fi
 
 apply_env_overrides

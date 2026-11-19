@@ -14,8 +14,9 @@ import (
 
 	"github.com/fforchino/vector-go-sdk/pkg/vector"
 	"github.com/fforchino/vector-go-sdk/pkg/vectorpb"
+	"github.com/kercre123/wire-pod/chipper/pkg/botconn"
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
-	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/webguard"
 	lualibs "github.com/vadv/gopher-lua-libs"
 	lua "github.com/yuin/gopher-lua"
 )
@@ -132,6 +133,7 @@ func showImageOnScreen(L *lua.LState) int {
 		logger.LogUI("Lua error: unable to open image file:", err)
 		return 0
 	}
+	defer f.Close()
 	img, _, err := image.Decode(f)
 	if err != nil {
 		logger.LogUI("Lua error: file is not an image:", err)
@@ -160,18 +162,14 @@ func postHTTPRequest(L *lua.LState) int {
 	body := L.ToString(3)
 	timeout := L.ToInt(4)
 	r := bytes.NewReader([]byte(body))
-	cl := http.DefaultClient
-	if timeout > 0 {
-		cl.Timeout = time.Second * time.Duration(timeout)
-	}
-	resp, err := cl.Post(url, contentType, r)
+	resp, err := luaHTTPClient(timeout).Post(url, contentType, r)
 	if err != nil {
 		logger.LogUI("Lua postHTTPRequest error:", err)
 		L.Push(lua.LString("http error: " + err.Error()))
 		return 1
 	}
+	defer resp.Body.Close()
 	b, err := io.ReadAll(resp.Body)
-	L.Push(lua.LString(string(b)))
 	if err != nil {
 		logger.LogUI("Lua postHTTPRequest error:", err)
 		L.Push(lua.LString("http error: " + err.Error()))
@@ -181,19 +179,24 @@ func postHTTPRequest(L *lua.LState) int {
 	return 1
 }
 
-func getHTTPRequest(L *lua.LState) int {
-	url := L.ToString(1)
-	timeout := L.ToInt(2)
-	cl := http.DefaultClient
+func luaHTTPClient(timeout int) *http.Client {
+	cl := &http.Client{}
 	if timeout > 0 {
 		cl.Timeout = time.Second * time.Duration(timeout)
 	}
-	resp, err := cl.Get(url)
+	return cl
+}
+
+func getHTTPRequest(L *lua.LState) int {
+	url := L.ToString(1)
+	timeout := L.ToInt(2)
+	resp, err := luaHTTPClient(timeout).Get(url)
 	if err != nil {
 		logger.LogUI("Lua getHTTPRequest error:", err)
 		L.Push(lua.LString("http error: " + err.Error()))
 		return 1
 	}
+	defer resp.Body.Close()
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.LogUI("Lua getHTTPRequest error:", err)
@@ -227,7 +230,7 @@ func MakeLuaState(esn string, validating bool) (*lua.LState, error) {
 	SetBControlFunctions(L)
 	ud := L.NewUserData()
 	if !validating {
-		rob, err := vars.GetRobot(esn)
+		rob, err := botconn.Get(esn)
 		if err != nil {
 			return nil, err
 		}
@@ -293,6 +296,9 @@ func ValidateLuaScript(luaScript string) error {
 func ScriptingAPI(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api-lua/run_script":
+		if !webguard.RequireJSON(w, r) {
+			return
+		}
 		fBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "request body couldn't be read: "+err.Error(), http.StatusInternalServerError)

@@ -18,6 +18,13 @@ If you want to :P
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/kercre123)
 
+## PR guidelines
+
+- Test it with a robot yourself first, if you can.
+- Don't fill the code with tests and comments. Try to be relatively minimally invasive.
+- No big overhauls of anything, please. Feel free to make your own fork if you want a new UI or something!
+- PR descriptions should be concise. Briefly describe the old behavior, briefly describe the new behavior.
+
 ## Credits
 
 - [Digital Dream Labs](https://github.com/digital-dream-labs) for open sourcing chipper and creating escape pod (which made this possible)

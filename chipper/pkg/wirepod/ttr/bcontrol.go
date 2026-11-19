@@ -47,23 +47,15 @@ func sayText(robot *vector.Vector, text string) {
 				}
 			}
 
-			for {
-				select {
-				case <-stop:
-					if err := r.Send(
-						&vectorpb.BehaviorControlRequest{
-							RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
-								ControlRelease: &vectorpb.ControlRelease{},
-							},
-						},
-					); err != nil {
-						log.Println(err)
-						return
-					}
-					return
-				default:
-					continue
-				}
+			<-stop
+			if err := r.Send(
+				&vectorpb.BehaviorControlRequest{
+					RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
+						ControlRelease: &vectorpb.ControlRelease{},
+					},
+				},
+			); err != nil {
+				log.Println(err)
 			}
 			// * end - modified from official vector-go-sdk
 		}()
@@ -117,24 +109,16 @@ func BControl(robot *vector.Vector, ctx context.Context, start, stop chan bool) 
 			}
 		}
 
-		for {
-			select {
-			case <-stop:
-				logger.Println("KGSim: releasing behavior control (interrupt)")
-				if err := r.Send(
-					&vectorpb.BehaviorControlRequest{
-						RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
-							ControlRelease: &vectorpb.ControlRelease{},
-						},
-					},
-				); err != nil {
-					logger.Println(err)
-					return
-				}
-				return
-			default:
-				continue
-			}
+		<-stop
+		logger.Println("KGSim: releasing behavior control (interrupt)")
+		if err := r.Send(
+			&vectorpb.BehaviorControlRequest{
+				RequestType: &vectorpb.BehaviorControlRequest_ControlRelease{
+					ControlRelease: &vectorpb.ControlRelease{},
+				},
+			},
+		); err != nil {
+			logger.Println(err)
 		}
 		// * end - modified from official vector-go-sdk
 	}()
