@@ -15,10 +15,10 @@ func SetBControlFunctions(L *lua.LState) {
 	L.SetGlobal("assumeBehaviorControl", L.NewFunction(func(*lua.LState) int {
 		robot := gRfLS(L)
 		priority := vectorpb.ControlRequest_OVERRIDE_BEHAVIORS
-		if priority != 0 && priority != 10 && priority != 20 && priority != 30 {
+		if arg := L.ToInt(1); arg == 10 || arg == 20 || arg == 30 {
+			priority = vectorpb.ControlRequest_Priority(arg)
+		} else if arg != 0 {
 			logger.Println("LUA: Behavior control priority was not valid. Valid choices are 10, 20, and 30. Assuming 10.")
-		} else {
-			priority = vectorpb.ControlRequest_Priority(L.ToInt(1))
 		}
 		controlRequest := &vectorpb.BehaviorControlRequest{
 			RequestType: &vectorpb.BehaviorControlRequest_ControlRequest{
