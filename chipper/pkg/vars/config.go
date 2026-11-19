@@ -42,8 +42,9 @@ type APIConfig struct {
 		Temperature            float32 `json:"temp"`
 	} `json:"knowledge"`
 	STT struct {
-		Service  string `json:"provider"`
-		Language string `json:"language"`
+		Service       string `json:"provider"`
+		Language      string `json:"language"`
+		UseLargeModel bool   `json:"use_large_model"`
 	} `json:"STT"`
 	Server struct {
 		// false for ip, true for escape pod
@@ -106,6 +107,9 @@ func WriteSTT() {
 	apiCfg.STT.Service = os.Getenv("STT_SERVICE")
 	if os.Getenv("STT_SERVICE") == "vosk" || os.Getenv("STT_SERVICE") == "whisper.cpp" {
 		apiCfg.STT.Language = os.Getenv("STT_LANGUAGE")
+		if os.Getenv("VOSK_LARGE") == "true" {
+            apiCfg.STT.UseLargeModel = true
+        }
 	}
 }
 

@@ -262,6 +262,7 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	var request struct {
 		Language string `json:"language"`
+		UseLargeModel *bool `json:"use_large_model"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -273,7 +274,11 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !vars.IsVoskModelDownloaded(request.Language) {
-			go localization.DownloadVoskModel(request.Language)
+			useLarge := vars.Config().STT.UseLargeModel
+			if request.UseLargeModel != nil {
+				useLarge = *request.UseLargeModel
+			}
+			go localization.DownloadVoskModel(request.Language, useLarge)
 			fmt.Fprint(w, "downloading language model...")
 			return
 		}
@@ -288,6 +293,9 @@ func handleSetSTTInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	vars.UpdateConfig(func(c *vars.APIConfig) {
 		c.STT.Language = request.Language
+		if request.UseLargeModel != nil {
+			c.STT.UseLargeModel = *request.UseLargeModel
+		}
 		c.PastInitialSetup = true
 	})
 	vars.WriteConfigToDisk()

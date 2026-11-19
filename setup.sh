@@ -157,6 +157,28 @@ function getSTT() {
         echo "export PICOVOICE_APIKEY=${picoKey}" > ./chipper/pico.key
         elif [[ ${sttService} == "vosk" ]]; then
         echo "export STT_SERVICE=vosk" >> ./chipper/source.sh
+        function voskModelPrompt() {
+            echo
+            echo "Which Vosk model size would you like to use?"
+            echo "1: Small (~50MB each, faster, less accurate)"
+            echo "2: Large (~1.5GB each, might be slower, more accurate)"
+            echo "NOTE: Large might be unavailable in some languages. It will fallback to the small model in that case."
+            echo
+            read -p "Enter a number (1): " voskModelNum
+            if [[ ! -n ${voskModelNum} ]]; then
+                VOSK_LARGE="false"
+                elif [[ ${voskModelNum} == "1" ]]; then
+                VOSK_LARGE="false"
+                elif [[ ${voskModelNum} == "2" ]]; then
+                VOSK_LARGE="true"
+            else
+                echo
+                echo "Choose a valid number, or just press enter to use the default number."
+                voskModelPrompt
+            fi
+        }
+        voskModelPrompt
+        echo "export VOSK_LARGE=${VOSK_LARGE}" >> ./chipper/source.sh
         origDir="$(pwd)"
         if [[ ! -f ./vosk/completed ]]; then
             echo "Getting VOSK assets"

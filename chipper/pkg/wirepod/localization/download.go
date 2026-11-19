@@ -26,9 +26,10 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
 )
 
+// Small models are hosted on the kercre123 mirror.
 var URLPrefix string = "https://github.com/kercre123/vosk-models/raw/main/"
-
-//var URLPrefix string = "https://alphacephei.com/vosk/models/"
+// Large models are hosted on the official Vosk site.
+var LargeURLPrefix string = "https://alphacephei.com/vosk/models/"
 
 var (
 	downloadStatusMu sync.Mutex
@@ -59,36 +60,81 @@ func TakeDownloadStatus() string {
 	return s
 }
 
-func DownloadVoskModel(language string) {
+func DownloadVoskModel(language string, useLargeModel bool) {
 	filename := "vosk-model-small-"
+
 	if language == "en-US" {
-		filename = filename + "en-us-0.15.zip"
+		if useLargeModel {
+			filename = "vosk-model-en-us-0.22.zip"
+		} else {
+			filename = filename + "en-us-0.15.zip"
+		}
 	} else if language == "it-IT" {
-		filename = filename + "it-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-it-0.22.zip"
+		} else {
+			filename = filename + "it-0.22.zip"
+		}
 	} else if language == "es-ES" {
-		filename = filename + "es-0.42.zip"
+		if useLargeModel {
+			filename = "vosk-model-es-0.42.zip"
+		} else {
+			filename = filename + "es-0.42.zip"
+		}
 	} else if language == "fr-FR" {
-		filename = filename + "fr-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-fr-0.22.zip"
+		} else {
+			filename = filename + "fr-0.22.zip"
+		}
 	} else if language == "de-DE" {
-		filename = filename + "de-0.15.zip"
+		if useLargeModel {
+			filename = "vosk-model-de-0.21.zip"
+		} else {
+			filename = filename + "de-0.15.zip"
+		}
 	} else if language == "pt-BR" {
-		filename = filename + "pt-0.3.zip"
-	} else if language == "pl-PL" {
-		filename = filename + "pl-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-pt-fb-v0.1.1-20220516_2113.zip"
+		} else {
+			filename = filename + "pt-0.3.zip"
+		}
+	} else if language == "pl-PL" {	
+		filename = "vosk-model-small-pl-0.22"
+
 	} else if language == "zh-CN" {
-		filename = filename + "cn-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-cn-0.22.zip"
+		} else {
+			filename = filename + "cn-0.22.zip"
+		}
 	} else if language == "tr-TR" {
 		filename = filename + "tr-0.3.zip"
+
 	} else if language == "ru-RU" {
-		filename = filename + "ru-0.22.zip"
+		if useLargeModel {
+			filename = "vosk-model-ru-0.42.zip"
+		} else {
+			filename = filename + "ru-0.22.zip"
+		}
 	} else if language == "nt-NL" {
 		filename = filename + "nl-0.22.zip"
+
 	} else if language == "uk-UA" {
-		filename = filename + "uk-v3-small.zip"
+		if useLargeModel {
+			filename = "vosk-model-uk-v3.zip"
+		} else {
+			filename = filename + "uk-v3-small.zip"
+		}
 	} else if language == "vi-VN" {
-		filename = filename + "vn-0.4.zip"
+		if useLargeModel {
+			filename = "vosk-model-vn-0.4.zip"
+		} else {
+			filename = filename + "vn-0.4.zip"
+		}
 	} else if language == "ko-KR" {
-		filename = filename + "ko-0.22.zip"
+			filename = filename + "ko-0.22.zip"
+
 	} else {
 		logger.Println("Language not valid? " + language)
 		return
@@ -99,7 +145,12 @@ func DownloadVoskModel(language string) {
 	}
 	defer downloading.Store(false)
 	os.MkdirAll(vars.VoskModelPath, 0755)
-	url := URLPrefix + filename
+	var url string
+	if useLargeModel {
+		url = LargeURLPrefix + filename
+	} else {
+		url = URLPrefix + filename
+	}
 	var filep string
 	if runtime.GOOS == "android" || runtime.GOOS == "ios" {
 		filep = filepath.Join(vars.AndroidPath, "/"+filename)
