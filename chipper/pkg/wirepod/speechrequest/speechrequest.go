@@ -181,6 +181,10 @@ func highPassFilter(data []byte) []byte {
 	if err != nil {
 		return nil
 	}
+	if len(samples) == 0 {
+		// a chunk that completes no opus audio page decodes to zero samples
+		return data
+	}
 	samples = applyGain(samples, 5)
 	filteredSamples := make([]float64, len(samples))
 	rc := 1.0 / (2.0 * math.Pi * cutoffFreq)
