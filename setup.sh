@@ -85,7 +85,7 @@ function getPackages() {
         apt install -y wget openssl net-tools libsox-dev libopus-dev make iproute2 xz-utils libopusfile-dev pkg-config gcc curl g++ unzip avahi-daemon git libasound2-dev libsodium-dev cmake lld
         elif [[ ${TARGET} == "arch" ]]; then
         pacman -Sy --noconfirm
-        sudo pacman -S --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium pkg-config cmake lld
+        sudo pacman -S --needed --noconfirm wget openssl net-tools sox opus make iproute2 opusfile curl unzip avahi git libsodium pkg-config cmake lld
         elif [[ ${TARGET} == "fedora" ]]; then
         dnf update
         dnf install -y wget openssl net-tools sox opus make opusfile curl unzip avahi git libsodium-devel cmake lld
