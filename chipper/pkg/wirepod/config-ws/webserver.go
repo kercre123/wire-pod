@@ -49,6 +49,14 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		handleGetDownloadStatus(w)
 	case "get_stt_info":
 		handleGetSTTInfo(w)
+	case "get_wyoming":
+		handleGetWyoming(w)
+	case "set_wyoming":
+		handleSetWyoming(w, r)
+	case "wyoming_describe":
+		handleWyomingDescribe(w, r)
+	case "wyoming_tts_preview":
+		handleWyomingTTSPreview(w, r)
 	case "get_config":
 		handleGetConfig(w)
 	case "get_logs":

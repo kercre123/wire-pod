@@ -20,6 +20,7 @@ import (
 	"github.com/kercre123/wire-pod/chipper/pkg/logger"
 	"github.com/kercre123/wire-pod/chipper/pkg/scripting"
 	"github.com/kercre123/wire-pod/chipper/pkg/vars"
+	"github.com/kercre123/wire-pod/chipper/pkg/wirepod/tts"
 )
 
 var serverFiles string = "./webroot/sdkapp"
@@ -301,14 +302,7 @@ func SdkapiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "error: text is too long")
 			return
 		}
-		robot.Conn.SayText(
-			ctx,
-			&vectorpb.SayTextRequest{
-				DurationScalar: 1,
-				UseVectorVoice: true,
-				Text:           r.FormValue("text"),
-			},
-		)
+		tts.SayText(ctx, robot, r.FormValue("text"), 1)
 		fmt.Fprintf(w, "success")
 		return
 	case r.URL.Path == "/api-sdk/move_wheels":
